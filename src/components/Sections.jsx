@@ -137,7 +137,7 @@ export function Manifesto() {
         <div className="manifesto-media">
           <div className="manifesto-frame" data-cursor>
             <motion.img
-              src="/img/edge-cover.webp" alt="Iridescent particle weave — LOOM brand artwork"
+              src="/img/weave-key.webp" alt="Iridescent particle weave — LOOM brand artwork"
               style={{ y: yImg }} loading="lazy"
             />
           </div>
@@ -234,20 +234,32 @@ export function AiLoom() {
           ))}
         </ul>
       </div>
+      <div className="ailoom-art" aria-hidden="true">
+        <img src="/img/ai-loom.webp" alt="" loading="lazy" />
+      </div>
       <div className="ailoom-glow" aria-hidden="true" />
     </section>
   )
 }
 
 export function Stats() {
+  const ref = useRef(null)
+  const reduced = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
+  const y = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-12%', '12%'])
   return (
-    <section className="stats" aria-label="Studio in numbers">
-      {STATS.map((s, i) => (
-        <Reveal key={s.label} delay={i * 0.07} className="stat">
-          <div className="stat-value"><CountUp value={s.value} suffix={s.suffix} /></div>
-          <div className="stat-label">{s.label}</div>
-        </Reveal>
-      ))}
+    <section className="stats" aria-label="Studio in numbers" ref={ref}>
+      <motion.div className="stats-bg" style={{ y }} aria-hidden="true">
+        <img src="/img/weave-alt.webp" alt="" loading="lazy" />
+      </motion.div>
+      <div className="stats-grid">
+        {STATS.map((s, i) => (
+          <Reveal key={s.label} delay={i * 0.07} className="stat">
+            <div className="stat-value"><CountUp value={s.value} suffix={s.suffix} /></div>
+            <div className="stat-label">{s.label}</div>
+          </Reveal>
+        ))}
+      </div>
     </section>
   )
 }
