@@ -45,6 +45,8 @@ upload the contents of `dist/`. No server code, no env vars.
 | All content (brand, services, 14 cases, stats, contacts) | `src/data/site.js` |
 | WebGL hero (particle weave) | `src/three/HeroField.js` |
 | Sections | `src/components/Sections.jsx` |
+| Apps showcase + 3D Lab | `src/components/Products.jsx` |
+| Contact wizard (4 steps → WhatsApp/email) | `src/components/ContactWizard.jsx` |
 | Work grid + case overlay | `src/components/Work.jsx` |
 | Nav / loader / cursor / footer | `src/components/Chrome.jsx` |
 | Motion primitives (SplitWords, Reveal, CountUp, Magnetic) | `src/lib/motion.jsx` |
