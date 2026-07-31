@@ -1,6 +1,6 @@
 // ————————————————————————————————————————————
 // LOOM — single source of truth for all site content.
-// Portfolio drawn from the ADVN Digital 2026 profile (sister studio, Sarajevo).
+// Portfolio drawn from the studio’s 2026 profile deck.
 // ————————————————————————————————————————————
 
 export const BRAND = {

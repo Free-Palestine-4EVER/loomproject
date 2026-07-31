@@ -1,4 +1,4 @@
-// The Weave — a living particle thread-field, echoing the ADVN "Edge of
+// The Weave — a living particle thread-field, echoing the "Edge of
 // Creativity" cover: iridescent grains flowing over a dark violet ground.
 // Vanilla three.js, inline GLSL (no shader plugins), DPR-capped, pausable.
 import * as THREE from 'three'
