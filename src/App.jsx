@@ -3,6 +3,7 @@ import Lenis from 'lenis'
 import { Loader, Nav, Cursor, ScrollProgress, Footer } from './components/Chrome.jsx'
 import { Hero, Marquee, Manifesto, Services, Process, AiLoom, Stats, Studios, Contact } from './components/Sections.jsx'
 import { Work } from './components/Work.jsx'
+import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
@@ -59,6 +60,8 @@ export default function App() {
         <Services />
         <AiLoom />
         <Work />
+        <AppsShowcase />
+        <ToolsLab />
         <Process />
         <Stats />
         <Studios />

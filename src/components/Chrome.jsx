@@ -62,8 +62,9 @@ export function ScrollProgress() {
 
 const LINKS = [
   { href: '#work', label: 'Work' },
+  { href: '#apps', label: 'Apps' },
+  { href: '#lab', label: '3D Lab' },
   { href: '#services', label: 'Services' },
-  { href: '#studio', label: 'Studio' },
   { href: '#contact', label: 'Contact' },
 ]
 
@@ -128,7 +129,7 @@ export function Nav({ onNavigate }) {
                 >{l.label}</motion.a>
               ))}
             </div>
-            <motion.div className="menu-meta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+            <motion.div className="menu-meta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
               <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>
               <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
               <span>Amman × Sarajevo</span>
@@ -197,11 +198,11 @@ export function Footer({ onNavigate }) {
         <div className="footer-contact">
           <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp — {BRAND.phoneJO}</a>
           <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
-          <a href={BRAND.instagram} target="_blank" rel="noreferrer">Instagram {BRAND.instagramHandle}</a>
+          <span>Amman · Sarajevo</span>
         </div>
       </div>
       <div className="footer-base">
-        <span>© {new Date().getFullYear()} LOOM × ADVN Digital. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} LOOM. All rights reserved.</span>
         <span>The edge is intentional.</span>
       </div>
     </footer>

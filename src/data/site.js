@@ -10,10 +10,7 @@ export const BRAND = {
   cities: ['Amman', 'Sarajevo'],
   whatsapp: 'https://wa.me/962791792129',
   phoneJO: '+962 79 179 2129',
-  phoneBA: '+387 62 475 412',
-  email: 'israa@advndigital.com',
-  instagram: 'https://instagram.com/advndigital',
-  instagramHandle: '@advndigital',
+  email: 'mofakhori@gmail.com',
 }
 
 export const CLIENT_WALL = [
@@ -66,9 +63,98 @@ export const PROCESS = [
 export const STATS = [
   { value: 28, suffix: '+', label: 'Brands woven' },
   { value: 7, suffix: '', label: 'Countries shipped to' },
-  { value: 14, suffix: '', label: 'Case studies in the book' },
+  { value: 12, suffix: '+', label: 'Apps & tools in the lab' },
   { value: 2, suffix: '', label: 'Studios — Amman × Sarajevo' },
 ]
+
+// ————— LOOM-built products —————
+export const APPS = [
+  {
+    name: 'Lahza', ar: 'لحظة', tag: 'iOS · Events',
+    grad: ['#f21c8c', '#7b2fbe'],
+    glyph: 'M12 21s-7-4.6-9.5-9A5.6 5.6 0 0 1 12 6.3 5.6 5.6 0 0 1 21.5 12C19 16.4 12 21 12 21Z',
+    blurb: 'Wedding photo-sharing — guests scan a QR and every moment lands in one live album.',
+  },
+  {
+    name: 'Evora Scan', tag: 'iOS · LiDAR & AR',
+    grad: ['#59e6ff', '#7b2fbe'],
+    glyph: 'M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3M8 12h8M12 8v8',
+    blurb: 'Point a phone at a room — get a 3D model, a floor plan and walk-in AR, in minutes.',
+  },
+  {
+    name: 'Glowbar', tag: 'iOS · Beauty',
+    grad: ['#ffc740', '#f21c8c'],
+    glyph: 'M12 3l2.1 5.4L20 10.5l-5.9 2.1L12 18l-2.1-5.4L4 10.5l5.9-2.1L12 3Z',
+    blurb: 'A luxury studio app for a face-pilates brand — rituals, bookings, glow tracking.',
+  },
+  {
+    name: 'TAWSIYAT', tag: 'Web · Ordering',
+    grad: ['#2ee6a8', '#59e6ff'],
+    glyph: 'M4 6h16M4 12h16M4 18h10',
+    blurb: 'Pickup-first food ordering for Amman — menus imported, orders claimed by code.',
+  },
+  {
+    name: 'TrueSize AR', tag: 'iOS · AR Commerce',
+    grad: ['#7b2fbe', '#f21c8c'],
+    glyph: 'M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3ZM12 12l8-4.5M12 12v9M12 12L4 7.5',
+    blurb: 'Drop true-to-scale products into a customer’s room before they buy.',
+  },
+  {
+    name: 'Morphic', tag: 'iOS · AI Imaging',
+    grad: ['#f21c8c', '#ffc740'],
+    glyph: 'M12 4a8 8 0 1 0 8 8M16 4h4v4M21 3l-6 6',
+    blurb: 'On-device face morphing — studio-grade edits with zero photos leaving the phone.',
+  },
+]
+
+export const TOOLS = [
+  {
+    name: 'KUN', kicker: 'Talk-to-3D studio',
+    blurb: 'Describe a scene, watch it assemble — a conversational 3D creation studio.',
+    tag: 'Generative 3D',
+  },
+  {
+    name: 'ORBIT', kicker: '3D website editor',
+    blurb: 'A Wix for 3D worlds — scenes, scroll choreography and publishing in one canvas.',
+    tag: 'WebGL',
+  },
+  {
+    name: 'ATELIER', kicker: 'AI interior designer',
+    blurb: 'Furnishes full apartments in 3D — procedural furniture, palettes and lighting.',
+    tag: 'Spatial AI',
+  },
+  {
+    name: 'SPLAT LAB', kicker: 'Gaussian splatting',
+    blurb: 'Real spaces captured as photoreal 3D — trained on our own Apple-silicon rig.',
+    tag: 'Capture',
+  },
+  {
+    name: '2D→3D STUDIO', kicker: 'Plans to rooms',
+    blurb: 'Flat floor plans become furnished, explorable 3D rooms — walls and slots auto-solved.',
+    tag: 'Architecture',
+  },
+  {
+    name: 'TESSERA', kicker: 'Pattern engine',
+    blurb: 'A generative lattice-pattern editor — brand patterns exported straight to code.',
+    tag: 'Design systems',
+  },
+]
+
+// ————— contact wizard —————
+export const WIZARD = {
+  intents: [
+    { id: 'idea', icon: '💡', title: 'I have an idea', sub: 'Something new that needs shape' },
+    { id: 'business', icon: '🏢', title: 'I run a business', sub: 'Growth, content or a stronger brand' },
+    { id: 'rebrand', icon: '🔄', title: 'I need a rebrand', sub: 'What we have no longer fits' },
+    { id: 'explore', icon: '🧭', title: 'Just exploring', sub: 'Show me what’s possible' },
+  ],
+  needs: [
+    'Brand identity', 'Website', 'Mobile app', 'Social content',
+    'AI systems', '3D / AR experience', 'Launch campaign', 'Not sure yet',
+  ],
+  budgets: ['Under $1k', '$1k – $5k', '$5k – $15k', '$15k+', 'Let’s discuss'],
+  timelines: ['ASAP', 'Within a month', '1–3 months', 'Flexible'],
+}
 
 const img = (slug, f) => `/img/cases/${slug}/${f}`
 const boards = (slug, pages) => pages.map((p) => img(slug, `board-${p}.webp`))

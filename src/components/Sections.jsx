@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { BRAND, CLIENT_WALL, SERVICES, PROCESS, STATS } from '../data/site.js'
 import { EASE, SplitWords, Reveal, CountUp, Magnetic } from '../lib/motion.jsx'
 import { HeroField } from '../three/HeroField.js'
+import { ContactWizard } from './ContactWizard.jsx'
 
 export function Hero() {
   const canvasRef = useRef(null)
@@ -187,7 +188,7 @@ export function Process() {
   return (
     <section className="process">
       <div className="section-head">
-        <p className="kicker"><span>04</span> Process</p>
+        <p className="kicker"><span>06</span> Process</p>
         <SplitWords as="h2" className="h2" text="One process. No templates. No shortcuts." />
       </div>
       <div className="process-grid">
@@ -267,12 +268,12 @@ export function Studios() {
   const sarajevo = useCityTime('Europe/Sarajevo')
   const cities = [
     { name: 'Amman', country: 'Jordan', role: 'HQ — strategy, AI & production', time: amman, phone: BRAND.phoneJO, href: BRAND.whatsapp, action: 'WhatsApp us' },
-    { name: 'Sarajevo', country: 'Bosnia & Herzegovina', role: 'Design & campaign studio', time: sarajevo, phone: BRAND.phoneBA, href: `mailto:${BRAND.email}`, action: 'Email the studio' },
+    { name: 'Sarajevo', country: 'Bosnia & Herzegovina', role: 'Design & campaign studio', time: sarajevo, phone: 'By appointment', href: `mailto:${BRAND.email}`, action: 'Email the studio' },
   ]
   return (
     <section className="studios" id="studio">
       <div className="section-head">
-        <p className="kicker"><span>05</span> Studios</p>
+        <p className="kicker"><span>07</span> Studios</p>
         <SplitWords as="h2" className="h2" text="Two cities. One loom." />
       </div>
       <div className="studios-grid">
@@ -300,21 +301,23 @@ export function Studios() {
 export function Contact() {
   return (
     <section className="contact" id="contact">
-      <p className="kicker kicker--center"><span>06</span> Contact</p>
+      <p className="kicker kicker--center"><span>08</span> Contact</p>
       <h2 className="contact-h2">
         <SplitWords text="Ready to push" />
         <br />
         <span className="contact-accent"><SplitWords text="boundaries?" delay={0.15} /></span>
       </h2>
       <Reveal delay={0.2}>
-        <p className="contact-sub">If you’re ready to push boundaries — we’re ready to build.</p>
+        <p className="contact-sub">Tell us what you’re making — the wizard turns it into a brief we answer fast.</p>
       </Reveal>
-      <Reveal delay={0.3} className="contact-ctas">
-        <Magnetic><a className="btn btn--primary btn--big" href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp — {BRAND.phoneJO}</a></Magnetic>
-        <Magnetic><a className="btn btn--ghost btn--big" href={`mailto:${BRAND.email}?subject=Project%20inquiry%20—%20LOOM`}>{BRAND.email}</a></Magnetic>
+      <Reveal delay={0.3}>
+        <ContactWizard />
       </Reveal>
-      <Reveal delay={0.4}>
-        <p className="contact-ig"><a href={BRAND.instagram} target="_blank" rel="noreferrer">Instagram {BRAND.instagramHandle}</a></p>
+      <Reveal delay={0.35} className="contact-direct">
+        <span>Prefer it direct?</span>
+        <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>
+        <i aria-hidden="true">·</i>
+        <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
       </Reveal>
     </section>
   )

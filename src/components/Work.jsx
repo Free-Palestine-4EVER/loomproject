@@ -91,7 +91,7 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
             <div className="overlay-facts">
               <span><em>Market</em>{c.country}</span>
               <span><em>Year</em>{c.year}</span>
-              <span><em>Studio</em>LOOM × ADVN</span>
+              <span><em>Studio</em>LOOM</span>
             </div>
             <p className="overlay-copy">{c.copy}</p>
           </div>
