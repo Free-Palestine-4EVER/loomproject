@@ -71,6 +71,9 @@ export const STATS = [
 export const APPS = [
   {
     name: 'Lahza', ar: 'لحظة', tag: 'iOS · Events',
+    platforms: ['ios'],
+    store: 'TestFlight',
+    shot: '/img/apps/lahza.webp',
     screen: 'lahza',
     icon: 'heart-frame',
     grad: ['#f21c8c', '#7b2fbe'],
@@ -79,6 +82,7 @@ export const APPS = [
   },
   {
     name: 'Evora Scan', tag: 'iOS · LiDAR & AR',
+    platforms: ['ios'],
     screen: 'evora-scan',
     icon: 'scan-room',
     grad: ['#59e6ff', '#7b2fbe'],
@@ -87,6 +91,8 @@ export const APPS = [
   },
   {
     name: 'Glowbar', tag: 'iOS · Beauty',
+    platforms: ['ios'],
+    shot: '/img/apps/glowbar.webp',
     screen: 'glowbar',
     icon: 'sparkle-face',
     grad: ['#ffc740', '#f21c8c'],
@@ -95,6 +101,8 @@ export const APPS = [
   },
   {
     name: 'TAWSIYAT', tag: 'Web · Ordering',
+    shot: '/img/apps/tawsiyat.webp',
+    platforms: ['web'],
     screen: 'tawsiyat',
     icon: 'receipt',
     grad: ['#2ee6a8', '#59e6ff'],
@@ -103,6 +111,7 @@ export const APPS = [
   },
   {
     name: 'TrueSize AR', tag: 'iOS · AR Commerce',
+    platforms: ['ios'],
     screen: 'truesize',
     icon: 'cube-ar',
     grad: ['#7b2fbe', '#f21c8c'],
@@ -111,6 +120,9 @@ export const APPS = [
   },
   {
     name: 'Morphic', tag: 'iOS · AI Imaging',
+    platforms: ['ios'],
+    store: 'App Store',
+    shot: '/img/apps/morphic.webp',
     screen: 'morphic',
     icon: 'face-morph',
     grad: ['#f21c8c', '#ffc740'],
@@ -121,17 +133,20 @@ export const APPS = [
 
 export const TOOLS = [
   {
-    name: 'KUN', kicker: 'Talk-to-3D studio',
+    name: 'KUN',
+    shot: '/img/lab/kun.webp', kicker: 'Talk-to-3D studio',
     blurb: 'Describe a scene, watch it assemble — a conversational 3D creation studio.',
     tag: 'Generative 3D',
   },
   {
-    name: 'ORBIT', kicker: '3D website editor',
+    name: 'ORBIT',
+    shot: '/img/lab/orbit.webp', kicker: '3D website editor',
     blurb: 'A Wix for 3D worlds — scenes, scroll choreography and publishing in one canvas.',
     tag: 'WebGL',
   },
   {
-    name: 'ATELIER', kicker: 'AI interior designer',
+    name: 'ATELIER',
+    shot: '/img/lab/atelier.webp', kicker: 'AI interior designer',
     blurb: 'Furnishes full apartments in 3D — procedural furniture, palettes and lighting.',
     tag: 'Spatial AI',
   },
@@ -141,12 +156,14 @@ export const TOOLS = [
     tag: 'Capture',
   },
   {
-    name: '2D→3D STUDIO', kicker: 'Plans to rooms',
+    name: '2D→3D STUDIO',
+    shot: '/img/lab/2d3d.webp', kicker: 'Plans to rooms',
     blurb: 'Flat floor plans become furnished, explorable 3D rooms — walls and slots auto-solved.',
     tag: 'Architecture',
   },
   {
-    name: 'TESSERA', kicker: 'Pattern engine',
+    name: 'TESSERA',
+    shot: '/img/lab/tessera.webp', kicker: 'Pattern engine',
     blurb: 'A generative lattice-pattern editor — brand patterns exported straight to code.',
     tag: 'Design systems',
   },

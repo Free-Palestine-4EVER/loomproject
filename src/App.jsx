@@ -10,6 +10,7 @@ import { Moon } from './components/Moon.jsx'
 import { WizardProvider } from './lib/wizard.jsx'
 import { WizardModal } from './components/WizardModal.jsx'
 import { mountInteractions } from './lib/interactions.js'
+import { mountFx } from './lib/fx.js'
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
@@ -48,6 +49,9 @@ export default function App() {
 
   // pointer spotlight, card tilt, thread trail, active-section nav
   useEffect(() => mountInteractions(), [])
+
+  // FX pack — velocity marquee, nav scramble, stat glitch, confetti threads, edge glow, hero shimmer
+  useEffect(() => mountFx(), [])
 
   const navigate = (href) => {
     const el = href === '#top' ? document.body : document.querySelector(href)

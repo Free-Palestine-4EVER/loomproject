@@ -6,6 +6,27 @@ import { SplitWords, Reveal } from '../lib/motion.jsx'
 import { AppScreen } from './AppScreens.jsx'
 import { LabPreview } from './LabPreviews.jsx'
 
+// Minimal platform/store marks, drawn in the house 1.5px stroke style.
+function PlatformMark({ id }) {
+  const P = {
+    ios: <path d="M15.5 5.6c-.9.1-2 .7-2.6 1.5-.6.7-1.1 1.8-.9 2.8 1 0 2.1-.6 2.7-1.4.6-.7 1-1.8.8-2.9ZM12 9.9c-1.4 0-2.6.8-3.4.8-.8 0-1.9-.8-3.1-.8-1.6 0-3.4 1.4-3.4 4.1 0 2.7 2 5.7 3.5 5.7.8 0 1.7-.8 3-.8s2 .8 3 .8c1.5 0 3.4-3.1 3.4-4.4-1.6-.7-2.4-1.8-2.4-3.1 0-1.2.7-2 1.6-2.6-.7-1-1.7-1.7-2.2-1.7Z" transform="translate(3.5 -1.5) scale(0.92)" />,
+    macos: <><rect x="3.5" y="5" width="17" height="11.5" rx="1.6" /><path d="M8.5 20h7M12 16.5V20" /></>,
+    windows: <><path d="M4 6.6 11 5.5v6H4v-4.9ZM13 5.2 20 4v7.5h-7V5.2ZM4 13.5h7v6L4 18.4v-4.9ZM13 13.5h7V20l-7-1.2v-5.3Z" /></>,
+    linux: <><circle cx="12" cy="9" r="4.4" /><path d="M9.4 12.6 7.6 18a1.4 1.4 0 0 0 1.4 1.8h6a1.4 1.4 0 0 0 1.4-1.8l-1.8-5.4M10.4 8.4h.01M13.6 8.4h.01M11 10.4c.3.4 1.7.4 2 0" /></>,
+    web: <><circle cx="12" cy="12" r="8.2" /><path d="M3.8 12h16.4M12 3.8c2.6 2.4 3.9 5.2 3.9 8.2s-1.3 5.8-3.9 8.2c-2.6-2.4-3.9-5.2-3.9-8.2s1.3-5.8 3.9-8.2Z" /></>,
+    appstore: <><rect x="3.5" y="3.5" width="17" height="17" rx="4.2" /><path d="m9.2 15.5 4.6-8M14.2 15.5 12.9 13M7 15.5h6.3M15.6 15.5H17" /></>,
+    testflight: <><path d="M4 12.5 20 4l-4.2 16-4.6-6.2L4 12.5ZM11.2 13.8 20 4" /></>,
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {P[id] || null}
+    </svg>
+  )
+}
+
+const PLATFORM_LABEL = { ios: 'iOS', macos: 'macOS', windows: 'Windows', linux: 'Linux', web: 'Web' }
+
 function PhoneCard({ app, i }) {
   const [c1, c2] = app.grad
   return (
@@ -14,8 +35,12 @@ function PhoneCard({ app, i }) {
         <div className="app-phone" style={{ '--g1': c1, '--g2': c2 }}>
           <i className="app-notch" aria-hidden="true" />
           <div className="app-screen">
-            <AppScreen slug={app.screen} />
+            {app.shot
+              ? <img className="app-shot" src={app.shot} alt={`${app.name} — real app screenshot`} loading="lazy" />
+              : <AppScreen slug={app.screen} />}
+            <i className="app-sheen" aria-hidden="true" />
           </div>
+          {app.shot && <span className="app-real" aria-hidden="true">REAL BUILD</span>}
           <div className="app-glow" aria-hidden="true" />
         </div>
         <div className="app-meta">
@@ -24,6 +49,17 @@ function PhoneCard({ app, i }) {
             <span>{app.tag}</span>
           </header>
           <p>{app.blurb}</p>
+          <div className="app-badges">
+            {(app.platforms || []).map((p) => (
+              <span className="app-badge" key={p}><PlatformMark id={p} />{PLATFORM_LABEL[p] || p}</span>
+            ))}
+            {app.store && (
+              <span className={`app-badge app-badge--store ${app.store === 'App Store' ? 'is-live' : ''}`}>
+                <PlatformMark id={app.store === 'App Store' ? 'appstore' : 'testflight'} />
+                {app.store}
+              </span>
+            )}
+          </div>
         </div>
       </article>
     </Reveal>
@@ -72,7 +108,15 @@ export function ToolsLab() {
         {TOOLS.map((t, i) => (
           <Reveal key={t.name} delay={(i % 3) * 0.07}>
             <article className="lab-card" data-cursor>
-              <div className="lab-preview-wrap"><LabPreview name={t.name} /></div>
+              <div className={`lab-preview-wrap ${t.shot ? 'has-shot' : ''}`}>
+                <LabPreview name={t.name} />
+                {t.shot && (
+                  <>
+                    <img className="lab-shot" src={t.shot} alt={`${t.name} — real tool screenshot`} loading="lazy" />
+                    <span className="lab-real" aria-hidden="true">REAL TOOL</span>
+                  </>
+                )}
+              </div>
               <header>
                 <h3>{t.name}</h3>
                 <span className="lab-tag">{t.tag}</span>
