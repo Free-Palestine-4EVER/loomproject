@@ -1,4 +1,5 @@
-// The Ascent — scroll-scrubbed moonrise. LOOM's emotional crescendo.
+// The Ascent — LOOM Planet. One world, six territories, rotating into view on scroll.
+// "make the moon ... one part for marketing, one for this, but the whole planet is LOOM."
 import { useMemo, useRef } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { SplitWords } from '../lib/motion.jsx'
@@ -10,6 +11,18 @@ const STAGES = [
   { n: '02', title: 'Produce', body: 'Photography, film and 3D — generated at the volume your feed eats.' },
   { n: '03', title: 'Automate', body: 'AI agents that answer, book and sell while you sleep.' },
   { n: '04', title: 'Ascend', body: 'Then we push. New markets, new formats, new altitude.' },
+]
+
+// Six territories on the planet's surface. `top`/`left` are percentages of one
+// full "world wrap" (0–100), reused both for the static fallback and as the
+// base position that gets tiled three times to build the rotating strip.
+const TERRITORIES = [
+  { id: 'branding', label: 'Branding', blurb: 'Identity systems built to be unmistakable.', top: 20, left: 16 },
+  { id: 'social', label: 'Social', blurb: 'Content the feed cannot scroll past.', top: 64, left: 12 },
+  { id: 'ai', label: 'AI Systems', blurb: 'Agents that answer, book and sell on their own.', top: 30, left: 46 },
+  { id: 'web', label: 'Web & Apps', blurb: 'Products people actually finish setting up.', top: 68, left: 50 },
+  { id: '3d', label: '3D & AR', blurb: 'Worlds and objects you can step inside.', top: 18, left: 76 },
+  { id: 'campaigns', label: 'Campaigns', blurb: 'Launches engineered to hit like an event.', top: 58, left: 84 },
 ]
 
 // deterministic pseudo-random star field — no external images, no hydration jitter
@@ -24,6 +37,20 @@ function starShadows(count, w, h, seedStart) {
     out.push(`${x}px ${y}px 0 rgba(242,240,247,${a.toFixed(2)})`)
   }
   return out.join(',')
+}
+
+function Territory({ t, left, top }) {
+  return (
+    <button
+      type="button"
+      className={`planet-territory planet-territory--${t.id}`}
+      style={{ left: `${left}%`, top: `${top}%` }}
+    >
+      <span className="territory-blob" aria-hidden="true" />
+      <span className="territory-label">{t.label}</span>
+      <span className="territory-caption" role="tooltip">{t.blurb}</span>
+    </button>
+  )
 }
 
 function StageCard({ stage, index, progress }) {
@@ -44,7 +71,10 @@ function StageCard({ stage, index, progress }) {
   )
 }
 
-export function Moon() {
+/** enablePlanetVideo: optional decorative <video> layer behind the planet.
+ *  Defaults OFF — the section is complete without it and we never probe for
+ *  the file's existence, only a caller-supplied flag renders the element. */
+export function Moon({ enablePlanetVideo = false }) {
   const ref = useRef(null)
   const reduced = useReducedMotion()
   const { open } = useWizard()
@@ -53,8 +83,20 @@ export function Moon() {
   const stars1 = useMemo(() => starShadows(110, 2000, 1300, 17), [])
   const stars2 = useMemo(() => starShadows(60, 2000, 1300, 401), [])
 
-  const moonY = useTransform(scrollYProgress, [0, 1], ['48vh', '-4vh'])
-  const moonScale = useTransform(scrollYProgress, [0, 1], [0.76, 1.14])
+  // three copies of the territory set tiled side by side → a seamless,
+  // continuously scrolling "world strip" clipped to the circular planet.
+  const territorySlots = useMemo(() => {
+    const slots = []
+    for (let copy = 0; copy < 3; copy++) {
+      TERRITORIES.forEach((t) => {
+        slots.push({ t, key: `${t.id}-${copy}`, left: (copy * 100 + t.left) / 3 })
+      })
+    }
+    return slots
+  }, [])
+
+  const planetY = useTransform(scrollYProgress, [0, 1], ['46vh', '-5vh'])
+  const planetScale = useTransform(scrollYProgress, [0, 1], [0.72, 1.16])
   const starsFarY = useTransform(scrollYProgress, [0, 1], ['0%', '-6%'])
   const starsNearY = useTransform(scrollYProgress, [0, 1], ['0%', '-15%'])
   const threadLength = useTransform(scrollYProgress, [0.03, 0.86], [0, 1])
@@ -66,15 +108,20 @@ export function Moon() {
     return (
       <section className="moon moon--static" id="ascent">
         <div className="moon-stage-fixed" aria-hidden="true">
-          <div className="moon-halo" />
-          <div className="moon-body">
-            <span className="moon-crater moon-crater--1" />
-            <span className="moon-crater moon-crater--2" />
-            <span className="moon-crater moon-crater--3" />
-            <span className="moon-crater moon-crater--4" />
+          <div className="planet-halo" />
+          <div className="planet-sphere">
+            <div className="planet-texture" />
+            <div className="planet-strip planet-strip--static">
+              {TERRITORIES.map((t) => (
+                <Territory key={t.id} t={t} left={t.left} top={t.top} />
+              ))}
+            </div>
+            <div className="planet-limb-shade" />
+            <div className="planet-terminator" />
           </div>
         </div>
-        <p className="kicker kicker--light kicker--center"><span>07</span> The Ascent</p>
+        <p className="kicker kicker--light kicker--center"><span>08</span> The Ascent</p>
+        <p className="moon-subhead moon-subhead--center">One planet. Six territories. Every one of them LOOM.</p>
         <ul className="moon-static-list">
           {STAGES.map((s) => (
             <li key={s.n}>
@@ -108,17 +155,50 @@ export function Moon() {
           aria-hidden="true"
         />
 
-        <motion.p className="kicker kicker--light moon-kicker" style={{ opacity: kickerOpacity }}>
-          <span>07</span> The Ascent
-        </motion.p>
+        <motion.div className="moon-intro" style={{ opacity: kickerOpacity }}>
+          <p className="kicker kicker--light">
+            <span>08</span> The Ascent
+          </p>
+          <p className="moon-subhead">One planet. Six territories. Every one of them LOOM.</p>
+        </motion.div>
 
-        <motion.div className="moon-body-wrap" style={{ y: moonY, scale: moonScale }} aria-hidden="true">
-          <div className="moon-halo" />
-          <div className="moon-body">
-            <span className="moon-crater moon-crater--1" />
-            <span className="moon-crater moon-crater--2" />
-            <span className="moon-crater moon-crater--3" />
-            <span className="moon-crater moon-crater--4" />
+        <motion.div className="planet-wrap" style={{ y: planetY, scale: planetScale }} aria-hidden="true">
+          <div className="planet-halo" />
+
+          {enablePlanetVideo && (
+            <video
+              className="planet-video"
+              muted
+              loop
+              autoPlay
+              playsInline
+              preload="none"
+              src="/video/planet.mp4"
+              aria-hidden="true"
+            />
+          )}
+
+          <div className="planet-orbit">
+            <div className="planet-ring" />
+            <div className="planet-orbit-motion">
+              <div className="planet-orbit-spin planet-orbit-spin--a">
+                <span className="planet-satellite planet-satellite--a" />
+              </div>
+              <div className="planet-orbit-spin planet-orbit-spin--b">
+                <span className="planet-satellite planet-satellite--b" />
+              </div>
+            </div>
+          </div>
+
+          <div className="planet-sphere">
+            <div className="planet-texture" />
+            <div className="planet-strip">
+              {territorySlots.map(({ t, key, left }) => (
+                <Territory key={key} t={t} left={left} top={t.top} />
+              ))}
+            </div>
+            <div className="planet-limb-shade" />
+            <div className="planet-terminator" />
           </div>
         </motion.div>
 

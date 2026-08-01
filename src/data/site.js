@@ -71,6 +71,7 @@ export const STATS = [
 export const APPS = [
   {
     name: 'Lahza', ar: 'لحظة', tag: 'iOS · Events',
+    screen: 'lahza',
     icon: 'heart-frame',
     grad: ['#f21c8c', '#7b2fbe'],
     glyph: 'M12 21s-7-4.6-9.5-9A5.6 5.6 0 0 1 12 6.3 5.6 5.6 0 0 1 21.5 12C19 16.4 12 21 12 21Z',
@@ -78,6 +79,7 @@ export const APPS = [
   },
   {
     name: 'Evora Scan', tag: 'iOS · LiDAR & AR',
+    screen: 'evora-scan',
     icon: 'scan-room',
     grad: ['#59e6ff', '#7b2fbe'],
     glyph: 'M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3M8 12h8M12 8v8',
@@ -85,6 +87,7 @@ export const APPS = [
   },
   {
     name: 'Glowbar', tag: 'iOS · Beauty',
+    screen: 'glowbar',
     icon: 'sparkle-face',
     grad: ['#ffc740', '#f21c8c'],
     glyph: 'M12 3l2.1 5.4L20 10.5l-5.9 2.1L12 18l-2.1-5.4L4 10.5l5.9-2.1L12 3Z',
@@ -92,6 +95,7 @@ export const APPS = [
   },
   {
     name: 'TAWSIYAT', tag: 'Web · Ordering',
+    screen: 'tawsiyat',
     icon: 'receipt',
     grad: ['#2ee6a8', '#59e6ff'],
     glyph: 'M4 6h16M4 12h16M4 18h10',
@@ -99,6 +103,7 @@ export const APPS = [
   },
   {
     name: 'TrueSize AR', tag: 'iOS · AR Commerce',
+    screen: 'truesize',
     icon: 'cube-ar',
     grad: ['#7b2fbe', '#f21c8c'],
     glyph: 'M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3ZM12 12l8-4.5M12 12v9M12 12L4 7.5',
@@ -106,6 +111,7 @@ export const APPS = [
   },
   {
     name: 'Morphic', tag: 'iOS · AI Imaging',
+    screen: 'morphic',
     icon: 'face-morph',
     grad: ['#f21c8c', '#ffc740'],
     glyph: 'M12 4a8 8 0 1 0 8 8M16 4h4v4M21 3l-6 6',

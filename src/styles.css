@@ -341,8 +341,15 @@ html.cursor-hot .cursor-ring {
 }
 .svc.is-open .svc-body { grid-template-rows: 1fr; }
 .svc-body > * { overflow: hidden; }
-.svc-body p { color: var(--ink-dim); max-width: 62ch; padding-left: 88px; }
-.svc-tags { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 0 26px 88px; }
+.svc-body-inner {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: clamp(20px, 4vw, 60px); align-items: center;
+  padding: 0 0 26px 88px;
+}
+.svc-body p { color: var(--ink-dim); max-width: 62ch; }
+.svc-tags { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 0 0; }
+.svc-visual { width: clamp(150px, 18vw, 210px); flex-shrink: 0; }
+.process-glyph { width: 76px; margin-bottom: 14px; }
 .svc-tags span {
   font-size: 0.82rem; font-weight: 600; color: var(--ink-dim);
   border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px;
@@ -526,9 +533,9 @@ html.cursor-hot .cursor-ring {
 }
 .app-card {
   border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.2);
-  padding: clamp(20px, 2.6vw, 30px);
+  padding: clamp(18px, 2.2vw, 26px);
   background: rgba(26, 16, 41, 0.45);
-  display: flex; gap: clamp(16px, 2vw, 26px); align-items: stretch;
+  display: flex; flex-direction: column; gap: 16px;
   transition: border-color 0.4s, transform 0.5s var(--ease), box-shadow 0.5s;
   height: 100%;
 }
@@ -538,21 +545,19 @@ html.cursor-hot .cursor-ring {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 }
 .app-phone {
-  position: relative; flex: 0 0 92px; border-radius: 18px;
+  position: relative; width: 100%; max-width: 260px; border-radius: 26px;
   background: linear-gradient(160deg, var(--g1), var(--g2));
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  overflow: hidden; aspect-ratio: 9 / 18; align-self: center;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  padding: 7px;
+  overflow: hidden; aspect-ratio: 9 / 17; align-self: center;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
 }
 .app-notch {
   position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
   width: 34%; height: 5px; border-radius: 999px;
   background: rgba(0, 0, 0, 0.45);
 }
-.app-screen {
-  position: absolute; inset: 0; display: grid; place-items: center;
-  align-content: center; gap: 10px; text-align: center; padding: 10px;
-}
+.app-screen { position: absolute; inset: 7px; border-radius: 20px; overflow: hidden; }
 .app-screen svg { width: 34px; height: 34px; }
 .app-screen-name {
   font-family: var(--display); font-weight: 620; font-size: 0.72rem;
@@ -567,7 +572,7 @@ html.cursor-hot .cursor-ring {
 .app-card:hover .app-phone { animation: phonefloat 2.6s ease-in-out infinite; }
 @keyframes phonefloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-7px) rotate(-1.4deg); } }
 @media (prefers-reduced-motion: reduce) { .app-card:hover .app-phone { animation: none; } }
-.app-meta { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+.app-meta { display: flex; flex-direction: column; gap: 8px; }
 .app-meta header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .app-meta h3 { font-family: var(--display); font-weight: 580; font-size: 1.35rem; }
 .app-meta header span {
@@ -604,6 +609,13 @@ html.cursor-hot .cursor-ring {
   transition: border-color 0.4s, transform 0.5s var(--ease);
 }
 .lab-card:hover { border-color: rgba(89, 230, 255, 0.5); transform: translateY(-6px); }
+.lab-preview-wrap {
+  position: relative; z-index: 1;
+  border-radius: calc(var(--radius) - 4px); overflow: hidden;
+  border: 1px solid var(--line); background: rgba(8, 4, 14, 0.6);
+  margin-bottom: 18px; aspect-ratio: 16 / 10;
+}
+.lab-preview-wrap > * { width: 100%; height: 100%; }
 .lab-card header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .lab-card h3 {
   font-family: var(--display); font-weight: 620; font-size: clamp(1.3rem, 2vw, 1.7rem);
@@ -926,7 +938,8 @@ html.cursor-hot .cursor-ring {
   .studios-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .svc-row { grid-template-columns: 44px 1fr auto; }
-  .svc-body p, .svc-tags { padding-left: 62px; }
+  .svc-body-inner { grid-template-columns: 1fr; padding-left: 62px; }
+  .svc-visual { display: none; }
   .nav-cta .btn { display: none; }
   .hero-scrollhint { display: none; }
   .apps-grid { grid-template-columns: 1fr; }

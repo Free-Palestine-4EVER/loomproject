@@ -3,7 +3,8 @@ import { useRef } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { APPS, TOOLS } from '../data/site.js'
 import { SplitWords, Reveal } from '../lib/motion.jsx'
-import { Icon } from './Icons.jsx'
+import { AppScreen } from './AppScreens.jsx'
+import { LabPreview } from './LabPreviews.jsx'
 
 function PhoneCard({ app, i }) {
   const [c1, c2] = app.grad
@@ -13,8 +14,7 @@ function PhoneCard({ app, i }) {
         <div className="app-phone" style={{ '--g1': c1, '--g2': c2 }}>
           <i className="app-notch" aria-hidden="true" />
           <div className="app-screen">
-            <Icon name={app.icon} size={34} />
-            <span className="app-screen-name">{app.name}{app.ar ? <em> {app.ar}</em> : null}</span>
+            <AppScreen slug={app.screen} />
           </div>
           <div className="app-glow" aria-hidden="true" />
         </div>
@@ -72,6 +72,7 @@ export function ToolsLab() {
         {TOOLS.map((t, i) => (
           <Reveal key={t.name} delay={(i % 3) * 0.07}>
             <article className="lab-card" data-cursor>
+              <div className="lab-preview-wrap"><LabPreview name={t.name} /></div>
               <header>
                 <h3>{t.name}</h3>
                 <span className="lab-tag">{t.tag}</span>

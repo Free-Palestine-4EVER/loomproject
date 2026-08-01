@@ -1,0 +1,43 @@
+// The LOOM Crew — the studio's mascot cast. Each character owns a discipline.
+export const CREW = [
+  {
+    id: 'spooly',
+    name: 'Spooly',
+    role: 'The Weaver',
+    owns: 'Brand & Strategy',
+    line: 'Starts every project by pulling one thread until the whole idea unravels — then weaves it back tighter.',
+    quote: 'Give me the thread. I’ll give you the fabric.',
+    accent: '#f21c8c',
+    img: '/img/crew/spooly.webp',
+  },
+  {
+    id: 'flick',
+    name: 'Flick',
+    role: 'The Director',
+    owns: 'Photo, Film & Campaigns',
+    line: 'Has never met a product it couldn’t light. Shoots a season of content before lunch.',
+    quote: 'One more take. This one’s the one.',
+    accent: '#59e6ff',
+    img: '/img/crew/flick.webp',
+  },
+  {
+    id: 'nexo',
+    name: 'Nexo',
+    role: 'The Agent',
+    owns: 'AI Systems & Automation',
+    line: 'Answers your customers at 3am in Arabic and English, books the table, and never asks for a day off.',
+    quote: 'Already replied. Twice.',
+    accent: '#7b2fbe',
+    img: '/img/crew/nexo.webp',
+  },
+  {
+    id: 'prism',
+    name: 'Prism',
+    role: 'The Builder',
+    owns: '3D, AR & Web',
+    line: 'Turns flat rooms into worlds you can walk through. Floats, because gravity is a layout constraint.',
+    quote: 'Everything is a dimension away.',
+    accent: '#ffc740',
+    img: '/img/crew/prism.webp',
+  },
+]

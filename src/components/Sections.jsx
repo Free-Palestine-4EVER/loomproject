@@ -6,6 +6,7 @@ import { EASE, SplitWords, Reveal, CountUp, Magnetic } from '../lib/motion.jsx'
 import { HeroField } from '../three/HeroField.js'
 import { ContactWizard } from './ContactWizard.jsx'
 import { useWizard } from '../lib/wizard.jsx'
+import { ServiceVisual, ProcessGlyph, ThreadDivider, StatSpark } from './Rich.jsx'
 
 export function Hero() {
   const { open: openWizard } = useWizard()
@@ -175,8 +176,13 @@ export function Services() {
                 <span className="svc-arrow" aria-hidden="true">→</span>
               </button>
               <div className="svc-body">
-                <p>{s.blurb}</p>
-                <div className="svc-tags">{s.tags.map((t) => <span key={t}>{t}</span>)}</div>
+                <div className="svc-body-inner">
+                  <div className="svc-copy">
+                    <p>{s.blurb}</p>
+                    <div className="svc-tags">{s.tags.map((t) => <span key={t}>{t}</span>)}</div>
+                  </div>
+                  <div className="svc-visual"><ServiceVisual n={s.n} /></div>
+                </div>
               </div>
             </li>
           </Reveal>
@@ -189,14 +195,16 @@ export function Services() {
 export function Process() {
   return (
     <section className="process">
+      <ThreadDivider />
       <div className="section-head">
-        <p className="kicker"><span>08</span> Process</p>
+        <p className="kicker"><span>09</span> Process</p>
         <SplitWords as="h2" className="h2" text="One process. No templates. No shortcuts." />
       </div>
       <div className="process-grid">
         {PROCESS.map((p, i) => (
           <Reveal key={p.n} delay={i * 0.08} className="process-cell">
             <div className="process-card" data-cursor>
+              <div className="process-glyph"><ProcessGlyph n={p.n} /></div>
               <span className="process-n">{p.n}</span>
               <h3>{p.title}</h3>
               <p>{p.body}</p>
@@ -263,6 +271,7 @@ export function Stats() {
           <Reveal key={s.label} delay={i * 0.07} className="stat">
             <div className="stat-value"><CountUp value={s.value} suffix={s.suffix} /></div>
             <div className="stat-label">{s.label}</div>
+            <StatSpark seed={i + 3} />
           </Reveal>
         ))}
       </div>
@@ -291,7 +300,7 @@ export function Studios() {
   return (
     <section className="studios" id="studio">
       <div className="section-head">
-        <p className="kicker"><span>09</span> Studios</p>
+        <p className="kicker"><span>10</span> Studios</p>
         <SplitWords as="h2" className="h2" text="Two cities. One loom." />
       </div>
       <div className="studios-grid">
@@ -319,7 +328,7 @@ export function Studios() {
 export function Contact() {
   return (
     <section className="contact" id="contact">
-      <p className="kicker kicker--center"><span>10</span> Contact</p>
+      <p className="kicker kicker--center"><span>11</span> Contact</p>
       <h2 className="contact-h2">
         <SplitWords text="Ready to push" />
         <br />

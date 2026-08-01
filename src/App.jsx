@@ -5,6 +5,7 @@ import { Hero, Marquee, Manifesto, Services, Process, AiLoom, Stats, Studios, Co
 import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { Solutions } from './components/Solutions.jsx'
+import { Crew } from './components/Crew.jsx'
 import { Moon } from './components/Moon.jsx'
 import { WizardProvider } from './lib/wizard.jsx'
 import { WizardModal } from './components/WizardModal.jsx'
@@ -70,6 +71,7 @@ export default function App() {
         <Work />
         <AppsShowcase />
         <ToolsLab />
+        <Crew />
         <Solutions />
         <Moon />
         <Process />

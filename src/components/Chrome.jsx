@@ -63,6 +63,7 @@ export function ScrollProgress() {
 
 const LINKS = [
   { href: '#work', label: 'Work' },
+  { href: '#crew', label: 'Crew' },
   { href: '#solutions', label: 'Solutions' },
   { href: '#apps', label: 'Apps' },
   { href: '#lab', label: '3D Lab' },
