@@ -8,12 +8,19 @@ const REDUCED = () => window.matchMedia('(prefers-reduced-motion: reduce)').matc
 /** Cards lit by a cursor-following radial highlight + subtle 3D tilt. */
 function spotlightAndTilt() {
   const SEL = '.case-card, .process-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent'
+  // The rect used to be read on EVERY mousemove — a forced full-document layout
+  // measured at 2.0ms median on this page. Cache it per card and invalidate only
+  // on the events that can actually move it, so onMove does writes only.
+  let cur = null
+  let rect = null
+  const invalidate = () => { rect = null }
   const onMove = (e) => {
     const el = e.target.closest?.(SEL)
     if (!el) return
-    const r = el.getBoundingClientRect()
-    const px = (e.clientX - r.left) / r.width
-    const py = (e.clientY - r.top) / r.height
+    if (el !== cur) { cur = el; rect = null }
+    if (!rect) rect = el.getBoundingClientRect()
+    const px = (e.clientX - rect.left) / rect.width
+    const py = (e.clientY - rect.top) / rect.height
     el.style.setProperty('--mx', `${px * 100}%`)
     el.style.setProperty('--my', `${py * 100}%`)
     // tilt is deliberately tiny — presence, not novelty
@@ -29,12 +36,17 @@ function spotlightAndTilt() {
     el.style.setProperty('--rx', '0deg')
     el.style.setProperty('--ry', '0deg')
     el.classList.remove('is-lit')
+    if (el === cur) { cur = null; rect = null }
   }
   document.addEventListener('mousemove', onMove, { passive: true })
   document.addEventListener('mouseout', onOut, { passive: true })
+  window.addEventListener('scroll', invalidate, { passive: true })
+  window.addEventListener('resize', invalidate, { passive: true })
   return () => {
     document.removeEventListener('mousemove', onMove)
     document.removeEventListener('mouseout', onOut)
+    window.removeEventListener('scroll', invalidate)
+    window.removeEventListener('resize', invalidate)
   }
 }
 
@@ -93,7 +105,7 @@ function threadTrail() {
 
 /** Section headings get a scroll-linked accent — nav marks the active section. */
 function activeSectionNav() {
-  const ids = ['work', 'solutions', 'apps', 'lab', 'ascent', 'contact']
+  const ids = ['work', 'crew', 'solutions', 'apps', 'lab', 'ascent', 'contact']
   const links = new Map()
   document.querySelectorAll('.nav-links a').forEach((a) => {
     const id = a.getAttribute('href')?.replace('#', '')

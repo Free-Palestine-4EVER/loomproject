@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { CREW_READY as CREW } from '../data/crew.js'
 import { SplitWords, Reveal } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
+import { WoolButton } from './Wool.jsx'
 import './crew.css'
 
 // True on coarse pointers (touch) — used to swap pointer-tilt for
@@ -145,9 +146,12 @@ export function Crew() {
 
       <Reveal delay={0.2} className="crew-cta">
         <p>Pick a problem — we’ll send the right one.</p>
-        <button className="btn btn--primary btn--big" onClick={() => open({ note: 'Send me the crew' })}>
-          Put the crew on my brand
-        </button>
+        <WoolButton
+          label="Put the crew on my brand"
+          yarn="violet"
+          size="big"
+          onClick={() => open({ note: 'Send me the crew' })}
+        />
       </Reveal>
     </section>
   )

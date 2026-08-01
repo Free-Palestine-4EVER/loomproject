@@ -36,6 +36,16 @@
   --cyan: #59e6ff;
   --gold: #ffc740;
   --line: rgba(242, 240, 247, 0.1);
+
+  /* the four yarns, at the brightness they were actually photographed —
+     for wool surfaces and accents only, never for body text */
+  --yarn-pink: #d6247e;
+  --yarn-violet: #9b55c9;
+  --yarn-blue: #5cc0e8;
+  --yarn-gold: #e0a82f;
+  --yarn-cream: #efe7da;
+  --felt: url('/img/wool/tex/felt-dark.webp');
+
   --display: 'Clash Display', 'Avenir Next', sans-serif;
   --body: 'Satoshi', 'Helvetica Neue', sans-serif;
   --pad: clamp(20px, 5vw, 96px);
@@ -106,7 +116,8 @@ html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
 
 .sw { display: inline; }
 .sw-mask { display: inline-block; overflow: hidden; vertical-align: bottom; }
-.sw-word { display: inline-block; will-change: transform; }
+.sw-word { display: inline-block; }
+.sw.is-animating .sw-word { will-change: transform; }
 
 section { position: relative; }
 .section-head { padding: clamp(70px, 10vh, 130px) var(--pad) clamp(30px, 5vh, 60px); }
@@ -123,15 +134,8 @@ section { position: relative; }
   transition: transform 0.5s var(--ease), background 0.35s, color 0.35s, border-color 0.35s, box-shadow 0.5s;
   white-space: nowrap;
 }
-.btn--primary {
-  background: var(--magenta); color: #fff;
-  box-shadow: 0 8px 34px rgba(242, 28, 140, 0.35);
-}
-.btn--primary:hover { background: #ff35a0; box-shadow: 0 12px 44px rgba(242, 28, 140, 0.5); }
 .btn--ghost { border-color: rgba(242, 240, 247, 0.25); color: var(--ink); }
 .btn--ghost:hover { border-color: var(--magenta); color: #fff; background: rgba(242, 28, 140, 0.08); }
-.btn--small { padding: 10px 22px; font-size: 0.88rem; }
-.btn--big { padding: 19px 40px; font-size: 1.05rem; }
 .magnetic { display: inline-block; transition: transform 0.35s var(--ease); will-change: transform; }
 
 /* ——— loader ——— */
@@ -179,7 +183,9 @@ html.cursor-hot .cursor-ring {
   position: fixed; top: 0; left: 0; right: 0; z-index: 80;
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px var(--pad);
-  transition: background 0.45s, backdrop-filter 0.45s, padding 0.45s;
+  /* the blur radius is NOT interpolated — ramping 0->14px across a 1440px bar
+     every frame for 450ms was the expensive half of this transition */
+  transition: background 0.45s, padding 0.45s;
 }
 .nav--scrolled {
   background: rgba(13, 7, 22, 0.72);
@@ -192,7 +198,6 @@ html.cursor-hot .cursor-ring {
   display: flex; align-items: center; gap: 10px;
   font-family: var(--display); font-weight: 620; letter-spacing: 0.08em; font-size: 1.25rem;
 }
-.nav-mark { width: 26px; height: 26px; }
 .nav-links { display: flex; gap: clamp(18px, 3vw, 40px); }
 .nav-links a {
   font-size: 0.94rem; font-weight: 540; color: var(--ink-dim);
@@ -265,6 +270,7 @@ html.cursor-hot .cursor-ring {
   display: flex; align-items: center; gap: 12px;
   color: var(--ink-faint); font-size: 0.78rem; letter-spacing: 0.28em; text-transform: uppercase;
 }
+.hero-scrollhint-in { display: flex; align-items: center; gap: 12px; }
 .hero-scrollhint i {
   width: 1px; height: 52px; display: block;
   background: linear-gradient(180deg, var(--magenta), transparent);
@@ -395,7 +401,7 @@ html.cursor-hot .cursor-ring {
   animation: glowdrift 14s ease-in-out infinite alternate;
 }
 @keyframes glowdrift { to { transform: translate(4%, -4%) scale(1.06); } }
-@media (prefers-reduced-motion: reduce) { .ailoom-glow, body::after { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .ailoom-glow, body::after, .hero-scrollhint i { animation: none; } }
 .ailoom-list { list-style: none; margin-top: 44px; border-top: 1px solid rgba(242, 240, 247, 0.14); }
 .ailoom-list li {
   display: flex; justify-content: space-between; align-items: baseline; gap: 20px;
@@ -425,11 +431,14 @@ html.cursor-hot .cursor-ring {
   aspect-ratio: 4 / 3; background: var(--bg-3);
 }
 .case-card--big .case-media { aspect-ratio: 16 / 11; }
-.case-media img {
+/* DIRECT child only — as a descendant selector this also matched the felted
+   arrow medallion inside .case-veil, blowing the "Open case" pill out to a
+   463px blurred circle and promoting 23 static medallions to their own layer. */
+.case-media > img {
   width: 100%; height: 112%; object-fit: cover; will-change: transform;
   opacity: 0; transition: opacity 250ms ease-out;
 }
-.case-media img.is-loaded { opacity: 1; }
+.case-media > img.is-loaded { opacity: 1; }
 .overlay-gallery img { opacity: 0; transition: opacity 250ms ease-out; }
 .overlay-gallery img.is-loaded { opacity: 1; }
 .case-veil {
@@ -547,7 +556,7 @@ html.cursor-hot .cursor-ring {
 }
 .app-card:hover {
   border-color: rgba(242, 28, 140, 0.45);
-  transform: translateY(-6px);
+  --lift: -6px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 }
 .app-phone {
@@ -580,12 +589,6 @@ html.cursor-hot .cursor-ring {
   .app-card:hover .app-shot { object-position: top; }
   .app-card:hover .app-sheen { animation: none; }
 }
-.app-screen svg { width: 34px; height: 34px; }
-.app-screen-name {
-  font-family: var(--display); font-weight: 620; font-size: 0.72rem;
-  color: #fff; letter-spacing: 0.06em; line-height: 1.3;
-}
-.app-screen-name em { display: block; font-style: normal; opacity: 0.85; }
 .app-glow {
   position: absolute; inset: 0;
   background: radial-gradient(80% 40% at 50% 0%, rgba(255, 255, 255, 0.35), transparent 70%);
@@ -630,7 +633,7 @@ html.cursor-hot .cursor-ring {
   background: rgba(13, 7, 22, 0.55); backdrop-filter: blur(6px);
   transition: border-color 0.4s, transform 0.5s var(--ease);
 }
-.lab-card:hover { border-color: rgba(89, 230, 255, 0.5); transform: translateY(-6px); }
+.lab-card:hover { border-color: rgba(89, 230, 255, 0.5); --lift: -6px; }
 .lab-preview-wrap {
   position: relative; z-index: 1;
   border-radius: calc(var(--radius) - 4px); overflow: hidden;
@@ -728,7 +731,7 @@ html.cursor-hot .cursor-ring {
   background: rgba(13, 7, 22, 0.5);
   transition: border-color 0.3s, transform 0.4s var(--ease), background 0.3s;
 }
-.wintent:hover { border-color: var(--magenta); transform: translateY(-4px); background: rgba(242, 28, 140, 0.07); }
+.wintent:hover { border-color: var(--magenta); --lift: -4px; background: rgba(242, 28, 140, 0.07); }
 .wintent.is-picked { border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); }
 .wintent-icon { font-size: 1.5rem; }
 .wintent-title { font-family: var(--display); font-weight: 580; font-size: 1.15rem; }
@@ -793,9 +796,11 @@ html.cursor-hot .cursor-ring {
   pointer-events: none; mix-blend-mode: screen;
 }
 .case-card, .process-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent {
-  --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg;
+  --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg; --lift: 0px;
   position: relative;
-  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+  /* hover lift travels via --lift so it composes with the pointer tilt instead
+     of replacing the whole transform and wiping the perspective */
+  transform: perspective(900px) translate3d(0, var(--lift), 0) rotateX(var(--rx)) rotateY(var(--ry));
   transform-style: preserve-3d;
   transition: transform 0.5s var(--ease), border-color 0.4s, box-shadow 0.5s;
 }
@@ -864,7 +869,7 @@ html.cursor-hot .cursor-ring {
   background: rgba(26, 16, 41, 0.5);
   transition: border-color 0.4s, transform 0.5s var(--ease);
 }
-.process-card:hover { border-color: rgba(242, 28, 140, 0.5); transform: translateY(-6px); }
+.process-card:hover { border-color: rgba(242, 28, 140, 0.5); --lift: -6px; }
 .process-n { font-family: var(--display); color: var(--magenta); font-size: 1rem; font-weight: 600; }
 .process-card h3 { font-family: var(--display); font-weight: 560; font-size: clamp(1.4rem, 2.4vw, 2rem); margin: 12px 0 12px; }
 .process-card p { color: var(--ink-dim); font-size: 0.96rem; }
@@ -914,7 +919,7 @@ html.cursor-hot .cursor-ring {
   background: linear-gradient(150deg, rgba(26, 16, 41, 0.8), rgba(18, 10, 31, 0.4));
   transition: border-color 0.4s, transform 0.5s var(--ease);
 }
-.studio-card:hover { border-color: rgba(242, 28, 140, 0.45); transform: translateY(-6px); }
+.studio-card:hover { border-color: rgba(242, 28, 140, 0.45); --lift: -6px; }
 .studio-card header { display: flex; justify-content: space-between; align-items: baseline; }
 .studio-card h3 { font-family: var(--display); font-weight: 580; font-size: clamp(1.8rem, 3.4vw, 2.7rem); }
 .studio-time { font-variant-numeric: tabular-nums; color: var(--magenta); font-weight: 700; letter-spacing: 0.08em; }

@@ -11,11 +11,16 @@ export function SplitWords({ text, as: Tag = 'span', className = '', delay = 0, 
   const reduced = useReducedMotion()
   const ref = useRef(null)
   const inView = useInView(ref, { once, margin: '-8% 0px' })
+  // will-change is only worth paying for while the words are actually moving —
+  // `once: true` means they settle ~1s after entering view and never move again.
+  // Gate on inView: out of view, initial === animate, so motion fires
+  // onAnimationComplete immediately and a naive flag would settle too early.
+  const [settled, setSettled] = useState(false)
   const words = String(text).split(' ')
   const hidden = reduced ? { opacity: 0 } : { y: '110%', rotate: 4 }
   const shown = reduced ? { opacity: 1 } : { y: '0%', rotate: 0 }
   return (
-    <Tag ref={ref} className={`sw ${className}`} aria-label={text}>
+    <Tag ref={ref} className={`sw ${settled ? '' : 'is-animating'} ${className}`} aria-label={text}>
       {words.map((w, i) => (
         <span className="sw-mask" key={i} aria-hidden="true">
           <motion.span
@@ -23,6 +28,7 @@ export function SplitWords({ text, as: Tag = 'span', className = '', delay = 0, 
             initial={hidden}
             animate={inView ? shown : hidden}
             transition={{ duration: 0.9, ease: EASE, delay: delay + i * 0.045 }}
+            onAnimationComplete={i === words.length - 1 ? () => { if (inView) setSettled(true) } : undefined}
           >
             {w}&nbsp;
           </motion.span>

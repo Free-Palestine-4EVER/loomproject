@@ -83,6 +83,9 @@ export const APPS = [
   {
     name: 'Evora Scan', tag: 'iOS · LiDAR & AR',
     platforms: ['ios'],
+    // real device capture — RoomPlan needs LiDAR hardware, so this is the
+    // App Store screenshot's own device frame, cropped to the screen
+    shot: '/img/apps/evora-scan.webp',
     screen: 'evora-scan',
     icon: 'scan-room',
     grad: ['#59e6ff', '#7b2fbe'],
@@ -548,10 +551,12 @@ export const NICHES = [
 // ————— contact wizard —————
 export const WIZARD = {
   intents: [
-    { id: 'idea', icon: 'idea', title: 'I have an idea', sub: 'Something new that needs shape' },
-    { id: 'business', icon: 'building', title: 'I run a business', sub: 'Growth, content or a stronger brand' },
-    { id: 'rebrand', icon: 'refresh-brand', title: 'I need a rebrand', sub: 'What we have no longer fits' },
-    { id: 'explore', icon: 'compass', title: 'Just exploring', sub: 'Show me what’s possible' },
+    // `wool` names a felted medallion; `icon` stays as the SVG fallback for
+    // any intent that has no medallion shot.
+    { id: 'idea', icon: 'idea', wool: 'plus', title: 'I have an idea', sub: 'Something new that needs shape' },
+    { id: 'business', icon: 'building', wool: 'home', title: 'I run a business', sub: 'Growth, content or a stronger brand' },
+    { id: 'rebrand', icon: 'refresh-brand', wool: 'settings', title: 'I need a rebrand', sub: 'What we have no longer fits' },
+    { id: 'explore', icon: 'compass', wool: 'search', title: 'Just exploring', sub: 'Show me what’s possible' },
   ],
   needs: [
     'Brand identity', 'Website', 'Mobile app', 'Social content',

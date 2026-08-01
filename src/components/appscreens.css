@@ -132,58 +132,116 @@
 .as-lahza-count span { font-size: 4.6cqi; color: rgba(255, 255, 255, 0.6); }
 
 /* ============================================================
-   2. EVORA SCAN — LiDAR room scan
+   2. EVORA SCAN — LiDAR room capture (drawn illustration)
+   Layout mirrors LiDARCaptureView: the camera fills the whole screen,
+   the controls float over it.
    ============================================================ */
-.as-evora-scan .as-body { display: flex; flex-direction: column; }
-.as-evora-stage { position: relative; flex: 1; margin: 4cqi 8cqi 2cqi; overflow: hidden; border-radius: 2cqi; }
-.as-evora-svg { width: 100%; height: 100%; overflow: visible; }
-.as-evora-outline {
-  stroke: var(--ac); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
-  stroke-dasharray: 1; stroke-dashoffset: 1;
-  animation: as-draw 5.2s ease-in-out infinite;
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--ac) 70%, transparent));
+.as-evora-scan { --gold: #ffc740; }
+.as-ev-stage {
+  position: absolute; inset: 0; z-index: 0; overflow: hidden;
+  background: radial-gradient(130% 80% at 50% 22%, rgba(89, 230, 255, 0.14), transparent 62%);
 }
-@keyframes as-draw {
-  0% { stroke-dashoffset: 1; opacity: 0.5; }
-  55% { stroke-dashoffset: 0; opacity: 1; }
-  85% { stroke-dashoffset: 0; opacity: 1; }
-  100% { stroke-dashoffset: 1; opacity: 0.5; }
+.as-ev-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* — surfaces — */
+.as-ev-face { fill: color-mix(in srgb, var(--ac) 15%, transparent); stroke: none; }
+.as-ev-floor { fill: color-mix(in srgb, var(--ac) 8%, transparent); }
+.as-ev-grid { fill: none; stroke: color-mix(in srgb, var(--ac) 30%, transparent); stroke-width: 0.4; }
+.as-ev-mesh { fill: none; stroke: color-mix(in srgb, var(--ac) 30%, transparent); stroke-width: 0.35; }
+.as-ev-ceil { fill: none; stroke: color-mix(in srgb, var(--ac) 20%, transparent); stroke-width: 0.35; stroke-dasharray: 1.6 2; }
+.as-ev-open {
+  fill: rgba(6, 4, 12, 0.72);
+  stroke: rgba(255, 255, 255, 0.75); stroke-width: 0.6; stroke-linejoin: round;
 }
-.as-evora-pt { fill: var(--cyan, #59e6ff); opacity: 0; animation: as-ptpulse 5.2s ease-in-out infinite; }
-.as-pt-1 { animation-delay: 0s; }
-.as-pt-2 { animation-delay: 0.5s; }
-.as-pt-3 { animation-delay: 1s; }
-.as-pt-4 { animation-delay: 1.5s; }
-.as-pt-5 { animation-delay: 2s; }
-.as-pt-6 { animation-delay: 2.5s; }
-@keyframes as-ptpulse {
-  0%, 8% { opacity: 0; }
-  16%, 78% { opacity: 1; }
-  92%, 100% { opacity: 0; }
+.as-ev-open.as-is-glass { fill: color-mix(in srgb, var(--ac) 22%, transparent); }
+.as-ev-open-bar { fill: none; stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.4; }
+.as-ev-edges {
+  fill: none; stroke: var(--ac); stroke-width: 1;
+  stroke-linecap: round; stroke-linejoin: round;
 }
-.as-evora-scanline {
-  position: absolute; left: 4%; right: 4%; height: 14%;
-  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--ac) 55%, transparent) 45%, color-mix(in srgb, var(--ac) 85%, transparent) 50%, color-mix(in srgb, var(--ac) 55%, transparent) 55%, transparent);
-  animation: as-sweep 5.2s ease-in-out infinite;
+
+/* — RoomPlan-detected objects, gold to read as "found by the scanner" — */
+.as-ev-obj-shadow { fill: rgba(4, 2, 10, 0.5); }
+.as-ev-obj-face {
+  fill: color-mix(in srgb, var(--gold) 16%, transparent);
+  stroke: var(--gold); stroke-width: 0.7; stroke-linejoin: round;
+}
+.as-ev-obj-face.as-is-top { fill: color-mix(in srgb, var(--gold) 26%, transparent); }
+.as-ev-obj-face.as-is-dark { fill: color-mix(in srgb, var(--gold) 9%, transparent); }
+.as-ev-obj-hidden {
+  fill: none; stroke: color-mix(in srgb, var(--gold) 40%, transparent);
+  stroke-width: 0.45; stroke-dasharray: 1.6 1.8;
+}
+
+/* — labels: a dark halo keeps them legible over the mesh — */
+.as-ev-tag, .as-ev-dim {
+  font-family: var(--body, sans-serif);
+  text-anchor: middle; dominant-baseline: middle;
+  paint-order: stroke; stroke: #0a0612; stroke-width: 1.6; stroke-linejoin: round;
+}
+.as-ev-tag { font-size: 3.6px; font-weight: 600; letter-spacing: 0.04em; fill: var(--gold); }
+.as-ev-dim { font-size: 4px; font-weight: 600; fill: rgba(255, 255, 255, 0.92); }
+.as-ev-dim.as-is-left { text-anchor: start; }
+
+.as-ev-pt { fill: #fff; opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .as-ev-pt { animation: as-evpt 2.8s ease-in-out infinite; animation-delay: var(--d, 0s); }
+}
+@keyframes as-evpt {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* LiDAR point texture — one cheap tiled gradient, no blur, no repeats */
+.as-ev-dots {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--ac) 55%, transparent) 0.8px, transparent 1.5px);
+  background-size: 9px 9px;
+  opacity: 0.45;
+  -webkit-mask-image: radial-gradient(120% 75% at 50% 38%, #000 12%, transparent 78%);
+  mask-image: radial-gradient(120% 75% at 50% 38%, #000 12%, transparent 78%);
+}
+.as-ev-sweep {
+  position: absolute; left: 0; right: 0; top: 0; height: 22%; pointer-events: none;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--ac) 30%, transparent) 62%, color-mix(in srgb, var(--ac) 62%, transparent) 78%, transparent 82%);
   mix-blend-mode: screen;
+  transform: translateY(-24%);
 }
-@keyframes as-sweep {
-  0% { transform: translateY(-10%); opacity: 0.9; }
-  55% { transform: translateY(96%); opacity: 0.9; }
-  85%, 100% { transform: translateY(96%); opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .as-ev-sweep { animation: as-evsweep 4.6s ease-in-out infinite; }
 }
-.as-evora-chip {
-  margin: 0 8cqi 6cqi; align-self: flex-start;
-  background: rgba(10, 6, 18, 0.82); border: 1px solid color-mix(in srgb, var(--ac) 45%, var(--line, rgba(255,255,255,.15)));
-  border-radius: 999px; padding: 1.8cqi 4cqi;
-  font-size: 4.8cqi; letter-spacing: 0.01em; white-space: nowrap;
-  opacity: 0; transform: translateY(15%);
-  animation: as-chipin 5.2s ease-in-out infinite;
+@keyframes as-evsweep {
+  0%, 100% { transform: translateY(-24%); }
+  55% { transform: translateY(430%); }
+  78% { transform: translateY(430%); }
 }
-@keyframes as-chipin {
-  0%, 58% { opacity: 0; transform: translateY(15%); }
-  68%, 88% { opacity: 1; transform: translateY(0%); }
-  98%, 100% { opacity: 0; transform: translateY(15%); }
+@media (prefers-reduced-motion: reduce) { .as-ev-sweep { display: none; } }
+
+/* — floating chrome — */
+.as-ev-ui {
+  z-index: 2; display: flex; flex-direction: column; justify-content: space-between;
+  padding: 3cqi 6cqi 6cqi; pointer-events: none;
+}
+.as-ev-top { display: flex; align-items: center; justify-content: space-between; gap: 2cqi; }
+.as-ev-chip {
+  border-radius: 999px; padding: 1.8cqi 4.2cqi;
+  background: rgba(6, 4, 12, 0.55);
+  font-size: 3.7cqi; font-weight: 650; letter-spacing: 0.01em; white-space: nowrap;
+  color: rgba(255, 255, 255, 0.94);
+}
+.as-ev-chip--saved { background: color-mix(in srgb, var(--ac) 78%, #0a0612); color: #06121a; }
+.as-ev-foot { display: flex; flex-direction: column; align-items: center; gap: 3cqi; }
+.as-ev-hint {
+  max-width: 74cqi; text-align: center;
+  background: rgba(6, 4, 12, 0.55); border-radius: 999px;
+  padding: 2.2cqi 4.4cqi;
+  font-size: 3.6cqi; font-weight: 550; line-height: 1.32;
+  color: rgba(255, 255, 255, 0.95);
+}
+.as-ev-done {
+  width: 100%; text-align: center; border-radius: 999px;
+  background: #fff; color: #0a0612;
+  padding: 3.4cqi 0; font-size: 4.6cqi; font-weight: 750; letter-spacing: 0.005em;
 }
 
 /* ============================================================
@@ -272,50 +330,130 @@
 .as-taws-code.is-flip .as-taws-code-face.as-back { transform: rotateX(0deg); }
 
 /* ============================================================
-   5. TRUESIZE — AR measure
+   5. TRUESIZE AR — place at true scale (drawn illustration)
+   Layout mirrors ContentView: ARView ignoresSafeArea, segmented control
+   + status banner on top, DimensionsHUD as a glass sheet at the bottom.
    ============================================================ */
-.as-true .as-body { padding: 3cqi; }
-.as-true-view { position: relative; width: 100%; height: 100%; border-radius: 1.6cqi; overflow: hidden; background: rgba(0,0,0,0.25); }
-.as-true-corner { position: absolute; width: 8cqi; height: 8cqi; border: 2.4px solid var(--ac); opacity: 0.85; }
-.as-tc-tl { top: 3cqi; left: 3cqi; border-right: none; border-bottom: none; }
-.as-tc-tr { top: 3cqi; right: 3cqi; border-left: none; border-bottom: none; }
-.as-tc-bl { bottom: 3cqi; left: 3cqi; border-right: none; border-top: none; }
-.as-tc-br { bottom: 3cqi; right: 3cqi; border-left: none; border-top: none; }
-
-.as-true-grid {
-  position: absolute; left: -20%; right: -20%; bottom: 6%; height: 42%;
-  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.22) 0 1px, transparent 1px 12.5%),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.14) 0 1px, transparent 1px 25%);
-  transform: perspective(60cqi) rotateX(58deg);
-  transform-origin: bottom;
-  mask-image: linear-gradient(to top, black 40%, transparent 95%);
+.as-truesize { --gold: #ffc740; }
+.as-ts-stage {
+  position: absolute; inset: 0; z-index: 0; overflow: hidden;
+  background:
+    radial-gradient(120% 55% at 50% 78%, rgba(123, 47, 190, 0.34), transparent 70%),
+    linear-gradient(180deg, #150a24 0%, #0b0614 46%, #120a1e 100%);
+}
+.as-ts-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* the AR plane fades out toward the horizon instead of ending in a hard point */
+.as-ts-svg--floor {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 8%, #000 46%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 8%, #000 46%, #000 100%);
+}
+.as-ts-grid {
+  fill: none; stroke: rgba(255, 255, 255, 0.2); stroke-width: 0.4;
+}
+.as-ts-contact { fill: rgba(4, 2, 10, 0.45); }
+.as-ts-face {
+  fill: color-mix(in srgb, var(--gold) 20%, transparent);
+  stroke: var(--gold); stroke-width: 0.9; stroke-linejoin: round;
+}
+.as-ts-face.as-is-top { fill: color-mix(in srgb, var(--gold) 34%, transparent); }
+.as-ts-face.as-is-dark { fill: color-mix(in srgb, var(--gold) 11%, transparent); }
+.as-ts-hidden {
+  fill: none; stroke: color-mix(in srgb, var(--gold) 45%, transparent);
+  stroke-width: 0.55; stroke-dasharray: 2 2.2;
+}
+.as-ts-dots {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.4) 0.7px, transparent 1.4px);
+  background-size: 11px 11px;
+  opacity: 0.3;
+  -webkit-mask-image: linear-gradient(to top, #000 8%, transparent 62%);
+  mask-image: linear-gradient(to top, #000 8%, transparent 62%);
 }
 
-.as-true-sofa {
-  position: absolute; left: 16%; right: 16%; bottom: 20%; width: 68%; height: auto;
-  stroke: #fff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+.as-ts-ui { z-index: 2; display: flex; flex-direction: column; align-items: center; padding: 2.6cqi 0 3.4cqi; }
+
+/* segmented control */
+.as-ts-seg {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.8cqi;
+  width: 56cqi; padding: 0.8cqi; border-radius: 2.6cqi;
+  background: rgba(255, 255, 255, 0.12);
+}
+.as-ts-seg span {
+  text-align: center; border-radius: 2cqi; padding: 1.3cqi 0;
+  font-size: 3.8cqi; font-weight: 600; color: rgba(255, 255, 255, 0.68);
+}
+.as-ts-seg span.is-on {
+  background: rgba(120, 108, 140, 0.92); color: #fff; font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+.as-ts-banner {
+  margin-top: 3cqi; max-width: 82cqi; text-align: center;
+  background: rgba(6, 4, 12, 0.5); border-radius: 999px;
+  padding: 2cqi 4cqi; font-size: 3.4cqi; font-weight: 550; line-height: 1.3;
+  color: rgba(255, 255, 255, 0.95);
 }
 
-.as-true-scan {
-  position: absolute; left: 4%; right: 4%; height: 10%;
-  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--ac) 70%, transparent), transparent);
-  animation: as-sweep2 3.6s ease-in-out infinite;
-  mix-blend-mode: screen;
+/* MeasuredBox's floating W/D/H labels */
+.as-ts-labels { position: absolute; inset: 0; pointer-events: none; }
+.as-ts-pill {
+  position: absolute; transform: translate(-50%, -50%);
+  display: inline-flex; align-items: baseline; gap: 0.9cqi; white-space: nowrap;
+  background: rgba(6, 4, 12, 0.72); border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px; padding: 1.1cqi 2.6cqi;
+  font-size: 3.3cqi; font-weight: 650; color: #fff; letter-spacing: 0.01em;
 }
-@keyframes as-sweep2 {
-  0% { transform: translateY(0%); opacity: 0.7; }
-  50% { transform: translateY(680%); opacity: 0.9; }
-  100% { transform: translateY(0%); opacity: 0.7; }
-}
+.as-ts-pill b { color: var(--gold); font-weight: 750; }
+.as-ts-pill em { font-style: normal; font-weight: 500; color: rgba(255, 255, 255, 0.55); }
+.as-ts-pill--h { left: 76%; top: 48%; }
+.as-ts-pill--w { left: 30%; top: 64%; }
+.as-ts-pill--d { left: 77%; top: 60%; }
 
-.as-true-dim {
-  position: absolute; left: 16%; right: 16%; bottom: 10%;
-  display: flex; align-items: center; justify-content: space-between;
-  font-size: 4.6cqi; color: #fff; letter-spacing: 0.03em;
+/* DimensionsHUD */
+.as-ts-hud {
+  margin-top: auto; width: calc(100% - 6cqi);
+  background: rgba(30, 22, 44, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 6cqi; padding: 3.4cqi 3.6cqi;
+  display: flex; flex-direction: column; gap: 3cqi;
 }
-.as-true-dim i { width: 1px; height: 2cqi; background: rgba(255, 255, 255, 0.7); }
-.as-true-dim em { font-style: normal; background: rgba(10,6,18,0.7); border-radius: 999px; padding: 0.8cqi 2.4cqi; border: 1px solid rgba(255,255,255,0.2); }
+.as-ts-presets { display: flex; gap: 1.8cqi; overflow: hidden; }
+.as-ts-presets span {
+  flex: none; border-radius: 999px; padding: 1.4cqi 2.8cqi;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 3.3cqi; font-weight: 600; color: rgba(255, 255, 255, 0.9); white-space: nowrap;
+}
+.as-ts-rows { display: flex; flex-direction: column; gap: 2.2cqi; }
+.as-ts-row { display: flex; align-items: center; gap: 1.3cqi; }
+.as-ts-rl {
+  width: 13cqi; flex: none; font-size: 3.5cqi; font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+}
+.as-ts-row i {
+  flex: none; width: 7.4cqi; height: 6cqi; border-radius: 1.6cqi;
+  background: rgba(255, 255, 255, 0.09);
+  display: flex; align-items: center; justify-content: center;
+  font-style: normal; font-size: 2.9cqi; font-weight: 750; color: rgba(255, 255, 255, 0.82);
+}
+.as-ts-row b {
+  flex: none; width: 14cqi; text-align: center; border-radius: 2cqi;
+  background: rgba(255, 255, 255, 0.11); padding: 1.2cqi 0;
+  font-family: var(--display, sans-serif); font-size: 4.2cqi; font-weight: 700;
+  font-variant-numeric: tabular-nums; color: #fff;
+}
+.as-ts-row u {
+  flex: none; text-decoration: none; font-size: 2.9cqi;
+  color: rgba(255, 255, 255, 0.55);
+}
+.as-ts-row em {
+  margin-left: auto; font-style: normal; font-size: 3cqi;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, 0.5); white-space: nowrap;
+}
+.as-ts-action {
+  text-align: center; border-radius: 3cqi; padding: 2.6cqi 0;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 3.4cqi; font-weight: 600; color: rgba(255, 255, 255, 0.88);
+}
 
 /* ============================================================
    6. MORPHIC — AI face edit
@@ -361,4 +499,8 @@
   .as-lahza-word { font-size: 13cqi; }
   .as-glow-list li em { display: none; }
   .as-taws-step span { display: none; }
+  /* the two drawn iOS screens shed their finest detail rather than blur */
+  .as-ev-tag { display: none; }
+  .as-ts-row i, .as-ts-row u { display: none; }
+  .as-ts-pill em { display: none; }
 }

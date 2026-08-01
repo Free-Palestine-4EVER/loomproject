@@ -1,0 +1,425 @@
+/* ————————————————————————————————————————————————————————
+   LOOM — the wool layer
+   Loaded last, so it wins over styles.css / textile.css on ties.
+
+   The room stays the dark violet atelier. What changes is the MATERIAL:
+   every control is now real photographed knit, every icon a felted medallion,
+   every panel edge a stitched seam. Nothing here lightens the canvas — the
+   wool is lit against the dark, the way the renders were shot.
+   ———————————————————————————————————————————————————————— */
+
+:root {
+  /* overshoots slightly then settles — wool has give, it does not click */
+  --wool-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ——— felt surfaces: a dark felt patch stitched onto the room ——— */
+.felt {
+  background-color: var(--bg-2);
+  background-image: var(--felt);
+  background-size: 260px;
+  border-radius: var(--radius);
+  box-shadow:
+    inset 0 1px 0 rgba(242, 240, 247, 0.07),
+    0 16px 40px -20px rgba(0, 0, 0, 0.75);
+}
+/* running-stitch edge — the seam holding a patch to the ground */
+.stitched {
+  border: 2px dashed rgba(242, 240, 247, 0.18);
+  border-radius: var(--radius);
+}
+
+/* the kicker's rule becomes a four-colour yarn */
+.kicker::after {
+  height: 3px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px
+  );
+}
+
+/* ——————————————————————————————————————————————
+   Knit buttons
+   .wool-btn wraps either a real photographed knit (the label matched one of
+   the 21 renders) or a CSS knit pill cut from the same yarn textures. The
+   accessible label is always in the DOM.
+   —————————————————————————————————————————————— */
+.wool-btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* wool is soft: it lifts slowly and springs back, it never snaps */
+  transition:
+    transform 0.5s var(--wool-spring),
+    filter 0.42s var(--ease);
+  /* deliberately NO will-change — there are 36 of these on the page and
+     promoting them all cost more than the transform ever saved */
+}
+.wool-btn:hover { transform: translateY(-4px) rotate(-0.7deg) scale(1.03); }
+/* a press squashes the pill the way a thumb squashes yarn — wider, shorter */
+.wool-btn:active {
+  transform: translateY(2px) scale(1.02, 0.93);
+  transition-duration: 0.09s;
+}
+.wool-btn:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 6px; border-radius: 999px; }
+
+/* ——— the fibre halo ———
+   A flat radial gradient in the yarn's own colour. This used to be a blurred
+   duplicate of the wool, which looked slightly richer and cost a rasterised
+   blur layer per button — 36 of them, permanently live. Opacity-only
+   transition, no filter, so it composites on the GPU for free. */
+.wool-btn-halo {
+  position: absolute;
+  inset: -14%;
+  z-index: -2;
+  display: block;
+  border-radius: 999px;
+  background: radial-gradient(
+    60% 70% at 50% 50%,
+    var(--wool-glow, rgba(214, 36, 126, 0.85)) 0%,
+    rgba(0, 0, 0, 0) 72%
+  );
+  opacity: 0;
+  transition: opacity 0.45s var(--ease);
+  pointer-events: none;
+}
+.wool-btn:hover .wool-btn-halo { opacity: 1; }
+
+/* ——————————————————————————————————————————————
+   Photographed pills — lit from the front, so they need a bloom not a shadow
+   —————————————————————————————————————————————— */
+/* the renders are shot edge-to-edge, so their box IS the pill — these widths
+   are tuned against the CSS pills' cap height, not against the source files */
+.wool-btn--photo { width: var(--wool-btn-w, 190px); }
+.wool-btn--photo.is-big { --wool-btn-w: clamp(210px, 19vw, 252px); }
+.wool-btn--photo.is-small { --wool-btn-w: 146px; }
+/* the nav sits inside a fixed bar — it gets its own, tighter box */
+.nav-cta .wool-btn--photo { --wool-btn-w: 120px; }
+@media (max-width: 900px) {
+  .nav-cta .wool-btn--photo { --wool-btn-w: 104px; }
+}
+/* the nav is a thin bar — the CTA must not out-shout the wordmark, so its
+   resting shadow is tight and its glow is dialled back */
+.nav-cta .wool-btn--photo img { filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)); }
+.nav-cta .wool-btn--photo .wool-btn-halo { inset: -10%; opacity: 0; }
+.nav-cta .wool-btn--photo:hover .wool-btn-halo { opacity: 0.75; }
+.wool-btn--photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55));
+  transition: filter 0.42s var(--ease);
+  pointer-events: none;
+  user-select: none;
+}
+.wool-btn--photo:hover img {
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.62)) brightness(1.06) saturate(1.04);
+}
+/* present for screen readers and find-in-page, never drawn */
+.wool-btn--photo .wool-btn-label {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* the hero spool breathes — barely. A wool object resting on a table still
+   settles; this is that, not an attention-seeking pulse. */
+/* the breath rides the CHILDREN, not the button. A running animation on an
+   element outranks that element's own :hover / :active transforms and froze
+   the hero CTA's lift and press-squash dead. */
+.wool-btn--hero > .wool-btn-halo,
+.wool-btn--hero > img { animation: wool-breathe 7.5s ease-in-out infinite; }
+.wool-btn--hero:hover > .wool-btn-halo,
+.wool-btn--hero:hover > img { animation-play-state: paused; }
+@keyframes wool-breathe {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-3px) rotate(-0.35deg) scale(1.008); }
+}
+
+/* the CTA row mixes a tall photographed spool with a short ghost pill —
+   centre them on each other rather than on the text baseline */
+.hero-ctas, .ailoom-cta, .wsend { align-items: center; }
+/* the spool is ~2x the old flat pill's height, so the row needs the space
+   back or it clips against the bottom of a 100svh hero */
+.hero-ctas { margin-top: 26px; }
+.hero { padding-bottom: clamp(40px, 7vh, 84px); }
+
+/* ——————————————————————————————————————————————
+   Yarn pills — for every label that was never photographed.
+   Built from the SAME yarn plate as the renders (caps pinned, middle tiled),
+   so an arbitrary label still reads as a real spool rather than a CSS pill.
+   Colour comes from rotating the photograph, so the fibre detail survives.
+   —————————————————————————————————————————————— */
+.wool-btn--css {
+  padding: 18px 40px;
+  border-radius: 999px;
+  font-family: var(--body);
+  font-weight: 750;
+  font-size: 1rem;
+  color: #fff;
+  transition: transform 0.5s var(--wool-spring);
+}
+.wool-btn--css.is-big { padding: 23px 52px; font-size: 1.1rem; }
+.wool-btn--css.is-small { padding: 12px 28px; font-size: 0.9rem; }
+
+/* the yarn plate itself. --yarn points at a folder of real recoloured slices
+   (scripts/build-yarn.mjs) rather than a CSS filter — hue-rotate() is a linear
+   approximation and sent violet to indigo, blue to green, gold to orange. */
+.wool-btn-plate {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  background-image:
+    url('/img/wool/yarn/magenta/yarn-cap-l.png'),
+    url('/img/wool/yarn/magenta/yarn-cap-r.png'),
+    url('/img/wool/yarn/magenta/yarn-mid.png');
+  background-position: left center, right center, center center;
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  background-size: auto 100%, auto 100%, auto 100%;
+  /* the tiled middle paints the full box, so without this the caps' own
+     curvature sits on an opaque rectangle and the pill reads square */
+  border-radius: 999px;
+  /* box-shadow, not filter: drop-shadow — the plate is already a rounded
+     rect, so the cheap version is also the exact one */
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.6);
+  transition: box-shadow 0.42s var(--ease);
+}
+.wool-btn--css:hover .wool-btn-plate { box-shadow: 0 18px 36px -8px rgba(0, 0, 0, 0.66); }
+.wool-btn--css:hover .wool-btn-halo { opacity: 0.8; }
+/* embroidered lettering: lit top edge, shadow where it sinks into the wool */
+.wool-btn-text {
+  position: relative;
+  z-index: 1;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45),
+    0 -1px 1px rgba(45, 5, 28, 0.55),
+    0 2px 6px rgba(30, 3, 20, 0.5);
+}
+
+/* one rule per yarn — the same spool, respun */
+.wool-btn--violet { --wool-glow: rgba(155, 85, 201, 0.85); }
+.wool-btn--violet .wool-btn-plate {
+  background-image:
+    url('/img/wool/yarn/violet/yarn-cap-l.png'),
+    url('/img/wool/yarn/violet/yarn-cap-r.png'),
+    url('/img/wool/yarn/violet/yarn-mid.png');
+}
+.wool-btn--blue { --wool-glow: rgba(92, 192, 232, 0.8); }
+.wool-btn--blue .wool-btn-plate {
+  background-image:
+    url('/img/wool/yarn/blue/yarn-cap-l.png'),
+    url('/img/wool/yarn/blue/yarn-cap-r.png'),
+    url('/img/wool/yarn/blue/yarn-mid.png');
+}
+.wool-btn--gold { --wool-glow: rgba(224, 168, 47, 0.8); }
+.wool-btn--gold .wool-btn-plate {
+  background-image:
+    url('/img/wool/yarn/gold/yarn-cap-l.png'),
+    url('/img/wool/yarn/gold/yarn-cap-r.png'),
+    url('/img/wool/yarn/gold/yarn-mid.png');
+}
+.wool-btn--crimson { --wool-glow: rgba(224, 36, 74, 0.85); }
+.wool-btn--crimson .wool-btn-plate {
+  background-image:
+    url('/img/wool/yarn/crimson/yarn-cap-l.png'),
+    url('/img/wool/yarn/crimson/yarn-cap-r.png'),
+    url('/img/wool/yarn/crimson/yarn-mid.png');
+}
+.wool-btn--grey { --wool-glow: rgba(170, 170, 180, 0.6); }
+.wool-btn--grey .wool-btn-plate {
+  background-image:
+    url('/img/wool/yarn/grey/yarn-cap-l.png'),
+    url('/img/wool/yarn/grey/yarn-cap-r.png'),
+    url('/img/wool/yarn/grey/yarn-mid.png');
+}
+.wool-btn--cream { --wool-glow: rgba(239, 231, 218, 0.7); }
+.wool-btn--cream .wool-btn-plate {
+  background-image:
+    url('/img/wool/yarn/cream/yarn-cap-l.png'),
+    url('/img/wool/yarn/cream/yarn-cap-r.png'),
+    url('/img/wool/yarn/cream/yarn-mid.png');
+}
+
+/* the pale yarns take dark lettering */
+.wool-btn--cream, .wool-btn--grey { color: #33243d; }
+.wool-btn--cream .wool-btn-text,
+.wool-btn--grey .wool-btn-text {
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75),
+    0 2px 4px rgba(60, 45, 70, 0.28);
+}
+
+/* wizard chrome sits in a fixed-width panel — the knits there are navigation,
+   not a call to action, so they stay small and never push the panel wide */
+.wnav { flex-wrap: wrap; }
+.wnav .wool-btn--photo { --wool-btn-w: 124px; }
+.wsend .wool-btn--css.is-big { padding: 19px 34px; font-size: 1rem; }
+@media (max-width: 767px) {
+  .wsend { flex-direction: column; align-items: stretch; }
+  .wsend .magnetic, .wsend .wool-btn { width: 100%; }
+}
+
+/* the intent cards carry a felted medallion instead of a hairline glyph —
+   the one place in the wizard where the material is allowed to be loud */
+.wintent-icon {
+  font-size: inherit;
+  line-height: 0;
+  margin-bottom: 4px;
+}
+.wintent:hover .wool-icon { transform: rotate(-8deg) scale(1.1); }
+
+/* footer contact rows read as a stitched list, medallion then text */
+.footer-contact a,
+.footer-contact span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.footer-contact .wool-icon { --wool-icon: 26px; }
+
+/* ——— felt icon medallions ——— */
+.wool-icon {
+  display: inline-block;
+  width: var(--wool-icon, 42px);
+  height: var(--wool-icon, 42px);
+  flex: none;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.55));
+  transition: transform 0.45s var(--ease), filter 0.45s var(--ease);
+  user-select: none;
+}
+a:hover > .wool-icon,
+button:hover > .wool-icon {
+  transform: rotate(-7deg) scale(1.12);
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.6)) brightness(1.06);
+}
+.wool-icon--lg { --wool-icon: 62px; }
+.wool-icon--sm { --wool-icon: 30px; }
+
+/* ——————————————————————————————————————————————
+   Re-materialising the existing controls
+   The palette is untouched; only what things are MADE OF changes.
+   —————————————————————————————————————————————— */
+
+/* the legacy pill keeps its markup and simply becomes knitted */
+/* ——————————————————————————————————————————————
+   The ghost button is now the only non-wool control on the page, so it has to
+   earn its place: it reads as a BASTING stitch — the loose tacking thread a
+   tailor runs before committing. On hover the tacking is pulled tight into a
+   finished magenta seam, and a felt shadow appears underneath.
+   —————————————————————————————————————————————— */
+.btn--ghost {
+  position: relative;
+  border: 0;
+  color: var(--ink);
+  background: rgba(242, 240, 247, 0.025);
+  padding: 17px 34px;
+  overflow: visible;
+  transition:
+    color 0.4s var(--ease),
+    background 0.4s var(--ease),
+    transform 0.5s var(--wool-spring),
+    box-shadow 0.5s var(--ease);
+}
+/* the tacking itself — a dashed ring drawn as a mask so the dash can
+   tighten and change colour independently of the fill */
+.btn--ghost::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  padding: 2px;
+  background: linear-gradient(100deg, var(--yarn-pink), var(--yarn-violet), var(--yarn-blue), var(--yarn-gold));
+  -webkit-mask:
+    repeating-linear-gradient(90deg, #000 0 var(--baste-dash, 7px), transparent var(--baste-dash, 7px) var(--baste-gap, 13px)),
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: source-in, xor;
+  mask:
+    repeating-linear-gradient(90deg, #000 0 var(--baste-dash, 7px), transparent var(--baste-dash, 7px) var(--baste-gap, 13px)),
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: intersect, exclude;
+  opacity: 0.42;
+  transition: opacity 0.45s var(--ease);
+  pointer-events: none;
+}
+/* The tightened seam is a SECOND static ring cross-faded on top. Animating
+   --baste-dash directly re-generated the mask gradient every frame and
+   repainted the whole button — cheap-looking, very expensive. */
+.btn--ghost::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  padding: 2px;
+  background: linear-gradient(100deg, var(--yarn-pink), var(--yarn-violet), var(--yarn-blue), var(--yarn-gold));
+  -webkit-mask:
+    repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 13px),
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: source-in, xor;
+  mask:
+    repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 13px),
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: intersect, exclude;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease);
+  pointer-events: none;
+}
+.btn--ghost:hover {
+  color: #fff;
+  background: rgba(214, 36, 126, 0.09);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.8);
+}
+/* loose tacking fades out as the finished seam fades in */
+.btn--ghost:hover::before { opacity: 0; }
+.btn--ghost:hover::after { opacity: 1; }
+.btn--ghost:active { transform: translateY(1px) scale(1.01, 0.96); transition-duration: 0.09s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn--ghost, .btn--ghost::before, .btn--ghost::after { transition: none; }
+  .btn--ghost:hover { transform: none; }
+}
+
+/* the scroll bar becomes four yarns running side by side */
+.progress {
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 10px,
+    var(--yarn-violet) 10px 20px,
+    var(--yarn-blue) 20px 30px,
+    var(--yarn-gold) 30px 40px
+  );
+}
+
+/* seams instead of hairlines on the big structural edges */
+.nav--scrolled { border-bottom: 2px dashed rgba(242, 240, 247, 0.16); }
+.marquee { border-block: 2px dashed rgba(242, 240, 247, 0.14); }
+.svc-tags span { border: 2px dashed rgba(242, 240, 247, 0.2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .wool-btn, .wool-icon, .wool-btn-halo, .wool-btn--photo img { transition: none; }
+  .wool-btn:hover, .wool-btn:active { transform: none; }
+  .wool-btn--hero > .wool-btn-halo,
+  .wool-btn--hero > img { animation: none; }
+  /* the halo is the only hover affordance left, so it stays — just static */
+  .wool-btn:hover .wool-btn-halo { transform: scale(1); opacity: 0.7; }
+}

@@ -125,15 +125,19 @@ export function AppsShowcase() {
         <SplitWords as="h2" className="h2" text="We don’t just market software. We ship it." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
-            These phones are not mockups. Every screen below is a real build — photographed
-            in the simulator the night it compiled.
+            {/* Five of the six carry a REAL BUILD badge and are genuine captures —
+                from the simulator, from a LiDAR device, and from the running web
+                app. The claim names all three rather than only the simulator. */}
+            These phones are not mockups. Every screen wearing a{' '}
+            <strong>REAL BUILD</strong> badge was captured from the running app —
+            in the simulator, on-device, or in the browser.
           </p>
         </Reveal>
         <Reveal delay={0.22}>
           <div className="apps-status">
             <LiveBadge label="App Store — live" />
             <LiveBadge label="TestFlight — beta" />
-            <LiveBadge label="Simulator — captured tonight" />
+            <LiveBadge label="Simulator · device · browser" />
           </div>
         </Reveal>
       </div>

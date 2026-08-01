@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } fr
 import { CASES, FILTERS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
 import { useBottomSheet, useIsMobile, useSheetScrollHandoff, SheetHandle } from '../lib/sheet.jsx'
+import { WoolIcon } from './Wool.jsx'
 import './heads-v7.css'
 
 // Fade images in on decode — ref callback handles the cached case (onLoad
@@ -106,7 +107,13 @@ function CaseCard({ c, onOpen, big = false }) {
             variants={{ hover: { opacity: 1 } }}
             initial={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-          ><span>Open case ↗</span></motion.div>
+          >
+            {/* the ↗ becomes a felt seal — inline-flex here because .case-veil span
+                is plain inline text and would drop the 30px medallion on the baseline */}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+              Open case <WoolIcon name="arrow-right" size="sm" />
+            </span>
+          </motion.div>
         </div>
         <div className="case-meta">
           <div>
@@ -233,7 +240,11 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
             ))}
           </div>
           <footer className="overlay-foot">
-            <button className="btn btn--ghost" onClick={onNext}>Next case →</button>
+            {/* stays a basted-outline ghost button; only the → is re-made in felt
+                (.btn is inline-flex already, it just carries no gap of its own) */}
+            <button className="btn btn--ghost" onClick={onNext} style={{ gap: 10 }}>
+              Next case <WoolIcon name="arrow-right" size="sm" />
+            </button>
           </footer>
           </motion.div>
         </div>

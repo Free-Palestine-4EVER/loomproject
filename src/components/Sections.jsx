@@ -3,10 +3,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useMotionValueEvent, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { BRAND, CLIENT_WALL, SERVICES, PROCESS, STATS } from '../data/site.js'
 import { EASE, SplitWords, Reveal, CountUp, Magnetic } from '../lib/motion.jsx'
-import { HeroField } from '../three/HeroField.js'
 import { ContactWizard } from './ContactWizard.jsx'
 import { useWizard } from '../lib/wizard.jsx'
 import { ServiceVisual, ProcessGlyph, ThreadDivider, StatSpark } from './Rich.jsx'
+import { WoolButton, WoolIcon } from './Wool.jsx'
 import './sections-stage.css'
 
 export function Hero() {
@@ -15,43 +15,62 @@ export function Hero() {
   const wrapRef = useRef(null)
   const reduced = useReducedMotion()
 
+  // three.js is ~600KB — far too much to sit in the main bundle for a decorative
+  // backdrop, so the field is code-split and fetched after mount. Reduced-motion
+  // readers never download it at all: the .hero-canvas-wrap gradient is already
+  // the whole picture for them.
   useEffect(() => {
-    let field
-    try {
-      field = new HeroField(canvasRef.current, { reduced })
-    } catch (e) {
-      // WebGL unavailable — CSS gradient fallback stays visible
-      canvasRef.current.style.display = 'none'
-      return
-    }
-    const onScroll = () => {
-      const h = window.innerHeight
-      field.setScroll(Math.min(window.scrollY / h, 1.4))
-    }
-    const onMouse = (e) => {
-      field.setMouse((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1))
-    }
-    const io = new IntersectionObserver(([en]) => {
-      if (reduced) return
-      en.isIntersecting ? field.start() : field.stop()
-    })
-    io.observe(wrapRef.current)
-    const onVis = () => { if (!reduced) document.hidden ? field.stop() : field.start() }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('mousemove', onMouse, { passive: true })
-    document.addEventListener('visibilitychange', onVis)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('mousemove', onMouse)
-      document.removeEventListener('visibilitychange', onVis)
-      io.disconnect()
-      field.dispose()
-    }
+    if (reduced) return
+    let cancelled = false
+    let teardown = null
+
+    ;(async () => {
+      const { HeroField } = await import('../three/HeroField.js')
+      if (cancelled || !canvasRef.current || !wrapRef.current) return
+      let field
+      try {
+        field = new HeroField(canvasRef.current, { reduced })
+      } catch (e) {
+        // WebGL unavailable — CSS gradient fallback stays visible
+        canvasRef.current.style.display = 'none'
+        return
+      }
+      const onScroll = () => {
+        const h = window.innerHeight
+        field.setScroll(Math.min(window.scrollY / h, 1.4))
+      }
+      const onMouse = (e) => {
+        field.setMouse((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1))
+      }
+      const io = new IntersectionObserver(([en]) => {
+        en.isIntersecting ? field.start() : field.stop()
+      })
+      io.observe(wrapRef.current)
+      const onVis = () => { document.hidden ? field.stop() : field.start() }
+      window.addEventListener('scroll', onScroll, { passive: true })
+      window.addEventListener('mousemove', onMouse, { passive: true })
+      document.addEventListener('visibilitychange', onVis)
+      teardown = () => {
+        window.removeEventListener('scroll', onScroll)
+        window.removeEventListener('mousemove', onMouse)
+        document.removeEventListener('visibilitychange', onVis)
+        io.disconnect()
+        field.dispose()
+      }
+    })()
+
+    // unmounted before the chunk landed -> nothing was ever wired up
+    return () => { cancelled = true; if (teardown) teardown() }
   }, [reduced])
 
   const { scrollYProgress } = useScroll({ target: wrapRef, offset: ['start start', 'end start'] })
   const yType = useTransform(scrollYProgress, [0, 1], ['0%', reduced ? '0%' : '38%'])
   const fade = useTransform(scrollYProgress, [0, 0.75], [1, 0])
+  // A delayed `animate` takes ownership of whatever MotionValue it is bound to,
+  // so the scroll hint must NOT share `fade` with .hero-type — sharing it held
+  // the whole headline at opacity 0 until t≈2.5s, ~1.4s of blank hero after the
+  // loader cleared.
+  const hintFade = useTransform(scrollYProgress, [0, 0.75], [1, 0])
 
   return (
     <section className="hero" id="top" ref={wrapRef}>
@@ -85,16 +104,22 @@ export function Hero() {
           initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.95, duration: 0.8, ease: EASE }}
         >
-          <Magnetic><button className="btn btn--primary" onClick={() => openWizard({})}>Start a project</button></Magnetic>
+          {/* "Start weaving" is one of the 21 photographed spools — and it is the
+              headline's own verb, so the hero CTA is real wool, not a CSS pill */}
+          <Magnetic><WoolButton label="Start weaving" size="big" className="wool-btn--hero" onClick={() => openWizard({})} /></Magnetic>
           <Magnetic><a className="btn btn--ghost" href="#work" data-scroll>See the work</a></Magnetic>
         </motion.div>
       </motion.div>
       <motion.div
         className="hero-scrollhint" aria-hidden="true"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.4 }}
-        style={{ opacity: fade }}
+        style={{ opacity: hintFade }}
       >
-        <span>Scroll</span><i />
+        <motion.span
+          className="hero-scrollhint-in"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.4 }}
+        >
+          <span>Scroll</span><i />
+        </motion.span>
       </motion.div>
     </section>
   )
@@ -229,7 +254,8 @@ export function Services() {
               >
                 <span className="svc-n">{s.n}</span>
                 <span className="svc-title">{s.title}</span>
-                <span className="svc-arrow" aria-hidden="true">→</span>
+                {/* wrapper kept: .svc.is-open rotates it 45° */}
+                <span className="svc-arrow" aria-hidden="true"><WoolIcon name="arrow-right" size="sm" /></span>
               </button>
               <div className="svc-body">
                 <div className="svc-body-inner">
@@ -401,7 +427,7 @@ export function AiLoom() {
           ))}
         </ul>
         <div className="ailoom-cta">
-          <Magnetic><button className="btn btn--primary" onClick={() => openWizard({ note: 'Interested in the AI systems' })}>Put AI in my brand</button></Magnetic>
+          <Magnetic><WoolButton label="Put AI in my brand" size="big" onClick={() => openWizard({ note: 'Interested in the AI systems' })} /></Magnetic>
         </div>
       </div>
       <div className="ailoom-art" aria-hidden="true">

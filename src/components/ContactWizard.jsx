@@ -4,9 +4,11 @@ import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { BRAND, WIZARD } from '../data/site.js'
 import { EASE, Magnetic } from '../lib/motion.jsx'
-import { Icon } from './Icons.jsx'
+import { WoolButton, WoolIcon } from './Wool.jsx'
 
 const STEPS = ['Start', 'Needs', 'Details', 'Send']
+// Knit buttons carry no :disabled rule of their own — mirror what .btn:disabled did.
+const WOOL_OFF = { opacity: 0.4, pointerEvents: 'none' }
 
 export function ContactWizard({ seed = null }) {
   // A seeded open (from a Solutions card, the Moon CTA, a nav button) skips straight
@@ -86,7 +88,9 @@ export function ContactWizard({ seed = null }) {
                     className={`wintent ${intent === it.id ? 'is-picked' : ''}`}
                     onClick={() => { setIntent(it.id); go(1) }}
                   >
-                    <span className="wintent-icon" aria-hidden="true"><Icon name={it.icon} size={26} /></span>
+                    <span className="wintent-icon" aria-hidden="true">
+                      <WoolIcon name={it.wool} size="lg" />
+                    </span>
                     <span className="wintent-title">{it.title}</span>
                     <span className="wintent-sub">{it.sub}</span>
                   </button>
@@ -110,11 +114,16 @@ export function ContactWizard({ seed = null }) {
                   >{n}</button>
                 ))}
               </div>
+              {/* generic wizard chrome — the photographed Back / Next knits are the right cut here */}
               <div className="wnav">
-                <button className="wback" onClick={() => go(0)}>← Back</button>
-                <button className="btn btn--primary" disabled={!needs.length} onClick={() => go(2)}>
-                  Continue →
-                </button>
+                <WoolButton label="Back" size="small" onClick={() => go(0)} />
+                <WoolButton
+                  label="Next"
+                  size="small"
+                  disabled={!needs.length}
+                  style={needs.length ? undefined : WOOL_OFF}
+                  onClick={() => go(2)}
+                />
               </div>
             </motion.div>
           )}
@@ -168,9 +177,13 @@ export function ContactWizard({ seed = null }) {
               </div>
               <div className="wnav">
                 <button className="wback" onClick={() => go(1)}>← Back</button>
-                <button className="btn btn--primary" disabled={!detailsValid} onClick={() => { setTouched(true); if (detailsValid) go(3) }}>
-                  Review →
-                </button>
+                <WoolButton
+                  label="Review"
+                  size="small"
+                  disabled={!detailsValid}
+                  style={detailsValid ? undefined : WOOL_OFF}
+                  onClick={() => { setTouched(true); if (detailsValid) go(3) }}
+                />
               </div>
             </motion.div>
           )}
@@ -181,8 +194,14 @@ export function ContactWizard({ seed = null }) {
               <h3 className="wq">Your brief, woven. Send it your way.</h3>
               <pre className="wbrief" aria-label="Your inquiry summary">{brief}</pre>
               <div className="wsend">
-                <Magnetic><a className="btn btn--primary btn--big" href={waHref} target="_blank" rel="noreferrer">Send via WhatsApp</a></Magnetic>
-                <Magnetic><a className="btn btn--ghost btn--big" href={mailHref}>Send as email</a></Magnetic>
+                {/* two yarns, so the choice reads as two threads rather than
+                    a primary and a leftover */}
+                <Magnetic>
+                  <WoolButton label="Send via WhatsApp" size="big" href={waHref} target="_blank" rel="noreferrer" />
+                </Magnetic>
+                <Magnetic>
+                  <WoolButton label="Send as email" size="big" yarn="blue" href={mailHref} />
+                </Magnetic>
               </div>
               <div className="wnav wnav--end">
                 <button className="wback" onClick={() => go(2)}>← Edit details</button>

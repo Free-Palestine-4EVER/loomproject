@@ -15,6 +15,7 @@ import { motion, useMotionValueEvent, useScroll, useSpring, useTransform, useRed
 import { HQ_READY } from '../data/hq.js'
 import { SplitWords, Reveal, EASE } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
+import { WoolButton } from './Wool.jsx'
 import './hq.css'
 
 const BASE = '/video/hq'
@@ -337,9 +338,12 @@ export function HQ() {
           <p className="hq-outro-line">Eight characters. One building. Your brand on the loom by Thursday.</p>
         </Reveal>
         <Reveal delay={0.12}>
-          <button className="btn btn--primary btn--big" onClick={() => open({ note: 'I watched the film' })}>
-            Book a floor
-          </button>
+          <WoolButton
+            label="Book a floor"
+            yarn="gold"
+            size="big"
+            onClick={() => open({ note: 'I watched the film' })}
+          />
         </Reveal>
       </div>
     </section>

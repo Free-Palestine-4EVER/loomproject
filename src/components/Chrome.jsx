@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useScroll, useSpring, useReducedMotion } from 
 import { BRAND } from '../data/site.js'
 import { EASE, Magnetic } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
+import { WoolButton, WoolIcon } from './Wool.jsx'
 
 export function LoomMark({ className = '' }) {
   return (
@@ -69,7 +70,7 @@ export function Nav({ onNavigate }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 40)
+    const fn = () => setScrolled((s) => (window.scrollY > 56 ? true : window.scrollY < 32 ? false : s))
     fn(); window.addEventListener('scroll', fn, { passive: true })
     return () => window.removeEventListener('scroll', fn)
   }, [])
@@ -95,9 +96,7 @@ export function Nav({ onNavigate }) {
         </nav>
         <div className="nav-cta">
           <Magnetic strength={0.25}>
-            <button className="btn btn--small" onClick={() => openWizard({})}>
-              Start a project
-            </button>
+            <WoolButton label="Get started" size="small" onClick={() => { setOpen(false); openWizard({}) }} />
           </Magnetic>
           <button
             className={`burger ${open ? 'is-open' : ''}`}
@@ -127,7 +126,7 @@ export function Nav({ onNavigate }) {
               ))}
             </div>
             <motion.div className="menu-meta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
-              <button className="btn btn--primary" onClick={() => { setOpen(false); openWizard({}) }}>Start a project</button>
+              <WoolButton label="Start weaving" size="big" onClick={() => { setOpen(false); openWizard({}) }} />
               <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>
               <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
             </motion.div>
@@ -193,9 +192,13 @@ export function Footer({ onNavigate }) {
           ))}
         </nav>
         <div className="footer-contact">
-          <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp — {BRAND.phoneJO}</a>
-          <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
-          <span>Amman · Sarajevo</span>
+          <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">
+            <WoolIcon name="phone" size="sm" />WhatsApp — {BRAND.phoneJO}
+          </a>
+          <a href={`mailto:${BRAND.email}`}>
+            <WoolIcon name="share-nodes" size="sm" />{BRAND.email}
+          </a>
+          <span><WoolIcon name="pin" size="sm" />Amman · Sarajevo</span>
         </div>
       </div>
       <div className="footer-base">

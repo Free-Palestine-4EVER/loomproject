@@ -181,3 +181,7 @@
 @media (prefers-reduced-motion: reduce) {
   .rc-visual *, .rc-glyph *, .rc-thread *, .rc-spark-bar, .rc-live-ring { animation: none !important; }
 }
+
+/* the six .svc bodies are clipped to grid-template-rows: 0fr when closed —
+   nothing inside them is on screen, so nothing inside needs to animate */
+.svc:not(.is-open) .svc-body * { animation-play-state: paused; }

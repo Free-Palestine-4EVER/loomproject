@@ -1,17 +1,26 @@
 // Solutions Explorer — 30 industries, one filterable grid, inline expanding detail panels.
-import { useMemo, useState } from 'react'
+import { forwardRef, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { NICHES, NICHE_GROUPS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
+import { WoolButton } from './Wool.jsx'
+
 import './solutions.css'
 
-function NicheCard({ n, isOpen, onToggle }) {
+// One yarn per category, so the wool tells you which shelf you're on.
+const GROUP_YARN = {
+  food: 'gold', health: 'blue', beauty: 'magenta', retail: 'violet',
+  property: 'crimson', services: 'blue', creative: 'magenta',
+}
+
+const NicheCard = forwardRef(function NicheCard({ n, isOpen, onToggle }, ref) {
   const { open } = useWizard()
   const panelId = `sol-panel-${n.key}`
 
   return (
     <motion.div
+      ref={ref}
       layout="position"
       className="sol-cell"
       initial={{ opacity: 0, scale: 0.96 }}
@@ -57,15 +66,20 @@ function NicheCard({ n, isOpen, onToggle }) {
               {n.moon}
             </p>
 
-            <button className="btn btn--primary sol-cta" onClick={() => open({ niche: n.name })}>
-              Build my {n.name} system
-            </button>
+            {/* label is per-niche, so this one is always the CSS knit pill —
+                and each category is spun from its own yarn */}
+            <WoolButton
+              label={`Build my ${n.name} system`}
+              yarn={GROUP_YARN[n.group] ?? 'magenta'}
+              className="sol-cta"
+              onClick={() => open({ niche: n.name })}
+            />
           </div>
         </div>
       </article>
     </motion.div>
   )
-}
+})
 
 export function Solutions() {
   const [group, setGroup] = useState('all')
