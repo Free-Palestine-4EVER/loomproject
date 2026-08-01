@@ -23,18 +23,11 @@ export function Loader({ done }) {
           <div className="loader-inner">
             <motion.div
               className="loader-word"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
+              initial={{ opacity: 0, scale: 0.94, y: 14 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: EASE }}
             >
-              {'LOOM'.split('').map((c, i) => (
-                <motion.span
-                  key={i}
-                  initial={{ y: '110%' }}
-                  animate={{ y: '0%' }}
-                  transition={{ duration: 0.7, ease: EASE, delay: 0.08 * i }}
-                >{c}</motion.span>
-              ))}
+              <img className="logo-woven" src="/img/logo/loom-woven.png" alt="LOOM" />
             </motion.div>
             <motion.div
               className="loader-thread"
@@ -91,7 +84,7 @@ export function Nav({ onNavigate }) {
     <>
       <header className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
         <a className="nav-logo" href="#top" onClick={(e) => go(e, '#top')} aria-label="LOOM — home">
-          <LoomMark className="nav-mark" /> <span>LOOM</span>
+          <img className="logo-woven" src="/img/logo/loom-woven.png" alt="LOOM" />
         </a>
         <nav className="nav-links" aria-label="Primary">
           {LINKS.map((l) => (
@@ -188,7 +181,7 @@ export function Cursor() {
 export function Footer({ onNavigate }) {
   return (
     <footer className="footer">
-      <div className="footer-word" aria-hidden="true">LOOM</div>
+      <img className="footer-word-img" src="/img/logo/loom-woven.png" alt="" aria-hidden="true" loading="lazy" />
       <div className="footer-grid">
         <div>
           <LoomMark className="footer-mark" />

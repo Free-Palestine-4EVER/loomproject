@@ -1,0 +1,321 @@
+/* ——— LOOM HQ — the full-viewport film ——— */
+
+/* The warp. Registering the property is what lets a keyframe interpolate it;
+   without @property support the animation jumps and the transition degrades to
+   a plain cross-dissolve, which is a perfectly acceptable floor. */
+@property --weave {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+.hq {
+  position: relative;
+  background: linear-gradient(180deg, var(--bg) 0%, #0a0512 22%, #0a0512 78%, var(--bg) 100%);
+  border-block: 1px solid var(--line);
+}
+.hq-head { padding: clamp(70px, 10vh, 130px) var(--pad) clamp(34px, 5vh, 62px); }
+
+/* The track is the scroll budget: one screen per floor, plus a little tail so
+   the last shot gets to breathe before the stage closes. */
+.hq-track {
+  position: relative;
+  height: calc((var(--floors) + 0.55) * 100vh);
+  height: calc((var(--floors) + 0.55) * 100svh);
+}
+.hq-pin {
+  position: sticky; top: 0;
+  height: 100vh; height: 100svh;
+  display: flex; align-items: center; justify-content: center;
+  overflow: clip;
+}
+
+.hq-stage {
+  --accent: var(--magenta);
+  position: relative;
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #06030c;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7);
+  transform-origin: 50% 50%;
+}
+
+.hq-reel { position: absolute; inset: -3%; }
+
+.hq-layer {
+  --weave: 56px;
+  position: absolute; inset: 0;
+  opacity: 0;
+  transform: scale(1.06);
+  filter: blur(12px);
+  transition: opacity 1.05s var(--ease), transform 1.5s var(--ease), filter 0.9s var(--ease);
+  /* White, not black: Safari treats -webkit-mask gradients as luminance in some
+     paths, and white is opaque under both luminance and alpha. */
+  -webkit-mask-image: repeating-linear-gradient(90deg, #fff 0 var(--weave), transparent var(--weave) 56px);
+          mask-image: repeating-linear-gradient(90deg, #fff 0 var(--weave), transparent var(--weave) 56px);
+}
+.hq-layer video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.hq-layer.is-on {
+  z-index: 2;
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+  /* Re-runs on every class change, so each floor genuinely weaves itself in
+     over the one dissolving underneath. */
+  animation: hq-weave-in 1.05s var(--ease) both;
+}
+@keyframes hq-weave-in {
+  from { --weave: 0px; }
+  to   { --weave: 56px; }
+}
+
+/* Slow drift on the live shot so a held frame never goes dead. */
+.hq-layer.is-on video { animation: hq-drift 22s ease-in-out infinite alternate; }
+@keyframes hq-drift {
+  from { transform: scale(1) translate3d(0, 0, 0); }
+  to   { transform: scale(1.07) translate3d(-1.2%, -0.8%, 0); }
+}
+
+.hq-vignette {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background:
+    radial-gradient(120% 88% at 50% 46%, transparent 40%, rgba(4, 2, 9, 0.5) 78%, rgba(4, 2, 9, 0.86) 100%),
+    linear-gradient(180deg, rgba(4, 2, 9, 0.66) 0%, transparent 22%, transparent 52%, rgba(4, 2, 9, 0.82) 100%);
+}
+/* Accent bleed — the floor's own colour washes the frame edges. */
+.hq-bleed {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background:
+    radial-gradient(58% 40% at 6% 92%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 70%),
+    radial-gradient(46% 34% at 96% 8%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%);
+  mix-blend-mode: screen;
+  transition: background 0.9s var(--ease);
+}
+/* A few real warp threads laid over the whole frame, so the building's
+   architecture is present even in a close shot. */
+.hq-warp {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: repeating-linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 13%, transparent) 0 1px,
+    transparent 1px 118px);
+  opacity: 0.55;
+  mask-image: linear-gradient(180deg, #fff, transparent 30%, transparent 70%, #fff);
+  -webkit-mask-image: linear-gradient(180deg, #fff, transparent 30%, transparent 70%, #fff);
+}
+
+/* ——— slate ——— */
+/* The stage is pinned at top:0 and the nav is fixed above it, so anything in the
+   stage's top corners sits underneath the nav. --hq-top clears it. */
+.hq-stage { --hq-top: 74px; }
+
+.hq-slate {
+  position: absolute; z-index: 5;
+  top: var(--hq-top); left: clamp(18px, 3vw, 42px);
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.68rem; font-weight: 800;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--ink);
+  /* The stage chrome floats over whatever the shot happens to be, and "The
+     Stage" is a white cyc wall — without a shadow the slate disappears on it. */
+  text-shadow: 0 1px 3px rgba(4, 2, 9, 0.9), 0 0 18px rgba(4, 2, 9, 0.7);
+}
+.hq-slate-sep { color: var(--ink-dim); }
+.hq-slate-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #ff3b3b;
+  box-shadow: 0 0 12px #ff3b3b;
+  animation: hq-rec 2.4s ease-in-out infinite;
+}
+@keyframes hq-rec { 0%, 100% { opacity: 1 } 50% { opacity: 0.25 } }
+
+/* ——— sound ——— */
+.hq-sound {
+  position: absolute; z-index: 5;
+  top: var(--hq-top); right: clamp(18px, 3vw, 42px);
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 15px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: rgba(10, 5, 18, 0.5);
+  backdrop-filter: blur(14px);
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-dim);
+  transition: color 0.3s, border-color 0.3s, background 0.3s;
+}
+.hq-sound:hover, .hq-sound.is-on { color: var(--ink); border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+.hq-eq { display: flex; align-items: flex-end; gap: 2px; height: 12px; }
+.hq-eq i {
+  width: 2px; height: 3px; border-radius: 1px;
+  background: currentColor;
+  transition: height 0.3s;
+}
+.hq-sound.is-on .hq-eq i { animation: hq-eq 0.9s ease-in-out infinite alternate; }
+.hq-sound.is-on .hq-eq i:nth-child(2) { animation-delay: 0.15s }
+.hq-sound.is-on .hq-eq i:nth-child(3) { animation-delay: 0.3s }
+.hq-sound.is-on .hq-eq i:nth-child(4) { animation-delay: 0.45s }
+@keyframes hq-eq { from { height: 3px } to { height: 12px } }
+
+/* ——— floor rail ——— */
+.hq-rail {
+  position: absolute; z-index: 5;
+  left: clamp(18px, 3vw, 42px); top: 50%; transform: translateY(-50%);
+  display: flex; gap: 16px;
+}
+.hq-rail-line {
+  position: relative; width: 1px; border-radius: 1px;
+  background: var(--line);
+}
+.hq-rail-fill {
+  position: absolute; inset: 0 0 auto 0;
+  background: linear-gradient(180deg, var(--magenta), var(--cyan));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.hq-rail ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.hq-rail button {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 5px 0;
+  color: var(--ink-faint);
+  transition: color 0.4s var(--ease), transform 0.5s var(--ease);
+}
+.hq-rail button:hover { color: var(--ink-dim); transform: translateX(3px); }
+.hq-rail button.is-on { color: var(--ink); transform: translateX(7px); }
+.hq-rail-no {
+  font-family: var(--display); font-weight: 620;
+  font-size: 0.72rem; letter-spacing: 0.06em;
+  color: inherit; opacity: 0.7;
+}
+.hq-rail-dept {
+  font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  position: relative;
+}
+.hq-rail button.is-on .hq-rail-dept::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: hq-underline 0.7s var(--ease) both;
+}
+@keyframes hq-underline { from { transform: scaleX(0); transform-origin: 0 50% } to { transform: scaleX(1) } }
+
+/* ——— nameplate ——— */
+.hq-plate {
+  position: absolute; z-index: 5;
+  left: clamp(18px, 3vw, 42px); bottom: clamp(38px, 8vh, 92px);
+  max-width: min(46ch, 58vw);
+  padding-left: clamp(78px, 9vw, 150px);
+}
+/* A directional scrim under the nameplate. The frame vignette alone is not
+   enough on the bright shots — "The Stage" is a white cyc wall, and white type
+   on it is unreadable without this. */
+.hq-plate::before {
+  content: ''; position: absolute; z-index: -1;
+  inset: -14% -22% -160% -60%;
+  background: radial-gradient(72% 100% at 22% 78%, rgba(4, 2, 9, 0.9), rgba(4, 2, 9, 0.55) 46%, transparent 74%);
+  pointer-events: none;
+}
+.hq-word { display: inline-block; white-space: nowrap; }
+.hq-word + .hq-word { margin-left: 0.26em; }
+.hq-plate-cast {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 0.72rem; font-weight: 800;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+  /* The accent is drawn from the shot itself, so the label regularly lands on
+     the one element that shares its colour — magenta on the magenta thread in
+     The Ascent. The shadow keeps it off the background either way. */
+  text-shadow: 0 1px 4px rgba(4, 2, 9, 0.95), 0 0 16px rgba(4, 2, 9, 0.8);
+}
+.hq-plate-rule { width: 34px; height: 1px; background: currentColor; opacity: 0.6; }
+.hq-plate-title {
+  font-family: var(--display); font-weight: 560;
+  font-size: clamp(1.9rem, 4.6vw, 3.8rem);
+  line-height: 1.02; letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 6px 40px rgba(0, 0, 0, 0.6);
+}
+.hq-char-mask { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.hq-char { display: inline-block; white-space: pre; }
+.hq-plate-line {
+  margin-top: 16px;
+  font-size: clamp(0.95rem, 1.25vw, 1.1rem);
+  color: var(--ink-dim);
+  max-width: 44ch;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
+}
+
+/* ——— counter ——— */
+.hq-count {
+  position: absolute; z-index: 5;
+  right: clamp(18px, 3vw, 42px); bottom: clamp(34px, 7vh, 80px);
+  display: flex; align-items: baseline; gap: 8px;
+  font-family: var(--display);
+}
+.hq-count-now {
+  font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 620; line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 40px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.hq-count-of { font-size: 0.9rem; font-weight: 500; color: var(--ink-faint); }
+
+/* ——— outro ——— */
+.hq-outro {
+  position: relative;
+  padding: clamp(48px, 8vh, 96px) var(--pad) clamp(64px, 10vh, 120px);
+  display: flex; flex-direction: column; align-items: center; gap: 26px;
+  text-align: center;
+}
+.hq-outro-line {
+  font-family: var(--display); font-weight: 500;
+  font-size: clamp(1.2rem, 2.4vw, 2rem);
+  line-height: 1.2; max-width: 22ch;
+}
+
+/* ——— narrow ——— */
+@media (max-width: 900px) {
+  .hq-stage { --hq-top: 68px; }
+  .hq-rail ul { display: none; }
+  .hq-rail { top: auto; bottom: clamp(38px, 8vh, 92px); transform: none; height: 24vh; }
+  .hq-rail-line { width: 2px; }
+  /* The counter keeps the bottom-right corner; the plate stops short of it
+     rather than running the title straight into the digits. */
+  .hq-plate { padding-left: 26px; max-width: none; right: 112px; }
+  .hq-count-now { font-size: 2.1rem; }
+  .hq-plate-line { display: none; }
+  .hq-plate::before { inset: -30% -40% -220% -80%; }
+}
+@media (max-width: 560px) {
+  .hq-slate { font-size: 0.6rem; letter-spacing: 0.16em; }
+  .hq-sound-label { display: none; }
+  .hq-sound { padding: 10px 12px; }
+}
+
+/* ——— reduced motion: same film, none of the machinery ——— */
+.hq--static .hq-static-list {
+  display: grid; gap: clamp(18px, 3vw, 34px);
+  padding: 0 var(--pad) clamp(60px, 9vh, 110px);
+}
+.hq-static-item {
+  --accent: var(--magenta);
+  position: relative;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  overflow: hidden;
+  background: #06030c;
+}
+.hq-static-item video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+.hq-static-item figcaption {
+  padding: clamp(18px, 2.4vw, 28px);
+  display: flex; flex-direction: column; gap: 8px;
+  border-top: 1px solid var(--line);
+}
+.hq-static-dept {
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent);
+}
+.hq-static-item h3 { font-family: var(--display); font-weight: 560; font-size: clamp(1.3rem, 2.4vw, 1.9rem); line-height: 1.1; }
+.hq-static-item p { color: var(--ink-dim); font-size: 0.95rem; max-width: 56ch; }
+.hq-static-cast { font-size: 0.8rem; color: var(--ink-faint); }

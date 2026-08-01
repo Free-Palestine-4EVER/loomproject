@@ -120,7 +120,7 @@ export function Moon({ enablePlanetVideo = false }) {
             <div className="planet-terminator" />
           </div>
         </div>
-        <p className="kicker kicker--light kicker--center"><span>08</span> The Ascent</p>
+        <p className="kicker kicker--light kicker--center"><span>09</span> The Ascent</p>
         <p className="moon-subhead moon-subhead--center">One planet. Six territories. Every one of them LOOM.</p>
         <ul className="moon-static-list">
           {STAGES.map((s) => (
@@ -157,7 +157,7 @@ export function Moon({ enablePlanetVideo = false }) {
 
         <motion.div className="moon-intro" style={{ opacity: kickerOpacity }}>
           <p className="kicker kicker--light">
-            <span>08</span> The Ascent
+            <span>09</span> The Ascent
           </p>
           <p className="moon-subhead">One planet. Six territories. Every one of them LOOM.</p>
         </motion.div>

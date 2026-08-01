@@ -1,0 +1,246 @@
+/* ————————————————————————————————————————————————————————
+   LOOM — textile material system
+   Overlay-only surface treatment on top of styles.css.
+   Real fabric photography (denim / woven grey / yarn) blended at low
+   opacity so the dark-violet + magenta palette stays king. No layout,
+   spacing or typography changes live here — surface only.
+   ———————————————————————————————————————————————————————— */
+
+/* ——— shared thread tokens ——— */
+:root {
+  --thread: rgba(242, 240, 247, 0.35);
+  --thread-dim: rgba(242, 240, 247, 0.14);
+}
+
+/* ============================================================
+   1. NAV — denim chrome + stitched seams
+   ============================================================ */
+.nav--scrolled {
+  background-color: rgba(13, 7, 22, 0.72);
+  background-image: url('/img/tex/denim-tile.webp');
+  background-size: 336px 70px;
+  background-repeat: repeat;
+  background-blend-mode: overlay;
+}
+.nav--scrolled::before,
+.nav--scrolled::after {
+  content: '';
+  position: absolute; left: 0; right: 0; height: 1px;
+  background-image: repeating-linear-gradient(90deg, var(--thread) 0 6px, transparent 6px 11px);
+  pointer-events: none;
+}
+.nav--scrolled::before { top: 5px; }
+.nav--scrolled::after { bottom: 5px; }
+
+.menu {
+  background-image: url('/img/tex/denim-tile.webp'), linear-gradient(160deg, var(--bg-2), var(--bg-3));
+  background-size: 336px 70px, cover;
+  background-repeat: repeat, no-repeat;
+  background-blend-mode: overlay, normal;
+}
+.menu::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background-image: repeating-linear-gradient(90deg, var(--thread-dim) 0 6px, transparent 6px 11px);
+  pointer-events: none;
+}
+
+/* ============================================================
+   2. BUTTONS — yarn-wrapped primary, stitched ghost
+   ============================================================ */
+.btn--primary {
+  background-color: var(--magenta);
+  background-image: repeating-linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0.22) 0 2px,
+    rgba(178, 15, 102, 0.4) 2px 5px,
+    rgba(255, 90, 175, 0.3) 5px 8px,
+    transparent 8px 12px
+  );
+  background-size: 200% 200%;
+  background-position: 0% 50%;
+  background-blend-mode: normal;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 2px 5px rgba(178, 15, 102, 0.45),
+    0 8px 34px rgba(242, 28, 140, 0.35);
+  transition: background-position 0.55s var(--ease), background-color 0.35s, color 0.35s,
+    border-color 0.35s, box-shadow 0.5s, transform 0.5s var(--ease);
+}
+.btn--primary:hover {
+  background-color: #ff35a0;
+  background-position: 100% 40%;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 3px 9px rgba(178, 15, 102, 0.55),
+    0 12px 44px rgba(242, 28, 140, 0.5);
+}
+
+.btn--ghost {
+  border-style: dashed;
+  border-width: 1.5px;
+  border-color: rgba(242, 240, 247, 0.32);
+}
+.btn--ghost:hover { border-color: var(--magenta); }
+
+/* ============================================================
+   3. CARDS — fabric-frame treatment
+   Group A: process-card / studio-card / lab-card / app-card / sol-card
+   already use ::before for the pointer-spotlight (see styles.css
+   .process-card::before etc.) and already promote direct children to
+   z-index:1 — so texture lives on ::after at z-index:0, safely under
+   content, and needs no extra stacking-context work.
+   ============================================================ */
+.process-card,
+.studio-card,
+.lab-card,
+.app-card,
+.sol-card {
+  outline: 1px dashed var(--thread-dim);
+  outline-offset: -10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 30px rgba(0, 0, 0, 0.35);
+}
+.process-card::after,
+.studio-card::after,
+.lab-card::after,
+.app-card::after,
+.sol-card::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: inherit;
+  background-image: url('/img/tex/fabric-tile.webp');
+  background-size: 224px 24px;
+  background-repeat: repeat;
+  opacity: 0.13;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+/* re-declare hover shadows that styles.css sets wholesale, so the
+   recessed inner-panel reading survives the hover state too */
+.app-card:hover {
+  border-color: rgba(242, 28, 140, 0.45);
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 30px rgba(0, 0, 0, 0.35);
+}
+.sol-card:hover {
+  border-color: rgba(242, 28, 140, 0.45);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ------------------------------------------------------------
+   Group B: crew-card / wizard / wmodal-panel / overlay-panel —
+   none of these promote children to z-index:1, so a positioned
+   ::after would otherwise paint over static in-flow content.
+   Fix: isolate a local stacking context and paint the texture at
+   a NEGATIVE z-index (still above the card's own background/border,
+   still under all normal in-flow content — CSS2.1 painting order
+   step 2 vs step 3).
+   ------------------------------------------------------------ */
+.crew-card,
+.wizard,
+.wmodal-panel,
+.overlay-panel {
+  isolation: isolate;
+  outline: 1px dashed var(--thread-dim);
+  outline-offset: -10px;
+}
+.crew-card::after,
+.wizard::after,
+.wmodal-panel::after,
+.overlay-panel::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: inherit;
+  background-image: url('/img/tex/fabric-tile.webp');
+  background-size: 224px 24px;
+  background-repeat: repeat;
+  opacity: 0.11;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: -1;
+}
+.crew-card { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 30px rgba(0, 0, 0, 0.35); }
+.crew-card.is-on {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55), 0 0 60px color-mix(in srgb, var(--accent) 22%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 30px rgba(0, 0, 0, 0.35);
+}
+.wizard { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 30px rgba(0, 0, 0, 0.35); }
+.wmodal-panel {
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7), 0 0 80px rgba(242, 28, 140, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 30px rgba(0, 0, 0, 0.35);
+}
+.overlay-panel {
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 30px rgba(0, 0, 0, 0.35);
+}
+/* fabric-side.webp — a thin bound selvedge along the panel's leading edge */
+.wmodal-panel::before,
+.overlay-panel::before {
+  content: '';
+  position: absolute; top: 0; bottom: 0; left: 0; width: 5px;
+  background-image: url('/img/tex/fabric-side.webp');
+  background-size: 100% auto;
+  background-repeat: repeat-y;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ============================================================
+   4. HERO — woven bottom hem (selvedge at hero/marquee boundary)
+   ============================================================ */
+.hero::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0; height: 13px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--thread) 0 6px, transparent 6px 11px),
+    repeating-linear-gradient(90deg, var(--thread-dim) 0 5px, transparent 5px 9px);
+  background-position: left top 1px, left bottom 1px;
+  background-size: 100% 1px, 100% 1px;
+  background-repeat: no-repeat, no-repeat;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ============================================================
+   5. SHEET HANDLE — a short piece of yarn
+   ============================================================ */
+.sheet-handle {
+  width: 44px; height: 6px;
+  background: linear-gradient(90deg, var(--magenta-deep), var(--magenta) 45%, #ff8ac4 52%, var(--magenta-deep));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 0 10px rgba(242, 28, 140, 0.45),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================================
+   6. REDUCED-TRANSPARENCY GUARD
+   mobilechrome.css declares the solid fallback for nav--scrolled /
+   menu / wmodal-panel, but this stylesheet loads AFTER it in the
+   module graph (main.jsx imports App.jsx — and its mobilechrome.css
+   — before textile.css). Equal-specificity + later-in-cascade means
+   our unconditional texture rules above would otherwise win and
+   silently defeat that fallback. Re-declare it here, media-scoped,
+   so this file's own last word matches mobilechrome's intent instead
+   of fighting it.
+   ============================================================ */
+@media (max-width: 767px) {
+  @media (prefers-reduced-transparency: reduce) {
+    .nav--scrolled,
+    .menu {
+      background-image: none;
+      background-color: var(--bg-2);
+      background-blend-mode: normal;
+    }
+    .wmodal-panel {
+      background-color: var(--bg-2);
+    }
+    .wmodal-panel::before {
+      display: none;
+    }
+  }
+}

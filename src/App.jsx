@@ -6,6 +6,7 @@ import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { Crew } from './components/Crew.jsx'
+import { HQ } from './components/HQ.jsx'
 import { Moon } from './components/Moon.jsx'
 import { MobileChrome } from './components/MobileChrome.jsx'
 import { WizardProvider } from './lib/wizard.jsx'
@@ -77,6 +78,7 @@ export default function App() {
         <AppsShowcase />
         <ToolsLab />
         <Crew />
+        <HQ />
         <Solutions />
         <Moon />
         <Process />

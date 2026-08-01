@@ -1,0 +1,87 @@
+/* ————————————————————————————————————————————————————————
+   sections-stage.css — signature scroll mechanics for Manifesto,
+   Process and Studios. Pure additive layer over styles.css; nothing
+   here redefines a selector that file already owns.
+   ———————————————————————————————————————————————————————— */
+
+/* ——— Manifesto: ink-through headline ——— */
+.manifesto-ink { display: inline; }
+.ink-word { display: inline-block; }
+.manifesto-ink-rule {
+  display: block;
+  width: 92px; height: 2px; margin: 22px 0 0;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--magenta), var(--violet), var(--cyan));
+  border-radius: 2px;
+}
+
+/* ——— Process: the line ——— */
+.process-stage { position: relative; }
+.process-stage > .process-grid { position: relative; z-index: 1; }
+.process-linewrap {
+  position: absolute; top: 0; left: 0;
+  pointer-events: none; z-index: 0;
+  overflow: visible;
+}
+.process-linewrap--h { display: none; }
+.process-linewrap--v { display: none; }
+.pt-node {
+  fill: var(--ink-faint);
+  transition: fill 0.4s, filter 0.4s;
+}
+.pt-node.is-lit {
+  fill: var(--magenta);
+  filter: drop-shadow(0 0 7px rgba(242, 28, 140, 0.8));
+}
+.pt-line { transition: stroke 0.4s; }
+
+@media (min-width: 1000px) {
+  .process-stage { padding-top: 38px; }
+  .process-linewrap--h { display: block; }
+}
+@media (max-width: 639px) {
+  .process-linewrap--v { display: block; }
+}
+
+/* ——— Studios: the thread between cities ——— */
+.studios-stage { position: relative; }
+.studios-thread { position: absolute; inset: 0; display: none; pointer-events: none; }
+.studios-arc { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.studios-arc-pulse {
+  position: absolute; top: 0; left: 0;
+  width: 8px; height: 8px; margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--cyan) 45%, transparent 75%);
+  box-shadow: 0 0 14px 3px rgba(89, 230, 255, 0.7);
+  animation: studios-pulse-move 3.6s ease-in-out infinite;
+  will-change: offset-distance, opacity;
+}
+@keyframes studios-pulse-move {
+  0% { offset-distance: 0%; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+.studios-arc-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--display);
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+.studios-arc-label i {
+  display: block; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--cyan); box-shadow: 0 0 8px 1px rgba(89, 230, 255, 0.8);
+}
+
+@media (min-width: 1000px) {
+  .studios-thread { display: block; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manifesto-ink-rule { transform: none !important; }
+  .studios-arc-pulse { display: none; }
+}

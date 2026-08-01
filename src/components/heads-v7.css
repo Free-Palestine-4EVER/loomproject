@@ -1,0 +1,20 @@
+/* heads-v7.css — copy-pass staging: Work "developing print" tiles, Apps live-status row.
+   Owned by Work.jsx / Products.jsx. Do not import into textile*.css or HQ.jsx. */
+
+/* ——— Work: featured tiles develop like a print ——— */
+.case-card--big .case-media img {
+  transition: opacity 250ms ease-out, filter 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.case-media.is-developing img {
+  filter: saturate(0.85) brightness(0.9);
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-card--big .case-media img { transition: opacity 250ms ease-out; }
+}
+
+/* ——— Apps: live-status row under the section lede ——— */
+.apps-status {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  margin-top: 18px;
+}
+.apps-status .rc-live { opacity: 0.82; }

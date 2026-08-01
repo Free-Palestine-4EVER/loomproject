@@ -1,0 +1,187 @@
+/* ————————————————————————————————————————————————————————
+   LOOM — textile detail layer (stitchwork)
+   Loader thread, stitched seam progress, kicker knots, selvedge
+   marquee edges, woven care-label chips, hem footer, lit-seam edge glow.
+   Overlays only — no layout/spacing/typography changes.
+   One shared rhythm: 6px dash / 5px gap.
+   ———————————————————————————————————————————————————————— */
+
+:root {
+  --stitch-dim: rgba(242, 240, 247, 0.22);
+  --stitch-dim-soft: rgba(242, 240, 247, 0.14);
+  --tex-fabric: url('/img/tex/fabric-tile.webp');
+}
+
+/* ═══ 1. loader — running stitch ═══ */
+.loader-thread {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--magenta) 0 6px,
+    transparent 6px 11px
+  );
+  background-size: 22px 100%;
+  background-repeat: repeat-x;
+  animation: loom-stitch-run 0.55s linear infinite;
+}
+
+@keyframes loom-stitch-run {
+  to { background-position: 22px 0; }
+}
+
+/* tiny thread-loop settling in after the letters land */
+.loader-word {
+  align-items: flex-end;
+}
+.loader-word::after {
+  content: '';
+  display: inline-block;
+  align-self: center;
+  width: 0.34em;
+  height: 0.2em;
+  margin-left: 0.14em;
+  border: 1.6px solid var(--magenta);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.2);
+  animation: loom-thread-loop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.98s;
+}
+@keyframes loom-thread-loop {
+  0% { opacity: 0; transform: scale(0.2) rotate(-25deg); }
+  60% { opacity: 0.9; transform: scale(1.15) rotate(8deg); }
+  100% { opacity: 0.65; transform: scale(1) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-thread { animation: none; }
+  .loader-word::after { animation: none; opacity: 0.65; transform: scale(1); }
+}
+
+/* ═══ 2. scroll progress — seam being sewn ═══ */
+.progress {
+  background-image: linear-gradient(90deg, var(--magenta), var(--violet), var(--cyan));
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 11px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 11px);
+  -webkit-mask-size: 11px 100%;
+  mask-size: 11px 100%;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+}
+
+/* ═══ 3. kicker — stitched seam with a knot ═══ */
+.kicker::after {
+  height: 4px;
+  width: 64px;
+  background: transparent;
+  background-image:
+    radial-gradient(circle 2px at calc(100% - 2px) 50%, var(--magenta) 0 100%, transparent 100%),
+    repeating-linear-gradient(90deg, var(--stitch-dim) 0 6px, transparent 6px 11px);
+  background-repeat: no-repeat, repeat-x;
+  background-position: 0 50%, 0 50%;
+  background-size: auto, auto 1.4px;
+}
+.kicker--center::after { display: none; }
+
+/* ═══ 4. marquee — selvedge edges ═══ */
+.marquee {
+  border-block: none;
+  position: relative;
+}
+.marquee::before,
+.marquee::after {
+  content: '';
+  position: absolute; left: 0; right: 0;
+  height: 5px;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--stitch-dim), var(--stitch-dim)),
+    linear-gradient(var(--stitch-dim), var(--stitch-dim)),
+    repeating-linear-gradient(90deg, var(--stitch-dim-soft) 0 1px, transparent 1px 11px);
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  background-position: 0 0, 0 100%, 0 0;
+  background-size: 100% 1px, 100% 1px, 11px 100%;
+}
+.marquee::before { top: 0; }
+.marquee::after { bottom: 0; }
+
+/* ═══ 5. chips — woven care labels ═══ */
+.filter,
+.wchip,
+.case-tags span,
+.app-badge,
+.lab-tag,
+.svc-tags span,
+.crew-owns {
+  position: relative;
+  background-color: transparent;
+  background-image:
+    linear-gradient(rgba(13, 7, 22, 0.88), rgba(13, 7, 22, 0.88)),
+    var(--tex-fabric);
+  background-blend-mode: normal;
+  background-size: auto, 84px 9px;
+  background-repeat: repeat, repeat;
+  border-style: dashed;
+  border-width: 1.4px;
+}
+
+.filter.is-active,
+.wchip.is-on {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.14) 0 2px,
+      transparent 2px 5px
+    ),
+    linear-gradient(var(--magenta), var(--magenta));
+  background-blend-mode: normal;
+  background-size: auto, auto;
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ═══ 6. footer — hem ═══ */
+.footer {
+  position: relative;
+}
+.footer-base {
+  position: relative;
+}
+.footer-base::before {
+  content: '';
+  position: absolute; left: 0; right: 0; top: -1px;
+  height: 4px;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--stitch-dim), var(--stitch-dim)),
+    linear-gradient(var(--stitch-dim-soft), var(--stitch-dim-soft)),
+    repeating-linear-gradient(90deg, var(--stitch-dim) 0 6px, transparent 6px 11px);
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  background-position: 0 0, 0 100%, 0 100%;
+  background-size: 100% 1px, 100% 1px, 11px 1.4px;
+}
+
+.footer-word {
+  background-image: var(--tex-fabric);
+  background-size: 340px 36px;
+  background-repeat: repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(242, 240, 247, 0.07);
+  opacity: 0.9;
+}
+
+/* ═══ 7. section edge — lit seam ═══ */
+main > section::before {
+  background-image: linear-gradient(90deg, transparent, var(--magenta), var(--cyan), transparent);
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 11px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 11px);
+  -webkit-mask-size: 11px 100%;
+  mask-size: 11px 100%;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee::before, .marquee::after { animation: none; }
+}

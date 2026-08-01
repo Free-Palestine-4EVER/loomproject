@@ -1,0 +1,53 @@
+/* ————————————————————————————————————————————————
+   BRAND SKIN — the woven logo + the 1:1 yarn button
+   Assets harvested from the approved concept renders.
+   ———————————————————————————————————————————————— */
+
+/* ——— yarn CTA: real yarn plate (caps pinned, middle tiles) ——— */
+.btn--primary {
+  background-color: transparent;
+  background-image:
+    url('/img/tex/yarn-cap-l.png'),
+    url('/img/tex/yarn-cap-r.png'),
+    url('/img/tex/yarn-mid.png');
+  background-position: left center, right center, center center;
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  background-size: auto 100%, auto 100%, auto 100%;
+  border: 0;
+  box-shadow: none;
+  filter: drop-shadow(0 6px 24px rgba(242, 28, 140, 0.55));
+  text-shadow: 0 1px 6px rgba(60, 0, 35, 0.55), 0 0 14px rgba(255, 255, 255, 0.35);
+  font-weight: 700;
+  transition: filter 0.35s, transform 0.5s var(--ease);
+}
+.btn--primary:hover {
+  background: /* re-declare: hover must not fall back to flat magenta */
+    url('/img/tex/yarn-cap-l.png') left center / auto 100% no-repeat,
+    url('/img/tex/yarn-cap-r.png') right center / auto 100% no-repeat,
+    url('/img/tex/yarn-mid.png') center center / auto 100% repeat-x;
+  filter: drop-shadow(0 8px 34px rgba(242, 28, 140, 0.8)) brightness(1.07) saturate(1.05);
+}
+/* generous pill padding so the yarn caps' curvature isn't crushed */
+.btn--primary { padding-left: 34px; padding-right: 34px; }
+.btn--primary.btn--big { padding-left: 44px; padding-right: 44px; }
+
+/* ——— woven wordmark ——— */
+.logo-woven {
+  display: block;
+  height: 30px;
+  width: auto;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+}
+.nav-logo .logo-woven { height: clamp(24px, 2.4vw, 32px); }
+.loader .logo-woven {
+  height: clamp(64px, 12vw, 120px);
+  filter: drop-shadow(0 8px 30px rgba(242, 28, 140, 0.35));
+}
+.footer-word-img {
+  position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%);
+  width: min(880px, 86vw); opacity: 0.16;
+  pointer-events: none; user-select: none;
+}
+@media (max-width: 640px) {
+  .nav-logo .logo-woven { height: 22px; }
+}

@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } fr
 import { CASES, FILTERS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
 import { useBottomSheet, useIsMobile, useSheetScrollHandoff, SheetHandle } from '../lib/sheet.jsx'
+import './heads-v7.css'
 
 // Fade images in on decode — ref callback handles the cached case (onLoad
 // never fires for images that were complete before hydration).
@@ -17,6 +18,27 @@ function CaseCard({ c, onOpen, big = false }) {
   const [coarse, setCoarse] = useState(false)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-6%', '6%'])
+
+  // Featured tiles "develop" like a print — desaturated on mount, full color once
+  // the card has crossed 40% into the viewport. Reduced motion (and non-featured
+  // grid cards) render already-developed, no transition to skip.
+  const [developed, setDeveloped] = useState(!big || !!reduced)
+  useEffect(() => {
+    if (!big || reduced || developed || !ref.current) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        const en = entries[0]
+        if (en && en.isIntersecting) {
+          setDeveloped(true)
+          io.disconnect()
+        }
+      },
+      { threshold: 0.4 }
+    )
+    io.observe(ref.current)
+    return () => io.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [big, reduced])
 
   useEffect(() => {
     const mq = window.matchMedia('(pointer: coarse)')
@@ -64,7 +86,7 @@ function CaseCard({ c, onOpen, big = false }) {
       data-cursor
     >
       <button className="case-hit" onClick={() => onOpen(c.slug)} aria-label={`Open case study: ${c.client} — ${c.title}`}>
-        <div className="case-media">
+        <div className={`case-media ${big && !developed ? 'is-developing' : ''}`}>
           <motion.img
             src={c.cover} alt={`${c.client} — ${c.title}`} loading="lazy"
             ref={imgFade} onLoad={onImgLoad}
@@ -241,7 +263,12 @@ export function Work() {
     <section className="work" id="work">
       <div className="section-head">
         <p className="kicker"><span>—</span> Selected work</p>
-        <SplitWords as="h2" className="h2" text="Seventeen case studies. Seven countries. One standard." />
+        <SplitWords as="h2" className="h2" text="Seventeen launches. Seven countries. Zero templates." />
+        <Reveal delay={0.15}>
+          <p className="lede" style={{ marginTop: 22 }}>
+            Everything on this board went live — and most of it went further. Open any tile and walk the whole case.
+          </p>
+        </Reveal>
       </div>
 
       <div className="work-featured">

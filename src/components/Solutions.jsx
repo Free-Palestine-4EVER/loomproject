@@ -86,13 +86,12 @@ export function Solutions() {
   return (
     <section className="solutions" id="solutions">
       <div className="section-head">
-        <p className="kicker"><span>07</span> Solutions</p>
+        <p className="kicker"><span>08</span> Solutions</p>
         <SplitWords as="h2" className="h2" text="Thirty industries. One loom." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
-            Every industry weaves differently, but the loom underneath is the same. Pick yours
-            and see the exact growth system LOOM builds for it: the AI agent that works the
-            floor, the content engine that never runs dry, and the deliverables that ship first.
+            Pick your industry and watch the loom set itself up for it — the agent that
+            answers at 3am, the content engine that never runs dry, the launch that lands.
           </p>
         </Reveal>
       </div>

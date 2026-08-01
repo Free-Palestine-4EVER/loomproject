@@ -5,7 +5,9 @@ import { APPS, TOOLS } from '../data/site.js'
 import { SplitWords, Reveal } from '../lib/motion.jsx'
 import { AppScreen } from './AppScreens.jsx'
 import { LabPreview } from './LabPreviews.jsx'
+import { LiveBadge } from './Rich.jsx'
 import './products-touch.css'
+import './heads-v7.css'
 
 // True on coarse pointers (touch) — cards use this to swap hover-only
 // interactions for scroll/tap equivalents, and never attach the extra
@@ -123,9 +125,16 @@ export function AppsShowcase() {
         <SplitWords as="h2" className="h2" text="We don’t just market software. We ship it." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
-            The same studio that weaves your brand builds real products — iOS apps,
-            AR commerce, ordering platforms. Design, code and launch under one roof.
+            These phones are not mockups. Every screen below is a real build — photographed
+            in the simulator the night it compiled.
           </p>
+        </Reveal>
+        <Reveal delay={0.22}>
+          <div className="apps-status">
+            <LiveBadge label="App Store — live" />
+            <LiveBadge label="TestFlight — beta" />
+            <LiveBadge label="Simulator — captured tonight" />
+          </div>
         </Reveal>
       </div>
       <div className="apps-grid">
@@ -191,11 +200,11 @@ export function ToolsLab() {
       <motion.div className="lab-bg" style={{ y }} aria-hidden="true" />
       <div className="section-head">
         <p className="kicker kicker--light"><span>05</span> The 3D Lab</p>
-        <SplitWords as="h2" className="h2 h2--light" text="Our own 3D & AI software." />
+        <SplitWords as="h2" className="h2 h2--light" text="We built our own tools. Then we built yours." />
         <Reveal delay={0.15}>
           <p className="lede lede--light" style={{ marginTop: 22 }}>
-            Tools we engineered in-house — the unfair advantage behind every LOOM project.
-            Rooms scanned into 3D, plans that furnish themselves, worlds edited like documents.
+            Six machines engineered in-house — scanners, editors, generators. What you see is
+            the software actually running; hover any card to x-ray into how it thinks.
           </p>
         </Reveal>
       </div>

@@ -2,7 +2,7 @@
 // and picking one seeds the contact wizard with that discipline.
 import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
-import { CREW } from '../data/crew.js'
+import { CREW_READY as CREW } from '../data/crew.js'
 import { SplitWords, Reveal } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
 import './crew.css'
