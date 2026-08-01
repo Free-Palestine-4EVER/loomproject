@@ -210,7 +210,7 @@ export function Bolt() {
                   fullscreen menu, footer) — a cache hit, not a new download */}
               <img
                 className="bolt-lockup"
-                src="/img/logo/loom-woven.png"
+                src="/img/logo/loom-woven.webp"
                 alt={BRAND.name}
                 width={1579}
                 height={534}

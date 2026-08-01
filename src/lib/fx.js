@@ -19,6 +19,8 @@ function velocityMarquee() {
   let rawV = 0 // px/ms, signed
   let skew = 0
   let speed = 1
+  let raf = null
+  let inView = true
 
   const onScroll = () => {
     const now = performance.now()
@@ -30,7 +32,6 @@ function velocityMarquee() {
   }
   window.addEventListener('scroll', onScroll, { passive: true })
 
-  let raf
   const loop = () => {
     raf = requestAnimationFrame(loop)
     // decay the raw sample toward 0 between scroll events so it settles
@@ -42,10 +43,23 @@ function velocityMarquee() {
     track.style.setProperty('--mq-skew', `${skew.toFixed(3)}deg`)
     track.style.setProperty('--mq-speed', speed.toFixed(3))
   }
-  raf = requestAnimationFrame(loop)
+
+  // Off-screen (scrolled past) or a backgrounded tab means nobody can see the
+  // marquee decay — freeze the loop instead of paying for it forever.
+  const sync = () => {
+    const active = inView && document.visibilityState === 'visible'
+    if (active && raf == null) { lastT = performance.now(); raf = requestAnimationFrame(loop) }
+    else if (!active && raf != null) { cancelAnimationFrame(raf); raf = null }
+  }
+  const io = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; sync() }, { threshold: 0 })
+  io.observe(track)
+  document.addEventListener('visibilitychange', sync)
+  sync()
 
   return () => {
     cancelAnimationFrame(raf)
+    io.disconnect()
+    document.removeEventListener('visibilitychange', sync)
     window.removeEventListener('scroll', onScroll)
     track.style.removeProperty('--mq-skew')
     track.style.removeProperty('--mq-speed')
@@ -161,7 +175,7 @@ export function burstThreads(x, y) {
   ensureThreadCanvas()
   const N = 24
   const duration = 700
-  const start = performance.now()
+  let start = performance.now()
   const particles = Array.from({ length: N }, () => {
     const angle = Math.random() * Math.PI * 2
     const speed = 1.4 + Math.random() * 2.6
@@ -173,10 +187,18 @@ export function burstThreads(x, y) {
     }
   })
 
+  let raf = null
+  let hiddenAt = null
+
   const tick = (now) => {
+    raf = null
+    // a backgrounded tab shouldn't keep animating an invisible burst — freeze
+    // it exactly where it is and pick back up once the tab is visible again
+    if (document.visibilityState === 'hidden') { hiddenAt = now; return }
     const p = (now - start) / duration
     if (p >= 1) {
       threadCtx.clearRect(0, 0, threadCanvas.width, threadCanvas.height)
+      document.removeEventListener('visibilitychange', onVisibility)
       return
     }
     threadCtx.clearRect(0, 0, threadCanvas.width, threadCanvas.height)
@@ -198,9 +220,18 @@ export function burstThreads(x, y) {
       threadCtx.lineCap = 'round'
       threadCtx.stroke()
     })
-    requestAnimationFrame(tick)
+    raf = requestAnimationFrame(tick)
   }
-  requestAnimationFrame(tick)
+
+  const onVisibility = () => {
+    if (document.visibilityState === 'visible' && hiddenAt != null) {
+      start += performance.now() - hiddenAt // drop the frozen gap from elapsed progress
+      hiddenAt = null
+      if (raf == null) raf = requestAnimationFrame(tick)
+    }
+  }
+  document.addEventListener('visibilitychange', onVisibility)
+  raf = requestAnimationFrame(tick)
 }
 
 function confettiThreads() {

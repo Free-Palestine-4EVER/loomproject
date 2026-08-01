@@ -29,7 +29,7 @@
   --bg-3: #1a1029;
   --ink: #f2f0f7;
   --ink-dim: #a89fc0;
-  --ink-faint: #6b6284;
+  --ink-faint: #857c9e;
   --magenta: #f21c8c;
   --magenta-deep: #b3126a;
   --violet: #7b2fbe;
@@ -210,7 +210,10 @@ html.cursor-hot .cursor-ring {
 }
 .nav-links a:hover span { transform: translateY(-100%); }
 .nav-cta { display: flex; align-items: center; gap: 14px; }
-.burger { display: none; flex-direction: column; gap: 5px; padding: 8px; }
+.burger {
+  display: none; flex-direction: column; gap: 5px; padding: 8px;
+  min-width: 44px; min-height: 44px; align-items: center; justify-content: center;
+}
 .burger span { width: 22px; height: 2px; background: var(--ink); transition: transform 0.4s var(--ease), opacity 0.3s; }
 .burger.is-open span:first-child { transform: translateY(3.5px) rotate(45deg); }
 .burger.is-open span:last-child { transform: translateY(-3.5px) rotate(-45deg); }
@@ -758,6 +761,9 @@ html.cursor-hot .cursor-ring {
   background-repeat: no-repeat; background-position: right 15px center;
 }
 .wform input:focus, .wform select:focus, .wform textarea:focus { border-color: var(--magenta); }
+.wform input:focus-visible, .wform select:focus-visible, .wform textarea:focus-visible {
+  outline: 3px solid var(--cyan); outline-offset: 2px;
+}
 .wform input[aria-invalid='true'] { border-color: #ff5d5d; }
 .wform textarea { resize: vertical; min-height: 96px; }
 .wfull { grid-column: 1 / -1; }
@@ -795,6 +801,12 @@ html.cursor-hot .cursor-ring {
   position: fixed; inset: 0; z-index: 250;
   pointer-events: none; mix-blend-mode: screen;
 }
+/* registered so --rx/--ry can carry their own transition below — left inside the
+   shorthand "transform" transition, tilt was forced to share the lift's slow
+   ease and visibly lagged behind the cursor */
+@property --rx { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --ry { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --lift { syntax: '<length>'; inherits: false; initial-value: 0px; }
 .case-card, .process-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent {
   --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg; --lift: 0px;
   position: relative;
@@ -802,7 +814,7 @@ html.cursor-hot .cursor-ring {
      of replacing the whole transform and wiping the perspective */
   transform: perspective(900px) translate3d(0, var(--lift), 0) rotateX(var(--rx)) rotateY(var(--ry));
   transform-style: preserve-3d;
-  transition: transform 0.5s var(--ease), border-color 0.4s, box-shadow 0.5s;
+  transition: --rx 140ms ease-out, --ry 140ms ease-out, --lift 0.5s var(--ease), border-color 0.4s, box-shadow 0.5s;
 }
 .process-card::before, .studio-card::before, .lab-card::before,
 .app-card::before, .sol-card::before, .wintent::before {
@@ -841,7 +853,8 @@ html.cursor-hot .cursor-ring {
 }
 .wmodal-brand { font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); font-weight: 700; }
 .wmodal-close {
-  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line);
+  width: 44px; height: 44px; min-width: 44px; min-height: 44px;
+  border-radius: 50%; border: 1px solid var(--line);
   display: grid; place-items: center; transition: all 0.3s;
 }
 .wmodal-close:hover { background: var(--magenta); border-color: var(--magenta); color: #fff; }

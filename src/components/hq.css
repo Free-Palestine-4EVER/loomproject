@@ -48,7 +48,11 @@
   opacity: 0;
   transform: scale(1.06);
   filter: blur(12px);
-  transition: opacity 1.05s var(--ease), transform 1.5s var(--ease), filter 0.9s var(--ease);
+  /* filter is deliberately not in this list: easing a full-viewport blur
+     forces a re-rasterisation of the layer on every intermediate frame, which
+     is what stalled scroll on mid-range hardware last time. Opacity/transform
+     carry the cross-fade instead and blur just snaps between its two states. */
+  transition: opacity 1.05s var(--ease), transform 1.5s var(--ease);
   /* White, not black: Safari treats -webkit-mask gradients as luminance in some
      paths, and white is opaque under both luminance and alpha. */
   -webkit-mask-image: repeating-linear-gradient(90deg, #fff 0 var(--weave), transparent var(--weave) 56px);
@@ -291,7 +295,9 @@
 @media (max-width: 560px) {
   .hq-slate { font-size: 0.6rem; letter-spacing: 0.16em; }
   .hq-sound-label { display: none; }
-  .hq-sound { padding: 10px 12px; }
+  /* Label gone leaves just the eq icon; pad the hit box back up to the 44px
+     minimum without touching the icon itself. */
+  .hq-sound { padding: 10px 12px; min-width: 44px; min-height: 44px; justify-content: center; }
 }
 
 /* ——— reduced motion: same film, none of the machinery ——— */

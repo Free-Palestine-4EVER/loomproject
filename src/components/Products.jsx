@@ -208,7 +208,7 @@ export function ToolsLab() {
         <Reveal delay={0.15}>
           <p className="lede lede--light" style={{ marginTop: 22 }}>
             Six machines engineered in-house — scanners, editors, generators. What you see is
-            the software actually running; hover any card to x-ray into how it thinks.
+            the software actually running; hover or tap any card to x-ray into how it thinks.
           </p>
         </Reveal>
       </div>

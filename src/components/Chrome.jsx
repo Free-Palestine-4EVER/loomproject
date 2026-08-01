@@ -28,7 +28,7 @@ export function Loader({ done }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.8, ease: EASE }}
             >
-              <img className="logo-woven" src="/img/logo/loom-woven.png" alt="LOOM" />
+              <img className="logo-woven" src="/img/logo/loom-woven.webp" alt="LOOM" />
             </motion.div>
             <motion.div
               className="loader-thread"
@@ -69,6 +69,8 @@ export function Nav({ onNavigate }) {
   const { open: openWizard } = useWizard()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const burgerRef = useRef(null)
+  const menuRef = useRef(null)
   useEffect(() => {
     const fn = () => setScrolled((s) => (window.scrollY > 56 ? true : window.scrollY < 32 ? false : s))
     fn(); window.addEventListener('scroll', fn, { passive: true })
@@ -78,6 +80,30 @@ export function Nav({ onNavigate }) {
     document.documentElement.classList.toggle('menu-open', open)
     return () => document.documentElement.classList.remove('menu-open')
   }, [open])
+  // Same contain-focus-and-restore contract as WizardModal: trap Tab inside while
+  // open, Escape closes, and the cleanup (fires on every close path, not just Escape)
+  // is what hands focus back to the burger.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') { setOpen(false); return }
+      if (e.key !== 'Tab') return
+      const f = menuRef.current?.querySelectorAll(
+        'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      if (!f || !f.length) return
+      const first = f[0], last = f[f.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+    }
+    window.addEventListener('keydown', onKey)
+    const t = setTimeout(() => menuRef.current?.querySelector('a, button')?.focus(), 60)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      clearTimeout(t)
+      burgerRef.current?.focus()
+    }
+  }, [open])
   const go = (e, href) => {
     e.preventDefault(); setOpen(false); onNavigate(href)
   }
@@ -85,7 +111,7 @@ export function Nav({ onNavigate }) {
     <>
       <header className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
         <a className="nav-logo" href="#top" onClick={(e) => go(e, '#top')} aria-label="LOOM — home">
-          <img className="logo-woven" src="/img/logo/loom-woven.png" alt="LOOM" />
+          <img className="logo-woven" src="/img/logo/loom-woven.webp" alt="LOOM" />
         </a>
         <nav className="nav-links" aria-label="Primary">
           {LINKS.map((l) => (
@@ -99,6 +125,7 @@ export function Nav({ onNavigate }) {
             <WoolButton label="Get started" size="small" onClick={() => { setOpen(false); openWizard({}) }} />
           </Magnetic>
           <button
+            ref={burgerRef}
             className={`burger ${open ? 'is-open' : ''}`}
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
@@ -110,6 +137,10 @@ export function Nav({ onNavigate }) {
         {open && (
           <motion.div
             className="menu"
+            ref={menuRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Main menu"
             initial={{ clipPath: 'inset(0 0 100% 0)' }}
             animate={{ clipPath: 'inset(0 0 0% 0)' }}
             exit={{ clipPath: 'inset(0 0 100% 0)' }}
@@ -121,7 +152,7 @@ export function Nav({ onNavigate }) {
                   key={l.href} href={l.href} onClick={(e) => go(e, l.href)}
                   initial={{ y: 60, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.15 + i * 0.07, duration: 0.7, ease: EASE }}
+                  transition={{ delay: 0.04 + i * 0.03, duration: 0.4, ease: EASE }}
                 >{l.label}</motion.a>
               ))}
             </div>
@@ -180,7 +211,7 @@ export function Cursor() {
 export function Footer({ onNavigate }) {
   return (
     <footer className="footer">
-      <img className="footer-word-img" src="/img/logo/loom-woven.png" alt="" aria-hidden="true" loading="lazy" />
+      <img className="footer-word-img" src="/img/logo/loom-woven.webp" alt="" aria-hidden="true" loading="lazy" />
       <div className="footer-grid">
         <div>
           <LoomMark className="footer-mark" />

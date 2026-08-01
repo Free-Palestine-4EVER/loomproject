@@ -1,5 +1,5 @@
 // Solutions Explorer — 30 industries, one filterable grid, inline expanding detail panels.
-import { forwardRef, useMemo, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { NICHES, NICHE_GROUPS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
@@ -17,6 +17,16 @@ const GROUP_YARN = {
 const NicheCard = forwardRef(function NicheCard({ n, isOpen, onToggle }, ref) {
   const { open } = useWizard()
   const panelId = `sol-panel-${n.key}`
+  const bodyRef = useRef(null)
+
+  // React 18 has no special-cased `inert` boolean prop (that lands in React 19),
+  // so a JSX `inert={!isOpen}` would serialize `false` as the string "false" —
+  // which HTML still reads as present, leaving the panel inert forever. Setting
+  // the IDL property directly toggles it correctly and takes the WoolButton out
+  // of the tab order the instant the panel collapses, in step with isOpen.
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.inert = !isOpen
+  }, [isOpen])
 
   return (
     <motion.div
@@ -43,7 +53,7 @@ const NicheCard = forwardRef(function NicheCard({ n, isOpen, onToggle }, ref) {
           <i className="sol-thread" aria-hidden="true" />
         </button>
 
-        <div className="sol-body" id={panelId} role="region" aria-hidden={!isOpen}>
+        <div className="sol-body" id={panelId} role="region" aria-hidden={!isOpen} ref={bodyRef}>
           <div className="sol-body-inner">
             <h3 className="sol-panel-hook">{n.hook}</h3>
 
@@ -110,12 +120,12 @@ export function Solutions() {
         </Reveal>
       </div>
 
-      <div className="sol-filters" role="tablist" aria-label="Filter industries by group">
+      {/* Toggle buttons, not tabs — see the note on the Work filters. */}
+      <div className="sol-filters" role="group" aria-label="Filter industries by group">
         {NICHE_GROUPS.map((g) => (
           <button
             key={g.id}
-            role="tab"
-            aria-selected={group === g.id}
+            aria-pressed={group === g.id}
             className={`filter ${group === g.id ? 'is-active' : ''}`}
             onClick={() => setGroupFilter(g.id)}
           >

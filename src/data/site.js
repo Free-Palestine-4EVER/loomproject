@@ -212,9 +212,9 @@ export const NICHES = [
   },
   {
     key: "bakery", name: "Bakeries & Sweets", group: "food",
-    hook: "Cakes that sell before they're baked.",
+    hook: "Cakes that sell before they’re baked.",
     agent: "An agent that quotes custom orders, confirms deposits, and reminds customers before Eid and weddings.",
-    moon: "From word-of-mouth to the city's go-to cake name.",
+    moon: "From word-of-mouth to the city’s go-to cake name.",
     deliverables: [
       "AR cake preview — brides see the design on their table before ordering",
       "WhatsApp order agent — takes custom cake briefs in Arabic and English",
@@ -243,7 +243,7 @@ export const NICHES = [
       "AR tasting menu — courses previewed in 3D before guests sit down",
       "WhatsApp concierge agent — books tables, notes allergies, remembers regulars",
       "Cinematic film — a single tracking shot through the kitchen and the room",
-      "Bilingual site rebuild — Arabic and English, built to match the room's taste",
+      "Bilingual site rebuild — Arabic and English, built to match the room’s taste",
     ],
   },
   {
@@ -260,7 +260,7 @@ export const NICHES = [
   },
   {
     key: "dental", name: "Dental Clinics", group: "health",
-    hook: "Bookings that don't wait for office hours.",
+    hook: "Bookings that don’t wait for office hours.",
     agent: "An agent that answers pricing questions, books the slot, and reminds patients the night before.",
     moon: "From one chair to a fully booked calendar.",
     deliverables: [
@@ -296,7 +296,7 @@ export const NICHES = [
   },
   {
     key: "salon", name: "Beauty Salons", group: "beauty",
-    hook: "A chair that's always booked, never overbooked.",
+    hook: "A chair that’s always booked, never overbooked.",
     agent: "An agent that books the slot, suggests the add-on, and reminds clients before their next visit is due.",
     moon: "From full chair to the name every bride asks for.",
     deliverables: [

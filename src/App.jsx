@@ -19,18 +19,35 @@ export default function App() {
   const [loaded, setLoaded] = useState(false)
   const lenisRef = useRef(null)
 
+  // Read live, not just at mount — a user who flips reduced-motion mid-session
+  // (OS setting or Chrome's Battery Saver) must lose Lenis/FX immediately, not
+  // just on next reload. Mirrors useIsMobile in lib/sheet.jsx.
+  const [reducedMotion, setReducedMotion] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const onChange = () => setReducedMotion(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
   // Lenis smooth scroll — disabled for reduced-motion users
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduced) return
+    if (reducedMotion) return
     const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1.02 })
     lenisRef.current = lenis
     window.__lenis = lenis // programmatic scroll hook (QA + integrations)
     let raf
     const loop = (t) => { lenis.raf(t); raf = requestAnimationFrame(loop) }
     raf = requestAnimationFrame(loop)
-    return () => { cancelAnimationFrame(raf); lenis.destroy() }
-  }, [])
+    return () => {
+      cancelAnimationFrame(raf)
+      lenis.destroy()
+      lenisRef.current = null
+      delete window.__lenis
+    }
+  }, [reducedMotion])
 
   // Pause smooth scroll while the menu or any overlay locks the page
   useEffect(() => {
@@ -50,11 +67,13 @@ export default function App() {
     return () => clearTimeout(t)
   }, [])
 
-  // pointer spotlight, card tilt, thread trail, active-section nav
-  useEffect(() => mountInteractions(), [])
+  // pointer spotlight, card tilt, thread trail, active-section nav — both
+  // mount fns re-read the media query internally, so re-invoking on toggle
+  // picks up the new state instead of leaving stale listeners mounted
+  useEffect(() => mountInteractions(), [reducedMotion])
 
   // FX pack — velocity marquee, nav scramble, stat glitch, confetti threads, edge glow, hero shimmer
-  useEffect(() => mountFx(), [])
+  useEffect(() => mountFx(), [reducedMotion])
 
   const navigate = useCallback((href) => {
     const el = href === '#top' ? document.body : document.querySelector(href)

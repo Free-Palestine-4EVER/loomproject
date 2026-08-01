@@ -57,12 +57,14 @@ export function ContactWizard({ seed = null }) {
           Building for <strong>{seed.niche}</strong>
         </div>
       )}
-      <div className="wizard-steps" role="tablist" aria-label="Inquiry steps">
+      {/* A progress rail, not a tablist — the steps own no tabpanels and only
+          the already-completed ones are reachable. aria-current marks where
+          you are; the disabled state already says where you cannot go yet. */}
+      <div className="wizard-steps" role="group" aria-label="Inquiry steps">
         {STEPS.map((s, i) => (
           <button
             key={s}
-            role="tab"
-            aria-selected={step === i}
+            aria-current={step === i ? 'step' : undefined}
             className={`wstep ${i === step ? 'is-now' : ''} ${i < step ? 'is-done' : ''}`}
             onClick={() => i < step && go(i)}
             disabled={i > step}

@@ -105,7 +105,10 @@ function CaseCard({ c, onOpen, big = false }) {
           <motion.div
             className="case-veil" aria-hidden="true"
             variants={{ hover: { opacity: 1 } }}
-            initial={{ opacity: 0 }}
+            // Coarse pointers never hover, so the veil that tells a visitor the card
+            // opens something has to rest partly visible instead of hiding at 0 —
+            // quieter than the full-strength hover reveal desktop gets on interest.
+            initial={{ opacity: coarse ? 0.58 : 0 }}
             transition={{ duration: 0.4 }}
           >
             {/* the ↗ becomes a felt seal — inline-flex here because .case-veil span
@@ -132,6 +135,8 @@ function CaseCard({ c, onOpen, big = false }) {
 
 function CaseOverlay({ c, onClose, onPrev, onNext }) {
   const scrollRef = useRef(null)
+  const panelRef = useRef(null)
+  const closeRef = useRef(null)
   const isMobile = useIsMobile()
   const sheet = useBottomSheet({ onDismiss: onClose })
   const requestClose = useCallback(() => {
@@ -142,20 +147,45 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') requestClose()
-      if (e.key === 'ArrowLeft') onPrev()
-      if (e.key === 'ArrowRight') onNext()
+      if (e.key === 'Escape') { requestClose(); return }
+      if (e.key === 'ArrowLeft') { onPrev(); return }
+      if (e.key === 'ArrowRight') { onNext(); return }
+      // Contain Tab. aria-modal hides the page from assistive tech but does
+      // nothing to the tab order, so without this the next Tab walks out of
+      // the dialog and into a nav the user cannot see.
+      if (e.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+      const focusable = panel.querySelectorAll(
+        'a[href], button:not([disabled]), input, select, textarea, video[controls], [tabindex]:not([tabindex="-1"])'
+      )
+      if (!focusable.length) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
     }
     window.addEventListener('keydown', onKey)
     document.documentElement.classList.add('overlay-open')
+
+    // Move focus in, and put it back where it came from on close — otherwise
+    // focus sits on <body> and a keyboard user has to tab the whole page again.
+    const returnTo = document.activeElement
+    const raf = requestAnimationFrame(() => closeRef.current?.focus())
+
     return () => {
+      cancelAnimationFrame(raf)
       window.removeEventListener('keydown', onKey)
       document.documentElement.classList.remove('overlay-open')
+      if (returnTo instanceof HTMLElement && document.contains(returnTo)) returnTo.focus()
     }
   }, [requestClose, onPrev, onNext])
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }) }, [c.slug])
+  // Re-fires whenever isMobile flips true — not just at mount — so rotating a
+  // phone or resizing across the breakpoint while a case is open still animates
+  // the sheet in, instead of leaving it parked off-screen (see WizardModal).
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { if (isMobile) sheet.animateIn() }, [])
+  useEffect(() => { if (isMobile) sheet.animateIn() }, [isMobile])
 
   const panelProps = isMobile
     ? {
@@ -171,6 +201,7 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
 
   return (
     <motion.div
+      ref={panelRef}
       className="overlay"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.35 }}
@@ -183,7 +214,7 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
           <div className="overlay-nav">
             <button onClick={onPrev} aria-label="Previous case">←</button>
             <button onClick={onNext} aria-label="Next case">→</button>
-            <button className="overlay-close" onClick={requestClose} aria-label="Close case study">✕</button>
+            <button ref={closeRef} className="overlay-close" onClick={requestClose} aria-label="Close case study">✕</button>
           </div>
         </header>
         <div className="overlay-scroll" ref={scrollRef} {...(isMobile ? scrollBind : null)}>
@@ -291,11 +322,14 @@ export function Work() {
       </div>
 
       <div className="work-all">
-        <div className="work-filters" role="tablist" aria-label="Filter case studies">
+        {/* Toggle buttons, not tabs: role="tab" promises a tabpanel to own and
+            arrow-key roving focus, and neither exists here — a screen reader
+            would announce "tab 1 of 6" and the arrow keys would do nothing. */}
+        <div className="work-filters" role="group" aria-label="Filter case studies">
           {FILTERS.map((f) => (
             <button
               key={f.id}
-              role="tab" aria-selected={filter === f.id}
+              aria-pressed={filter === f.id}
               className={`filter ${filter === f.id ? 'is-active' : ''}`}
               onClick={() => setFilter(f.id)}
             >{f.label}</button>

@@ -1,7 +1,7 @@
 # LOOM — AI-Native Creative Agency
 
 Flagship agency site for LOOM (Amman × Sarajevo). Built from the ADVN Digital 2026
-company profile: 14 real case studies, 7 countries, full client wall
+company profile: 17 real case studies, 7 countries, full client wall
 (Benetton, UNICEF, Vodafone, MAC, Max Factor, …).
 
 **Stack:** Vite + React · Framer Motion (`motion/react`) · Lenis smooth scroll ·
@@ -42,7 +42,7 @@ upload the contents of `dist/`. No server code, no env vars.
 
 | What | Where |
 |---|---|
-| All content (brand, services, 14 cases, stats, contacts) | `src/data/site.js` |
+| All content (brand, services, 17 cases, stats, contacts) | `src/data/site.js` |
 | WebGL hero (particle weave) | `src/three/HeroField.js` |
 | Sections | `src/components/Sections.jsx` |
 | Apps showcase + 3D Lab | `src/components/Products.jsx` |
