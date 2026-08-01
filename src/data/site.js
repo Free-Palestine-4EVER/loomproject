@@ -576,16 +576,18 @@ export const CASES = [
     scope: ['Product Photography', 'AI Imaging', 'E-commerce'], filter: ['campaign', 'packaging', 'ai'],
     title: 'A whole catalogue, no studio',
     copy: 'A full pet-accessories product line — bowls, plush, tunnels, wheels — shot, branded and catalogued without a single studio booking. Every hero image generated, colour-matched and label-locked to the brand, then dropped straight into the store.',
+    // No reel: the only footage from this job is a screen recording of the
+    // asset library — cursor, checkboxes and all. The stills carry the case.
     cover: img('ellie', 'cover.webp'), feature: stars('ellie', 1), boards: [],
-    video: '/video/ellie.mp4', featured: true,
+    featured: true,
   },
   {
     slug: 'maison', client: 'Maison de l’Avenir', country: 'UAE', year: '2026',
     scope: ['Campaign', 'AI Imaging', 'Fragrance'], filter: ['campaign', 'ai'],
     title: 'Nebula Nectar, carved in ice',
     copy: 'A niche fragrance launch built entirely in generative production — the flacon suspended in glacial ice, citrus and mint frozen mid-fall. Dozens of campaign-grade key visuals from one art direction, in days rather than a shoot week.',
-    cover: img('maison', 'cover.webp'), feature: stars('maison', 1), boards: [],
-    video: '/video/maison.mp4', featured: true,
+    cover: img('maison', 'cover.webp'), feature: stars('maison', 2), boards: [],
+    featured: true,
   },
   {
     slug: 'evorahome', client: 'Evora Future Home', country: 'Jordan', year: '2026',
@@ -593,7 +595,7 @@ export const CASES = [
     title: 'A furniture catalogue that builds itself',
     copy: 'Every piece in the range rendered on one seamless set — sofas, beds, cabinets, tables — consistent light, consistent shadow, infinite angles. One product system feeding the store, the catalogue and the AR room preview.',
     cover: img('evorahome', 'cover.webp'), feature: stars('evorahome', 1), boards: [],
-    video: '/video/evora.mp4', featured: true,
+    featured: true,
   },
   {
     slug: 'boccapiena', client: 'Boccapiena', country: 'Croatia', year: '2024',
