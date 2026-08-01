@@ -4,6 +4,11 @@ import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } fr
 import { CASES, FILTERS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
 
+// Fade images in on decode — ref callback handles the cached case (onLoad
+// never fires for images that were complete before hydration).
+const imgFade = (el) => { if (el && el.complete && el.naturalWidth) el.classList.add('is-loaded') }
+const onImgLoad = (e) => e.currentTarget.classList.add('is-loaded')
+
 function CaseCard({ c, onOpen, big = false }) {
   const ref = useRef(null)
   const vidRef = useRef(null)
@@ -34,6 +39,7 @@ function CaseCard({ c, onOpen, big = false }) {
         <div className="case-media">
           <motion.img
             src={c.cover} alt={`${c.client} — ${c.title}`} loading="lazy"
+            ref={imgFade} onLoad={onImgLoad}
             style={{ y }}
             variants={{ hover: { scale: 1.06 } }}
             transition={{ duration: 0.8, ease: EASE }}
@@ -105,6 +111,12 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
           </div>
         </header>
         <div className="overlay-scroll" ref={scrollRef}>
+          {/* keyed fade bridges prev/next case switches (content used to teleport) */}
+          <motion.div
+            key={c.slug}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+          >
           <div className="overlay-head">
             <p className="overlay-scope">{c.scope.join(' · ')}</p>
             <h2>{c.client}</h2>
@@ -137,7 +149,7 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
                 viewport={{ once: true, margin: '-5% 0px' }}
                 transition={{ duration: 0.7, ease: EASE, delay: (i % 2) * 0.06 }}
               >
-                <img src={src} alt={`${c.client} — feature visual ${i + 1}`} loading="lazy" />
+                <img src={src} alt={`${c.client} — feature visual ${i + 1}`} loading="lazy" ref={imgFade} onLoad={onImgLoad} />
               </motion.figure>
             ))}
             {c.boards.map((src, i) => (
@@ -147,13 +159,14 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
                 viewport={{ once: true, margin: '-5% 0px' }}
                 transition={{ duration: 0.7, ease: EASE }}
               >
-                <img src={src} alt={`${c.client} — case board ${i + 1}`} loading="lazy" />
+                <img src={src} alt={`${c.client} — case board ${i + 1}`} loading="lazy" ref={imgFade} onLoad={onImgLoad} />
               </motion.figure>
             ))}
           </div>
           <footer className="overlay-foot">
             <button className="btn btn--ghost" onClick={onNext}>Next case →</button>
           </footer>
+          </motion.div>
         </div>
       </motion.div>
       <button className="overlay-backdrop" onClick={onClose} aria-label="Close" tabIndex={-1} />
