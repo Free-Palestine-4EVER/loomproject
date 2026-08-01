@@ -7,6 +7,7 @@ import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { Crew } from './components/Crew.jsx'
 import { Moon } from './components/Moon.jsx'
+import { MobileChrome } from './components/MobileChrome.jsx'
 import { WizardProvider } from './lib/wizard.jsx'
 import { WizardModal } from './components/WizardModal.jsx'
 import { mountInteractions } from './lib/interactions.js'
@@ -84,6 +85,7 @@ export default function App() {
         <Contact />
       </main>
       <Footer onNavigate={navigate} />
+      <MobileChrome />
       <WizardModal />
     </WizardProvider>
   )

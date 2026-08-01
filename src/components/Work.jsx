@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { CASES, FILTERS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
+import { useBottomSheet, useIsMobile, useSheetScrollHandoff, SheetHandle } from '../lib/sheet.jsx'
 
 // Fade images in on decode — ref callback handles the cached case (onLoad
 // never fires for images that were complete before hydration).
@@ -13,25 +14,52 @@ function CaseCard({ c, onOpen, big = false }) {
   const ref = useRef(null)
   const vidRef = useRef(null)
   const reduced = useReducedMotion()
+  const [coarse, setCoarse] = useState(false)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-6%', '6%'])
 
-  // Cards with a reel play it on hover, poster otherwise — no autoplay bandwidth cost.
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)')
+    const set = () => setCoarse(mq.matches)
+    set()
+    mq.addEventListener('change', set)
+    return () => mq.removeEventListener('change', set)
+  }, [])
+
+  // Cards with a reel play it on hover (fine pointers), poster otherwise — no autoplay bandwidth cost.
   const playVideo = () => {
-    if (reduced || !vidRef.current) return
+    if (reduced || coarse || !vidRef.current) return
     vidRef.current.play().catch(() => {})
   }
   const stopVideo = () => {
-    if (!vidRef.current) return
+    if (coarse || !vidRef.current) return
     vidRef.current.pause()
     vidRef.current.currentTime = 0
   }
+
+  // Touch devices: hover doesn't exist, so autoplay the reel muted while the card is
+  // substantially in view instead — preload stays 'none' until the first play() call.
+  useEffect(() => {
+    if (!coarse || reduced || !c.video || !ref.current) return
+    const vid = vidRef.current
+    const io = new IntersectionObserver(
+      (entries) => {
+        const en = entries[0]
+        if (!en) return
+        if (en.isIntersecting) vid?.play().catch(() => {})
+        else vid?.pause()
+      },
+      { threshold: 0.6 }
+    )
+    io.observe(ref.current)
+    return () => io.disconnect()
+  }, [coarse, reduced, c.video])
 
   return (
     <motion.article
       ref={ref}
       className={`case-card ${big ? 'case-card--big' : ''}`}
-      whileHover={reduced ? undefined : 'hover'}
+      whileHover={reduced || coarse ? undefined : 'hover'}
       onHoverStart={playVideo} onHoverEnd={stopVideo}
       data-cursor
     >
@@ -75,9 +103,17 @@ function CaseCard({ c, onOpen, big = false }) {
 
 function CaseOverlay({ c, onClose, onPrev, onNext }) {
   const scrollRef = useRef(null)
+  const isMobile = useIsMobile()
+  const sheet = useBottomSheet({ onDismiss: onClose })
+  const requestClose = useCallback(() => {
+    if (isMobile && !sheet.reduced) sheet.animateOut()
+    else onClose()
+  }, [isMobile, sheet, onClose])
+  const scrollBind = useSheetScrollHandoff(sheet.bind, scrollRef)
+
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') requestClose()
       if (e.key === 'ArrowLeft') onPrev()
       if (e.key === 'ArrowRight') onNext()
     }
@@ -87,8 +123,22 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
       window.removeEventListener('keydown', onKey)
       document.documentElement.classList.remove('overlay-open')
     }
-  }, [onClose, onPrev, onNext])
+  }, [requestClose, onPrev, onNext])
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }) }, [c.slug])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (isMobile) sheet.animateIn() }, [])
+
+  const panelProps = isMobile
+    ? {
+        className: 'overlay-panel is-sheet',
+        style: { y: sheet.y },
+        ref: sheet.panelRef,
+      }
+    : {
+        className: 'overlay-panel',
+        initial: { y: '6%', opacity: 0 }, animate: { y: '0%', opacity: 1 }, exit: { y: '4%', opacity: 0 },
+        transition: { duration: 0.55, ease: EASE },
+      }
 
   return (
     <motion.div
@@ -97,20 +147,17 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
       transition={{ duration: 0.35 }}
       role="dialog" aria-modal="true" aria-label={`Case study: ${c.client}`}
     >
-      <motion.div
-        className="overlay-panel"
-        initial={{ y: '6%', opacity: 0 }} animate={{ y: '0%', opacity: 1 }} exit={{ y: '4%', opacity: 0 }}
-        transition={{ duration: 0.55, ease: EASE }}
-      >
+      <motion.div {...panelProps}>
+        {isMobile && <SheetHandle bind={sheet.bind} />}
         <header className="overlay-bar">
           <span className="overlay-brand">LOOM — Case study</span>
           <div className="overlay-nav">
             <button onClick={onPrev} aria-label="Previous case">←</button>
             <button onClick={onNext} aria-label="Next case">→</button>
-            <button className="overlay-close" onClick={onClose} aria-label="Close case study">✕</button>
+            <button className="overlay-close" onClick={requestClose} aria-label="Close case study">✕</button>
           </div>
         </header>
-        <div className="overlay-scroll" ref={scrollRef}>
+        <div className="overlay-scroll" ref={scrollRef} {...(isMobile ? scrollBind : null)}>
           {/* keyed fade bridges prev/next case switches (content used to teleport) */}
           <motion.div
             key={c.slug}
@@ -169,7 +216,7 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
           </motion.div>
         </div>
       </motion.div>
-      <button className="overlay-backdrop" onClick={onClose} aria-label="Close" tabIndex={-1} />
+      <button className="overlay-backdrop" onClick={requestClose} aria-label="Close" tabIndex={-1} />
     </motion.div>
   )
 }

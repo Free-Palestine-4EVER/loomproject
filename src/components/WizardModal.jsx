@@ -1,19 +1,31 @@
 // The site-wide contact popup. Mounted once in App; opened from anywhere via useWizard().
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { EASE } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
 import { ContactWizard } from './ContactWizard.jsx'
 import { BRAND } from '../data/site.js'
+import { useBottomSheet, useIsMobile, SheetHandle } from '../lib/sheet.jsx'
 
 export function WizardModal() {
   const { isOpen, seed, close } = useWizard()
   const panelRef = useRef(null)
+  const isMobile = useIsMobile()
+  const sheet = useBottomSheet({ onDismiss: close })
+  const requestClose = useCallback(() => {
+    if (isMobile && !sheet.reduced) sheet.animateOut()
+    else close()
+  }, [isMobile, sheet, close])
+
+  useEffect(() => {
+    if (isOpen && isMobile) sheet.animateIn()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, isMobile])
 
   useEffect(() => {
     if (!isOpen) return
     const onKey = (e) => {
-      if (e.key === 'Escape') { close(); return }
+      if (e.key === 'Escape') { requestClose(); return }
       if (e.key !== 'Tab') return
       // focus trap
       const f = panelRef.current?.querySelectorAll(
@@ -32,7 +44,22 @@ export function WizardModal() {
       window.removeEventListener('keydown', onKey)
       clearTimeout(t)
     }
-  }, [isOpen, close])
+  }, [isOpen, requestClose])
+
+  const panelProps = isMobile
+    ? {
+        className: 'wmodal-panel is-sheet',
+        style: { y: sheet.y },
+        ref: (el) => { panelRef.current = el; sheet.panelRef.current = el },
+      }
+    : {
+        className: 'wmodal-panel',
+        initial: { y: 40, opacity: 0, scale: 0.98 },
+        animate: { y: 0, opacity: 1, scale: 1 },
+        exit: { y: 24, opacity: 0, scale: 0.99 },
+        transition: { duration: 0.5, ease: EASE },
+        ref: panelRef,
+      }
 
   return (
     <AnimatePresence>
@@ -43,17 +70,12 @@ export function WizardModal() {
           transition={{ duration: 0.3 }}
           role="dialog" aria-modal="true" aria-label="Start a project with LOOM"
         >
-          <button className="wmodal-backdrop" onClick={close} aria-label="Close" tabIndex={-1} />
-          <motion.div
-            className="wmodal-panel" ref={panelRef}
-            initial={{ y: 40, opacity: 0, scale: 0.98 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 24, opacity: 0, scale: 0.99 }}
-            transition={{ duration: 0.5, ease: EASE }}
-          >
+          <button className="wmodal-backdrop" onClick={requestClose} aria-label="Close" tabIndex={-1} />
+          <motion.div {...panelProps}>
+            {isMobile && <SheetHandle bind={sheet.bind} />}
             <header className="wmodal-bar">
               <span className="wmodal-brand">LOOM — Start a project</span>
-              <button className="wmodal-close" onClick={close} aria-label="Close">✕</button>
+              <button className="wmodal-close" onClick={requestClose} aria-label="Close">✕</button>
             </header>
             <div className="wmodal-scroll">
               <ContactWizard key={seed?._t} seed={seed} />

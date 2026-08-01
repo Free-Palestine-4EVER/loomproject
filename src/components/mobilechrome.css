@@ -1,0 +1,83 @@
+/* ——— mobile app chrome ——— */
+/* Floating bottom CTA pill — translucent material, sits above the safe area. */
+.mobile-cta-pill {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 92; /* under .wmodal (96) / .overlay (95) / .menu (75 is under, fine either way since we hide on lock) */
+  display: flex; justify-content: center;
+  padding: 0 var(--pad);
+  will-change: transform, opacity;
+}
+.mobile-cta-pill__btn {
+  min-height: 44px;
+  padding: 14px 30px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(13, 7, 22, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--ink);
+  font-weight: 640;
+  font-size: 0.96rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(242, 240, 247, 0.03) inset;
+  transition: background 0.3s, border-color 0.3s, transform 0.15s;
+}
+.mobile-cta-pill__btn:active { transform: scale(0.97); }
+
+@media (prefers-reduced-transparency: reduce) {
+  .mobile-cta-pill__btn {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--bg-2);
+  }
+}
+
+@media (max-width: 767px) {
+  /* Safe-area padding on the surfaces that already sit flush with the bottom edge */
+  .menu,
+  .wmodal-panel,
+  .footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Touch-target audit — min 44x44px hit areas, padding-driven so nothing reflows */
+  .burger {
+    min-width: 44px; min-height: 44px;
+    padding: 11px;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  .overlay-nav button {
+    width: 44px; height: 44px;
+  }
+  .wstep {
+    min-height: 44px;
+    padding-top: 10px; padding-bottom: 10px;
+    box-sizing: border-box;
+  }
+  .filter {
+    min-height: 44px;
+    padding-top: 12px; padding-bottom: 12px;
+    box-sizing: border-box;
+  }
+
+  /* Reduced transparency — translucent surfaces go near-solid, no blur */
+  @media (prefers-reduced-transparency: reduce) {
+    .nav--scrolled,
+    .wmodal-panel,
+    .menu {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    .nav--scrolled { background: var(--bg-2); }
+    .wmodal-panel { background: var(--bg-2); }
+    .menu { background: var(--bg-2); }
+  }
+}
+
+/* Hero legibility at very small sizes */
+@media (max-width: 480px) {
+  .hero-h1 { letter-spacing: -0.01em; }
+  .hero-sub { line-height: 1.55; }
+}

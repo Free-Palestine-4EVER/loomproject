@@ -1,10 +1,26 @@
 // LOOM-built software: Apps showcase (phone frames) + 3D Lab (tool cards)
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { APPS, TOOLS } from '../data/site.js'
 import { SplitWords, Reveal } from '../lib/motion.jsx'
 import { AppScreen } from './AppScreens.jsx'
 import { LabPreview } from './LabPreviews.jsx'
+import './products-touch.css'
+
+// True on coarse pointers (touch) — cards use this to swap hover-only
+// interactions for scroll/tap equivalents, and never attach the extra
+// listeners at all on fine-pointer desktops.
+function useCoarsePointer() {
+  const [coarse, setCoarse] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)')
+    const update = () => setCoarse(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+  return coarse
+}
 
 // Minimal platform/store marks, drawn in the house 1.5px stroke style.
 function PlatformMark({ id }) {
@@ -29,14 +45,47 @@ const PLATFORM_LABEL = { ios: 'iOS', macos: 'macOS', windows: 'Windows', linux: 
 
 function PhoneCard({ app, i }) {
   const [c1, c2] = app.grad
+  const cardRef = useRef(null)
+  const shotRef = useRef(null)
+  const coarse = useCoarsePointer()
+  const reduced = useReducedMotion()
+
+  // Touch: no hover, so pan the screenshot's object-position from the
+  // card's own journey through the viewport (0-100% across the card's transit).
+  useEffect(() => {
+    if (!coarse || reduced || !app.shot) return
+    const card = cardRef.current
+    const shot = shotRef.current
+    if (!card || !shot) return
+    let raf = null
+    const update = () => {
+      raf = null
+      const r = card.getBoundingClientRect()
+      const vh = window.innerHeight || document.documentElement.clientHeight
+      const total = r.height + vh
+      const traveled = vh - r.top
+      const progress = Math.min(1, Math.max(0, traveled / total))
+      shot.style.setProperty('--pan', `${progress * 100}%`)
+    }
+    const onScroll = () => { if (raf == null) raf = requestAnimationFrame(update) }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [coarse, reduced, app.shot])
+
   return (
     <Reveal delay={(i % 3) * 0.07} className="app-cell">
-      <article className="app-card" data-cursor>
+      <article className="app-card" data-cursor ref={cardRef}>
         <div className="app-phone" style={{ '--g1': c1, '--g2': c2 }}>
           <i className="app-notch" aria-hidden="true" />
           <div className="app-screen">
             {app.shot
-              ? <img className="app-shot" src={app.shot} alt={`${app.name} — real app screenshot`} loading="lazy" />
+              ? <img ref={shotRef} className="app-shot" src={app.shot} alt={`${app.name} — real app screenshot`} loading="lazy" />
               : <AppScreen slug={app.screen} />}
             <i className="app-sheen" aria-hidden="true" />
           </div>
@@ -86,6 +135,52 @@ export function AppsShowcase() {
   )
 }
 
+function LabCard({ t, i }) {
+  const coarse = useCoarsePointer()
+  const [xray, setXray] = useState(false)
+  const tappable = coarse && !!t.shot
+
+  const onTap = () => {
+    if (!tappable) return
+    setXray((v) => !v)
+  }
+  const onKeyDown = (e) => {
+    if (!tappable) return
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap() }
+  }
+
+  return (
+    <Reveal delay={(i % 3) * 0.07}>
+      <article className={`lab-card ${xray ? 'is-xray' : ''}`} data-cursor>
+        <div
+          className={`lab-preview-wrap ${t.shot ? 'has-shot' : ''} ${tappable ? 'is-tappable' : ''}`}
+          role={tappable ? 'button' : undefined}
+          tabIndex={tappable ? 0 : undefined}
+          aria-pressed={tappable ? xray : undefined}
+          aria-label={tappable ? `${t.name} — toggle real screenshot` : undefined}
+          onClick={onTap}
+          onKeyDown={onKeyDown}
+        >
+          <LabPreview name={t.name} />
+          {t.shot && (
+            <>
+              <img className="lab-shot" src={t.shot} alt={`${t.name} — real tool screenshot`} loading="lazy" />
+              <span className="lab-real" aria-hidden="true">REAL TOOL</span>
+            </>
+          )}
+        </div>
+        <header>
+          <h3>{t.name}</h3>
+          <span className="lab-tag">{t.tag}</span>
+        </header>
+        <p className="lab-kicker">{t.kicker}</p>
+        <p className="lab-blurb">{t.blurb}</p>
+        <i className="lab-thread" aria-hidden="true" />
+      </article>
+    </Reveal>
+  )
+}
+
 export function ToolsLab() {
   const ref = useRef(null)
   const reduced = useReducedMotion()
@@ -105,28 +200,7 @@ export function ToolsLab() {
         </Reveal>
       </div>
       <div className="lab-grid">
-        {TOOLS.map((t, i) => (
-          <Reveal key={t.name} delay={(i % 3) * 0.07}>
-            <article className="lab-card" data-cursor>
-              <div className={`lab-preview-wrap ${t.shot ? 'has-shot' : ''}`}>
-                <LabPreview name={t.name} />
-                {t.shot && (
-                  <>
-                    <img className="lab-shot" src={t.shot} alt={`${t.name} — real tool screenshot`} loading="lazy" />
-                    <span className="lab-real" aria-hidden="true">REAL TOOL</span>
-                  </>
-                )}
-              </div>
-              <header>
-                <h3>{t.name}</h3>
-                <span className="lab-tag">{t.tag}</span>
-              </header>
-              <p className="lab-kicker">{t.kicker}</p>
-              <p className="lab-blurb">{t.blurb}</p>
-              <i className="lab-thread" aria-hidden="true" />
-            </article>
-          </Reveal>
-        ))}
+        {TOOLS.map((t, i) => <LabCard key={t.name} t={t} i={i} />)}
       </div>
     </section>
   )

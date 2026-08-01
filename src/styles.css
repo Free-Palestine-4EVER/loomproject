@@ -1010,3 +1010,25 @@ html.cursor-hot .cursor-ring {
   .wizard-steps { flex-wrap: wrap; }
   .wsend .btn { width: 100%; }
 }
+
+/* ——— bottom-sheet presentation (case overlay + contact modal, <768px) ——— */
+@media (max-width: 767px) {
+  .overlay-panel.is-sheet {
+    position: fixed; inset: auto 0 0 0; top: auto;
+    max-height: 88vh;
+    border-radius: calc(var(--radius) * 1.4) calc(var(--radius) * 1.4) 0 0;
+    will-change: transform;
+    padding-top: 0;
+  }
+  .overlay-panel.is-sheet .overlay-bar { padding-top: 2px; }
+  .overlay-panel.is-sheet .overlay-scroll { touch-action: pan-y; overscroll-behavior: contain; }
+
+  .wmodal { padding: 0; }
+  .wmodal-panel.is-sheet {
+    align-self: end; justify-self: stretch;
+    width: 100%; max-height: 90vh;
+    border-radius: calc(var(--radius) * 1.4) calc(var(--radius) * 1.4) 0 0;
+    will-change: transform;
+  }
+  .wmodal-panel.is-sheet .wmodal-scroll { touch-action: pan-y; overscroll-behavior: contain; }
+}

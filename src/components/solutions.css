@@ -150,3 +150,29 @@
   .sol-grid { grid-template-columns: 1fr; }
   .sol-filters { margin-left: var(--pad); margin-right: var(--pad); }
 }
+
+/* mobile: group-filter pills become a horizontal scroll-snap rail
+   instead of wrapping into a tall block */
+@media (max-width: 767px) {
+  .sol-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--pad);
+    padding-block: 2px;
+    /* edge fade so the cut-off pills read as "more to scroll" */
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--pad), #000 calc(100% - var(--pad)), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 var(--pad), #000 calc(100% - var(--pad)), transparent);
+  }
+  .sol-filters::-webkit-scrollbar { display: none; }
+  .sol-filters { scrollbar-width: none; -ms-overflow-style: none; }
+  .sol-filters .filter {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 20px;
+  }
+}

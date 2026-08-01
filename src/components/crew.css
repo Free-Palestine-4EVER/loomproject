@@ -109,3 +109,7 @@
 @media (prefers-reduced-motion: reduce) {
   .crew-card { transform: none !important; }
 }
+
+@media (pointer: coarse) {
+  .crew-card { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+}

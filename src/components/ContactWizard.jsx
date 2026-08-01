@@ -49,7 +49,7 @@ export function ContactWizard({ seed = null }) {
   }
 
   return (
-    <div className="wizard" id="start-project">
+    <div className="wizard">
       {seed?.niche && (
         <div className="wizard-seed">
           Building for <strong>{seed.niche}</strong>
