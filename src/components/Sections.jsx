@@ -5,8 +5,10 @@ import { BRAND, CLIENT_WALL, SERVICES, PROCESS, STATS } from '../data/site.js'
 import { EASE, SplitWords, Reveal, CountUp, Magnetic } from '../lib/motion.jsx'
 import { HeroField } from '../three/HeroField.js'
 import { ContactWizard } from './ContactWizard.jsx'
+import { useWizard } from '../lib/wizard.jsx'
 
 export function Hero() {
+  const { open: openWizard } = useWizard()
   const canvasRef = useRef(null)
   const wrapRef = useRef(null)
   const reduced = useReducedMotion()
@@ -81,7 +83,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.95, duration: 0.8, ease: EASE }}
         >
-          <Magnetic><a className="btn btn--primary" href={BRAND.whatsapp} target="_blank" rel="noreferrer">Start a project</a></Magnetic>
+          <Magnetic><button className="btn btn--primary" onClick={() => openWizard({})}>Start a project</button></Magnetic>
           <Magnetic><a className="btn btn--ghost" href="#work" data-scroll>See the work</a></Magnetic>
         </motion.div>
       </motion.div>
@@ -188,7 +190,7 @@ export function Process() {
   return (
     <section className="process">
       <div className="section-head">
-        <p className="kicker"><span>06</span> Process</p>
+        <p className="kicker"><span>08</span> Process</p>
         <SplitWords as="h2" className="h2" text="One process. No templates. No shortcuts." />
       </div>
       <div className="process-grid">
@@ -208,6 +210,7 @@ export function Process() {
 }
 
 export function AiLoom() {
+  const { open: openWizard } = useWizard()
   const LINES = [
     ['Generative campaign imagery', 'art-directed, on-brand, at volume'],
     ['AI film & motion', 'launch spots without a film crew'],
@@ -233,6 +236,9 @@ export function AiLoom() {
             </Reveal>
           ))}
         </ul>
+        <div className="ailoom-cta">
+          <Magnetic><button className="btn btn--primary" onClick={() => openWizard({ note: 'Interested in the AI systems' })}>Put AI in my brand</button></Magnetic>
+        </div>
       </div>
       <div className="ailoom-art" aria-hidden="true">
         <img src="/img/ai-loom.webp" alt="" loading="lazy" />
@@ -285,7 +291,7 @@ export function Studios() {
   return (
     <section className="studios" id="studio">
       <div className="section-head">
-        <p className="kicker"><span>07</span> Studios</p>
+        <p className="kicker"><span>09</span> Studios</p>
         <SplitWords as="h2" className="h2" text="Two cities. One loom." />
       </div>
       <div className="studios-grid">
@@ -313,7 +319,7 @@ export function Studios() {
 export function Contact() {
   return (
     <section className="contact" id="contact">
-      <p className="kicker kicker--center"><span>08</span> Contact</p>
+      <p className="kicker kicker--center"><span>10</span> Contact</p>
       <h2 className="contact-h2">
         <SplitWords text="Ready to push" />
         <br />

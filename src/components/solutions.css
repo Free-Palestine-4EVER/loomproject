@@ -1,0 +1,152 @@
+/* ——— Solutions Explorer ——— */
+.solutions { padding-bottom: clamp(70px, 10vh, 130px); }
+
+.sol-filters {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin: 0 var(--pad) clamp(30px, 5vh, 50px);
+}
+
+.sol-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: clamp(14px, 1.8vw, 24px);
+  padding: 0 var(--pad);
+  align-items: start;
+}
+
+.sol-cell { min-width: 0; }
+
+.sol-card {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: rgba(26, 16, 41, 0.45);
+  overflow: hidden;
+  transition: border-color 0.4s, transform 0.5s var(--ease), box-shadow 0.5s;
+}
+.sol-card:hover {
+  border-color: rgba(242, 28, 140, 0.45);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+.sol-card.is-open {
+  border-color: rgba(242, 28, 140, 0.5);
+  background: rgba(242, 28, 140, 0.05);
+}
+
+.sol-hit {
+  position: relative; width: 100%; text-align: left;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: clamp(22px, 2.4vw, 28px);
+}
+.sol-hit-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.sol-name {
+  font-family: var(--display); font-weight: 580;
+  font-size: clamp(1.15rem, 1.6vw, 1.4rem); letter-spacing: -0.005em;
+  line-height: 1.15;
+}
+.sol-plus {
+  flex-shrink: 0; width: 26px; height: 26px; margin-top: 2px;
+  border-radius: 50%; border: 1px solid var(--line);
+  position: relative;
+  transition: border-color 0.35s, transform 0.5s var(--ease), background 0.35s;
+}
+.sol-plus::before, .sol-plus::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  background: var(--ink-dim);
+  transition: background 0.35s;
+}
+.sol-plus::before { width: 10px; height: 1.4px; transform: translate(-50%, -50%); }
+.sol-plus::after { width: 1.4px; height: 10px; transform: translate(-50%, -50%); }
+.sol-card.is-open .sol-plus {
+  transform: rotate(135deg);
+  background: var(--magenta); border-color: var(--magenta);
+}
+.sol-card.is-open .sol-plus::before, .sol-card.is-open .sol-plus::after { background: #fff; }
+.sol-card:hover .sol-plus { border-color: var(--magenta); }
+
+.sol-hook { color: var(--ink-dim); font-size: 0.95rem; line-height: 1.45; }
+
+.sol-thread {
+  display: block; height: 1.5px; width: 100%;
+  background: linear-gradient(90deg, var(--magenta), var(--violet));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.55s var(--ease);
+}
+.sol-card:hover .sol-thread, .sol-card.is-open .sol-thread { transform: scaleX(1); }
+
+/* accordion body — grid-rows trick keeps height animation cheap & CSS-only */
+.sol-body {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows 0.6s var(--ease);
+}
+.sol-card.is-open .sol-body { grid-template-rows: 1fr; }
+.sol-body-inner { overflow: hidden; }
+.sol-body > * { min-height: 0; }
+
+.sol-panel-hook {
+  font-family: var(--display); font-weight: 560;
+  font-size: clamp(1.3rem, 1.9vw, 1.7rem); line-height: 1.15;
+  padding: 4px clamp(22px, 2.4vw, 28px) 0;
+  color: #fff;
+}
+
+.sol-deliverables {
+  list-style: none;
+  padding: 18px clamp(22px, 2.4vw, 28px) 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.sol-deliverables li {
+  display: flex; align-items: flex-start; gap: 12px;
+  color: var(--ink-dim); font-size: 0.92rem; line-height: 1.5;
+}
+.sol-check {
+  flex-shrink: 0; width: 15px; height: 15px; margin-top: 3px;
+  border-radius: 4px; border: 1px solid rgba(242, 28, 140, 0.5);
+  background: rgba(242, 28, 140, 0.12);
+  position: relative;
+}
+.sol-check::after {
+  content: '';
+  position: absolute; left: 3.5px; top: 1.5px;
+  width: 5px; height: 8px;
+  border-right: 1.6px solid var(--magenta);
+  border-bottom: 1.6px solid var(--magenta);
+  transform: rotate(45deg);
+}
+
+.sol-agent {
+  margin: 20px clamp(22px, 2.4vw, 28px) 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(89, 230, 255, 0.3);
+  border-radius: calc(var(--radius) * 0.6);
+  background: rgba(89, 230, 255, 0.06);
+}
+.sol-agent-kicker {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 6px;
+}
+.sol-agent-copy { color: var(--ink); font-size: 0.9rem; line-height: 1.5; }
+
+.sol-moon {
+  display: flex; align-items: center; gap: 10px;
+  margin: 18px clamp(22px, 2.4vw, 28px) 0;
+  font-family: var(--display); font-weight: 560; font-size: 1.02rem;
+  color: var(--gold);
+}
+.sol-moon-mark {
+  flex-shrink: 0; width: 16px; height: 1.5px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.sol-cta { margin: 26px clamp(22px, 2.4vw, 28px) clamp(24px, 3vw, 30px); width: fit-content; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sol-card, .sol-thread, .sol-plus, .sol-body { transition-duration: 0.01ms !important; }
+  .sol-card:hover { transform: none; }
+}
+
+@media (max-width: 1000px) {
+  .sol-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .sol-grid { grid-template-columns: 1fr; }
+  .sol-filters { margin-left: var(--pad); margin-right: var(--pad); }
+}

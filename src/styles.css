@@ -428,6 +428,24 @@ html.cursor-hot .cursor-ring {
   border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px; padding: 12px 26px;
   backdrop-filter: blur(6px); background: rgba(13, 7, 22, 0.35);
 }
+.case-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0; transition: opacity 0.45s var(--ease);
+  pointer-events: none;
+}
+.case-card:hover .case-video { opacity: 1; }
+.case-reel {
+  position: absolute; top: 14px; left: 14px; z-index: 2;
+  font-size: 0.66rem; font-weight: 800; letter-spacing: 0.18em;
+  color: #fff; background: rgba(242, 28, 140, 0.9);
+  border-radius: 999px; padding: 5px 11px;
+  box-shadow: 0 4px 18px rgba(242, 28, 140, 0.45);
+}
+.overlay-video video { width: 100%; display: block; background: #000; }
+.overlay-video figcaption {
+  padding: 10px 14px; color: var(--ink-faint); font-size: 0.85rem;
+  border-top: 1px solid var(--line);
+}
 .case-meta {
   display: flex; justify-content: space-between; align-items: flex-start;
   gap: 16px; padding: 16px 4px 0;
@@ -698,6 +716,68 @@ html.cursor-hot .cursor-ring {
 }
 .contact-direct a { color: var(--ink-dim); font-weight: 640; transition: color 0.3s; }
 .contact-direct a:hover { color: var(--magenta); }
+
+/* ——— interaction layer: spotlight, tilt, thread trail ——— */
+.thread-trail {
+  position: fixed; inset: 0; z-index: 250;
+  pointer-events: none; mix-blend-mode: screen;
+}
+.case-card, .process-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent {
+  --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg;
+  position: relative;
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  transition: transform 0.5s var(--ease), border-color 0.4s, box-shadow 0.5s;
+}
+.process-card::before, .studio-card::before, .lab-card::before,
+.app-card::before, .sol-card::before, .wintent::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(340px circle at var(--mx) var(--my), rgba(242, 28, 140, 0.14), transparent 62%);
+  opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 0;
+}
+.is-lit::before { opacity: 1; }
+.process-card > *, .studio-card > *, .lab-card > *, .app-card > *, .sol-card > * { position: relative; z-index: 1; }
+.nav-links a.is-current span { color: var(--ink); }
+.nav-links a.is-current::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 1.5px;
+  background: var(--magenta); border-radius: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-card, .process-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent { transform: none; }
+}
+
+/* ——— site-wide contact modal ——— */
+.wmodal { position: fixed; inset: 0; z-index: 96; display: grid; place-items: center; padding: clamp(10px, 3vh, 40px); }
+.wmodal-backdrop { position: absolute; inset: 0; background: rgba(8, 4, 14, 0.82); backdrop-filter: blur(10px); }
+.wmodal-panel {
+  position: relative; z-index: 1;
+  width: min(940px, 100%); max-height: 92vh;
+  display: flex; flex-direction: column;
+  background: var(--bg-2); border: 1px solid rgba(242, 28, 140, 0.28);
+  border-radius: calc(var(--radius) * 1.5); overflow: hidden;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7), 0 0 80px rgba(242, 28, 140, 0.1);
+}
+.wmodal-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px clamp(16px, 3vw, 28px); border-bottom: 1px solid var(--line);
+}
+.wmodal-brand { font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); font-weight: 700; }
+.wmodal-close {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line);
+  display: grid; place-items: center; transition: all 0.3s;
+}
+.wmodal-close:hover { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+.wmodal-scroll { overflow-y: auto; overscroll-behavior: contain; padding: clamp(14px, 2.5vw, 26px); }
+.wmodal-scroll .wizard { margin-top: 0; border: 0; background: none; }
+.wmodal-scroll .wizard-stage { min-height: 320px; padding: clamp(18px, 3vw, 30px) 4px; }
+.wmodal-direct { text-align: center; color: var(--ink-faint); font-size: 0.9rem; padding: 4px 0 8px; }
+.wmodal-direct a { color: var(--ink-dim); font-weight: 640; }
+.wmodal-direct a:hover { color: var(--magenta); }
+.wizard-seed {
+  padding: 12px clamp(14px, 3vw, 26px); border-bottom: 1px solid var(--line);
+  color: var(--ink-dim); font-size: 0.9rem;
+}
+.wizard-seed strong { color: var(--magenta); font-weight: 700; }
 
 /* ——— process ——— */
 .process-grid {

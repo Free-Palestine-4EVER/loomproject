@@ -6,14 +6,28 @@ import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
 
 function CaseCard({ c, onOpen, big = false }) {
   const ref = useRef(null)
+  const vidRef = useRef(null)
   const reduced = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-6%', '6%'])
+
+  // Cards with a reel play it on hover, poster otherwise — no autoplay bandwidth cost.
+  const playVideo = () => {
+    if (reduced || !vidRef.current) return
+    vidRef.current.play().catch(() => {})
+  }
+  const stopVideo = () => {
+    if (!vidRef.current) return
+    vidRef.current.pause()
+    vidRef.current.currentTime = 0
+  }
+
   return (
     <motion.article
       ref={ref}
       className={`case-card ${big ? 'case-card--big' : ''}`}
       whileHover={reduced ? undefined : 'hover'}
+      onHoverStart={playVideo} onHoverEnd={stopVideo}
       data-cursor
     >
       <button className="case-hit" onClick={() => onOpen(c.slug)} aria-label={`Open case study: ${c.client} — ${c.title}`}>
@@ -24,6 +38,13 @@ function CaseCard({ c, onOpen, big = false }) {
             variants={{ hover: { scale: 1.06 } }}
             transition={{ duration: 0.8, ease: EASE }}
           />
+          {c.video && (
+            <video
+              ref={vidRef} className="case-video" src={c.video} poster={c.cover}
+              muted loop playsInline preload="none" tabIndex={-1} aria-hidden="true"
+            />
+          )}
+          {c.video && <span className="case-reel" aria-hidden="true">REEL</span>}
           <motion.div
             className="case-veil" aria-hidden="true"
             variants={{ hover: { opacity: 1 } }}
@@ -96,6 +117,19 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
             <p className="overlay-copy">{c.copy}</p>
           </div>
           <div className="overlay-gallery">
+            {c.video && (
+              <motion.figure
+                className="overlay-board overlay-video"
+                initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: EASE }}
+              >
+                <video
+                  src={c.video} poster={c.cover}
+                  autoPlay muted loop playsInline controls
+                />
+                <figcaption>Production reel — {c.client}</figcaption>
+              </motion.figure>
+            )}
             {c.feature.map((src, i) => (
               <motion.figure
                 key={src}
@@ -147,7 +181,7 @@ export function Work() {
     <section className="work" id="work">
       <div className="section-head">
         <p className="kicker"><span>—</span> Selected work</p>
-        <SplitWords as="h2" className="h2" text="Fourteen case studies. Seven countries. One standard." />
+        <SplitWords as="h2" className="h2" text="Seventeen case studies. Seven countries. One standard." />
       </div>
 
       <div className="work-featured">

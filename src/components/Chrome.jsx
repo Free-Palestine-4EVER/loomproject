@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, useScroll, useSpring, useReducedMotion } from 'motion/react'
 import { BRAND } from '../data/site.js'
 import { EASE, Magnetic } from '../lib/motion.jsx'
+import { useWizard } from '../lib/wizard.jsx'
 
 export function LoomMark({ className = '' }) {
   return (
@@ -62,13 +63,15 @@ export function ScrollProgress() {
 
 const LINKS = [
   { href: '#work', label: 'Work' },
+  { href: '#solutions', label: 'Solutions' },
   { href: '#apps', label: 'Apps' },
   { href: '#lab', label: '3D Lab' },
-  { href: '#services', label: 'Services' },
+  { href: '#ascent', label: 'Ascent' },
   { href: '#contact', label: 'Contact' },
 ]
 
 export function Nav({ onNavigate }) {
+  const { open: openWizard } = useWizard()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
@@ -98,9 +101,9 @@ export function Nav({ onNavigate }) {
         </nav>
         <div className="nav-cta">
           <Magnetic strength={0.25}>
-            <a className="btn btn--small" href={BRAND.whatsapp} target="_blank" rel="noreferrer">
+            <button className="btn btn--small" onClick={() => openWizard({})}>
               Start a project
-            </a>
+            </button>
           </Magnetic>
           <button
             className={`burger ${open ? 'is-open' : ''}`}
@@ -130,9 +133,9 @@ export function Nav({ onNavigate }) {
               ))}
             </div>
             <motion.div className="menu-meta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
+              <button className="btn btn--primary" onClick={() => { setOpen(false); openWizard({}) }}>Start a project</button>
               <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>
               <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
-              <span>Amman × Sarajevo</span>
             </motion.div>
           </motion.div>
         )}

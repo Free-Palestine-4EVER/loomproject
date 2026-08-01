@@ -4,13 +4,16 @@ import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { BRAND, WIZARD } from '../data/site.js'
 import { EASE, Magnetic } from '../lib/motion.jsx'
+import { Icon } from './Icons.jsx'
 
 const STEPS = ['Start', 'Needs', 'Details', 'Send']
 
-export function ContactWizard() {
-  const [step, setStep] = useState(0)
+export function ContactWizard({ seed = null }) {
+  // A seeded open (from a Solutions card, the Moon CTA, a nav button) skips straight
+  // past the intent step and carries the industry into the brief.
+  const [step, setStep] = useState(seed?.intent ? 1 : 0)
   const [dir, setDir] = useState(1)
-  const [intent, setIntent] = useState(null)
+  const [intent, setIntent] = useState(seed?.intent ?? null)
   const [needs, setNeeds] = useState([])
   const [form, setForm] = useState({ name: '', company: '', budget: '', timeline: '', message: '' })
   const [touched, setTouched] = useState(false)
@@ -23,6 +26,8 @@ export function ContactWizard() {
   const brief = useMemo(() => {
     const lines = [
       `Hi LOOM! ${intentObj ? intentObj.title : ''}`.trim(),
+      seed?.niche ? `Industry: ${seed.niche}` : null,
+      seed?.note ? `About: ${seed.note}` : null,
       needs.length ? `What I need: ${needs.join(', ')}` : null,
       form.name ? `Name: ${form.name}` : null,
       form.company ? `Company: ${form.company}` : null,
@@ -31,7 +36,7 @@ export function ContactWizard() {
       form.message ? `Details: ${form.message}` : null,
     ].filter(Boolean)
     return lines.join('\n')
-  }, [intentObj, needs, form])
+  }, [intentObj, needs, form, seed])
 
   const waHref = `${BRAND.whatsapp}?text=${encodeURIComponent(brief)}`
   const mailHref = `mailto:${BRAND.email}?subject=${encodeURIComponent(`Project inquiry — ${intentObj ? intentObj.title : 'LOOM'}`)}&body=${encodeURIComponent(brief)}`
@@ -45,6 +50,11 @@ export function ContactWizard() {
 
   return (
     <div className="wizard" id="start-project">
+      {seed?.niche && (
+        <div className="wizard-seed">
+          Building for <strong>{seed.niche}</strong>
+        </div>
+      )}
       <div className="wizard-steps" role="tablist" aria-label="Inquiry steps">
         {STEPS.map((s, i) => (
           <button
@@ -76,7 +86,7 @@ export function ContactWizard() {
                     className={`wintent ${intent === it.id ? 'is-picked' : ''}`}
                     onClick={() => { setIntent(it.id); go(1) }}
                   >
-                    <span className="wintent-icon" aria-hidden="true">{it.icon}</span>
+                    <span className="wintent-icon" aria-hidden="true"><Icon name={it.icon} size={26} /></span>
                     <span className="wintent-title">{it.title}</span>
                     <span className="wintent-sub">{it.sub}</span>
                   </button>

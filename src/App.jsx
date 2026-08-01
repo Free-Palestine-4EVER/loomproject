@@ -4,6 +4,11 @@ import { Loader, Nav, Cursor, ScrollProgress, Footer } from './components/Chrome
 import { Hero, Marquee, Manifesto, Services, Process, AiLoom, Stats, Studios, Contact } from './components/Sections.jsx'
 import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
+import { Solutions } from './components/Solutions.jsx'
+import { Moon } from './components/Moon.jsx'
+import { WizardProvider } from './lib/wizard.jsx'
+import { WizardModal } from './components/WizardModal.jsx'
+import { mountInteractions } from './lib/interactions.js'
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
@@ -22,7 +27,7 @@ export default function App() {
     return () => { cancelAnimationFrame(raf); lenis.destroy() }
   }, [])
 
-  // Pause smooth scroll while the menu or a case overlay locks the page
+  // Pause smooth scroll while the menu or any overlay locks the page
   useEffect(() => {
     const obs = new MutationObserver(() => {
       const locked = document.documentElement.classList.contains('overlay-open')
@@ -40,6 +45,9 @@ export default function App() {
     return () => clearTimeout(t)
   }, [])
 
+  // pointer spotlight, card tilt, thread trail, active-section nav
+  useEffect(() => mountInteractions(), [])
+
   const navigate = (href) => {
     const el = href === '#top' ? document.body : document.querySelector(href)
     if (!el) return
@@ -48,7 +56,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <WizardProvider>
       <Loader done={loaded} />
       <Cursor />
       <ScrollProgress />
@@ -62,12 +70,15 @@ export default function App() {
         <Work />
         <AppsShowcase />
         <ToolsLab />
+        <Solutions />
+        <Moon />
         <Process />
         <Stats />
         <Studios />
         <Contact />
       </main>
       <Footer onNavigate={navigate} />
-    </>
+      <WizardModal />
+    </WizardProvider>
   )
 }
