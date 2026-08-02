@@ -10,6 +10,7 @@ import { Moon } from './components/Moon.jsx'
 import { Counter, OfferPair, Bolt } from './components/Banners.jsx'
 import { MobileChrome } from './components/MobileChrome.jsx'
 import { Flyer } from './components/Flyer.jsx'
+import { WhatsAppFab } from './components/WhatsAppFab.jsx'
 import { WizardProvider } from './lib/wizard.jsx'
 import { WizardModal } from './components/WizardModal.jsx'
 import { mountInteractions } from './lib/interactions.js'
@@ -143,6 +144,7 @@ export default function App() {
       {/* the butterfly rides the whole page, above the copy and under the nav */}
       <Flyer />
       <MobileChrome />
+      <WhatsAppFab />
       <WizardModal />
     </WizardProvider>
   )
