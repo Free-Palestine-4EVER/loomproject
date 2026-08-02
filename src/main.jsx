@@ -13,3 +13,7 @@ createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>
 )
+
+// LOOM Studio — in-page visual editing. Dev only; the dynamic import keeps it
+// out of the production bundle entirely. See studio.md.
+if (import.meta.env.DEV) import('./studio/index.jsx').then((m) => m.mountStudio())

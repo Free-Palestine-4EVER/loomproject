@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- Dev-only preview of the ported curated.media backdrop with our bees in it.
+     Scroll to ride the camera down from the hero to the framed bottom section.
+     Not part of the build. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>curated lab</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #171b3c; overflow: hidden; }
+      .wrap { position: absolute; inset: 0; }
+      canvas { width: 100%; height: 100%; display: block; }
+      .hud {
+        position: absolute; left: 14px; bottom: 12px; z-index: 2;
+        font: 600 11px/1.5 ui-monospace, Menlo, monospace;
+        letter-spacing: 0.1em; color: rgba(255,255,255,0.55);
+        text-transform: uppercase; pointer-events: none;
+      }
+      .hud b { color: #75A5EC; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap"><canvas id="c"></canvas></div>
+    <div class="hud">curated.media backdrop &middot; birds out, bees in &middot; scroll <b id="s">0.00</b></div>
+    <script type="module">
+      import { CuratedField } from '/src/three/CuratedField.js'
+      const field = new CuratedField(document.getElementById('c'), { reduced: false })
+      window.__field = field
+      const readout = document.getElementById('s')
+      addEventListener('mousemove', (e) => field.setMouse(
+        (e.clientX / innerWidth) * 2 - 1, -((e.clientY / innerHeight) * 2 - 1)))
+      let s = 0
+      addEventListener('wheel', (e) => {
+        s = Math.max(0, Math.min(1.2, s + e.deltaY * 0.0012))
+        field.setScroll(s)
+        readout.textContent = s.toFixed(2)
+      })
+    </script>
+  </body>
+</html>

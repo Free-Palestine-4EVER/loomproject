@@ -29,11 +29,33 @@ export function getSourceLocation(el) {
   let fiber = getFiber(el)
   let hops = 0
   while (fiber && hops++ < 60) {
-    const src = fiber._debugSource || fiber._debugInfo?.[0]?.source
+    const src = fiber._debugSource
     if (src?.fileName) return { file: src.fileName, line: src.lineNumber ?? null }
     fiber = fiber._debugOwner || fiber.return
   }
   return null
+}
+
+/**
+ * Every distinct source file on the way up the tree, nearest first.
+ *
+ * The nearest hit is often a shared primitive rather than the copy's home —
+ * a heading rendered through `SplitWords` reports src/lib/motion.jsx, and the
+ * actual words live three frames up in src/components/Sections.jsx (or, most
+ * often, in src/data/site.js, which no fiber ever names). So these are hints
+ * to try in order, not an answer; the server falls back to an exact,
+ * uniqueness-checked search across src/** when none of them match.
+ */
+export function getSourceFiles(el, limit = 5) {
+  const files = []
+  let fiber = getFiber(el)
+  let hops = 0
+  while (fiber && hops++ < 80 && files.length < limit) {
+    const f = fiber._debugSource?.fileName
+    if (f && !files.includes(f)) files.push(f)
+    fiber = fiber._debugOwner || fiber.return
+  }
+  return files
 }
 
 /** A readable "where am I" label for the panel. */
@@ -123,6 +145,7 @@ export function editPayload(target, newText) {
   const loc = getSourceLocation(target.el) || {}
   return {
     file: loc.file || null,
+    files: getSourceFiles(target.el),
     line: loc.line || null,
     oldText: target.text,
     newText,

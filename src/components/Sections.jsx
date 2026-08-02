@@ -33,11 +33,11 @@ export function Hero() {
     let teardown = null
 
     ;(async () => {
-      const { ButterflyField } = await import('../three/ButterflyField.js')
+      const { PlanetField } = await import('../three/PlanetField.js')
       if (cancelled || !canvasRef.current || !wrapRef.current) return
       let field
       try {
-        field = new ButterflyField(canvasRef.current, { reduced })
+        field = new PlanetField(canvasRef.current, { reduced })
       } catch (e) {
         // WebGL unavailable — CSS gradient fallback stays visible
         canvasRef.current.style.display = 'none'
