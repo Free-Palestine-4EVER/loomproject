@@ -23,6 +23,12 @@ export function Hero() {
   // the whole picture for them.
   useEffect(() => {
     if (reduced) return
+    // ONE WebGL context on touch devices. iOS Safari kills the whole tab when
+    // GPU memory runs out — no error, no recovery — and the page-wide companion
+    // layer is already a context. Running this one too, on top of the HQ film's
+    // video decoders, is what was taking iPhones down around 60% of the scroll.
+    // The hero keeps its CSS gradient and the companion butterfly still flies.
+    if (window.matchMedia('(pointer: coarse)').matches) return
     let cancelled = false
     let teardown = null
 

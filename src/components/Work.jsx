@@ -12,34 +12,13 @@ import './heads-v7.css'
 const imgFade = (el) => { if (el && el.complete && el.naturalWidth) el.classList.add('is-loaded') }
 const onImgLoad = (e) => e.currentTarget.classList.add('is-loaded')
 
-function CaseCard({ c, onOpen, big = false }) {
+function CaseCard({ c, onOpen }) {
   const ref = useRef(null)
   const vidRef = useRef(null)
   const reduced = useReducedMotion()
   const [coarse, setCoarse] = useState(false)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-6%', '6%'])
-
-  // Featured tiles "develop" like a print — desaturated on mount, full color once
-  // the card has crossed 40% into the viewport. Reduced motion (and non-featured
-  // grid cards) render already-developed, no transition to skip.
-  const [developed, setDeveloped] = useState(!big || !!reduced)
-  useEffect(() => {
-    if (!big || reduced || developed || !ref.current) return
-    const io = new IntersectionObserver(
-      (entries) => {
-        const en = entries[0]
-        if (en && en.isIntersecting) {
-          setDeveloped(true)
-          io.disconnect()
-        }
-      },
-      { threshold: 0.4 }
-    )
-    io.observe(ref.current)
-    return () => io.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [big, reduced])
 
   useEffect(() => {
     const mq = window.matchMedia('(pointer: coarse)')
@@ -81,13 +60,13 @@ function CaseCard({ c, onOpen, big = false }) {
   return (
     <motion.article
       ref={ref}
-      className={`case-card ${big ? 'case-card--big' : ''}`}
+      className="case-card"
       whileHover={reduced || coarse ? undefined : 'hover'}
       onHoverStart={playVideo} onHoverEnd={stopVideo}
       data-cursor
     >
       <button className="case-hit" onClick={() => onOpen(c.slug)} aria-label={`Open case study: ${c.client} — ${c.title}`}>
-        <div className={`case-media ${big && !developed ? 'is-developing' : ''}`}>
+        <div className="case-media">
           <motion.img
             src={c.cover} alt={`${c.client} — ${c.title}`} loading="lazy"
             ref={imgFade} onLoad={onImgLoad}
@@ -293,7 +272,6 @@ export function Work() {
     () => (filter === 'all' ? CASES : CASES.filter((c) => c.filter.includes(filter))),
     [filter]
   )
-  const featured = CASES.filter((c) => c.featured)
 
   const openCase = useCallback((slug) => setOpenSlug(slug), [])
   const close = useCallback(() => setOpenSlug(null), [])
@@ -311,14 +289,6 @@ export function Work() {
             Everything on this board went live — and most of it went further. Open any tile and walk the whole case.
           </p>
         </Reveal>
-      </div>
-
-      <div className="work-featured">
-        {featured.map((c, i) => (
-          <Reveal key={c.slug} delay={(i % 2) * 0.08} className={`feat-cell feat-cell--${i % 3}`}>
-            <CaseCard c={c} onOpen={openCase} big />
-          </Reveal>
-        ))}
       </div>
 
       <div className="work-all">

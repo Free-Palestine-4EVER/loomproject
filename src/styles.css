@@ -425,18 +425,6 @@ html.cursor-hot .cursor-ring {
 .ailoom-list span { color: #b9aed3; font-size: 0.95rem; text-align: right; }
 
 /* ——— work ——— */
-.work-featured {
-  display: grid; grid-template-columns: repeat(12, 1fr);
-  gap: clamp(18px, 2.6vw, 40px);
-  padding: 0 var(--pad);
-}
-.feat-cell--0 { grid-column: span 7; }
-.feat-cell--1 { grid-column: span 5; padding-top: clamp(30px, 6vh, 90px); }
-.feat-cell--2 { grid-column: span 5; }
-.work-featured > :nth-child(4) { grid-column: span 7; padding-top: clamp(20px, 4vh, 60px); }
-.work-featured > :nth-child(5) { grid-column: span 7; }
-.work-featured > :nth-child(6) { grid-column: span 5; padding-top: clamp(30px, 6vh, 90px); }
-
 .case-card { position: relative; }
 .case-hit { display: block; width: 100%; text-align: left; }
 .case-media {
@@ -444,7 +432,6 @@ html.cursor-hot .cursor-ring {
   border: 1px solid var(--line);
   aspect-ratio: 4 / 3; background: var(--bg-3);
 }
-.case-card--big .case-media { aspect-ratio: 16 / 11; }
 /* DIRECT child only — as a descendant selector this also matched the felted
    arrow medallion inside .case-veil, blowing the "Open case" pill out to a
    463px blurred circle and promoting 23 static medallions to their own layer. */
@@ -1083,11 +1070,6 @@ html.cursor-hot .cursor-ring {
 @media (max-width: 820px) {
   .nav-links { display: none; }
   .burger { display: flex; }
-  .work-featured { grid-template-columns: 1fr; }
-  .feat-cell--0, .feat-cell--1, .feat-cell--2,
-  .work-featured > :nth-child(4), .work-featured > :nth-child(5), .work-featured > :nth-child(6) {
-    grid-column: 1 / -1; padding-top: 0;
-  }
   .overlay-gallery { grid-template-columns: 1fr; }
   .ailoom-list li { flex-direction: column; gap: 4px; }
   .ailoom-list span { text-align: left; }

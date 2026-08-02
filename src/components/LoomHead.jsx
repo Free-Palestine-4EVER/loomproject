@@ -205,14 +205,41 @@ function LoomCanvas({ state, reduced }) {
       drawFrame(ctx, rect.width, rect.height, t, stateRef.current, reduced)
       if (!reduced) raf = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(tick)
+
+    // The machine lives in the LAST section of a 28,000px page, and this used to
+    // redraw a ~770x960 canvas at 60fps from first paint onward — the whole way
+    // down, off screen, on battery. Only run it when it can actually be seen.
+    // `start` is re-based on re-entry so the animation resumes rather than
+    // jumping forward by however long the reader was elsewhere.
+    let running = false
+    let elapsed = 0
+    const run = (on) => {
+      if (on === running) return
+      running = on
+      if (on) {
+        start = performance.now() - elapsed
+        raf = requestAnimationFrame(tick)
+      } else {
+        elapsed = performance.now() - start
+        cancelAnimationFrame(raf)
+      }
+    }
+    const io = new IntersectionObserver(([e]) => run(!!e?.isIntersecting), { rootMargin: '200px' })
+    io.observe(cv)
+    const onVis = () => { if (document.hidden) run(false) }
+    document.addEventListener('visibilitychange', onVis)
 
     const ro = new ResizeObserver(() => {
       rect = size()
-      if (reduced) drawFrame(ctx, rect.width, rect.height, 0, stateRef.current, true)
+      if (reduced || !running) drawFrame(ctx, rect.width, rect.height, 0, stateRef.current, reduced)
     })
     ro.observe(cv)
-    return () => { cancelAnimationFrame(raf); ro.disconnect() }
+    return () => {
+      cancelAnimationFrame(raf)
+      io.disconnect()
+      ro.disconnect()
+      document.removeEventListener('visibilitychange', onVis)
+    }
   }, [reduced])
 
   // Reduced motion still needs a repaint when the state changes — there is no loop

@@ -184,9 +184,9 @@
   z-index: -1;
   display: block;
   background-image:
-    url('/img/wool/yarn/magenta/yarn-cap-l.png'),
-    url('/img/wool/yarn/magenta/yarn-cap-r.png'),
-    url('/img/wool/yarn/magenta/yarn-mid.png');
+    url('/img/wool/yarn/magenta/yarn-cap-l.webp'),
+    url('/img/wool/yarn/magenta/yarn-cap-r.webp'),
+    url('/img/wool/yarn/magenta/yarn-mid.webp');
   background-position: left center, right center, center center;
   background-repeat: no-repeat, no-repeat, repeat-x;
   background-size: auto 100%, auto 100%, auto 100%;
@@ -214,44 +214,44 @@
 .wool-btn--violet { --wool-glow: rgba(155, 85, 201, 0.85); }
 .wool-btn--violet .wool-btn-plate {
   background-image:
-    url('/img/wool/yarn/violet/yarn-cap-l.png'),
-    url('/img/wool/yarn/violet/yarn-cap-r.png'),
-    url('/img/wool/yarn/violet/yarn-mid.png');
+    url('/img/wool/yarn/violet/yarn-cap-l.webp'),
+    url('/img/wool/yarn/violet/yarn-cap-r.webp'),
+    url('/img/wool/yarn/violet/yarn-mid.webp');
 }
 .wool-btn--blue { --wool-glow: rgba(92, 192, 232, 0.8); }
 .wool-btn--blue .wool-btn-plate {
   background-image:
-    url('/img/wool/yarn/blue/yarn-cap-l.png'),
-    url('/img/wool/yarn/blue/yarn-cap-r.png'),
-    url('/img/wool/yarn/blue/yarn-mid.png');
+    url('/img/wool/yarn/blue/yarn-cap-l.webp'),
+    url('/img/wool/yarn/blue/yarn-cap-r.webp'),
+    url('/img/wool/yarn/blue/yarn-mid.webp');
 }
 .wool-btn--gold { --wool-glow: rgba(224, 168, 47, 0.8); }
 .wool-btn--gold .wool-btn-plate {
   background-image:
-    url('/img/wool/yarn/gold/yarn-cap-l.png'),
-    url('/img/wool/yarn/gold/yarn-cap-r.png'),
-    url('/img/wool/yarn/gold/yarn-mid.png');
+    url('/img/wool/yarn/gold/yarn-cap-l.webp'),
+    url('/img/wool/yarn/gold/yarn-cap-r.webp'),
+    url('/img/wool/yarn/gold/yarn-mid.webp');
 }
 .wool-btn--crimson { --wool-glow: rgba(224, 36, 74, 0.85); }
 .wool-btn--crimson .wool-btn-plate {
   background-image:
-    url('/img/wool/yarn/crimson/yarn-cap-l.png'),
-    url('/img/wool/yarn/crimson/yarn-cap-r.png'),
-    url('/img/wool/yarn/crimson/yarn-mid.png');
+    url('/img/wool/yarn/crimson/yarn-cap-l.webp'),
+    url('/img/wool/yarn/crimson/yarn-cap-r.webp'),
+    url('/img/wool/yarn/crimson/yarn-mid.webp');
 }
 .wool-btn--grey { --wool-glow: rgba(170, 170, 180, 0.6); }
 .wool-btn--grey .wool-btn-plate {
   background-image:
-    url('/img/wool/yarn/grey/yarn-cap-l.png'),
-    url('/img/wool/yarn/grey/yarn-cap-r.png'),
-    url('/img/wool/yarn/grey/yarn-mid.png');
+    url('/img/wool/yarn/grey/yarn-cap-l.webp'),
+    url('/img/wool/yarn/grey/yarn-cap-r.webp'),
+    url('/img/wool/yarn/grey/yarn-mid.webp');
 }
 .wool-btn--cream { --wool-glow: rgba(239, 231, 218, 0.7); }
 .wool-btn--cream .wool-btn-plate {
   background-image:
-    url('/img/wool/yarn/cream/yarn-cap-l.png'),
-    url('/img/wool/yarn/cream/yarn-cap-r.png'),
-    url('/img/wool/yarn/cream/yarn-mid.png');
+    url('/img/wool/yarn/cream/yarn-cap-l.webp'),
+    url('/img/wool/yarn/cream/yarn-cap-r.webp'),
+    url('/img/wool/yarn/cream/yarn-mid.webp');
 }
 
 /* gold is the brightest yarn in the set — its lit strands run to ~1.7:1 against

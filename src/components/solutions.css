@@ -74,9 +74,9 @@
   flex-shrink: 0; display: block;
   width: 34px; height: 16px; border-radius: 999px;
   background-image:
-    url('/img/wool/yarn/magenta/yarn-cap-l.png'),
-    url('/img/wool/yarn/magenta/yarn-cap-r.png'),
-    url('/img/wool/yarn/magenta/yarn-mid.png');
+    url('/img/wool/yarn/magenta/yarn-cap-l.webp'),
+    url('/img/wool/yarn/magenta/yarn-cap-r.webp'),
+    url('/img/wool/yarn/magenta/yarn-mid.webp');
   background-position: left center, right center, center center;
   background-repeat: no-repeat, no-repeat, repeat-x;
   background-size: auto 100%, auto 100%, auto 100%;
@@ -89,12 +89,12 @@
 .rack-spool.is-lg { width: 60px; height: 28px; box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.6); }
 
 /* one rule per yarn, same recipe as wool.css's own knit pills */
-.rack-spool--gold { background-image: url('/img/wool/yarn/gold/yarn-cap-l.png'), url('/img/wool/yarn/gold/yarn-cap-r.png'), url('/img/wool/yarn/gold/yarn-mid.png'); }
-.rack-spool--blue { background-image: url('/img/wool/yarn/blue/yarn-cap-l.png'), url('/img/wool/yarn/blue/yarn-cap-r.png'), url('/img/wool/yarn/blue/yarn-mid.png'); }
-.rack-spool--violet { background-image: url('/img/wool/yarn/violet/yarn-cap-l.png'), url('/img/wool/yarn/violet/yarn-cap-r.png'), url('/img/wool/yarn/violet/yarn-mid.png'); }
-.rack-spool--crimson { background-image: url('/img/wool/yarn/crimson/yarn-cap-l.png'), url('/img/wool/yarn/crimson/yarn-cap-r.png'), url('/img/wool/yarn/crimson/yarn-mid.png'); }
-.rack-spool--grey { background-image: url('/img/wool/yarn/grey/yarn-cap-l.png'), url('/img/wool/yarn/grey/yarn-cap-r.png'), url('/img/wool/yarn/grey/yarn-mid.png'); }
-.rack-spool--cream { background-image: url('/img/wool/yarn/cream/yarn-cap-l.png'), url('/img/wool/yarn/cream/yarn-cap-r.png'), url('/img/wool/yarn/cream/yarn-mid.png'); }
+.rack-spool--gold { background-image: url('/img/wool/yarn/gold/yarn-cap-l.webp'), url('/img/wool/yarn/gold/yarn-cap-r.webp'), url('/img/wool/yarn/gold/yarn-mid.webp'); }
+.rack-spool--blue { background-image: url('/img/wool/yarn/blue/yarn-cap-l.webp'), url('/img/wool/yarn/blue/yarn-cap-r.webp'), url('/img/wool/yarn/blue/yarn-mid.webp'); }
+.rack-spool--violet { background-image: url('/img/wool/yarn/violet/yarn-cap-l.webp'), url('/img/wool/yarn/violet/yarn-cap-r.webp'), url('/img/wool/yarn/violet/yarn-mid.webp'); }
+.rack-spool--crimson { background-image: url('/img/wool/yarn/crimson/yarn-cap-l.webp'), url('/img/wool/yarn/crimson/yarn-cap-r.webp'), url('/img/wool/yarn/crimson/yarn-mid.webp'); }
+.rack-spool--grey { background-image: url('/img/wool/yarn/grey/yarn-cap-l.webp'), url('/img/wool/yarn/grey/yarn-cap-r.webp'), url('/img/wool/yarn/grey/yarn-mid.webp'); }
+.rack-spool--cream { background-image: url('/img/wool/yarn/cream/yarn-cap-l.webp'), url('/img/wool/yarn/cream/yarn-cap-r.webp'), url('/img/wool/yarn/cream/yarn-mid.webp'); }
 
 .rack-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .rack-name {

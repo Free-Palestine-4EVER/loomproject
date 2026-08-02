@@ -95,16 +95,29 @@ export function HQ() {
     setActive((prev) => (prev === i ? prev : i))
   })
 
+  // A SLIDING window, not a growing one. This used to only ever add, so walking
+  // the film left every floor holding a decoded clip at once; on iOS that plus a
+  // WebGL context is enough for Safari to kill the tab outright.
   useEffect(() => {
     setWarm((prev) => {
-      const next = new Set(prev)
-      let grew = false
+      const next = new Set()
       for (const i of [active - 1, active, active + 1]) {
-        if (i >= 0 && i < count && !next.has(i)) { next.add(i); grew = true }
+        if (i >= 0 && i < count) next.add(i)
       }
-      return grew ? next : prev
+      if (next.size === prev.size && [...next].every((i) => prev.has(i))) return prev
+      return next
     })
   }, [active, count])
+
+  // Dropping the src attribute is not enough — the element keeps its decoded
+  // buffers until load() is called on it with no source.
+  useEffect(() => {
+    videoRefs.current.forEach((v, i) => {
+      if (!v || warm.has(i) || !v.currentSrc) return
+      v.pause()
+      v.load()
+    })
+  }, [warm])
 
   // Nothing decodes while the section is off screen — a 1080p clip running
   // behind the footer is pure battery burn. This is state rather than a direct
@@ -252,7 +265,11 @@ export function HQ() {
                   <video
                     ref={(el) => { videoRefs.current[i] = el }}
                     src={warm.has(i) ? srcFor(f) : undefined}
-                    poster={`${BASE}/${f.clip}.jpg`}
+                    // The poster follows the warm window too. `poster` is fetched
+                    // eagerly by the browser regardless of preload="none", so
+                    // leaving it set put four stills on the critical path for a
+                    // section 55% down the page.
+                    poster={warm.has(i) ? `${BASE}/${f.clip}.jpg` : undefined}
                     muted loop playsInline preload="none"
                   />
                 </div>

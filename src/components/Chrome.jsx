@@ -28,7 +28,7 @@ export function Loader({ done }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.8, ease: EASE }}
             >
-              <img className="logo-woven" src="/img/logo/loom-woven.webp" alt="LOOM" />
+              <img className="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" width="480" height="162" fetchPriority="high" />
             </motion.div>
             <motion.div
               className="loader-thread"
@@ -111,7 +111,7 @@ export function Nav({ onNavigate }) {
     <>
       <header className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
         <a className="nav-logo" href="#top" onClick={(e) => go(e, '#top')} aria-label="LOOM — home">
-          <img className="logo-woven" src="/img/logo/loom-woven.webp" alt="LOOM" />
+          <img className="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" />
         </a>
         <nav className="nav-links" aria-label="Primary">
           {LINKS.map((l) => (

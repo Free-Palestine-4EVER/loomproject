@@ -13,13 +13,19 @@ export function Flyer() {
   const reduced = useReducedMotion()
 
   useEffect(() => {
-    // three + the model is ~700KB for a decorative flyer. Reduced-motion
-    // readers never download any of it.
+    // Reduced-motion readers never download any of it.
     if (reduced) return
     let cancelled = false
     let teardown = null
+    let idle = 0
+    let timer = 0
 
-    ;(async () => {
+    // three + the model is ~700 KB for a decorative flyer, and it used to be
+    // fetched the moment this mounted — straight into contention with the hero's
+    // own first paint. Wait for the main thread to go quiet, or for the reader to
+    // scroll, whichever lands first. The butterfly starts in the hero either way;
+    // it is only ever a few hundred ms later than it was.
+    const boot = async () => {
       const { Companion } = await import('../three/Companion.js')
       if (cancelled || !canvasRef.current) return
       let field
@@ -56,10 +62,30 @@ export function Flyer() {
         document.removeEventListener('visibilitychange', onVis)
         field.dispose()
       }
-    })()
+    }
+
+    const start = () => {
+      window.removeEventListener('scroll', start)
+      if (idle) cancelIdleCallback?.(idle)
+      clearTimeout(timer)
+      boot()
+    }
+    window.addEventListener('scroll', start, { passive: true, once: true })
+    idle = window.requestIdleCallback
+      ? requestIdleCallback(start, { timeout: 2500 })
+      : 0
+    // Safari has no requestIdleCallback, and the timeout is the backstop when the
+    // main thread never goes quiet.
+    timer = setTimeout(start, window.requestIdleCallback ? 3000 : 1400)
 
     // unmounted before the chunk landed -> nothing was ever wired up
-    return () => { cancelled = true; if (teardown) teardown() }
+    return () => {
+      cancelled = true
+      window.removeEventListener('scroll', start)
+      if (idle) cancelIdleCallback?.(idle)
+      clearTimeout(timer)
+      if (teardown) teardown()
+    }
   }, [reduced])
 
   if (reduced) return null
