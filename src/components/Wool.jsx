@@ -39,6 +39,9 @@ const RENDERED = {
   'book a floor': 'book-a-floor',
   'send via whatsapp': 'send-via-whatsapp',
   'send as email': 'send-as-email',
+  whatsapp: 'whatsapp',
+  'see the work': 'see-the-work',
+  'next case': 'next-case',
 }
 
 // intrinsic width/height of each render, so the browser reserves the right box
@@ -53,6 +56,7 @@ const RATIO = {
   review: 720 / 321, 'open-the-3d-lab': 720 / 380, 'put-ai-in-my-brand': 720 / 419,
   'put-the-crew-on-my-brand': 720 / 366, 'start-the-ascent': 720 / 341,
   'book-a-floor': 720 / 374, 'send-via-whatsapp': 720 / 319, 'send-as-email': 720 / 327,
+  whatsapp: 720 / 314, 'see-the-work': 720 / 336, 'next-case': 720 / 307,
 }
 
 export const WOOL_ICONS = [

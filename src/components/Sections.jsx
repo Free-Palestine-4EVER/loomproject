@@ -4,6 +4,8 @@ import { motion, useMotionValueEvent, useScroll, useTransform, useReducedMotion 
 import { BRAND, CLIENT_WALL, SERVICES, PROCESS, STATS } from '../data/site.js'
 import { EASE, SplitWords, Reveal, CountUp, Magnetic } from '../lib/motion.jsx'
 import { ContactWizard } from './ContactWizard.jsx'
+import { LoomHead } from './LoomHead.jsx'
+import { MachineChat, useMachineLang } from './MachineChat.jsx'
 import { useWizard } from '../lib/wizard.jsx'
 import { ServiceVisual, ProcessGlyph, ThreadDivider, StatSpark } from './Rich.jsx'
 import { WoolButton, WoolIcon } from './Wool.jsx'
@@ -25,11 +27,11 @@ export function Hero() {
     let teardown = null
 
     ;(async () => {
-      const { HeroField } = await import('../three/HeroField.js')
+      const { BeeField } = await import('../three/BeeField.js')
       if (cancelled || !canvasRef.current || !wrapRef.current) return
       let field
       try {
-        field = new HeroField(canvasRef.current, { reduced })
+        field = new BeeField(canvasRef.current, { reduced })
       } catch (e) {
         // WebGL unavailable — CSS gradient fallback stays visible
         canvasRef.current.style.display = 'none'
@@ -107,7 +109,7 @@ export function Hero() {
           {/* "Start weaving" is one of the 21 photographed spools — and it is the
               headline's own verb, so the hero CTA is real wool, not a CSS pill */}
           <Magnetic><WoolButton label="Start weaving" size="big" className="wool-btn--hero" onClick={() => openWizard({})} /></Magnetic>
-          <Magnetic><a className="btn btn--ghost" href="#work" data-scroll>See the work</a></Magnetic>
+          <Magnetic><WoolButton label="See the work" size="big" href="#work" data-scroll /></Magnetic>
         </motion.div>
       </motion.div>
       <motion.div
@@ -578,6 +580,12 @@ export function Studios() {
 }
 
 export function Contact() {
+  // The machine's state is owned here, not in the wizard: the wizard reports where the
+  // visitor is, and the head and the transcript both read from that one value.
+  const [mstate, setMstate] = useState('idle')
+  const [lang, setLang] = useMachineLang()
+  const reduced = useReducedMotion()
+
   return (
     <section className="contact" id="contact">
       <p className="kicker kicker--center"><span>12</span> Contact</p>
@@ -590,11 +598,24 @@ export function Contact() {
         <p className="contact-sub">Tell the machine what you are making. A human answers — fast, and in your language.</p>
       </Reveal>
       <Reveal delay={0.3}>
-        <ContactWizard />
+        <div className="contact-machine">
+          <div className="contact-machine-figure">
+            <LoomHead state={mstate} reduced={reduced} />
+            <MachineChat state={mstate} lang={lang} onLang={setLang} reduced={reduced} />
+          </div>
+          <div className="contact-machine-form">
+            <ContactWizard onState={setMstate} />
+          </div>
+        </div>
       </Reveal>
       <Reveal delay={0.35} className="contact-direct">
         <span>Prefer it direct?</span>
-        <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>
+        {/* the number stays readable as text next to it — the knit carries the
+            action, not the digits */}
+        <Magnetic>
+          <WoolButton label="WhatsApp" size="small" href={BRAND.whatsapp} target="_blank" rel="noreferrer" />
+        </Magnetic>
+        <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">{BRAND.phoneJO}</a>
         <i aria-hidden="true">·</i>
         <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
       </Reveal>
