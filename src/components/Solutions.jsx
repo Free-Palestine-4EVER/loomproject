@@ -39,10 +39,14 @@ const GROUP_LABEL = Object.fromEntries(
 
 const yarnOf = (n) => GROUP_YARN[n.group] ?? 'magenta'
 
-function RackRow({ n, isActive, tabIndex, onSelect, reduced }) {
+// forwardRef is load-bearing: AnimatePresence mode="popLayout" clones each row
+// with a ref to measure it before it exits, and that ref silently does nothing
+// on a plain function component — no measurement, no exit animation.
+const RackRow = forwardRef(function RackRow({ n, isActive, tabIndex, onSelect, reduced }, ref) {
   const yarn = yarnOf(n)
   return (
     <motion.button
+      ref={ref}
       type="button"
       role="tab"
       id={`sol-tab-${n.key}`}
@@ -66,7 +70,7 @@ function RackRow({ n, isActive, tabIndex, onSelect, reduced }) {
       <span className="rack-arrow" aria-hidden="true" />
     </motion.button>
   )
-}
+})
 
 const DetailPanel = forwardRef(function DetailPanel({ n, reduced, onOpen }, ref) {
   const yarn = yarnOf(n)

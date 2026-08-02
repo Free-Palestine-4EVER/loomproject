@@ -267,7 +267,7 @@ export function HQ() {
           {/* ——— slate ——— */}
           <div className="hq-slate">
             <span className="hq-slate-dot" />
-            <span>{current.shot}</span>
+            <span>{`S${reel(active)}`}</span>
             <span className="hq-slate-sep">/</span>
             <span>{current.dept}</span>
           </div>

@@ -254,6 +254,15 @@
     url('/img/wool/yarn/cream/yarn-mid.png');
 }
 
+/* gold is the brightest yarn in the set — its lit strands run to ~1.7:1 against
+   white, so the lettering gets a deeper, wider dark halo to sit legibly on them */
+.wool-btn--gold .wool-btn-text {
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35),
+    0 -1px 1px rgba(45, 5, 28, 0.7),
+    0 2px 7px rgba(30, 3, 20, 0.75);
+}
+
 /* the pale yarns take dark lettering */
 .wool-btn--cream, .wool-btn--grey { color: #33243d; }
 .wool-btn--cream .wool-btn-text,

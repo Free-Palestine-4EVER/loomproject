@@ -15,6 +15,11 @@
    you fill the form is the whole idea, and it stops working if it scrolls away. */
 .contact-machine-figure { position: sticky; top: 96px; }
 
+/* .wizard carries standalone-modal sizing (46px of top margin, an 880px cap) that
+   WizardModal still needs. In this two-column context it just drops the panel
+   below the machine beside it, so scope it away here rather than at the source. */
+.contact-machine-form .wizard { margin-top: 0; max-width: none; }
+
 @media (max-width: 900px) {
   .contact-machine { grid-template-columns: 1fr; }
   .contact-machine-figure { position: static; }

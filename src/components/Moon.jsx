@@ -87,11 +87,13 @@ function Territory({ t, rot, onEnter, onLeave, active }) {
     // rendering glitch, not as something turning away
     opacity: useTransform(rot, (r) => {
       const { z } = project(t.lat, t.lon, r)
-      return z <= 0.1 ? 0 : Math.min(1, (z - 0.1) / 0.26)
+      // z 0.3 ≈ 95% of the projected radius — the last point where the label
+      // still sits on flat-enough sphere to be legible
+      return z <= 0.3 ? 0 : Math.min(1, (z - 0.3) / 0.2)
     }),
     scale: useTransform(rot, (r) => 0.74 + Math.max(0, project(t.lat, t.lon, r).z) * 0.26),
-    zIndex: useTransform(rot, (r) => (project(t.lat, t.lon, r).z > 0 ? 2 : 0)),
-    pointerEvents: useTransform(rot, (r) => (project(t.lat, t.lon, r).z > 0.18 ? 'auto' : 'none')),
+    zIndex: useTransform(rot, (r) => (project(t.lat, t.lon, r).z > 0.3 ? 2 : 0)),
+    pointerEvents: useTransform(rot, (r) => (project(t.lat, t.lon, r).z > 0.3 ? 'auto' : 'none')),
   }
   return (
     <motion.button

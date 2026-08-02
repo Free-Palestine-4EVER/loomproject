@@ -84,8 +84,6 @@
   gap: clamp(12px, 1.4vw, 22px);
   align-items: start;
   padding: 0 var(--pad);
-  max-width: calc(1240px + 2 * var(--pad));
-  margin-inline: auto;
 }
 .counter .cnt-cell { min-width: 0; }
 
@@ -193,8 +191,6 @@
   flex-wrap: wrap;
   gap: clamp(16px, 2vw, 28px);
   padding: clamp(34px, 4vw, 52px) var(--pad) 0;
-  max-width: calc(1240px + 2 * var(--pad));
-  margin-inline: auto;
 }
 .counter .cnt-foot-link {
   font-weight: 640;
@@ -206,7 +202,6 @@
 }
 .counter .cnt-foot-link:hover { color: var(--ink); border-color: var(--magenta); }
 
-@media (max-width: 1100px) { .counter .cnt-grid, .counter .cnt-foot { max-width: none; } }
 @media (max-width: 1000px) {
   .counter .cnt-medal { --wool-icon: 58px; left: 13px; top: 15px; }
   .counter .cnt-label { font-size: 0.98rem; }

@@ -157,7 +157,9 @@
 .rc-thread-pulse { animation: rc-k-thread 6.5s linear infinite; transform: translate(0px, 60px); }
 
 /* ───────── StatSpark ───────── */
-.rc-spark { display: flex; align-items: flex-end; gap: 3px; height: 22px; width: 100%; max-width: 88px; }
+/* margin-inline: auto — max-width makes this narrower than the .stat column,
+   and text-align: center on the parent can't centre a block box */
+.rc-spark { display: flex; align-items: flex-end; gap: 3px; height: 22px; width: 100%; max-width: 88px; margin-inline: auto; }
 .rc-spark-bar {
   flex: 1 1 0; min-width: 2px; border-radius: 1.5px 1.5px 0 0;
   background: linear-gradient(180deg, var(--cyan), var(--violet));

@@ -27,11 +27,11 @@ export function Hero() {
     let teardown = null
 
     ;(async () => {
-      const { BeeField } = await import('../three/BeeField.js')
+      const { ButterflyField } = await import('../three/ButterflyField.js')
       if (cancelled || !canvasRef.current || !wrapRef.current) return
       let field
       try {
-        field = new BeeField(canvasRef.current, { reduced })
+        field = new ButterflyField(canvasRef.current, { reduced })
       } catch (e) {
         // WebGL unavailable — CSS gradient fallback stays visible
         canvasRef.current.style.display = 'none'
@@ -486,20 +486,30 @@ function useTwoCityArc() {
   useEffect(() => {
     const stage = stageRef.current
     if (!stage) return
+    // Top-edge anchor in the stage's own coordinates, read from the layout box rather
+    // than getBoundingClientRect: the cards ride a Reveal fade-rise (and a hover lift),
+    // so a rect measured mid-transform pins the arc 36px below where the cards settle —
+    // i.e. through them instead of over them. It has to walk the offsetParent chain,
+    // not read offsetTop once: Reveal's wrapper keeps an inline transform, which makes
+    // it the offsetParent even though it is position:static.
+    const anchor = (el, xf) => {
+      let x = 0, y = 0
+      for (let n = el; n && n !== stage; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop }
+      return { x: x + el.offsetWidth * xf, y }
+    }
     const measure = () => {
-      const sRect = stage.getBoundingClientRect()
-      const a = cardRefs.current[0]?.getBoundingClientRect()
-      const b = cardRefs.current[1]?.getBoundingClientRect()
+      const a = cardRefs.current[0]
+      const b = cardRefs.current[1]
       if (!a || !b) return
-      const p0 = { x: a.left - sRect.left + a.width * 0.86, y: a.top - sRect.top }
-      const p2 = { x: b.left - sRect.left + b.width * 0.14, y: b.top - sRect.top }
+      const p0 = anchor(a, 0.86)
+      const p2 = anchor(b, 0.14)
       const ctrl = { x: (p0.x + p2.x) / 2, y: Math.min(p0.y, p2.y) - 92 }
       const apex = {
         x: 0.25 * p0.x + 0.5 * ctrl.x + 0.25 * p2.x,
         y: 0.25 * p0.y + 0.5 * ctrl.y + 0.25 * p2.y,
       }
       setGeo({
-        w: sRect.width, h: sRect.height,
+        w: stage.offsetWidth, h: stage.offsetHeight,
         d: `M ${p0.x} ${p0.y} Q ${ctrl.x} ${ctrl.y} ${p2.x} ${p2.y}`,
         apex,
       })

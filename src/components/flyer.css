@@ -1,0 +1,30 @@
+/* The page-wide butterfly layer.
+
+   z-index 70 puts it over the copy but under everything that is allowed to take
+   the page: the menu (75), the nav (80), the scroll bar (90), the mobile chrome
+   (92), overlays (95), the wizard (96) and the loader (100). So the butterfly
+   flies across the reading surface and never once lands on a modal. */
+.flyer-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  /* Its own layer, so the compositor never repaints the page behind it. */
+  will-change: opacity;
+  transition: opacity 0.45s ease;
+}
+.flyer-layer > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Anything that locks the page takes the frame with it. */
+html.overlay-open .flyer-layer,
+html.menu-open .flyer-layer {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flyer-layer { display: none; }
+}

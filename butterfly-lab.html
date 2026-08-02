@@ -1,0 +1,18 @@
+<!doctype html>
+<!-- Dev-only turntable for public/models/butterfly.glb. Not part of the build
+     (vite only bundles index.html); open at /butterfly-lab.html during `npm run dev`. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>butterfly lab</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0d0716; overflow: hidden; }
+      canvas { display: block; }
+      #hud { position: fixed; left: 12px; bottom: 12px; font: 12px/1.5 monospace; color: #a89fc0; }
+    </style>
+  </head>
+  <body>
+    <div id="hud"></div>
+    <script type="module" src="/src/three/butterfly-lab.js"></script>
+  </body>
+</html>

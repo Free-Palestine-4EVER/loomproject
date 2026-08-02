@@ -299,7 +299,7 @@
   transition: opacity 0.65s var(--ease), transform 0.65s var(--ease), filter 0.65s var(--ease);
 }
 .moon-stage.is-future { opacity: 0; transform: translateY(20px); }
-.moon-stage.is-past { opacity: 0.4; filter: saturate(0.5); }
+.moon-stage.is-past { opacity: 0.62; filter: saturate(0.5); }
 .moon-stage.is-active { opacity: 1; transform: none; }
 
 .moon-stage-rule {

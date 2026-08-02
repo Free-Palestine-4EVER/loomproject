@@ -54,7 +54,9 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: auto; }
+/* relative because every useScroll({ target }) measures document.documentElement
+   as its container, and Motion refuses to trust the offsets of a static one */
+html { scroll-behavior: auto; position: relative; }
 html.menu-open, html.overlay-open { overflow: hidden; }
 
 body {
@@ -350,11 +352,20 @@ html.cursor-hot .cursor-ring {
 }
 .svc.is-open .svc-body { grid-template-rows: 1fr; }
 .svc-body > * { overflow: hidden; }
+/* The bottom padding has to live on the OPEN state only. .svc-body collapses via
+   grid-template-rows: 0fr, and with border-box a stretched grid item can never
+   shrink below its own padding — so a closed row floored at 26px and clipped at
+   the padding edge instead of at zero. On mobile the copy starts at the clip
+   top, so that strip showed one live line of the blurb, cut mid-sentence, under
+   every closed capability. On desktop the taller .svc-visual won the centred
+   track and the strip was merely empty, which is what left the rows sitting
+   13px above centre between their rules. */
 .svc-body-inner {
   display: grid; grid-template-columns: 1fr auto;
   gap: clamp(20px, 4vw, 60px); align-items: center;
-  padding: 0 0 26px 88px;
+  padding: 0 0 0 88px;
 }
+.svc.is-open .svc-body-inner { padding-bottom: 26px; }
 .svc-body p { color: var(--ink-dim); max-width: 62ch; }
 .svc-tags { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 0 0; }
 .svc-visual { width: clamp(150px, 18vw, 210px); flex-shrink: 0; }
@@ -723,7 +734,10 @@ html.cursor-hot .cursor-ring {
   border-radius: 999px; padding: 4px 9px;
   backdrop-filter: blur(4px);
 }
-.app-real { top: 52px; right: 23px; } /* clears both the Dynamic Island and the mockup's bezel */
+/* bottom corner, not top: at 52px the pill landed straight on the captured
+   app's own header and clipped it (Glowbar's wordmark, Tawsiyat's banner mark).
+   Insets still clear the mockup's bezel (5.71% of the frame, ~15px at 260px). */
+.app-real { top: auto; bottom: 26px; right: 23px; }
 .lab-card:hover .lab-real { opacity: 0; transition: opacity 0.3s; }
 .app-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .app-badge {
@@ -734,10 +748,14 @@ html.cursor-hot .cursor-ring {
 .app-badge svg { width: 14px; height: 14px; }
 .app-badge--store { color: var(--cyan); border-color: rgba(89, 230, 255, 0.4); }
 .app-badge--store.is-live { color: #2ee6a8; border-color: rgba(46, 230, 168, 0.5); }
-.lab-card header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+/* flex-start, not center: "2D→3D STUDIO" is the one title that wraps, and a
+   centred pill would float between its two lines instead of sitting on the
+   first one. The h3 then reserves both lines on every card (3.2em = 2 x the
+   inherited 1.6 line-height) so kickers and blurbs stay level across a row. */
+.lab-card header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .lab-card h3 {
   font-family: var(--display); font-weight: 620; font-size: clamp(1.3rem, 2vw, 1.7rem);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.04em; min-height: 3.2em;
 }
 .lab-tag {
   font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
