@@ -147,13 +147,16 @@ function PhoneCard({ app, i }) {
     <Reveal delay={rowDelay} className="app-cell" style={{ '--g1': c1, '--g2': c2 }}>
       <article className="app-card" data-cursor ref={cardRef}>
         <div className="app-phone" style={{ '--g1': c1, '--g2': c2 }}>
-          <i className="app-notch" aria-hidden="true" />
           <div className="app-screen">
             {app.shot
               ? <img ref={shotRef} className="app-shot" src={app.shot} alt={`${app.name} — real app screenshot`} loading="lazy" />
               : <AppScreen slug={app.screen} />}
             <i className="app-sheen" aria-hidden="true" />
           </div>
+          {/* the real device: a stock iPhone 14 Pro mockup keyed to alpha, with
+              its display punched out so the live UI shows through from behind
+              and the Dynamic Island still sits on top of it */}
+          <img className="app-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
           {app.shot
             ? <span className="app-real" aria-hidden="true">REAL BUILD</span>
             : <span className="app-concept" aria-hidden="true">IN THE LAB</span>}
@@ -279,6 +282,11 @@ function LabCard({ t, i }) {
         data-cursor
         style={{ '--tool-accent': TOOL_ACCENT[t.name] || 'var(--cyan)' }}
       >
+        {/* The tool preview now runs on a real machine: a stock MacBook Pro
+            mockup keyed to alpha (scripts/make-device-frames.mjs) sitting
+            behind the preview, which is pinned to the display's exact rect. */}
+        <div className="lab-mac">
+        <img className="lab-mac-frame" src="/img/devices/macbook-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
         <div
           className={`lab-preview-wrap ${t.shot ? 'has-shot' : ''} ${tappable ? 'is-tappable' : ''}`}
           data-tone={TOOL_TONE[t.name] || 'dark'}
@@ -311,6 +319,7 @@ function LabCard({ t, i }) {
             <span className="lab-live-badge" aria-hidden="true">LIVE RENDER</span>
           )}
           <span className="lab-floor" aria-hidden="true" />
+        </div>
         </div>
         <header>
           <h3>{t.name}</h3>

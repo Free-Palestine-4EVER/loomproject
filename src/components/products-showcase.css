@@ -45,10 +45,12 @@
 /* Empty-state pill for the one app with no capture yet (TrueSize AR) — same
    corner language as REAL BUILD, but honest about what it actually is: a
    procedural screen, not a photograph of a running build. Sits below the
-   dynamic-island notch rather than beside it, since that island's width is
-   the other agent's live work and not a size this file should assume. */
+   mockup's Dynamic Island rather than beside it, since the island is painted
+   into the frame PNG and owns the top-centre of the glass. */
+/* Insets clear the mockup's own bezel (5.71% of the frame's width, ~15px at
+   the 260px cap) — the frame PNG paints over anything that strays under it. */
 .app-phone .app-concept {
-  position: absolute; top: 46px; left: 14px; z-index: 3;
+  position: absolute; top: 46px; left: 23px; z-index: 3;
   font-size: 0.6rem; font-weight: 800; letter-spacing: 0.16em;
   color: #fff; background: rgba(123, 47, 190, 0.28);
   border: 1px solid rgba(123, 47, 190, 0.6);
@@ -131,6 +133,35 @@
 }
 
 /* ═══════════════════════════ 3D Lab ═══════════════════════════ */
+
+/* ——— the machine ———
+   public/img/devices/macbook-frame.png is the stock MacBook Pro render keyed
+   to alpha by scripts/make-device-frames.mjs. Unlike the phone its display is
+   left painted (nothing has to sit on top of the screen), so the frame goes
+   BEHIND and the preview is pinned to the display's measured rect: 1600 x 930,
+   display at 12.07% / 6.09% / 78.31% / 86.14% — a hair wider than the 16:10 the
+   preview used to be, which the shots absorb via object-fit: cover. Re-run the
+   script and copy its numbers here if the art is ever swapped. */
+.lab-mac {
+  position: relative; width: 100%; aspect-ratio: 1600 / 930;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.5));
+}
+.lab-mac .lab-mac-frame {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; object-fit: fill;
+  pointer-events: none; user-select: none;
+}
+/* Two classes so this beats `.lab-preview-wrap` in styles.css whichever way
+   the bundle orders them — see this file's header note. The mockup's bezel is
+   the frame now, so the wrapper drops its own border, radius and margin. */
+.lab-mac .lab-preview-wrap {
+  position: absolute; z-index: 1;
+  left: 12.07%; top: 6.09%; width: 78.31%; height: 86.14%;
+  margin: 0; aspect-ratio: auto;
+  border: 0; border-radius: 0;
+  background: #05030a;
+}
 
 /* The window chrome — a slim titlebar pinned over every card, screenshot
    or generative fallback alike, so all six read as one family of "live
@@ -217,6 +248,15 @@
 /* Move REAL TOOL down out of the new titlebar's way, onto the floor
    gradient instead of crowding the top edge. */
 .lab-preview-wrap .lab-real { top: auto; bottom: 10px; right: 10px; }
+
+/* The display is 77% of the card's width now that the machine is around it,
+   so both pills come down a step to keep the same weight against the shot.
+   Three classes to clear the two-class rules above regardless of order. */
+.lab-mac .lab-preview-wrap .lab-real,
+.lab-mac .lab-preview-wrap .lab-live-badge {
+  bottom: 7px; right: 7px;
+  font-size: 0.52rem; letter-spacing: 0.14em; padding: 3px 7px;
+}
 
 .lab-preview-wrap.is-tappable:focus-visible {
   outline: 2px solid var(--tool-accent, var(--cyan));
