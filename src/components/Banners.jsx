@@ -73,7 +73,11 @@ export function Counter() {
                   {/* the four yarns — the same stripe .kicker::after and
                       .progress already run. One static gradient, never animated. */}
                   <i className="blk-rail" aria-hidden="true" />
-                  {b.photo ? (
+                  {/* anchored top-left: a maker's stamp, never a centred sticker.
+                      It stays in the tree under the photo, so a need whose still
+                      has not been shot yet is still a finished LOOM tile. */}
+                  <WoolIcon name={b.mark} className="cnt-medal" />
+                  {b.photo && (
                     <img
                       className="cnt-photo"
                       src={`/img/needs/${b.photo}.webp`}
@@ -82,10 +86,12 @@ export function Counter() {
                       height={800}
                       loading="lazy"
                       decoding="async"
+                      /* the medallion is the fallback: it only steps aside once
+                         the still has actually decoded, so a missing file leaves
+                         the original tile untouched */
+                      onLoad={(e) => e.currentTarget.closest('.cnt-tile')?.classList.add('has-photo')}
+                      onError={(e) => { e.currentTarget.style.display = 'none' }}
                     />
-                  ) : (
-                    /* anchored top-left: a maker's stamp, never a centred sticker */
-                    <WoolIcon name={b.mark} className="cnt-medal" />
                   )}
                 </span>
                 <span className="cnt-strip">
@@ -160,7 +166,10 @@ export function OfferPair() {
                   Never a blur — a blurred layer per panel is what got the
                   previous version reverted. */}
               <i className="offer-scrim" aria-hidden="true" />
-              {o.photo ? (
+              <span className="offer-stamp" aria-hidden="true">
+                <WoolIcon name={o.mark} />
+              </span>
+              {o.photo && (
                 <img
                   className="offer-photo"
                   src={`/img/needs/${o.photo}.webp`}
@@ -170,11 +179,9 @@ export function OfferPair() {
                   loading="lazy"
                   decoding="async"
                   aria-hidden="true"
+                  onLoad={(e) => e.currentTarget.closest('.offer-panel')?.classList.add('has-photo')}
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
-              ) : (
-                <span className="offer-stamp" aria-hidden="true">
-                  <WoolIcon name={o.mark} />
-                </span>
               )}
               <div className="offer-face">
                 <p className="offer-eyebrow">{o.eyebrow}</p>

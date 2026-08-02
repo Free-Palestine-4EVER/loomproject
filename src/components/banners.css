@@ -153,6 +153,8 @@
   transition: transform 0.55s var(--ease);
 }
 .counter .cnt-tile:hover .cnt-photo { transform: scale(1.045); }
+/* set by the img's own onLoad — the medallion is never removed on a promise */
+.counter .cnt-tile.has-photo .cnt-medal { display: none; }
 
 /* Petbarn's white label strip, in a real photographed material. Contrast
    STRUCTURE preserved (saturated field over near-white label), ~11:1.
@@ -313,6 +315,7 @@
   transition: transform 0.45s var(--ease);
 }
 .offer .offer-panel:hover .offer-photo { transform: rotate(-5deg) scale(1.04); }
+.offer .offer-panel.has-photo .offer-stamp { display: none; }
 
 .offer .offer-face {
   position: relative;
