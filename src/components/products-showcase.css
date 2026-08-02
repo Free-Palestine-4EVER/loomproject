@@ -282,3 +282,28 @@
    styles.css sets position:relative at equal specificity and later in source
    order, which silently drops this bar out of its absolute placement. */
 .lab-card > .lab-thread { position: absolute; }
+
+/* ═══════════════════════════════════════════════════════════
+   OFF-SCREEN BUDGET — see src/lib/viewportBudget.js
+
+   Between them appscreens.css and labpreviews.css run 23 `infinite`
+   animations: six phone UIs and six tool previews, every one of them looping
+   for the whole session whether or not the reader is near it. Twelve
+   permanently-animating composited cards is where this page starts to drag —
+   measurably, on desktop as much as on phones.
+
+   So the loops are parked by default and only run on the card the reader has
+   actually reached. `is-live` is added by an IntersectionObserver with a
+   quarter-viewport of lead-in, so a card is always mid-cycle by the time it is
+   legible — nothing ever appears to start when you look at it.
+
+   !important is deliberate and load-bearing: these keyframes are declared on
+   dozens of nested selectors across two other stylesheets, and this one rule
+   has to outrank all of them without naming any.
+   ═══════════════════════════════════════════════════════════ */
+.app-card:not(.is-live),
+.app-card:not(.is-live) *,
+.lab-card:not(.is-live),
+.lab-card:not(.is-live) * {
+  animation-play-state: paused !important;
+}

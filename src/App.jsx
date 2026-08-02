@@ -15,6 +15,7 @@ import { WizardProvider } from './lib/wizard.jsx'
 import { WizardModal } from './components/WizardModal.jsx'
 import { mountInteractions } from './lib/interactions.js'
 import { mountFx } from './lib/fx.js'
+import { mountViewportBudget } from './lib/viewportBudget.js'
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
@@ -75,6 +76,11 @@ export default function App() {
 
   // FX pack — velocity marquee, nav scramble, stat glitch, confetti threads, edge glow, hero shimmer
   useEffect(() => mountFx(), [reducedMotion])
+
+  // What the page may spend off-screen: parks the showcase's 23 looping
+  // animations, and on touch devices evicts far-off image bitmaps so a fast
+  // flick cannot walk the tab into iOS Safari's memory ceiling.
+  useEffect(() => mountViewportBudget(), [])
 
   const navigate = useCallback((href) => {
     const el = href === '#top' ? document.body : document.querySelector(href)
