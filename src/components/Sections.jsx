@@ -1,4 +1,4 @@
-// Page sections: Hero, Marquee, Manifesto, Services, Process, AiLoom, Stats, Studios, Contact
+// Page sections: Hero, Marquee, Manifesto, Services, Process, Stats, Studios, Contact
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useMotionValueEvent, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { BRAND, CLIENT_WALL, SERVICES, PROCESS, STATS } from '../data/site.js'
@@ -25,8 +25,8 @@ export function Hero() {
     if (reduced) return
     // ONE WebGL context on touch devices. iOS Safari kills the whole tab when
     // GPU memory runs out — no error, no recovery — and the page-wide companion
-    // layer is already a context. Running this one too, on top of the HQ film's
-    // video decoders, is what was taking iPhones down around 60% of the scroll.
+    // layer is already a context, and running this one alongside it is what was
+    // taking iPhones down partway through the scroll.
     // The hero keeps its CSS gradient and the companion butterfly still flies.
     if (window.matchMedia('(pointer: coarse)').matches) return
     let cancelled = false
@@ -346,7 +346,7 @@ export function Process() {
     <section className="process">
       <ThreadDivider />
       <div className="section-head">
-        <p className="kicker"><span>10</span> Process</p>
+        <p className="kicker"><span>08</span> Process</p>
         <SplitWords as="h2" className="h2" text="One process. No templates. No shortcuts." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
@@ -403,45 +403,6 @@ export function Process() {
           ))}
         </div>
       </div>
-    </section>
-  )
-}
-
-export function AiLoom() {
-  const { open: openWizard } = useWizard()
-  const LINES = [
-    ['Generative campaign imagery', 'art-directed, on-brand, at volume'],
-    ['AI film & motion', 'launch spots without a film crew'],
-    ['Content engines', 'calendars that fill themselves'],
-    ['Chat & voice agents', 'brands that answer at 3am'],
-    ['Automation pipelines', 'from brief to published, hands-off'],
-  ]
-  return (
-    <section className="ailoom">
-      <div className="ailoom-inner">
-        <p className="kicker kicker--light"><span>03</span> The AI Loom</p>
-        <SplitWords as="h2" className="h2 h2--light" text="Human taste. Machine scale." />
-        <Reveal>
-          <p className="lede lede--light">
-            We build AI into the loom itself — generative systems trained on your brand, run by
-            people with taste. The output is volume; the standard is craft.
-          </p>
-        </Reveal>
-        <ul className="ailoom-list">
-          {LINES.map(([t, d], i) => (
-            <Reveal key={t} delay={i * 0.06}>
-              <li><strong>{t}</strong><span>{d}</span></li>
-            </Reveal>
-          ))}
-        </ul>
-        <div className="ailoom-cta">
-          <Magnetic><WoolButton label="Put AI in my brand" size="big" onClick={() => openWizard({ note: 'Interested in the AI systems' })} /></Magnetic>
-        </div>
-      </div>
-      <div className="ailoom-art" aria-hidden="true">
-        <img src="/img/ai-loom.webp" alt="" loading="lazy" />
-      </div>
-      <div className="ailoom-glow" aria-hidden="true" />
     </section>
   )
 }
@@ -542,7 +503,7 @@ export function Studios() {
   return (
     <section className="studios" id="studio">
       <div className="section-head">
-        <p className="kicker"><span>11</span> Studios</p>
+        <p className="kicker"><span>09</span> Studios</p>
         <SplitWords as="h2" className="h2" text="Two cities. One loom." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
@@ -604,7 +565,7 @@ export function Contact() {
 
   return (
     <section className="contact" id="contact">
-      <p className="kicker kicker--center"><span>12</span> Contact</p>
+      <p className="kicker kicker--center"><span>10</span> Contact</p>
       <h2 className="contact-h2">
         <SplitWords text="Ready to push" />
         <br />

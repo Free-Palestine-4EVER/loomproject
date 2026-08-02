@@ -55,7 +55,7 @@ const hud = document.getElementById('hud')
 let mixer = null
 const clock = new THREE.Clock()
 
-new GLTFLoader().load('/models/bee.glb', (gltf) => {
+new GLTFLoader().load(q.get('src') || '/models/bee.glb', (gltf) => {
   const bee = gltf.scene
   scene.add(bee)
   const box = new THREE.Box3().setFromObject(bee)

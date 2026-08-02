@@ -1,16 +1,13 @@
 // The contact machine: a figure whose head is a loom frame, warp threads strung
 // across the opening, glow behind them, yarn where cables would be.
 //
-// Two renderers, same state machine:
-//   • <video> — the generated clips at /video/contact/<clip>.{webm,mp4}. Preferred.
-//   • <canvas> — a procedural loom-head, drawn here. Used until the clips land, and
-//     permanently for anyone whose browser refuses the video.
-//
-// The canvas is not a placeholder rectangle: it is the real fallback and ships as
-// finished work, because "the clips are coming" is not a state a visitor should ever
-// see. It is abstract on purpose — it does not pretend to be the photoreal render.
-import { useEffect, useRef, useState } from 'react'
-import { MACHINE_STATES, CLIPS } from '../data/machine.js'
+// Drawn procedurally on a <canvas>. There was a <video> path here that preferred
+// generated clips at /video/contact/, but those were never produced — it 404'd
+// nine times on every page load and fell straight through to this. The canvas was
+// always the real thing; it is abstract on purpose and does not pretend to be a
+// photoreal render.
+import { useEffect, useRef } from 'react'
+import { MACHINE_STATES } from '../data/machine.js'
 import './machine.css'
 
 const GLOW = {
@@ -255,50 +252,12 @@ function LoomCanvas({ state, reduced }) {
   return <canvas ref={ref} className="loomhead-canvas" aria-hidden="true" />
 }
 
-/* ── video renderer ──────────────────────────────────────────────────────── */
-
-// Note the missing `reduced` gate on autoPlay. Chrome's Battery Saver forces
-// prefers-reduced-motion on, so gating the clip on it blanks the machine for anyone
-// running low — we have been bitten by exactly this before. The clips are muted,
-// slow and ambient; the aggressive motion lives in the canvas fallback, which does
-// honour the preference.
-function LoomVideo({ state, onFail }) {
-  const active = (MACHINE_STATES[state] ?? MACHINE_STATES.idle).clip
-  return (
-    <>
-      {CLIPS.map((clip) => (
-        <video
-          key={clip}
-          className={`loomhead-video ${clip === active ? 'is-on' : ''}`}
-          // 'sent' and 'error' are one-shot beats; the ambient states loop.
-          loop={clip === 'idle' || clip === 'listen'}
-          muted
-          playsInline
-          preload="auto"
-          autoPlay
-          poster="/video/contact/idle-poster.jpg"
-          aria-hidden="true"
-          // Any clip failing means the set is not deployed — fall back wholesale
-          // rather than showing three loom-heads and one black hole.
-          onError={() => onFail()}
-        >
-          <source src={`/video/contact/${clip}.webm`} type="video/webm" />
-          <source src={`/video/contact/${clip}.mp4`} type="video/mp4" />
-        </video>
-      ))}
-    </>
-  )
-}
-
 /* ── public component ────────────────────────────────────────────────────── */
 
 export function LoomHead({ state = 'idle', reduced = false }) {
-  const [fallback, setFallback] = useState(false)
   return (
     <div className={`loomhead loomhead--${(MACHINE_STATES[state] ?? MACHINE_STATES.idle).glow}`}>
-      {fallback
-        ? <LoomCanvas state={state} reduced={reduced} />
-        : <LoomVideo state={state} onFail={() => setFallback(true)} />}
+      <LoomCanvas state={state} reduced={reduced} />
       <div className="loomhead-vignette" aria-hidden="true" />
     </div>
   )

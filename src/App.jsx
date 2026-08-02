@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
 import { Loader, Nav, Cursor, ScrollProgress, Footer } from './components/Chrome.jsx'
-import { Hero, Marquee, Manifesto, Services, Process, AiLoom, Stats, Studios, Contact } from './components/Sections.jsx'
+import { Hero, Marquee, Manifesto, Services, Process, Stats, Studios, Contact } from './components/Sections.jsx'
 import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { Crew } from './components/Crew.jsx'
-import { HQ } from './components/HQ.jsx'
 import { Moon } from './components/Moon.jsx'
 import { Counter, OfferPair, Bolt } from './components/Banners.jsx'
 import { MobileChrome } from './components/MobileChrome.jsx'
@@ -127,13 +126,11 @@ export default function App() {
         <Manifesto />
         <Services />
         <Counter />
-        <AiLoom />
         <Work />
         <OfferPair />
         <AppsShowcase />
         <ToolsLab />
         <Crew />
-        <HQ />
         <Solutions />
         <Moon />
         <Process />

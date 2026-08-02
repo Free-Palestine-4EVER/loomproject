@@ -70,7 +70,9 @@ export class Companion {
     this.renderer = new THREE.WebGLRenderer({
       canvas, alpha: true, antialias: !this.isMobile, powerPreference: 'high-performance',
     })
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.25 : 1.5))
+    // 1.0 on phones: this layer is the only WebGL context there now, and on a
+    // 3x display even 1.25 quadruples the framebuffer for a decorative flyer.
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.0 : 1.5))
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 1.15
     this.renderer.outputColorSpace = THREE.SRGBColorSpace

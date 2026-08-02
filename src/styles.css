@@ -381,48 +381,7 @@ html.cursor-hot .cursor-ring {
 }
 .svc.is-open::after { transform: scaleX(1); }
 
-/* ——— ai loom ——— */
-.ailoom {
-  margin: clamp(40px, 8vh, 100px) var(--pad);
-  border-radius: calc(var(--radius) * 1.6);
-  background: linear-gradient(140deg, #1c0f33 0%, #2a0f3d 45%, #3d0f33 100%);
-  border: 1px solid rgba(242, 28, 140, 0.25);
-  overflow: hidden; position: relative;
-}
-.ailoom-inner {
-  position: relative; z-index: 2;
-  padding: clamp(50px, 8vh, 100px) clamp(24px, 6vw, 90px);
-  max-width: 760px;
-}
-.ailoom-art {
-  position: absolute; inset: 0 0 0 auto; width: 62%; z-index: 1;
-  mask-image: linear-gradient(90deg, transparent 0%, #000 42%);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 42%);
-}
-.ailoom-art img { width: 100%; height: 100%; object-fit: cover; opacity: 0.55; }
-@media (max-width: 980px) {
-  .ailoom-inner { max-width: none; }
-  .ailoom-art { width: 100%; opacity: 0.4;
-    mask-image: linear-gradient(180deg, transparent 0%, #000 70%);
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 70%); }
-}
-.ailoom .lede--light { color: #d9d2ea; margin-top: 26px; }
-.ailoom-glow {
-  position: absolute; inset: -20%;
-  background:
-    radial-gradient(40% 50% at 80% 20%, rgba(242, 28, 140, 0.35), transparent 70%),
-    radial-gradient(35% 45% at 15% 85%, rgba(89, 230, 255, 0.16), transparent 70%);
-  animation: glowdrift 14s ease-in-out infinite alternate;
-}
-@keyframes glowdrift { to { transform: translate(4%, -4%) scale(1.06); } }
-@media (prefers-reduced-motion: reduce) { .ailoom-glow, body::after, .hero-scrollhint i { animation: none; } }
-.ailoom-list { list-style: none; margin-top: 44px; border-top: 1px solid rgba(242, 240, 247, 0.14); }
-.ailoom-list li {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 20px;
-  padding: 18px 0; border-bottom: 1px solid rgba(242, 240, 247, 0.14);
-}
-.ailoom-list strong { font-family: var(--display); font-weight: 540; font-size: clamp(1.05rem, 2vw, 1.45rem); color: #fff; }
-.ailoom-list span { color: #b9aed3; font-size: 0.95rem; text-align: right; }
+@media (prefers-reduced-motion: reduce) { body::after, .hero-scrollhint i { animation: none; } }
 
 /* ——— work ——— */
 .case-card { position: relative; }
@@ -1071,8 +1030,6 @@ html.cursor-hot .cursor-ring {
   .nav-links { display: none; }
   .burger { display: flex; }
   .overlay-gallery { grid-template-columns: 1fr; }
-  .ailoom-list li { flex-direction: column; gap: 4px; }
-  .ailoom-list span { text-align: left; }
 }
 @media (max-width: 640px) {
   .work-grid { grid-template-columns: 1fr; }

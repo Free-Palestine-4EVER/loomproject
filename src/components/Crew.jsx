@@ -128,7 +128,7 @@ export function Crew() {
     <section className="crew" id="crew" ref={ref}>
       <motion.div className="crew-bg" style={{ y: bgY }} aria-hidden="true" />
       <div className="section-head">
-        <p className="kicker"><span>06</span> The Crew</p>
+        <p className="kicker"><span>05</span> The Crew</p>
         <SplitWords as="h2" className="h2" text="Four characters. One loom." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
