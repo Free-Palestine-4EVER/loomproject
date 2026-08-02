@@ -17,8 +17,9 @@
   .lab-preview-wrap.is-tappable { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .lab-card.is-xray .lab-shot { opacity: 0; }
   .lab-card.is-xray .lab-real { opacity: 0; }
-  .lab-shot, .lab-real { transition: opacity 0.35s var(--ease); }
+  .lab-card.is-xray .lab-veil { opacity: 0; }
+  .lab-shot, .lab-real, .lab-veil { transition: opacity 0.35s var(--ease); }
 }
 @media (pointer: coarse) and (prefers-reduced-motion: reduce) {
-  .lab-shot, .lab-real { transition: opacity 0.01ms; }
+  .lab-shot, .lab-real, .lab-veil { transition: opacity 0.01ms; }
 }

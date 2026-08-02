@@ -39,11 +39,12 @@ export function SplitWords({ text, as: Tag = 'span', className = '', delay = 0, 
 }
 
 /** Fade-rise on scroll into view. */
-export function Reveal({ children, delay = 0, y = 36, className = '', once = true }) {
+export function Reveal({ children, delay = 0, y = 36, className = '', once = true, style }) {
   const reduced = useReducedMotion()
   return (
     <motion.div
       className={className}
+      style={style}
       initial={{ opacity: 0, y: reduced ? 0 : y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once, margin: '-10% 0px' }}
