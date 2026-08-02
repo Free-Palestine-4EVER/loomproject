@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
 import { Loader, Nav, Cursor, ScrollProgress, Footer } from './components/Chrome.jsx'
-import { Hero, Marquee, Manifesto, Services, Process, Stats, Studios, Contact } from './components/Sections.jsx'
+import { Hero, Marquee, Manifesto, Process, Stats, Studios, Contact } from './components/Sections.jsx'
 import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { Solutions } from './components/Solutions.jsx'
@@ -125,7 +125,6 @@ export default function App() {
         <Hero />
         <Marquee />
         <Manifesto />
-        <Services />
         <Counter />
         <Work />
         <OfferPair />

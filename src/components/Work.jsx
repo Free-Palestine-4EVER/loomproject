@@ -283,7 +283,7 @@ export function Work() {
     <section className="work" id="work">
       <div className="section-head">
         <p className="kicker"><span>—</span> Selected work</p>
-        <SplitWords as="h2" className="h2" text="Seventeen launches. Seven countries. Zero templates." />
+        <SplitWords as="h2" className="h2" text="Seventeen brands launched across seven countries — not one template between them." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
             Everything on this board went live — and most of it went further. Open any tile and walk the whole case.

@@ -1,13 +1,13 @@
-// Page sections: Hero, Marquee, Manifesto, Services, Process, Stats, Studios, Contact
+// Page sections: Hero, Marquee, Manifesto, Process, Stats, Studios, Contact
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useMotionValueEvent, useScroll, useTransform, useReducedMotion } from 'motion/react'
-import { BRAND, CLIENT_WALL, SERVICES, PROCESS, STATS } from '../data/site.js'
+import { BRAND, CLIENT_WALL, PROCESS, STATS } from '../data/site.js'
 import { EASE, SplitWords, Reveal, CountUp, Magnetic } from '../lib/motion.jsx'
 import { ContactWizard } from './ContactWizard.jsx'
 import { LoomHead } from './LoomHead.jsx'
 import { MachineChat, useMachineLang } from './MachineChat.jsx'
 import { useWizard } from '../lib/wizard.jsx'
-import { ServiceVisual, ProcessGlyph, ThreadDivider, StatSpark } from './Rich.jsx'
+import { ProcessGlyph, ThreadDivider, StatSpark } from './Rich.jsx'
 import { WoolButton, WoolIcon } from './Wool.jsx'
 import './sections-stage.css'
 
@@ -92,7 +92,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.25, duration: 0.8, ease: EASE }}
         >
-          {BRAND.positioning} — Amman <span className="x">×</span> Sarajevo
+          {BRAND.positioning} — Amman<span className="x">,</span> Jordan
         </motion.p>
         <h1 className="hero-h1">
           <span className="hero-line"><motion.span initial={{ y: '108%' }} animate={{ y: '0%' }} transition={{ delay: 1.35, duration: 1, ease: EASE }}>We weave brands</motion.span></span>
@@ -104,8 +104,8 @@ export function Hero() {
           initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.8, duration: 0.8, ease: EASE }}
         >
-          Branding, campaigns, AI systems and CGI for brands across the Gulf, the Balkans and beyond.
-          Trends don’t lead our work — thinking does.
+          One studio for the whole build: the brand, the website, the campaign that sells it,
+          and the AI that keeps it running while you sleep.
         </motion.p>
         <motion.div
           className="hero-ctas"
@@ -114,8 +114,8 @@ export function Hero() {
         >
           {/* "Start weaving" is one of the 21 photographed spools — and it is the
               headline's own verb, so the hero CTA is real wool, not a CSS pill */}
-          <Magnetic><WoolButton label="Start weaving" size="big" className="wool-btn--hero" onClick={() => openWizard({})} /></Magnetic>
-          <Magnetic><WoolButton label="See the work" size="big" href="#work" data-scroll /></Magnetic>
+          <Magnetic><WoolButton label="Start weaving" className="wool-btn--hero" onClick={() => openWizard({})} /></Magnetic>
+          <Magnetic><WoolButton label="See the work" href="#work" data-scroll /></Magnetic>
         </motion.div>
       </motion.div>
       <motion.div
@@ -235,53 +235,6 @@ export function Manifesto() {
   )
 }
 
-export function Services() {
-  const [active, setActive] = useState(null)
-  return (
-    <section className="services" id="services">
-      <div className="section-head">
-        <p className="kicker"><span>02</span> Capabilities</p>
-        <SplitWords as="h2" className="h2" text="Everything a brand needs. Nothing it doesn’t." />
-        <Reveal delay={0.15}>
-          <p className="lede" style={{ marginTop: 22 }}>
-            Six disciplines, one tension. Pull any thread and the rest of the machine moves with it.
-          </p>
-        </Reveal>
-      </div>
-      <ul className="svc-list">
-        {SERVICES.map((s, i) => (
-          <Reveal key={s.n} delay={i * 0.05}>
-            <li
-              className={`svc ${active === i ? 'is-open' : ''}`}
-              onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)}
-            >
-              <button
-                className="svc-row"
-                aria-expanded={active === i}
-                onClick={() => setActive(active === i ? null : i)}
-              >
-                <span className="svc-n">{s.n}</span>
-                <span className="svc-title">{s.title}</span>
-                {/* wrapper kept: .svc.is-open rotates it 45° */}
-                <span className="svc-arrow" aria-hidden="true"><WoolIcon name="arrow-right" size="sm" /></span>
-              </button>
-              <div className="svc-body">
-                <div className="svc-body-inner">
-                  <div className="svc-copy">
-                    <p>{s.blurb}</p>
-                    <div className="svc-tags">{s.tags.map((t) => <span key={t}>{t}</span>)}</div>
-                  </div>
-                  <div className="svc-visual"><ServiceVisual n={s.n} /></div>
-                </div>
-              </div>
-            </li>
-          </Reveal>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
 /** Measures the four .process-card stations relative to the grid that holds
  *  them and hands back the exact points a connecting thread needs — a top
  *  node for the desktop horizontal line, a left node for the mobile vertical
@@ -346,7 +299,7 @@ export function Process() {
     <section className="process">
       <ThreadDivider />
       <div className="section-head">
-        <p className="kicker"><span>08</span> Process</p>
+        <p className="kicker"><span>07</span> Process</p>
         <SplitWords as="h2" className="h2" text="One process. No templates. No shortcuts." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
@@ -503,7 +456,7 @@ export function Studios() {
   return (
     <section className="studios" id="studio">
       <div className="section-head">
-        <p className="kicker"><span>09</span> Studios</p>
+        <p className="kicker"><span>08</span> Studios</p>
         <SplitWords as="h2" className="h2" text="Two cities. One loom." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
@@ -565,7 +518,7 @@ export function Contact() {
 
   return (
     <section className="contact" id="contact">
-      <p className="kicker kicker--center"><span>10</span> Contact</p>
+      <p className="kicker kicker--center"><span>09</span> Contact</p>
       <h2 className="contact-h2">
         <SplitWords text="Ready to push" />
         <br />

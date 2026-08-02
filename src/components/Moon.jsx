@@ -225,7 +225,7 @@ export function Moon() {
   if (reduced) {
     return (
       <section className="moon moon--static" id="ascent">
-        <p className="kicker kicker--light kicker--center"><span>07</span> The Ascent</p>
+        <p className="kicker kicker--light kicker--center"><span>06</span> The Ascent</p>
         <p className="moon-subhead moon-subhead--center">One planet. Six territories. Every one of them LOOM.</p>
         <div className="moon-static-globe">
           <Globe rot={rot} tilt={false} />
@@ -264,7 +264,7 @@ export function Moon() {
 
         <motion.div className="moon-grid" style={{ opacity: chromeOpacity }}>
           <header className="moon-head">
-            <p className="kicker kicker--light"><span>07</span> The Ascent</p>
+            <p className="kicker kicker--light"><span>06</span> The Ascent</p>
             <p className="moon-subhead">One planet. Six territories. Every one of them LOOM.</p>
           </header>
 

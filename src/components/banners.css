@@ -139,6 +139,21 @@
    this medallion is nested inside the band, so the rotate is declared here. */
 .counter .cnt-tile:hover .cnt-medal { transform: rotate(-7deg) scale(1.08); }
 
+/* The knitted still, full-bleed in the band. It arrives on its own white studio
+   sweep — that sweep IS the material of the set (same shoot as the photographed
+   spools), so it is never cropped out or tinted. The dye block underneath is the
+   paint-in: it holds the tile's colour until the webp decodes. */
+.counter .cnt-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.55s var(--ease);
+}
+.counter .cnt-tile:hover .cnt-photo { transform: scale(1.045); }
+
 /* Petbarn's white label strip, in a real photographed material. Contrast
    STRUCTURE preserved (saturated field over near-white label), ~11:1.
    min-height is the whole peer read: 1-line and 2-line labels give the SAME
@@ -276,6 +291,28 @@
   transition: transform 0.45s var(--ease);
 }
 .offer .offer-panel:hover .offer-stamp { transform: rotate(-6deg) scale(1.05); }
+
+/* …or, once the knitted still exists for this half, a real photographic print
+   pinned to the panel. Same anchor as the stamp so the two are interchangeable;
+   the white studio sweep is kept — cropping it out is what would break the set
+   with the tiles above. */
+.offer .offer-photo {
+  position: absolute;
+  top: clamp(20px, 2.4vw, 30px);
+  right: clamp(20px, 2.4vw, 30px);
+  z-index: 3;
+  width: clamp(112px, 13vw, 178px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: calc(var(--radius) * 0.9);
+  box-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.5) inset,
+    0 18px 40px -16px rgba(0, 0, 0, 0.75);
+  transform: rotate(-2.5deg);
+  transition: transform 0.45s var(--ease);
+}
+.offer .offer-panel:hover .offer-photo { transform: rotate(-5deg) scale(1.04); }
 
 .offer .offer-face {
   position: relative;

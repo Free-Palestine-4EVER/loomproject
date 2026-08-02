@@ -155,6 +155,13 @@
 /* the spool is ~2x the old flat pill's height, so the row needs the space
    back or it clips against the bottom of a 100svh hero */
 .hero-ctas { margin-top: 26px; }
+/* hero pills sit at button scale, not poster scale — the headline is the
+   loudest thing in the viewport and the CTAs answer it, they don't compete */
+.hero-ctas .wool-btn--photo { --wool-btn-w: clamp(152px, 13vw, 176px); }
+@media (max-width: 600px) {
+  .hero-ctas .wool-btn--photo { --wool-btn-w: 144px; }
+  .hero-ctas { gap: 10px; }
+}
 .hero { padding-bottom: clamp(40px, 7vh, 84px); }
 
 /* ——————————————————————————————————————————————
