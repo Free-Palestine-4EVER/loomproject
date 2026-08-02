@@ -1,0 +1,144 @@
+/* Contact machine — the loom-head figure, its transcript, and the layout that
+   holds it beside the wizard. */
+
+.contact-machine {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(20px, 3vw, 44px);
+  align-items: start;
+  text-align: start;
+  max-width: 1180px;
+  margin: 44px auto 0;
+}
+
+/* The figure holds position while the form scrolls past it — the machine watching
+   you fill the form is the whole idea, and it stops working if it scrolls away. */
+.contact-machine-figure { position: sticky; top: 96px; }
+
+@media (max-width: 900px) {
+  .contact-machine { grid-template-columns: 1fr; }
+  .contact-machine-figure { position: static; }
+}
+
+/* ── the head ───────────────────────────────────────────────────────────── */
+
+.loomhead {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0b0614;
+  transition: box-shadow 0.6s ease, border-color 0.6s ease;
+}
+.loomhead--magenta { box-shadow: 0 0 60px -28px var(--magenta); }
+.loomhead--cyan    { box-shadow: 0 0 60px -28px var(--cyan); }
+.loomhead--gold    { box-shadow: 0 0 60px -22px var(--gold); border-color: rgba(255, 199, 64, 0.3); }
+.loomhead--red     { box-shadow: 0 0 60px -24px #ff2d38; border-color: rgba(255, 45, 56, 0.35); }
+
+/* All four clips stay mounted and crossfade on opacity. Swapping `src` mid-flow
+   re-buffers and drops a black frame right when the visitor is mid-answer. */
+.loomhead-video,
+.loomhead-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.loomhead-video { opacity: 0; transition: opacity 0.45s ease; }
+.loomhead-video.is-on { opacity: 1; }
+
+.loomhead-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 45%, rgba(13, 7, 22, 0.75) 100%),
+    linear-gradient(to top, rgba(13, 7, 22, 0.9), transparent 38%);
+}
+
+/* ── transcript ─────────────────────────────────────────────────────────── */
+
+.machine {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px 14px 14px;
+}
+
+.machine-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.machine-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.machine-actions { display: flex; gap: 8px; }
+
+.machine-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 620;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: color 0.3s, border-color 0.3s, background-color 0.3s;
+}
+.machine-btn:hover { color: var(--ink); border-color: var(--magenta); }
+.machine-btn.is-on { color: var(--ink); border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); }
+.machine-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  transition: background-color 0.3s;
+}
+.machine-btn.is-on .machine-dot { background: var(--magenta); }
+
+.machine-rail {
+  max-height: 170px;
+  overflow-y: auto;
+  padding-top: 12px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  scrollbar-width: thin;
+}
+.machine-line {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+/* The newest line is the one being spoken — everything above it is history. */
+.machine-line:last-child { color: var(--ink); }
+
+.machine-note {
+  margin-top: 10px;
+  font-size: 0.74rem;
+  color: var(--ink-faint);
+}
+
+/* Arabic: Clash Display and Satoshi carry no Arabic glyphs, so :lang(ar) falls to a
+   system Arabic stack rather than rendering tofu. Slightly larger and looser, because
+   Arabic at the Latin size reads cramped. */
+.machine:lang(ar) {
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+}
+.machine:lang(ar) .machine-line { font-size: 1rem; line-height: 1.8; }
+.machine[dir='rtl'] .machine-line { text-align: right; }

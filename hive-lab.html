@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- Dev-only preview of the hero backdrop on its own, with the same wrapper
+     gradient and vignette the real .hero-canvas-wrap has. Not part of the build. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>hive lab</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0d0716; overflow: hidden; }
+      .wrap {
+        position: absolute; inset: 0;
+        background: radial-gradient(120% 80% at 70% 20%, #241238 0%, #0d0716 60%), #0d0716;
+      }
+      canvas { width: 100%; height: 100%; display: block; }
+      .vignette {
+        position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(180deg, rgba(13,7,22,0.55) 0%, rgba(13,7,22,0) 30%, rgba(13,7,22,0.1) 70%, #0d0716 100%);
+      }
+      .type {
+        position: absolute; left: 6vw; top: 38%; pointer-events: none;
+        font: 700 clamp(40px, 8vw, 120px)/0.95 'Helvetica Neue', sans-serif;
+        letter-spacing: -0.03em; color: #f2f0f7; text-transform: uppercase;
+      }
+      .type small { display: block; font-size: 0.14em; letter-spacing: 0.24em; color: #a89fc0; margin-bottom: 18px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <canvas id="c"></canvas>
+      <div class="vignette"></div>
+    </div>
+    <div class="type"><small>LOOM — AMMAN × SARAJEVO</small>We weave<br />the web</div>
+    <script type="module">
+      import { BeeField } from '/src/three/BeeField.js'
+      const field = new BeeField(document.getElementById('c'), { reduced: false })
+      window.__field = field
+      addEventListener('mousemove', (e) => field.setMouse(
+        (e.clientX / innerWidth) * 2 - 1, -((e.clientY / innerHeight) * 2 - 1)))
+      addEventListener('wheel', (e) => {
+        window.__s = Math.max(0, Math.min(1.4, (window.__s || 0) + e.deltaY * 0.001))
+        field.setScroll(window.__s)
+      })
+    </script>
+  </body>
+</html>

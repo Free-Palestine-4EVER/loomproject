@@ -1,6 +1,6 @@
 // Multi-step contact wizard: intent -> needs -> details -> WhatsApp / email handoff.
 // Fully static — composes a structured brief and opens wa.me / mailto prefilled.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { BRAND, WIZARD } from '../data/site.js'
 import { EASE, Magnetic } from '../lib/motion.jsx'
@@ -10,7 +10,11 @@ const STEPS = ['Start', 'Needs', 'Details', 'Send']
 // Knit buttons carry no :disabled rule of their own — mirror what .btn:disabled did.
 const WOOL_OFF = { opacity: 0.4, pointerEvents: 'none' }
 
-export function ContactWizard({ seed = null }) {
+// Which beat of the machine's script each step corresponds to. Kept here rather than
+// in the machine so the wizard stays the single source of truth for where you are.
+const STEP_STATE = ['greet', 'needs', 'details', 'review']
+
+export function ContactWizard({ seed = null, onState = null }) {
   // A seeded open (from a Solutions card, the Moon CTA, a nav button) skips straight
   // past the intent step and carries the industry into the brief.
   const [step, setStep] = useState(seed?.intent ? 1 : 0)
@@ -20,9 +24,12 @@ export function ContactWizard({ seed = null }) {
   const [form, setForm] = useState({ name: '', company: '', budget: '', timeline: '', message: '' })
   const [touched, setTouched] = useState(false)
 
-  const go = (n) => { setDir(n > step ? 1 : -1); setStep(n) }
+  const go = (n) => { setDir(n > step ? 1 : -1); setStep(n); onState?.(STEP_STATE[n]) }
   const toggleNeed = (n) =>
     setNeeds((xs) => (xs.includes(n) ? xs.filter((x) => x !== n) : [...xs, n]))
+
+  // Greet on mount — a seeded open lands on step 1, so read the step, not a constant.
+  useEffect(() => { onState?.(STEP_STATE[step]) }, [])
 
   const intentObj = WIZARD.intents.find((i) => i.id === intent)
   const brief = useMemo(() => {
@@ -140,7 +147,13 @@ export function ContactWizard({ seed = null }) {
                   <input
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    onBlur={() => setTouched(true)}
+                    // The Review button is disabled while this is empty, so it can
+                    // never report the failure — blur is the only moment the visitor
+                    // actually leaves the field unfilled.
+                    onBlur={() => {
+                      setTouched(true)
+                      onState?.(detailsValid ? 'details' : 'error')
+                    }}
                     placeholder="e.g. Rania Haddad"
                     aria-invalid={touched && !detailsValid}
                   />
@@ -198,11 +211,15 @@ export function ContactWizard({ seed = null }) {
               <div className="wsend">
                 {/* two yarns, so the choice reads as two threads rather than
                     a primary and a leftover */}
+                {/* Both hand off to another app, so 'sent' is the honest word for
+                    what we know: the brief left here. */}
                 <Magnetic>
-                  <WoolButton label="Send via WhatsApp" size="big" href={waHref} target="_blank" rel="noreferrer" />
+                  <WoolButton label="Send via WhatsApp" size="big" href={waHref} target="_blank" rel="noreferrer"
+                    onClick={() => onState?.('sent')} />
                 </Magnetic>
                 <Magnetic>
-                  <WoolButton label="Send as email" size="big" yarn="blue" href={mailHref} />
+                  <WoolButton label="Send as email" size="big" yarn="blue" href={mailHref}
+                    onClick={() => onState?.('sent')} />
                 </Magnetic>
               </div>
               <div className="wnav wnav--end">
