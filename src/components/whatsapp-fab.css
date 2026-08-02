@@ -8,8 +8,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 64px;
-  padding: 0 8px;
+  height: 76px;
+  padding: 0 10px;
   border-radius: 999px;
   border: 1px solid rgba(242, 240, 247, 0.1);
   background: rgba(13, 7, 22, 0.62);
@@ -22,8 +22,8 @@
 }
 
 .wa-fab img {
-  width: 48px;
-  height: 48px;
+  width: 58px;
+  height: 58px;
   display: block;
   flex: none;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
@@ -73,11 +73,11 @@
   .wa-fab {
     right: 16px;
     bottom: calc(16px + env(safe-area-inset-bottom));
-    height: 56px;
-    width: 56px;
+    height: 66px;
+    width: 66px;
     padding: 0;
     justify-content: center;
   }
-  .wa-fab img { width: 42px; height: 42px; }
+  .wa-fab img { width: 50px; height: 50px; }
   .wa-fab__label { display: none; }
 }

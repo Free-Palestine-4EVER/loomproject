@@ -56,7 +56,20 @@ export function Flyer() {
       window.addEventListener('resize', onScroll, { passive: true })
       document.addEventListener('visibilitychange', onVis)
 
+      // A case study or the wizard opening locks page scroll but leaves the
+      // butterfly's own rAF loop running underneath it — a second animation
+      // loop fighting the overlay's own scroll/drag every frame, which is
+      // exactly the "opens fine, then scrolling goes stiff" symptom. Same
+      // overlay-open/menu-open signal Lenis and MobileChrome already watch.
+      const lockObs = new MutationObserver(() => {
+        const locked = document.documentElement.classList.contains('overlay-open')
+          || document.documentElement.classList.contains('menu-open')
+        locked ? field.stop() : (document.hidden || field.start())
+      })
+      lockObs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+
       teardown = () => {
+        lockObs.disconnect()
         window.removeEventListener('scroll', onScroll)
         window.removeEventListener('resize', onScroll)
         document.removeEventListener('visibilitychange', onVis)

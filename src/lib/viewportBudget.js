@@ -91,9 +91,32 @@ export function imageBudget({ force = false } = {}) {
     if (src) img.setAttribute('src', src)
   }
 
+  // A fast scroll through an image-dense section (the apps/lab showcase is
+  // the worst of them: 11 device frames + 11 unique stills in one screenful)
+  // can cross the eviction boundary for dozens of images between two
+  // IntersectionObserver callbacks. Restoring all of them synchronously in
+  // that one callback is a real main-thread stall — exactly "scrolling turns
+  // stiff right where the phones are". Evictions stay synchronous (freeing
+  // memory can't wait); restores are queued and drained a few per frame.
+  const restoreQueue = []
+  let draining = false
+  const drain = () => {
+    draining = true
+    for (let n = 0; n < 4 && restoreQueue.length; n++) restore(restoreQueue.shift())
+    if (restoreQueue.length) requestAnimationFrame(drain)
+    else draining = false
+  }
+  const queueRestore = (img) => {
+    if (!restoreQueue.includes(img)) restoreQueue.push(img)
+    if (!draining) drain()
+  }
+
   const io = new IntersectionObserver(
     (entries) => {
-      for (const e of entries) e.isIntersecting ? restore(e.target) : evict(e.target)
+      for (const e of entries) {
+        if (e.isIntersecting) queueRestore(e.target)
+        else { const i = restoreQueue.indexOf(e.target); if (i !== -1) restoreQueue.splice(i, 1); evict(e.target) }
+      }
     },
     // Two viewports of headroom in both directions. Wide enough that a restore
     // has decoded long before the image could be seen, tight enough that a fast

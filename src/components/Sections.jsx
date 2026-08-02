@@ -50,19 +50,27 @@ export function Hero() {
       const onMouse = (e) => {
         field.setMouse((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1))
       }
-      const io = new IntersectionObserver(([en]) => {
-        en.isIntersecting ? field.start() : field.stop()
-      })
+      let inView = false
+      const sync = () => {
+        const locked = document.documentElement.classList.contains('overlay-open')
+          || document.documentElement.classList.contains('menu-open')
+        ;(inView && !document.hidden && !locked) ? field.start() : field.stop()
+      }
+      const io = new IntersectionObserver(([en]) => { inView = en.isIntersecting; sync() })
       io.observe(wrapRef.current)
-      const onVis = () => { document.hidden ? field.stop() : field.start() }
+      // A case study or the wizard opening locks scroll but leaves this loop
+      // running underneath it — see the identical note in Flyer.jsx.
+      const lockObs = new MutationObserver(sync)
+      lockObs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+      document.addEventListener('visibilitychange', sync)
       window.addEventListener('scroll', onScroll, { passive: true })
       window.addEventListener('mousemove', onMouse, { passive: true })
-      document.addEventListener('visibilitychange', onVis)
       teardown = () => {
         window.removeEventListener('scroll', onScroll)
         window.removeEventListener('mousemove', onMouse)
-        document.removeEventListener('visibilitychange', onVis)
+        document.removeEventListener('visibilitychange', sync)
         io.disconnect()
+        lockObs.disconnect()
         field.dispose()
       }
     })()

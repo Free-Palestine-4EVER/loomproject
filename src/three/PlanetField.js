@@ -186,10 +186,17 @@ export class PlanetField {
     })
     this.disposables.push(this.planetMat)
     this.planet = new THREE.Mesh(quad, this.planetMat)
-    this.planet.scale.setScalar(narrow ? 3.2 : 3.6)
-    // clear of the headline: the type owns the left two thirds, the planet
-    // the right, and neither is asked to share a column
-    this.planetHome = new THREE.Vector3(narrow ? 0 : 2.32, narrow ? 0.6 : 0.5, 0)
+    // Vertical fov is fixed, so a portrait screen (aspect well under 1) has a
+    // NARROWER horizontal frustum than a desktop one — the same world-space
+    // scale therefore eats a much bigger fraction of a phone's width. 2.0 is
+    // tuned against an iPhone's ~0.45 aspect, not guessed down from desktop's.
+    this.planet.scale.setScalar(narrow ? 2.0 : 3.6)
+    // Clear of the headline. Desktop: type owns the left two thirds, planet the
+    // right. Narrow: the hero is single-column and bottom-anchored (.hero
+    // align-items:end), so the planet lives in the gap above the copy instead —
+    // pushed up and right, corner-cropped like a badge rather than centred over
+    // the eyebrow line the way a scaled-down desktop placement would sit.
+    this.planetHome = new THREE.Vector3(narrow ? 0.85 : 2.32, narrow ? 1.65 : 0.5, 0)
     this.planet.position.copy(this.planetHome)
     this.scene.add(this.planet)
 
