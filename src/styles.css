@@ -428,9 +428,11 @@ html.cursor-hot .cursor-ring {
   margin-left: 0;
 }
 @media (max-width: 900px) {
-  /* stacked single column here (grid-template-columns:1fr below) — no
-     copy column to protect any more, so this can stay closer to centred */
-  .manifesto-laptop { width: 118%; margin-left: -9%; }
+  /* same fix as desktop, same reason: a negative margin-left here cropped
+     the laptop's own left edge off the viewport instead of just growing
+     into the outer padding, which read as a broken/cut-off image rather
+     than an intentional bleed. Grows right only, same as above. */
+  .manifesto-laptop { width: 120%; margin-left: 0; }
 }
 .manifesto-caption {
   margin-top: 14px; color: var(--ink-faint);
