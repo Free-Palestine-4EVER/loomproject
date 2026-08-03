@@ -400,7 +400,7 @@ html.cursor-hot .cursor-ring {
 }
 
 /* ——— manifesto ——— */
-.manifesto { padding: clamp(80px, 12vh, 150px) var(--pad); }
+.manifesto { padding: clamp(80px, 12vh, 150px) var(--pad); overflow-x: clip; }
 .manifesto-grid {
   display: grid; grid-template-columns: 1.15fr 0.85fr;
   gap: clamp(30px, 6vw, 90px); align-items: center;
@@ -419,15 +419,18 @@ html.cursor-hot .cursor-ring {
   display: block;
   width: 150%;
   max-width: none;
-  /* the column is 0.85fr of the grid — pull the now-oversized image back
-     so it stays roughly centred over its original slot instead of blowing
-     out to the right and colliding with the viewport edge */
-  margin-left: -25%;
+  /* grows RIGHT only — the left edge stays put at the column's own start.
+     A negative margin-left here (the first version) pulled the extra size
+     back over the copy column and overlapped the body text at wider
+     viewports; growing right instead runs into the page's own outer
+     padding / the viewport edge, which .manifesto's overflow-x:clip now
+     catches instead of creating a horizontal scrollbar. */
+  margin-left: 0;
 }
 @media (max-width: 900px) {
-  /* stacked single column here (grid-template-columns:1fr below) — 1.5x
-     would run the image past both edges of the viewport on a phone */
-  .manifesto-laptop { width: 108%; margin-left: -4%; }
+  /* stacked single column here (grid-template-columns:1fr below) — no
+     copy column to protect any more, so this can stay closer to centred */
+  .manifesto-laptop { width: 118%; margin-left: -9%; }
 }
 .manifesto-caption {
   margin-top: 14px; color: var(--ink-faint);
