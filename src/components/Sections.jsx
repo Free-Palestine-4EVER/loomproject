@@ -82,6 +82,10 @@ export function Hero() {
   const { scrollYProgress } = useScroll({ target: wrapRef, offset: ['start start', 'end start'] })
   const yType = useTransform(scrollYProgress, [0, 1], ['0%', reduced ? '0%' : '38%'])
   const fade = useTransform(scrollYProgress, [0, 0.75], [1, 0])
+  // Background photo drifts slower than the page scrolls — classic parallax,
+  // on top of its own slow ambient background-position drift (styles.css).
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', reduced ? '0%' : '14%'])
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, reduced ? 1 : 1.08])
   // A delayed `animate` takes ownership of whatever MotionValue it is bound to,
   // so the scroll hint must NOT share `fade` with .hero-type — sharing it held
   // the whole headline at opacity 0 until t≈2.5s, ~1.4s of blank hero after the
@@ -90,10 +94,10 @@ export function Hero() {
 
   return (
     <section className="hero" id="top" ref={wrapRef}>
-      <div className="hero-canvas-wrap" aria-hidden="true">
+      <motion.div className="hero-canvas-wrap" aria-hidden="true" style={{ y: bgY, scale: bgScale }}>
         <canvas ref={canvasRef} className="hero-canvas" />
         <div className="hero-vignette" />
-      </div>
+      </motion.div>
       <motion.div className="hero-type" style={{ y: yType, opacity: fade }}>
         <motion.p
           className="hero-eyebrow"
