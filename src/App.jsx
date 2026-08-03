@@ -8,6 +8,7 @@ import { Solutions } from './components/Solutions.jsx'
 import { Crew } from './components/Crew.jsx'
 import { Moon } from './components/Moon.jsx'
 import { Counter, OfferPair, Bolt } from './components/Banners.jsx'
+import { Consultancy } from './components/Consultancy.jsx'
 import { MobileChrome } from './components/MobileChrome.jsx'
 import { Flyer } from './components/Flyer.jsx'
 import { WhatsAppFab } from './components/WhatsAppFab.jsx'
@@ -17,9 +18,24 @@ import { mountInteractions } from './lib/interactions.js'
 import { mountFx } from './lib/fx.js'
 import { mountViewportBudget } from './lib/viewportBudget.js'
 
+// firebase.json rewrites ** -> /index.html, so every path already boots this
+// SPA. That means a real URL costs one pathname check, not a router dependency
+// or a second Vite entry: /consultancy renders the dedicated page, everything
+// else renders the long page. Trailing slash tolerated (cleanUrls is on).
+const isConsultancyRoute = () =>
+  typeof window !== 'undefined' && /^\/consultancy\/?$/.test(window.location.pathname)
+
 export default function App() {
   const [loaded, setLoaded] = useState(false)
   const lenisRef = useRef(null)
+  // Read once at mount, then keep in sync with back/forward — the in-page links
+  // below use pushState, so popstate is the only way back without a reload.
+  const [consultPage, setConsultPage] = useState(isConsultancyRoute)
+  useEffect(() => {
+    const onPop = () => setConsultPage(isConsultancyRoute())
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   // Read live, not just at mount — a user who flips reduced-motion mid-session
   // (OS setting or Chrome's Battery Saver) must lose Lenis/FX immediately, not
@@ -83,6 +99,20 @@ export default function App() {
   useEffect(() => mountViewportBudget(), [])
 
   const navigate = useCallback((href) => {
+    // A hash link clicked while on /consultancy has no target in the DOM — the
+    // long page is not mounted. Return to / first, then scroll on the commit
+    // after the sections exist.
+    if (href.startsWith('#') && isConsultancyRoute()) {
+      window.history.pushState({}, '', '/')
+      setConsultPage(false)
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const t = href === '#top' ? document.body : document.querySelector(href)
+        if (!t) return
+        if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : t, { offset: -70, duration: 1.2 })
+        else t.scrollIntoView({ behavior: 'smooth' })
+      }))
+      return
+    }
     const el = href === '#top' ? document.body : document.querySelector(href)
     if (!el) return
     const run = () => {
@@ -113,6 +143,26 @@ export default function App() {
     return () => document.removeEventListener('click', onClick)
   }, [navigate])
 
+  // Client-side hop between / and /consultancy. Same-origin, plain-left-click
+  // only — modified clicks and new-tab middle clicks must stay native so
+  // "open in new tab" on the nav link keeps working.
+  useEffect(() => {
+    const onClick = (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = e.target.closest?.('a[href]')
+      if (!a || a.target === '_blank' || a.hasAttribute('download')) return
+      const href = a.getAttribute('href')
+      if (href !== '/consultancy' && href !== '/') return
+      e.preventDefault()
+      window.history.pushState({}, '', href)
+      setConsultPage(href === '/consultancy')
+      window.scrollTo(0, 0)
+      if (lenisRef.current) lenisRef.current.scrollTo(0, { immediate: true })
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [])
+
   return (
     <WizardProvider>
       {/* the loom never stops running — a fixed, compositor-only backdrop
@@ -128,22 +178,37 @@ export default function App() {
       <ScrollProgress />
       <Nav onNavigate={navigate} />
       <main>
-        <Hero />
-        <Marquee />
-        <Manifesto />
-        <Counter />
-        <Work />
-        <OfferPair />
-        <AppsShowcase />
-        <ToolsLab />
-        <Crew />
-        <Solutions />
-        <Moon />
-        <Process />
-        <Stats />
-        <Bolt />
-        <Studios />
-        <Contact />
+        {consultPage ? (
+          /* /consultancy — the dedicated page. Contact stays so the route can
+             convert on its own without bouncing the visitor back to the long
+             page for a form. */
+          <>
+            <Consultancy page />
+            <Contact />
+          </>
+        ) : (
+          <>
+            <Hero />
+            <Marquee />
+            <Manifesto />
+            <Counter />
+            {/* directly under the eight needs: the visitor who did not see
+                themselves in a deliverable is the one this is for */}
+            <Consultancy />
+            <Work />
+            <OfferPair />
+            <AppsShowcase />
+            <ToolsLab />
+            <Crew />
+            <Solutions />
+            <Moon />
+            <Process />
+            <Stats />
+            <Bolt />
+            <Studios />
+            <Contact />
+          </>
+        )}
       </main>
       <Footer onNavigate={navigate} />
       {/* the butterfly rides the whole page, above the copy and under the nav */}

@@ -55,10 +55,15 @@ export function ScrollProgress() {
   return <motion.div className="progress" style={{ scaleX }} />
 }
 
+// One array, three renderers (desktop header, mobile menu, footer).
+// 'Consultancy' is the only entry with a real path instead of a hash: it has a
+// dedicated route. `go` below leaves non-hash hrefs to the App-level handler,
+// which pushStates and swaps the page.
 const LINKS = [
   { href: '#work', label: 'Work' },
   { href: '#crew', label: 'Crew' },
   { href: '#solutions', label: 'Solutions' },
+  { href: '/consultancy', label: 'Consultancy' },
   { href: '#apps', label: 'Apps' },
   { href: '#lab', label: '3D Lab' },
   { href: '#ascent', label: 'Ascent' },
@@ -105,6 +110,10 @@ export function Nav({ onNavigate }) {
     }
   }, [open])
   const go = (e, href) => {
+    // Path links (/consultancy) are NOT scroll targets — onNavigate would run
+    // querySelector('/consultancy') and throw on an invalid selector. Close the
+    // menu and let the click bubble to the App-level route handler.
+    if (!href.startsWith('#')) { setOpen(false); return }
     e.preventDefault(); setOpen(false); onNavigate(href)
   }
   return (
@@ -218,8 +227,17 @@ export function Footer({ onNavigate }) {
           <p>The AI-native creative agency.<br />Amman × Sarajevo.</p>
         </div>
         <nav aria-label="Footer">
+          {/* same rule as Nav's go(): only hash links are scroll targets,
+              path links bubble to the App-level route handler */}
           {LINKS.map((l) => (
-            <a key={l.href} href={l.href} onClick={(e) => { e.preventDefault(); onNavigate(l.href) }}>{l.label}</a>
+            <a
+              key={l.href}
+              href={l.href}
+              onClick={(e) => {
+                if (!l.href.startsWith('#')) return
+                e.preventDefault(); onNavigate(l.href)
+              }}
+            >{l.label}</a>
           ))}
         </nav>
         <div className="footer-contact">

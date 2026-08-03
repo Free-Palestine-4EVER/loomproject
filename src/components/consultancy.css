@@ -1,0 +1,253 @@
+/* ═══════════════════════════════════════════════════════════
+   CONSULTANCY — the advisory section / page
+   ═══════════════════════════════════════════════════════════
+
+   The rest of the site sells objects, so it is built from tiles. This sells a
+   fortnight of thinking, so it is built from ROWS: full-width bands the eye
+   walks down in order, the same way the engagement actually runs. There is no
+   grid of three here on purpose — a 3-up would read as "choose one", and you
+   cannot buy only the cost audit.
+
+   Reuses the site's existing material vocabulary (.blk dyes, felt-cream strips,
+   --yarn-* dyes) rather than inventing a palette. Nothing here recolours wool.
+   ═══════════════════════════════════════════════════════════ */
+
+.consult {
+  padding-bottom: clamp(70px, 10vh, 130px);
+  /* scroll-margin so the Lenis -70 offset lands the heading clear of the nav */
+  scroll-margin-top: 70px;
+}
+
+/* the standalone /consultancy route has no sections above it to breathe against */
+.consult--page { padding-top: clamp(96px, 14vh, 170px); }
+
+/* ── the still ───────────────────────────────────────────── */
+/* Full-bleed inside the page padding, wide crop. The image arrives on its own
+   pastel studio sweep (same shoot as /img/needs/*.webp) — never tinted, never
+   cropped to square: the sweep IS the material. */
+.consult-shot {
+  margin: clamp(34px, 4.5vw, 60px) var(--pad) 0;
+  border-radius: calc(var(--radius) * 1.1);
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(242, 240, 247, 0.07),
+    0 22px 60px -28px rgba(0, 0, 0, 0.82);
+}
+.consult-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+
+/* ── the three questions ─────────────────────────────────── */
+.consult-pillars {
+  display: grid;
+  gap: clamp(14px, 1.8vw, 26px);
+  padding: clamp(38px, 5vw, 64px) var(--pad) 0;
+}
+
+.consult-pillar {
+  padding: clamp(24px, 3vw, 40px);
+  border-radius: calc(var(--radius) * 1.1);
+  background-color: rgba(242, 240, 247, 0.035);
+  border: 1px solid var(--line);
+  transition: border-color 0.4s var(--ease), background-color 0.4s var(--ease);
+}
+.consult-pillar:hover {
+  border-color: rgba(242, 240, 247, 0.18);
+  background-color: rgba(242, 240, 247, 0.055);
+}
+
+.consult-pillar-head {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.6vw, 20px);
+  margin-bottom: 14px;
+}
+.consult-medal {
+  --wool-icon: 56px;
+  flex: none;
+  transition: transform 0.4s var(--ease);
+}
+.consult-pillar:hover .consult-medal { transform: rotate(-7deg) scale(1.08); }
+
+.consult-pillar-title {
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: clamp(1.25rem, 2.1vw, 1.72rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+
+.consult-pillar-copy {
+  max-width: 62ch;
+  color: var(--ink-dim);
+  font-size: clamp(0.98rem, 1.15vw, 1.08rem);
+  line-height: 1.62;
+}
+
+.consult-points {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.consult-points li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+/* a stitch, not a bullet — two threads of the brand stripe */
+.consult-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 13px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--magenta), var(--yarn-violet, var(--magenta)));
+}
+
+/* ── how the fortnight runs ──────────────────────────────── */
+.consult-band {
+  margin: clamp(46px, 6vw, 84px) var(--pad) 0;
+  padding: clamp(28px, 3.6vw, 52px);
+  border-radius: calc(var(--radius) * 1.1);
+  /* the one felted-cream field in the section — the same inversion the Counter
+     label strip uses, so the page has a light beat in the middle */
+  background-color: var(--yarn-cream);
+  background-image: url('/img/wool/tex/felt-cream.webp');
+  background-size: 180px;
+  color: #33243d;                 /* the ONE dark ink allowed on cream (wool.css:253) */
+  box-shadow: inset 0 2px 10px rgba(51, 36, 61, 0.14);
+}
+.consult-band .h3 { color: #33243d; }
+.consult-band-sub {
+  margin-top: 8px;
+  font-size: 0.98rem;
+  color: rgba(51, 36, 61, 0.72);
+}
+
+.consult-steps {
+  list-style: none;
+  margin: clamp(24px, 3vw, 38px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(16px, 2vw, 30px);
+}
+.consult-step { min-width: 0; }
+.consult-step-n {
+  display: block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.86rem;
+  letter-spacing: 0.14em;
+  color: rgba(51, 36, 61, 0.42);
+  margin-bottom: 10px;
+}
+.consult-step-title {
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: 1.06rem;
+  line-height: 1.2;
+  margin-bottom: 7px;
+}
+.consult-step-copy {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(51, 36, 61, 0.78);
+}
+
+/* ── what you walk away with ─────────────────────────────── */
+.consult-out { padding: clamp(46px, 6vw, 84px) var(--pad) 0; }
+.consult-out-list {
+  list-style: none;
+  margin: clamp(20px, 2.6vw, 32px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(12px, 1.6vw, 20px);
+}
+.consult-out-item { min-width: 0; }
+.consult-out-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background-color: rgba(242, 240, 247, 0.035);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+/* a felted tick drawn in CSS — no icon file for four instances */
+.consult-tick {
+  flex: none;
+  width: 16px;
+  height: 9px;
+  margin-top: 5px;
+  border-left: 2.5px solid var(--magenta);
+  border-bottom: 2.5px solid var(--magenta);
+  border-radius: 1px;
+  transform: rotate(-45deg);
+}
+
+/* ── straight answers (page only) ────────────────────────── */
+.consult-faq { padding: clamp(46px, 6vw, 84px) var(--pad) 0; }
+.consult-faq-list {
+  margin-top: clamp(20px, 2.6vw, 32px);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(18px, 2.4vw, 34px);
+}
+.consult-faq-q {
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: 1.08rem;
+  line-height: 1.25;
+  margin-bottom: 9px;
+}
+.consult-faq-a {
+  max-width: 56ch;
+  font-size: 0.96rem;
+  line-height: 1.62;
+  color: var(--ink-dim);
+}
+
+/* ── foot ────────────────────────────────────────────────── */
+.consult-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(16px, 2vw, 28px);
+  padding: clamp(38px, 4.6vw, 60px) var(--pad) 0;
+}
+.consult-foot-link {
+  font-weight: 640;
+  font-size: 0.95rem;
+  color: var(--ink-dim);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 3px;
+  transition: color 0.3s, border-color 0.3s;
+}
+.consult-foot-link:hover { color: var(--ink); border-color: var(--magenta); }
+
+/* ── responsive ──────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .consult-steps { grid-template-columns: repeat(2, 1fr); }
+  .consult-medal { --wool-icon: 46px; }
+}
+@media (max-width: 719px) {
+  .consult-shot img { aspect-ratio: 4 / 3; }
+  .consult-out-list,
+  .consult-faq-list { grid-template-columns: 1fr; }
+  .consult-steps { grid-template-columns: 1fr; gap: 22px; }
+  .consult-pillar-head { gap: 12px; }
+}
