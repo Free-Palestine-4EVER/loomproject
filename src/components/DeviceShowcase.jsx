@@ -16,8 +16,14 @@ import './device-showcase.css'
 
 /**
  * @param {string} desktop - image src shown behind the MacBook glass
- * @param {string} mobile  - image src shown behind the iPhone glass
+ * @param {string} mobile  - image src shown behind the iPhone glass (ignored in `compact`)
  * @param {string} alt     - base alt text; " — desktop view" / " — mobile view" is appended
+ * @param {boolean} compact - card-scale mode: MacBook only, no phone. The phone
+ *   pane only earns its keep at overlay size — Work.jsx's grid cards run
+ *   ~150-190px wide, and the iPhone screen inside that frame stops reading as
+ *   a screenshot and starts reading as a grey smudge well before the card
+ *   does. Dropping it, rather than shrinking it further, is what keeps the
+ *   card-scale preview legible instead of turning into two blurred panes.
  */
 // `fallback` is the swap-on-404, not a default prop: the generated screens are
 // resolved by slug convention in Work.jsx, so a case whose screens have not
@@ -31,9 +37,9 @@ const swapOnError = (fallback) => (e) => {
   el.src = fallback
 }
 
-export function DeviceShowcase({ desktop, mobile, alt, fallback }) {
+export function DeviceShowcase({ desktop, mobile, alt, fallback, compact = false }) {
   return (
-    <div className="devshow" data-cursor>
+    <div className={`devshow${compact ? ' devshow--compact' : ''}`} data-cursor>
       <div className="devshow-mac">
         {/* Alpha-keyed mockup PNG, not a CSS border — see macbook-frame.png's
             provenance note above. Screen rect below is measured off that PNG,
@@ -47,16 +53,18 @@ export function DeviceShowcase({ desktop, mobile, alt, fallback }) {
           <img src={desktop} alt={`${alt} — desktop view`} loading="lazy" decoding="async" onError={swapOnError(fallback)} />
         </div>
       </div>
-      <div className="devshow-phone">
-        <img
-          className="devshow-phone-frame"
-          src="/img/devices/iphone-frame.png"
-          alt="" aria-hidden="true" loading="lazy" decoding="async"
-        />
-        <div className="devshow-phone-screen">
-          <img src={mobile} alt={`${alt} — mobile view`} loading="lazy" decoding="async" onError={swapOnError(fallback)} />
+      {!compact && (
+        <div className="devshow-phone">
+          <img
+            className="devshow-phone-frame"
+            src="/img/devices/iphone-frame.png"
+            alt="" aria-hidden="true" loading="lazy" decoding="async"
+          />
+          <div className="devshow-phone-screen">
+            <img src={mobile} alt={`${alt} — mobile view`} loading="lazy" decoding="async" onError={swapOnError(fallback)} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

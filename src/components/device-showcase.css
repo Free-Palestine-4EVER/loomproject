@@ -101,3 +101,18 @@
   .devshow-mac { width: 100%; animation: none; filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.45)); }
   .devshow-phone { position: static; width: 46%; animation: none; }
 }
+
+/* Compact — Work.jsx's card-scale MacBook chip. Same component, same frame
+   maths above; only the box it sits in changes. The overlay's own sizing
+   (max-width, centering margin, the stacked-phone breakpoint) is all keyed to
+   filling a full panel and would otherwise fight the small absolute box
+   .case-devshow gives it, so compact opts out of that sizing and lets the
+   card own it instead. No phone pane exists in this mode (DeviceShowcase.jsx
+   drops it above `compact`), so there is nothing here to re-stack at narrow
+   widths — that's why this variant has no width-based media query of its own. */
+.devshow--compact {
+  max-width: none;
+  margin: 0;
+  width: 100%;
+}
+.devshow--compact .devshow-mac { animation-duration: 11s; }

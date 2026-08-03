@@ -75,6 +75,21 @@ function CaseCard({ c, onOpen }) {
             variants={{ hover: { scale: 1.06 } }}
             transition={{ duration: 0.8, ease: EASE }}
           />
+          {/* The card-scale echo of overlay-devices below — same slug
+              convention, same fallback, same frame asset, just `compact` so
+              the phone pane (illegible this small, see DeviceShowcase.jsx)
+              drops out. Sits between the cover and the reel video in the DOM
+              on purpose: a case with `c.video` still gets its video full-bleed
+              on hover exactly as before, painting straight over this chip,
+              so the reel keeps first claim on the hover moment it already had. */}
+          <div className="case-devshow" aria-hidden="true">
+            <DeviceShowcase
+              compact
+              desktop={c.devices?.desktop || `/img/cases/${c.slug}/screen-desktop.webp`}
+              fallback={c.cover}
+              alt={`${c.client} — ${c.title}`}
+            />
+          </div>
           {c.video && (
             <video
               ref={vidRef} className="case-video" src={c.video} poster={c.cover}
