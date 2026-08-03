@@ -242,6 +242,12 @@ html.cursor-hot .cursor-ring {
   padding: 118px var(--pad) clamp(60px, 10vh, 110px);
   overflow: clip;
 }
+/* Phones get more height than 100svh alone — the address bar collapsing on
+   scroll otherwise yanks the hero shorter than the "See the work" CTA needs
+   to breathe under it, and the copy block reads cramped against the planet. */
+@media (max-width: 767px) {
+  .hero { min-height: 118svh; }
+}
 /* The candy-cloud environment is now a real photograph, not a shader — the
    PlanetField canvas renders transparent (renderer alpha:true, no nebula
    mesh) and sits ON TOP of this as just the LOOM planet + motes + haze.
@@ -343,6 +349,17 @@ html.cursor-hot .cursor-ring {
     linear-gradient(100deg, rgba(9,4,16,0.86) 0%, rgba(9,4,16,0.6) 32%, rgba(9,4,16,0.14) 58%, rgba(9,4,16,0) 74%),
     linear-gradient(180deg, rgba(13,7,22,0.5) 0%, rgba(13,7,22,0) 30%, rgba(13,7,22,0.14) 70%, var(--bg) 100%);
 }
+/* Same diagonal shape as desktop, just lighter — a phone's viewport is
+   narrow enough that the 100deg gradient's dark zone (0-58%) spans nearly
+   the full width instead of just the left third, so it was reading as a
+   flat black screen rather than a scrim behind the copy. */
+@media (max-width: 767px) {
+  .hero-vignette {
+    background:
+      linear-gradient(100deg, rgba(9,4,16,0.5) 0%, rgba(9,4,16,0.34) 32%, rgba(9,4,16,0.08) 58%, rgba(9,4,16,0) 74%),
+      linear-gradient(180deg, rgba(13,7,22,0.3) 0%, rgba(13,7,22,0) 30%, rgba(13,7,22,0.08) 70%, var(--bg) 100%);
+  }
+}
 .hero-type { max-width: 1100px; }
 .hero-eyebrow {
   font-size: 0.86rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
@@ -407,13 +424,13 @@ html.cursor-hot .cursor-ring {
 }
 .manifesto-copy .h2 { margin-bottom: 30px; }
 .manifesto-copy .lede { margin-bottom: 18px; }
-/* No card any more — no border, no box-shadow, no background plate. The
-   render already carries its own dark backdrop (public/img/manifesto/
-   laptop-mascot.webp is built at 4:3, matte-matched to the page), so a
-   frame around it was just a second edge competing with the image's own.
-   `.manifesto-media` needs overflow:visible (the default) for the 1.5x
-   scale below to spill past its grid column without clipping — nothing
-   here declares overflow:hidden, so it already does. */
+/* No card any more — no border, no box-shadow, no background plate.
+   public/img/manifesto/laptop-mascot-cutout.webp is a colour-key cutout
+   (see scripts/clean-manifesto-alpha.mjs) with the backdrop removed down to
+   real alpha, so it floats straight on the section instead of carrying its
+   own competing rectangle. `.manifesto-media` needs overflow:visible (the
+   default) for the 1.5x scale below to spill past its grid column without
+   clipping — nothing here declares overflow:hidden, so it already does. */
 .manifesto-media { position: relative; }
 .manifesto-laptop {
   display: block;

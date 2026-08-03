@@ -295,7 +295,7 @@ export function Manifesto() {
         <div className="manifesto-media">
           <img
             className="manifesto-laptop"
-            src="/img/manifesto/laptop-mascot.webp"
+            src="/img/manifesto/laptop-mascot-cutout.webp"
             alt="The LOOM website on a laptop, with the studio's yarn-ball mascot climbing out of the screen"
             loading="lazy"
           />
