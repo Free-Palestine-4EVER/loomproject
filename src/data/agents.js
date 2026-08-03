@@ -19,6 +19,21 @@
 // setup the client already has; a made-up "from $X/mo" would be the exact fake
 // precision CONSULTANCY.calculator refuses to print.
 //
+// Four, not six, and these four on purpose. The cut was "what can we actually
+// build and hand over", not "what sounds impressive":
+//
+//   · Concierge — the site already claims a WhatsApp booking agent replying in
+//     Arabic and English 24/7 (NICHES, site.js). This one is shipping work.
+//   · Shelf — Ana Ellie was a whole pet-accessories catalogue written, shot and
+//     listed without a studio booking (CASES). Same machine, rented monthly.
+//   · Spool and Ledger — scheduling and inbox triage: boring, unglamorous, and
+//     the two things every one of these clients actually asks for.
+//
+// The two that were cut were a video editor and a review-reply bot. Both demo
+// beautifully and neither survives contact with a real client month: cutting
+// footage well is a taste job, and auto-replying to angry reviews is a way to
+// lose a restaurant its reputation on our invoice.
+//
 // Same `ready` gate crew.js uses: an agent renders only once its character art
 // exists in /public/img/agents/, so the roster arrives as a finished set rather
 // than as a row of broken images.
@@ -75,52 +90,6 @@ export const AGENTS = [
     accent: '#7b2fbe',
     img: '/img/agents/concierge.png',
     ready: true,
-  },
-  {
-    id: 'echo',
-    name: 'Echo',
-    role: 'The Reputation',
-    owns: 'Reviews & local presence',
-    line: 'Answers every review before you have read it, and keeps your Maps listing looking open.',
-    quote: 'Four stars. I already thanked them.',
-    does: [
-      'Drafts a reply to every Google and TripAdvisor review, in the reviewer’s language',
-      'Flags anything angry for a human instead of auto-sending it',
-      'Refreshes your Maps photos and hours on a schedule',
-      'Reports what people actually complain about, monthly',
-    ],
-    needs: [
-      'Google Business Profile access',
-      'A named person to approve the flagged replies',
-    ],
-    runsOn: 'Google Business · TripAdvisor',
-    cadence: 'Monthly rental',
-    accent: '#ffc740',
-    img: '/img/agents/echo.png',
-    ready: false,
-  },
-  {
-    id: 'reel',
-    name: 'Reel',
-    role: 'The Editor',
-    owns: 'Clips from one shoot',
-    line: 'Takes a single afternoon of footage and hands back a month of vertical video.',
-    quote: 'Cut, captioned, and in the right ratio.',
-    does: [
-      'Cuts long footage into vertical clips with hooks in the first second',
-      'Burns in captions — Arabic and English',
-      'Reframes one edit to 9:16, 1:1 and 16:9 without recropping by hand',
-      'Names and files everything so the queue never runs dry',
-    ],
-    needs: [
-      'Raw footage, or one shoot day we run',
-      'Your brand fonts and colours',
-    ],
-    runsOn: 'Reels · TikTok · Shorts',
-    cadence: 'Monthly rental',
-    accent: '#59e6ff',
-    img: '/img/agents/reel.png',
-    ready: false,
   },
   {
     id: 'ledger',

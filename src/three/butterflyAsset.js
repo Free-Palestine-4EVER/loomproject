@@ -111,18 +111,35 @@ export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {
   const flutter = inert()
   const cruise = inert()
 
+  // Real elapsed seconds, kept separately from the stroke clock. The two are
+  // NOT the same rate and conflating them is the whole reason this needs a
+  // comment: see below.
+  let elapsed = 0
+
   const mixer = {
     update(dt) {
       flap.time += dt * flap.timeScale
+      elapsed += dt
 
-      // Feed the model a synthetic clock whose flap phase matches ours: its
-      // update() derives the stroke from t / spec.period, so scaling by
-      // period/BEAT makes one rig beat equal one full wing cycle.
+      // The model derives everything from one `t`, via t / spec.period. To make
+      // one rig beat equal one wing cycle we have to hand it a clock running
+      // period/BEAT — about 6.5x — faster than real time.
       bf.update(flap.time * (S.period / BEAT))
 
-      // Then scale the stroke by amplitude. Done AFTER update() rather than by
-      // patching the model, so butterfly-model.js stays a drop-in from the
-      // source folder and can be re-copied without re-applying an edit.
+      // ...which is correct for the stroke and WRONG for everything in that
+      // same function that is written in real seconds. The idle sway terms
+      // (sin(t * 0.42), sin(t * 0.31)) are meant to be a slow drift measured in
+      // seconds; fed the stroke clock they ran ~6.5x too fast and the body
+      // shook instead of drifting. Rewrite exactly those two from the real
+      // clock. Everything else update() touches — the bob, the body tilt, the
+      // membrane bend — is stroke-locked on purpose and must stay on the
+      // stroke clock.
+      bf.inner.rotation.z = Math.sin(elapsed * 0.42) * 0.06
+      bf.inner.rotation.y = Math.sin(elapsed * 0.31) * 0.14
+
+      // Then scale the stroke by amplitude, around the mid-stroke rest angle.
+      // Done AFTER update() rather than by patching the model, so
+      // butterfly-model.js stays a drop-in from the source folder.
       const w = THREE.MathUtils.clamp(flap.weight, 0, 1)
       for (const { hinge, sx } of bf.hinges) {
         hinge.rotation.y = sx * restY + (hinge.rotation.y - sx * restY) * w
