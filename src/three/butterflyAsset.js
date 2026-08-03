@@ -1,119 +1,147 @@
-// Shared loader + flyer factory for public/models/butterfly.glb.
+// The butterfly the flight code flies.
 //
-// The GLB is fetched ONCE and parsed once PER RENDERER. Two things force that
-// split: the hero backdrop and the page-wide companion are separate WebGL
-// contexts, and three's GPU-side caches are keyed per renderer — handing the
-// same BufferGeometry to both works right up until one of them disposes it out
-// from under the other, which is a blank canvas with no console error.
+// This used to fetch public/models/butterfly.glb — a baked, skinned, 32-bone
+// mesh with four clips. It is now the procedural Blossom butterfly from
+// src/three/butterfly-model.js: built in code at runtime, no GLB, no textures,
+// every wing pattern painted into a canvas. That swap is worth one thing above
+// all: the live model bends each wing membrane in a VERTEX SHADER, so the wing
+// trails behind the stroke instead of hinging rigidly. Shader deformation is
+// not animation data and cannot ride inside a GLB, which is exactly why the
+// baked version always looked stiffer than the preview it came from.
+//
+// What did NOT change is the rig the page drives. Companion.js computes a
+// flight path with lag, a flap amplitude and rate that ride scroll airspeed, a
+// stroke-locked bounce and a sawtooth altitude — that is the valuable part and
+// it is untouched. So prepFlyer still returns the same shape it always did:
+//
+//   { root, mixer, flutter, cruise, flap, disposables }
+//
+// with `flap` presenting the slice of three's AnimationAction API that the
+// flight code actually uses (setEffectiveWeight / timeScale / time /
+// getClip().duration). Underneath there is no AnimationMixer at all — the
+// stroke is driven directly on the two wing hinges. Emulating the interface
+// rather than rewriting Companion keeps every tuned constant in that file
+// meaningful, and means the model can be swapped again without touching it.
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
+import { createButterfly, SPECS } from './butterfly-model.js'
 
-const MODEL_URL = '/models/butterfly.glb'
-let bufferPromise = null
+// Blossom is the chosen variant (loom-butterfly/README.md). The others —
+// mango, aqua, lantern, velvet, woven — are one word away.
+const VARIANT = 'blossom'
 
-function buffer() {
-  if (!bufferPromise) {
-    bufferPromise = fetch(MODEL_URL).then((r) => {
-      if (!r.ok) throw new Error(`butterfly.glb: HTTP ${r.status}`)
-      return r.arrayBuffer()
-    })
-    // a failed fetch must not poison every later attempt
-    bufferPromise.catch(() => { bufferPromise = null })
-  }
-  return bufferPromise
-}
+// Companion sizes the butterfly from an assumed wingspan of 2.02 world units
+// (Companion.js:142-144) and every scale, bounce and clamp downstream is
+// derived from that number. The procedural model is not born that size, so it
+// is normalised here instead of retuning the flight code around a new figure.
+const RIG_WINGSPAN = 2.02
 
+// The baked clip was 0.34s and Companion divides by it to get the stroke phase
+// for the bounce. Blossom's own spec.period is 2.2s — deliberately dreamy, and
+// far too slow to read as flight (README: real butterflies run 5-12 Hz). We
+// keep the rig's 0.34s beat and let Companion's timeScale ride it as before.
+const BEAT = 0.34
+
+// Nothing to fetch any more. Kept async and kept exported because Companion
+// and ButterflyField both await it, and because a future variant might load
+// something again.
 export async function loadButterfly() {
-  const buf = await buffer()
-  const loader = new GLTFLoader()
-  loader.setMeshoptDecoder(MeshoptDecoder)
-  return loader.parseAsync(buf.slice(0), '')
+  return { procedural: true }
 }
 
-// Wire one parsed butterfly for flight. Returns the pieces the fields drive:
-// a body clip pair to crossfade on speed, and an ADDITIVE flap whose weight is
-// the flap amplitude — that is what lets a butterfly burst and then glide,
-// which a normal-blended wing clip cannot do at all (it would own the wing
-// bones at full weight forever, no matter what weight you set).
-export function prepFlyer(gltf, { tint = null, scale = 1, wingAlpha = 1 } = {}) {
-  const root = gltf.scene
+export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {}) {
+  const bf = createButterfly(THREE, VARIANT)
+  const root = bf.group
+
+  // Normalise to the rig's wingspan BEFORE the caller's scale, so root.scale
+  // stays exactly the number Companion computed and can keep setting it on
+  // resize without knowing the model changed.
+  const box = new THREE.Box3().setFromObject(root)
+  const span = Math.max(box.max.x - box.min.x, 1e-4)
+  bf.inner.scale.multiplyScalar(RIG_WINGSPAN / span)
   root.scale.setScalar(scale)
 
   const disposables = []
   root.traverse((o) => {
     if (!o.isMesh) return
-    // The wings sweep far outside the mesh's bind-pose bounds every stroke, and
-    // a culled skinned mesh pops out of frame mid-flap.
+    // The wings sweep far outside the bind-pose bounds every stroke, and a
+    // culled mesh pops out of frame mid-flap.
     o.frustumCulled = false
     const mats = Array.isArray(o.material) ? o.material : [o.material]
-    const cloned = mats.map((m) => {
-      const mat = m.clone()
-      if (tint && (mat.name === 'ButterflyWing' || mat.name === 'ButterflyWool')) {
-        mat.emissive = (mat.emissive || new THREE.Color(0)).clone().lerp(tint, 0.55)
-        mat.emissiveIntensity = mat.name === 'ButterflyWing' ? 0.10 : 0.06
+    for (const mat of mats) {
+      // Tint is a lift toward the page's orchid, never a recolour: these wing
+      // patterns are painted per-variant and repainting them in emissive would
+      // throw away the thing that makes each variant itself.
+      if (tint && mat.emissive) {
+        mat.emissive = mat.emissive.clone().lerp(tint, 0.35)
+        mat.emissiveIntensity = Math.max(mat.emissiveIntensity ?? 1, 0.08)
       }
-      if (mat.name === 'ButterflyWing' && wingAlpha < 1) {
+      if (wingAlpha < 1 && mat.transparent !== undefined) {
         mat.transparent = true
-        mat.opacity = wingAlpha
+        mat.opacity = Math.min(mat.opacity ?? 1, wingAlpha)
         mat.depthWrite = false
       }
-      disposables.push(mat)
-      return mat
-    })
-    o.material = cloned.length === 1 ? cloned[0] : cloned
+    }
   })
 
-  const clips = Object.fromEntries(gltf.animations.map((c) => [c.name, c]))
-  const mixer = new THREE.AnimationMixer(root)
+  // The rest angle of the stroke — mid-way between the spread and raised
+  // limits. Amplitude scales the hinge AROUND this, so weight 0 parks the
+  // wings half-open (a coasting butterfly) rather than snapping them flat.
+  const S = bf.spec
+  const lo = THREE.MathUtils.degToRad(S.flapMin)
+  const hi = THREE.MathUtils.degToRad(S.flapMax)
+  const restY = lo + 0.5 * (hi - lo)
 
-  const flutter = mixer.clipAction(clips.Flutter)
-  flutter.play()
-  flutter.time = Math.random() * clips.Flutter.duration
+  // The emulated action. `time` advances at `timeScale` beats-per-BEAT exactly
+  // as the mixer used to advance the clip, so Companion's phase read — and the
+  // bounce locked to it — is unchanged.
+  const flap = {
+    time: Math.random() * BEAT,
+    timeScale: 1.9,
+    weight: 1,
+    setEffectiveWeight(w) { this.weight = w },
+    getEffectiveWeight() { return this.weight },
+    getClip: () => ({ duration: BEAT, name: 'Flap' }),
+  }
 
-  const cruise = mixer.clipAction(clips.Cruise)
-  cruise.play()
-  cruise.weight = 0
-  cruise.time = Math.random() * clips.Cruise.duration
+  // Body clips no longer exist — the model's own update() carries the idle
+  // sway and tilt that Flutter/Cruise used to. They stay as inert weight
+  // holders so ButterflyField and Companion can keep crossfading them without
+  // a null check, and so removing them stays a separate decision.
+  const inert = () => ({ weight: 0, setEffectiveWeight(w) { this.weight = w }, play() { return this } })
+  const flutter = inert()
+  const cruise = inert()
 
-  const flap = mixer.clipAction(clips.Flap, root, THREE.AdditiveAnimationBlendMode)
-  flap.play()
-  flap.time = Math.random() * clips.Flap.duration
-  // Clip is 0.34s, so timeScale 1.9 lands around 5.6 Hz. Real butterflies run
-  // 5-12 Hz; past ~9 the stroke starts to strobe against 60fps.
-  flap.timeScale = 1.9
+  const mixer = {
+    update(dt) {
+      flap.time += dt * flap.timeScale
+
+      // Feed the model a synthetic clock whose flap phase matches ours: its
+      // update() derives the stroke from t / spec.period, so scaling by
+      // period/BEAT makes one rig beat equal one full wing cycle.
+      bf.update(flap.time * (S.period / BEAT))
+
+      // Then scale the stroke by amplitude. Done AFTER update() rather than by
+      // patching the model, so butterfly-model.js stays a drop-in from the
+      // source folder and can be re-copied without re-applying an edit.
+      const w = THREE.MathUtils.clamp(flap.weight, 0, 1)
+      for (const { hinge, sx } of bf.hinges) {
+        hinge.rotation.y = sx * restY + (hinge.rotation.y - sx * restY) * w
+      }
+    },
+    stopAllAction() {},
+  }
+
+  disposables.push({ dispose: () => bf.dispose?.() })
 
   return { root, mixer, flutter, cruise, flap, disposables }
 }
 
-// Object3D.clone() leaves a SkinnedMesh bound to the *original* skeleton, so
-// every copy would animate off the first butterfly's bones. three ships
-// SkeletonUtils for this; only the one function is needed, so it is inlined.
+// Each call to prepFlyer builds its own butterfly, so there is no shared
+// skeleton left to rebind — the SkeletonUtils dance the baked mesh needed is
+// gone. Kept as identity so ButterflyField's existing clone-then-prep flow
+// keeps working unchanged.
 export function cloneSkinned(source) {
-  const sourceLookup = new Map()
-  const cloneLookup = new Map()
-  const copy = source.clone()
-
-  const parallelTraverse = (a, b, cb) => {
-    cb(a, b)
-    for (let i = 0; i < a.children.length; i++) parallelTraverse(a.children[i], b.children[i], cb)
-  }
-  parallelTraverse(source, copy, (sourceNode, clonedNode) => {
-    sourceLookup.set(clonedNode, sourceNode)
-    cloneLookup.set(sourceNode, clonedNode)
-  })
-
-  copy.traverse((node) => {
-    if (!node.isSkinnedMesh) return
-    const sourceMesh = sourceLookup.get(node)
-    const sourceBones = sourceMesh.skeleton.bones
-    node.skeleton = sourceMesh.skeleton.clone()
-    node.bindMatrix.copy(sourceMesh.bindMatrix)
-    node.skeleton.bones = sourceBones.map((bone) => cloneLookup.get(bone))
-    node.bind(node.skeleton, node.bindMatrix)
-  })
-
-  return copy
+  return source
 }
 
 // Catmull-Rom through waypoints [[t, ...values], ...] with t ascending in [0,1].
@@ -137,3 +165,5 @@ export function waypointSampler(points) {
     return out
   }
 }
+
+export { SPECS, VARIANT }
