@@ -6,6 +6,7 @@ import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { Crew } from './components/Crew.jsx'
+import { Agents } from './components/Agents.jsx'
 import { Moon } from './components/Moon.jsx'
 import { Counter, OfferPair, Bolt } from './components/Banners.jsx'
 import { Consultancy } from './components/Consultancy.jsx'
@@ -195,6 +196,9 @@ export default function App() {
             {/* directly under the eight needs: the visitor who did not see
                 themselves in a deliverable is the one this is for */}
             <Consultancy />
+            {/* an offer, not a portfolio piece — it sits with Consultancy and
+                OfferPair rather than after the work that follows */}
+            <Agents />
             <Work />
             <OfferPair />
             <AppsShowcase />

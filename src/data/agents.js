@@ -47,7 +47,9 @@ export const AGENTS = [
     runsOn: 'Instagram · TikTok · Facebook',
     cadence: 'Monthly rental',
     accent: '#f21c8c',
-    img: '/img/agents/spool.webp',
+    // PNG, not webp: the art is an alpha cut-out (see Agents.jsx / offer-photo
+    // precedent in banners.css) — there is no white sweep to crop.
+    img: '/img/agents/spool.png',
     ready: false,
   },
   {
@@ -71,8 +73,8 @@ export const AGENTS = [
     runsOn: 'WhatsApp · Instagram DM · Site chat',
     cadence: 'Monthly rental',
     accent: '#7b2fbe',
-    img: '/img/agents/concierge.webp',
-    ready: false,
+    img: '/img/agents/concierge.png',
+    ready: true,
   },
   {
     id: 'echo',
@@ -94,7 +96,7 @@ export const AGENTS = [
     runsOn: 'Google Business · TripAdvisor',
     cadence: 'Monthly rental',
     accent: '#ffc740',
-    img: '/img/agents/echo.webp',
+    img: '/img/agents/echo.png',
     ready: false,
   },
   {
@@ -117,7 +119,7 @@ export const AGENTS = [
     runsOn: 'Reels · TikTok · Shorts',
     cadence: 'Monthly rental',
     accent: '#59e6ff',
-    img: '/img/agents/reel.webp',
+    img: '/img/agents/reel.png',
     ready: false,
   },
   {
@@ -140,8 +142,8 @@ export const AGENTS = [
     runsOn: 'Email · Site forms · WhatsApp',
     cadence: 'Monthly rental',
     accent: '#2ee6a8',
-    img: '/img/agents/ledger.webp',
-    ready: false,
+    img: '/img/agents/ledger.png',
+    ready: true,
   },
   {
     id: 'shelf',
@@ -163,7 +165,7 @@ export const AGENTS = [
     runsOn: 'Shopify · WooCommerce · Instagram Shop',
     cadence: 'Monthly rental',
     accent: '#ff7a45',
-    img: '/img/agents/shelf.webp',
+    img: '/img/agents/shelf.png',
     ready: false,
   },
 ]

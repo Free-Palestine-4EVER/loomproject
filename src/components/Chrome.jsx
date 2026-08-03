@@ -61,6 +61,7 @@ export function ScrollProgress() {
 // which pushStates and swaps the page.
 const LINKS = [
   { href: '#work', label: 'Work' },
+  { href: '#agents', label: 'Agents' },
   { href: '#crew', label: 'Crew' },
   { href: '#solutions', label: 'Solutions' },
   { href: '/consultancy', label: 'Consultancy' },
