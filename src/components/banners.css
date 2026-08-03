@@ -294,27 +294,72 @@
 }
 .offer .offer-panel:hover .offer-stamp { transform: rotate(-6deg) scale(1.05); }
 
-/* …or, once the knitted still exists for this half, a real photographic print
-   pinned to the panel. Same anchor as the stamp so the two are interchangeable;
-   the white studio sweep is kept — cropping it out is what would break the set
-   with the tiles above. */
+/* The cast, cut to alpha and standing ON the panel — not a print pinned to it.
+   The earlier version boxed the render in a rounded rectangle with its own
+   studio sweep still attached, and a card floating on a knit wall reads as a
+   sticker no matter how good the render is. These are PNGs keyed off a flat
+   sweep (scripts/clean-manifesto-alpha.mjs), so the crew's silhouette meets the
+   knit directly and the scene can overhang the panel edge.
+
+   No border-radius, no inset highlight, no object-fit: there is no longer a
+   rectangle to round or crop. The only shadow is a drop-shadow FILTER, which
+   follows the alpha outline — box-shadow would draw the box we just removed. */
 .offer .offer-photo {
   position: absolute;
-  top: clamp(20px, 2.4vw, 30px);
-  right: clamp(20px, 2.4vw, 30px);
+  /* negative offsets are the point: the crew breaks the frame */
+  top: clamp(-26px, -2vw, -10px);
+  right: clamp(-18px, -1.4vw, -6px);
   z-index: 3;
-  width: clamp(112px, 13vw, 178px);
+  width: clamp(190px, 30vw, 420px);
   height: auto;
-  aspect-ratio: 1;
-  object-fit: cover;
-  border-radius: calc(var(--radius) * 0.9);
-  box-shadow:
-    0 2px 0 rgba(255, 255, 255, 0.5) inset,
-    0 18px 40px -16px rgba(0, 0, 0, 0.75);
-  transform: rotate(-2.5deg);
-  transition: transform 0.45s var(--ease);
+  aspect-ratio: 3 / 2;
+  filter: drop-shadow(0 26px 30px rgba(0, 0, 0, 0.55));
+  transform: rotate(-1.5deg);
+  transition: transform 0.55s var(--ease);
+  pointer-events: none;
 }
-.offer .offer-panel:hover .offer-photo { transform: rotate(-5deg) scale(1.04); }
+.offer .offer-panel:hover .offer-photo { transform: rotate(-2.5deg) scale(1.045) translateY(-4px); }
+
+/* ── the abstract field behind the crew ──────────────────────
+   A flat dye behind a cut-out subject leaves it looking pasted on; the render
+   needs something MOVING behind it to sit in. Three slow-drifting radial
+   blooms in the panel's own dye family, on one compositor-only element.
+   Deliberately not a canvas: this is decoration behind body copy on every page
+   load, and two more RAF loops next to Lenis + PlanetField is a real cost for
+   something CSS can do on the compositor for free. */
+.offer .offer-aura {
+  position: absolute;
+  inset: -18%;
+  z-index: 1;                    /* over .blk's knit, under .offer-scrim */
+  pointer-events: none;
+  opacity: 0.75;
+  background:
+    radial-gradient(38% 42% at 22% 28%, var(--aura-a) 0%, transparent 62%),
+    radial-gradient(34% 38% at 78% 24%, var(--aura-b) 0%, transparent 60%),
+    radial-gradient(44% 46% at 56% 82%, var(--aura-c) 0%, transparent 64%);
+  filter: blur(6px);
+  will-change: transform;
+  animation: offerAura 26s var(--ease) infinite alternate;
+}
+/* translate + rotate only — animating the gradient stops would repaint the
+   whole layer every frame. */
+@keyframes offerAura {
+  0%   { transform: translate3d(-2%, -1%, 0) rotate(-2deg) scale(1.04); }
+  50%  { transform: translate3d(2%, 2%, 0) rotate(2deg) scale(1.1); }
+  100% { transform: translate3d(-1%, 3%, 0) rotate(-1deg) scale(1.05); }
+}
+/* Per-panel dye. The aura is always the panel's OWN family — a violet panel
+   glowing blue would fight the .blk paint-in underneath it. */
+.offer .offer-panel.blk--violet {
+  --aura-a: rgba(242, 28, 140, 0.5);
+  --aura-b: rgba(123, 47, 190, 0.55);
+  --aura-c: rgba(255, 199, 64, 0.28);
+}
+.offer .offer-panel.blk--blue {
+  --aura-a: rgba(89, 230, 255, 0.42);
+  --aura-b: rgba(123, 47, 190, 0.45);
+  --aura-c: rgba(255, 199, 64, 0.3);
+}
 .offer .offer-panel.has-photo .offer-stamp { display: none; }
 
 .offer .offer-face {
@@ -551,4 +596,10 @@
 
   .offer .offer-panel:hover { transform: none; }
   .offer .offer-panel:hover .offer-stamp { transform: none; }
+
+  /* the aura stays — it is the field the cut-out crew stands in, and removing
+     it would leave them pasted on flat knit. It just stops drifting. */
+  .offer .offer-aura { animation: none; transform: none; }
+  .offer .offer-photo,
+  .offer .offer-panel:hover .offer-photo { transition: none; transform: rotate(-1.5deg); }
 }

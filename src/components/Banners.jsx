@@ -170,6 +170,9 @@ export function OfferPair() {
               {/* one flat gradient rect value-flattens the knit under the type.
                   Never a blur — a blurred layer per panel is what got the
                   previous version reverted. */}
+              {/* the drifting field the cut-out crew stands in — see
+                  .offer-aura in banners.css for why this is CSS, not a canvas */}
+              <i className="offer-aura" aria-hidden="true" />
               <i className="offer-scrim" aria-hidden="true" />
               <span className="offer-stamp" aria-hidden="true">
                 <WoolIcon name={o.mark} />
@@ -177,10 +180,12 @@ export function OfferPair() {
               {o.photo && (
                 <img
                   className="offer-photo"
-                  src={`/img/needs/${o.photo}.webp`}
+                  /* PNG, not webp: these are alpha cut-outs and the whole
+                     point is that there is no rectangle. */
+                  src={`/img/needs/${o.photo}.png`}
                   alt=""
-                  width={800}
-                  height={800}
+                  width={1264}
+                  height={848}
                   loading="lazy"
                   decoding="async"
                   aria-hidden="true"

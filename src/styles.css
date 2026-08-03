@@ -242,11 +242,37 @@ html.cursor-hot .cursor-ring {
   padding: 118px var(--pad) clamp(60px, 10vh, 110px);
   overflow: clip;
 }
-/* Phones get more height than 100svh alone — the address bar collapsing on
-   scroll otherwise yanks the hero shorter than the "See the work" CTA needs
-   to breathe under it, and the copy block reads cramped against the planet. */
+/* Desktop gets more than 100svh so the planet has room to be a subject rather
+   than a thing peeking in at the edge — on a 900px-tall laptop the hero was
+   exactly viewport-height and the composition had nowhere to breathe. */
+@media (min-width: 768px) {
+  .hero { min-height: 112svh; }
+}
+
+/* Phones invert the whole hero: copy FIRST, planet under it, both fully in
+   frame. The desktop layout is `align-items: end` with the planet behind the
+   type — stacked on a 390px screen that put the headline on top of the planet
+   and cropped the planet's lower half off the fold, so the visitor met an
+   overlapped mess instead of either element. Splitting them into two rows and
+   letting the planet own the second one is the only way both read.
+   118svh is the room that costs: the address bar collapsing on scroll would
+   otherwise crush the second row. */
 @media (max-width: 767px) {
-  .hero { min-height: 118svh; }
+  .hero {
+    min-height: 118svh;
+    /* the desktop hero is align-items:end — bottom-anchored copy over a
+       full-bleed photo. On a phone that drops the headline into the planet's
+       middle, so the copy goes to the TOP and the planet takes the space
+       underneath (see .hero-mobile-planet's 72%). */
+    align-items: start;
+    padding-top: 96px;
+  }
+  /* smaller: at 8.2vw the headline ran three lines and pushed the planet off
+     the fold entirely, which is the thing being fixed */
+  .hero-h1 { font-size: clamp(2.15rem, 6.6vw, 3rem); }
+  .hero-sub { margin-top: 18px; font-size: 0.96rem; }
+  .hero-eyebrow { margin-bottom: 16px; }
+  .hero-ctas { margin-top: 22px; }
 }
 /* The candy-cloud environment is now a real photograph, not a shader — the
    PlanetField canvas renders transparent (renderer alpha:true, no nebula
@@ -308,17 +334,22 @@ html.cursor-hot .cursor-ring {
    `transform: scale(var(--ms))` on the outer box never disturbs it. */
 @media (pointer: coarse) {
   .hero-mobile-planet {
+    /* Stays absolute — it lives inside .hero-canvas-wrap (Sections.jsx:142),
+       not as a direct child of the .hero grid, so no grid-row placement can
+       reach it. Dropping it to 72% is what actually separates the two: the
+       copy now owns the top of the frame and the planet sits whole underneath,
+       instead of the headline landing across its middle.
+       72% + a 78vw diameter keeps its lower edge inside 118svh, so nothing is
+       cropped at the fold — that is why the two numbers are tied. */
     position: absolute;
-    top: 50%;
+    top: 72%;
     left: 50%;
     translate: -50% -50%;
-    width: min(72vw, 340px);
+    width: min(78vw, 330px);
     aspect-ratio: 1;
     pointer-events: none;
     --ms: 1;
     transform: scale(var(--ms));
-    /* behind .hero-type (sibling, painted after it in DOM) — dead centre of
-       the whole hero is where the headline sits, so this rides underneath it */
     z-index: 0;
   }
 }
@@ -345,9 +376,14 @@ html.cursor-hot .cursor-ring {
   position: absolute; inset: 0;
   background:
     /* the copy lives on the left — a real photo behind it needs a scrim a
-       flat dark background never did, or the headline loses to the clouds */
-    linear-gradient(100deg, rgba(9,4,16,0.86) 0%, rgba(9,4,16,0.6) 32%, rgba(9,4,16,0.14) 58%, rgba(9,4,16,0) 74%),
-    linear-gradient(180deg, rgba(13,7,22,0.5) 0%, rgba(13,7,22,0) 30%, rgba(13,7,22,0.14) 70%, var(--bg) 100%);
+       flat dark background never did, or the headline loses to the clouds.
+       Pulled well back from the original 0.86: at that weight the scrim was
+       not protecting the headline, it was hiding the photograph we paid to
+       shoot. The headline is 7rem at 580 weight on its own line — it does not
+       need a near-opaque plate to survive, only enough to keep the smaller
+       .hero-sub legible where the clouds are brightest. */
+    linear-gradient(100deg, rgba(9,4,16,0.52) 0%, rgba(9,4,16,0.3) 32%, rgba(9,4,16,0.06) 58%, rgba(9,4,16,0) 74%),
+    linear-gradient(180deg, rgba(13,7,22,0.24) 0%, rgba(13,7,22,0) 30%, rgba(13,7,22,0.1) 70%, var(--bg) 100%);
 }
 /* Same diagonal shape as desktop, just lighter — a phone's viewport is
    narrow enough that the 100deg gradient's dark zone (0-58%) spans nearly
