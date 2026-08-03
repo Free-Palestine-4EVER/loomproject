@@ -248,18 +248,34 @@ html.cursor-hot .cursor-ring {
    Desktop and mobile are different source images (the mobile one is framed
    for a portrait crop, not just the desktop one resized), swapped at the
    same 767px breakpoint the rest of the site uses for its layout switch. */
-.hero-canvas-wrap {
-  position: absolute; inset: -3%; z-index: -1;
+.hero-canvas-wrap { position: absolute; inset: 0; z-index: -1; }
+/* The photo lives on its OWN layer, separate from .hero-canvas-wrap, which
+   framer-motion drives via inline `transform` for scroll parallax (see
+   Sections.jsx). A CSS @keyframes animation targeting `transform` on the SAME
+   element wins over an inline style every frame — sharing the two silently
+   killed the parallax the instant the page loaded. This layer owns the pan +
+   breathe instead, so both animations run without fighting each other. */
+.hero-canvas-bg {
+  position: absolute; inset: -8%;
   background: url('/img/hero/bg-desktop.webp') no-repeat center / cover, var(--bg);
-  /* oversized (-3% inset) so the drift below never uncovers an edge */
-  animation: hero-bg-drift 26s ease-in-out infinite alternate;
+  /* oversized (-8% inset) so the drift+breathe below never uncovers an edge */
+  animation: hero-bg-drift 22s ease-in-out infinite alternate,
+             hero-bg-breathe 9s ease-in-out infinite;
 }
+/* the pan — was 48%->53% (a barely-there 5% shift over 26s); wide enough now
+   to actually read as clouds moving, not just a rounding error */
 @keyframes hero-bg-drift {
-  0% { background-position: 48% 46%; }
-  100% { background-position: 53% 52%; }
+  0% { background-position: 38% 34%; }
+  100% { background-position: 62% 66%; }
+}
+/* the pulse — independent of scroll, so the hero is alive the instant it
+   paints instead of waiting for the reader to scroll before anything moves */
+@keyframes hero-bg-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-canvas-wrap { animation: none; }
+  .hero-canvas-bg { animation: none; }
 }
 .hero-canvas {
   width: 100%; height: 100%; display: block;
@@ -268,31 +284,44 @@ html.cursor-hot .cursor-ring {
   filter: drop-shadow(0 0 60px rgba(255, 200, 230, 0.35));
 }
 @media (max-width: 767px) {
-  .hero-canvas-wrap { background-image: url('/img/hero/bg-mobile.webp'); }
+  .hero-canvas-bg { background-image: url('/img/hero/bg-mobile.webp'); }
 }
 /* Touch devices are never given the hero's WebGL context — one context per
    page is what stopped iPhones dying (Sections.jsx:31) — so the planet arrives
    as a still instead. Same art, ~40 KB, no second renderer.
    Centred, in the empty band ABOVE the copy (the hero is bottom-anchored,
    .hero padding-top:118px) — inset:0 at full size is what buried the eyebrow
-   and headline under it. */
+   and headline under it.
+   The bg pan/breathe above is the ONLY thing moving on a real phone (the
+   WebGL planet+haze+motes never run there) — so this still needs its own
+   motion too, or "the planet doesn't move" is simply true on touch. Baked
+   into ONE keyframe (not layered with the centring translate) since an
+   animation replaces the whole transform value each frame. */
 @media (pointer: coarse) {
   .hero-canvas-wrap::after {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     width: min(72vw, 340px);
     aspect-ratio: 1;
     background: url('/img/hero/planet-sm.webp') no-repeat center / contain;
     filter: drop-shadow(0 0 40px rgba(255, 200, 230, 0.4));
     opacity: 0.95;
     pointer-events: none;
+    animation: hero-planet-float 7s ease-in-out infinite;
     /* behind .hero-type (sibling, painted after it in DOM) — dead centre of
        the whole hero is where the headline sits, so this rides underneath it */
     z-index: 0;
   }
+}
+@keyframes hero-planet-float {
+  0%   { transform: translate(-50%, -50%) translateY(0) rotate(0deg) scale(1); }
+  50%  { transform: translate(-50%, -50%) translateY(-14px) rotate(1.6deg) scale(1.035); }
+  100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg) scale(1); }
+}
+@media (pointer: coarse) and (prefers-reduced-motion: reduce) {
+  .hero-canvas-wrap::after { animation: none; transform: translate(-50%, -50%); }
 }
 .hero-vignette {
   position: absolute; inset: 0;

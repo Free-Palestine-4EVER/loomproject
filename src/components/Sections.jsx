@@ -95,6 +95,12 @@ export function Hero() {
   return (
     <section className="hero" id="top" ref={wrapRef}>
       <motion.div className="hero-canvas-wrap" aria-hidden="true" style={{ y: bgY, scale: bgScale }}>
+        {/* own layer, own transform — the CSS drift/breathe keyframes below
+            animate THIS element's transform; sharing .hero-canvas-wrap with
+            framer's scroll-parallax would let the animation win every frame
+            (CSS animations override inline styles on the same property) and
+            silently kill the parallax the instant the page loaded */}
+        <div className="hero-canvas-bg" />
         <canvas ref={canvasRef} className="hero-canvas" />
         <div className="hero-vignette" />
       </motion.div>
