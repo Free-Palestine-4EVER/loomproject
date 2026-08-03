@@ -262,7 +262,6 @@ export function Manifesto() {
   const ref = useRef(null)
   const reduced = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const yImg = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-8%', '8%'])
   const inkProgress = useTransform(scrollYProgress, [0.08, 0.4], [0, 1])
   const ruleScale = useTransform(scrollYProgress, [0.08, 0.4], [0, 1])
   return (
@@ -294,12 +293,12 @@ export function Manifesto() {
           </Reveal>
         </div>
         <div className="manifesto-media">
-          <div className="manifesto-frame" data-cursor>
-            <motion.img
-              src="/img/weave-key.webp" alt="Iridescent particle weave — LOOM brand artwork"
-              style={{ y: yImg }} loading="lazy"
-            />
-          </div>
+          <img
+            className="manifesto-laptop"
+            src="/img/manifesto/laptop-mascot.webp"
+            alt="The LOOM website on a laptop, with the studio's yarn-ball mascot climbing out of the screen"
+            loading="lazy"
+          />
           <p className="manifesto-caption">The edge is intentional.</p>
         </div>
       </div>
