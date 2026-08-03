@@ -50,7 +50,7 @@ export const AGENTS = [
     // PNG, not webp: the art is an alpha cut-out (see Agents.jsx / offer-photo
     // precedent in banners.css) — there is no white sweep to crop.
     img: '/img/agents/spool.png',
-    ready: false,
+    ready: true,
   },
   {
     id: 'concierge',
@@ -166,7 +166,7 @@ export const AGENTS = [
     cadence: 'Monthly rental',
     accent: '#ff7a45',
     img: '/img/agents/shelf.png',
-    ready: false,
+    ready: true,
   },
 ]
 
