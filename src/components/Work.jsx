@@ -5,6 +5,7 @@ import { CASES, FILTERS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
 import { useBottomSheet, useIsMobile, useSheetScrollHandoff, SheetHandle } from '../lib/sheet.jsx'
 import { WoolButton, WoolIcon } from './Wool.jsx'
+import { DeviceShowcase } from './DeviceShowcase.jsx'
 import './heads-v7.css'
 
 // Fade images in on decode — ref callback handles the cached case (onLoad
@@ -213,6 +214,19 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
               <span><em>Studio</em>LOOM</span>
             </div>
             <p className="overlay-copy">{c.copy}</p>
+          </div>
+          {/* Every case gets shown on real hardware, not just the six or seven
+              jobs that happened to ship a dedicated mobile capture. `devices`
+              is optional per-case data (site.js) — when it's missing, both
+              panes fall back to the same cover shot the card already uses, so
+              a case with only one production still reads as "responsive",
+              never as a placeholder or a missing asset. */}
+          <div className="overlay-devices">
+            <DeviceShowcase
+              desktop={c.devices?.desktop || c.cover}
+              mobile={c.devices?.mobile || c.cover}
+              alt={`${c.client} — ${c.title}`}
+            />
           </div>
           <div className="overlay-gallery">
             {c.video && (

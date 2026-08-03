@@ -1,0 +1,103 @@
+/* device-showcase.css — the MacBook + iPhone pair inside a case study's
+   overlay. Owned by DeviceShowcase.jsx.
+
+   CASCADE NOTE, load-bearing (same trap Products.jsx and banners.css both
+   document): main.jsx imports App.jsx before styles.css, so every component
+   stylesheet lands EARLIER in the bundle. A bare rule here loses any
+   specificity tie to a same-weight rule declared later in styles.css. Every
+   class below is prefixed `devshow-` and that prefix does not exist anywhere
+   else in the app, so there is nothing to tie against — no double-class
+   defensive pairing needed, unlike products-showcase.css.
+
+   FRAME MATH — copied, not re-derived, from the two places that already
+   measured these PNGs (scripts/make-device-frames.mjs prints these numbers;
+   re-run it and update both sites if the art ever changes):
+     macbook-frame.png  1600 x 930   screen at 12.07% / 6.09% / 78.31% / 86.14%
+       (Products.jsx .lab-mac, products-showcase.css:145)
+     iphone-frame.png    900 x 1813  screen at  5.71% /  2.39% / 88.52% / 95.19%
+       (Apps .app-phone, styles.css:691) */
+
+/* Wraps <DeviceShowcase> in Work.jsx, matching the same horizontal breathing
+   room .overlay-head and .overlay-gallery already give the panel either side
+   — a plain sibling <div> would otherwise run the shot edge-to-edge, the one
+   element on the page not sharing everything else's margin. */
+.overlay-devices { padding: clamp(26px, 5vh, 50px) clamp(20px, 5vw, 70px) 0; }
+
+/* The pair reads as one object, not two: the phone leans into the MacBook's
+   lower-right corner the way every "responsive preview" shot since ~2015 has
+   staged it. The phone is sized to stay INSIDE the MacBook's own width and
+   only overhangs the bottom edge — sideways overhang is what turns into
+   horizontal scroll on a narrow overlay panel, so this shot never risks it,
+   only ever needs vertical breathing room, which the margin-bottom below
+   reserves. */
+.devshow {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto clamp(50px, 9vw, 110px);
+}
+.devshow-mac {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1600 / 930;
+  filter: drop-shadow(0 20px 34px rgba(0, 0, 0, 0.5));
+  animation: devshow-float 9s ease-in-out infinite;
+}
+.devshow-mac-frame {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; object-fit: fill;
+  pointer-events: none; user-select: none;
+}
+.devshow-mac-screen {
+  position: absolute; z-index: 1; overflow: hidden;
+  left: 12.07%; top: 6.09%; width: 78.31%; height: 86.14%;
+  background: #05030a;
+}
+.devshow-mac-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+/* Positive `right` (never negative) is the load-bearing choice here — it
+   keeps the phone's right edge inside the MacBook's box so the pair's total
+   footprint never exceeds the MacBook's own width, on any viewport. Only
+   `bottom` goes negative, and only the outer .devshow's margin has to answer
+   for that, not its width. */
+.devshow-phone {
+  position: absolute; z-index: 2;
+  width: 30%; right: 3%; bottom: -14%;
+  aspect-ratio: 900 / 1813;
+  filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.55));
+  animation: devshow-float 9s ease-in-out infinite;
+  animation-delay: 0.6s; /* off-beat from the MacBook so the pair doesn't bob in lockstep */
+}
+.devshow-phone-frame {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; object-fit: fill;
+  pointer-events: none; user-select: none;
+}
+.devshow-phone-screen {
+  position: absolute; z-index: 1; overflow: hidden;
+  left: 5.71%; top: 2.39%; width: 88.52%; height: 95.19%;
+  border-radius: 11.5% / 5.6%; /* the mockup's own display corner, see app-screen */
+  background: #05030a;
+}
+.devshow-phone-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+/* A resting drift, same idea as .app-phone's phoneidle — a case that just
+   sits there dead on the page reads like a screenshot; this is the smallest
+   possible signal that it's a live product. */
+@keyframes devshow-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .devshow-mac, .devshow-phone { animation: none; }
+}
+
+/* Below ~560px the overlap starts eating into the MacBook's own screen
+   real estate rather than reading as a clean lean-in, so the pair drops the
+   absolute positioning and stacks instead — exactly the "stack rather than
+   overflow" rule this component exists to guarantee. */
+@media (max-width: 560px) {
+  .devshow { display: flex; flex-direction: column; align-items: center; gap: 28px; margin-bottom: clamp(30px, 8vw, 60px); }
+  .devshow-mac { width: 100%; animation: none; filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.45)); }
+  .devshow-phone { position: static; width: 46%; animation: none; }
+}
