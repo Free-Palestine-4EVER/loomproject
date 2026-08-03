@@ -1,5 +1,54 @@
 /* ——— floating WhatsApp button ——— */
 /* Bottom-right on desktop and mobile. Woven mark, label unrolls on hover. */
+
+/* transparent wrapper — .wa-fab keeps its own `position:fixed` untouched;
+   this only exists so the bubble has somewhere to render as a sibling */
+.wa-fab-stack { display: contents; }
+
+/* the prompt bubble — fixed and self-positioned rather than anchored to the
+   button (a flex column would force .wa-fab to share a box with it, and the
+   button's own fixed offset is tuned against .mobile-cta-pill/.overlay
+   elsewhere; easier to just sit a fixed height above the same right edge) */
+.wa-fab-bubble {
+  position: fixed;
+  right: 28px;
+  bottom: 150px; /* fab bottom(28) + fab height(110) + 12px gap */
+  z-index: 92;
+  max-width: 190px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+.wa-fab-bubble__tail {
+  position: absolute;
+  right: 30px;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  background: var(--bg-2);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  transform: rotate(45deg);
+}
+@media (max-width: 767px) {
+  .wa-fab-bubble {
+    right: 16px;
+    bottom: calc(16px + 96px + 12px + env(safe-area-inset-bottom));
+    max-width: 160px;
+    font-size: 0.84rem;
+    white-space: normal;
+  }
+  .wa-fab-bubble__tail { right: 24px; }
+}
+
 .wa-fab {
   position: fixed;
   right: 28px;
@@ -8,22 +57,21 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 76px;
-  padding: 0 10px;
+  height: 110px;
+  padding: 0 14px;
+  /* no pill plate — just the woven mark floating on the page, no border,
+     no backdrop-blur, no dark disc behind it */
   border-radius: 999px;
-  border: 1px solid rgba(242, 240, 247, 0.1);
-  background: rgba(13, 7, 22, 0.62);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(242, 240, 247, 0.03) inset;
+  border: none;
+  background: none;
   text-decoration: none;
   will-change: transform, opacity;
-  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+  transition: transform 0.3s;
 }
 
 .wa-fab img {
-  width: 58px;
-  height: 58px;
+  width: 86px;
+  height: 86px;
   display: block;
   flex: none;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
@@ -40,15 +88,13 @@
   font-weight: 620;
   font-size: 0.92rem;
   letter-spacing: -0.01em;
+  /* no plate behind it any more (see .wa-fab) — a shadow instead of a
+     background keeps it legible over whatever the page happens to show */
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85), 0 1px 2px rgba(0, 0, 0, 0.9);
   transition: max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s, padding 0.45s;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .wa-fab:hover,
-  .wa-fab:focus-visible {
-    border-color: rgba(37, 211, 102, 0.42);
-    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(37, 211, 102, 0.14) inset;
-  }
   .wa-fab:hover img,
   .wa-fab:focus-visible img { transform: rotate(-6deg) scale(1.06); }
   .wa-fab:hover .wa-fab__label,
@@ -61,23 +107,15 @@
 
 .wa-fab:active { transform: scale(0.96); }
 
-@media (prefers-reduced-transparency: reduce) {
-  .wa-fab {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: var(--bg-2);
-  }
-}
-
 @media (max-width: 767px) {
   .wa-fab {
     right: 16px;
     bottom: calc(16px + env(safe-area-inset-bottom));
-    height: 66px;
-    width: 66px;
+    height: 96px;
+    width: 96px;
     padding: 0;
     justify-content: center;
   }
-  .wa-fab img { width: 50px; height: 50px; }
+  .wa-fab img { width: 74px; height: 74px; }
   .wa-fab__label { display: none; }
 }

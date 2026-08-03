@@ -15,7 +15,48 @@ export function Hero() {
   const { open: openWizard } = useWizard()
   const canvasRef = useRef(null)
   const wrapRef = useRef(null)
+  const mobilePlanetRef = useRef(null)
   const reduced = useReducedMotion()
+  const [coarse, setCoarse] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)')
+    const sync = () => setCoarse(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  // The mobile planet's own scroll reaction — deliberately NOT routed through
+  // framer's useScroll/useTransform (that system already drives .hero-type
+  // and, on desktop, the background parallax). Running a second scroll-linked
+  // motion-value system on top of Lenis's own rAF loop is what made scrolling
+  // feel stiff on a phone; this is one passive listener, rAF-throttled, that
+  // writes a single transform to one small element directly — no React
+  // re-render in the loop at all.
+  useEffect(() => {
+    if (!coarse || reduced) return
+    const el = mobilePlanetRef.current
+    if (!el) return
+    let raf = null
+    const update = () => {
+      raf = null
+      const h = window.innerHeight || 1
+      const p = Math.min(1.4, Math.max(0, window.scrollY / h))
+      // grows as the reader scrolls past — the opposite direction from the
+      // desktop WebGL planet, which recedes/shrinks (PlanetField.js) —
+      // because on mobile there's no z-depth to sell "moving away", so
+      // "reacts to scroll at all" reads better as it looming closer.
+      el.style.setProperty('--ms', (1 + p * 0.55).toFixed(3))
+    }
+    const onScroll = () => { if (raf == null) raf = requestAnimationFrame(update) }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [coarse, reduced])
 
   // three.js is ~600KB — far too much to sit in the main bundle for a decorative
   // backdrop, so the field is code-split and fetched after mount. Reduced-motion
@@ -84,8 +125,12 @@ export function Hero() {
   const fade = useTransform(scrollYProgress, [0, 0.75], [1, 0])
   // Background photo drifts slower than the page scrolls — classic parallax,
   // on top of its own slow ambient background-position drift (styles.css).
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', reduced ? '0%' : '14%'])
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, reduced ? 1 : 1.08])
+  // Desktop only: this is a second scroll-linked motion-value system running
+  // alongside Lenis's own rAF loop, and on a phone that's exactly what read
+  // as "scroll isn't smooth" — the mobile planet gets its own much lighter
+  // scroll reaction instead (see the effect above).
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', reduced || coarse ? '0%' : '14%'])
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, reduced || coarse ? 1 : 1.08])
   // A delayed `animate` takes ownership of whatever MotionValue it is bound to,
   // so the scroll hint must NOT share `fade` with .hero-type — sharing it held
   // the whole headline at opacity 0 until t≈2.5s, ~1.4s of blank hero after the
@@ -102,6 +147,15 @@ export function Hero() {
             silently kill the parallax the instant the page loaded */}
         <div className="hero-canvas-bg" />
         <canvas ref={canvasRef} className="hero-canvas" />
+        {/* Touch-only stand-in for the WebGL planet (Sections.jsx:31 never
+            gives touch devices that context). Two nested layers so the
+            scroll-driven scale (JS, this element) and the ambient float
+            (CSS keyframe, the child) each own their own transform instead
+            of fighting over one — the exact bug fixed on .hero-canvas-wrap
+            itself earlier tonight. */}
+        <div ref={mobilePlanetRef} className="hero-mobile-planet" aria-hidden="true">
+          <div className="hero-mobile-planet-inner" />
+        </div>
         <div className="hero-vignette" />
       </motion.div>
       <motion.div className="hero-type" style={{ y: yType, opacity: fade }}>
