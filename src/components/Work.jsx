@@ -222,9 +222,17 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
               a case with only one production still reads as "responsive",
               never as a placeholder or a missing asset. */}
           <div className="overlay-devices">
+            {/* Convention over configuration: make-case-screens.mjs writes
+                screen-desktop/screen-mobile into every case folder, so the
+                slug alone resolves the pair and a new case gets its showcase
+                the moment the script is re-run — no 17 hand-edits, nothing to
+                forget. `devices` stays as the explicit override for a case
+                that has real client screenshots worth using instead, and the
+                cover is the last resort so a missing file is never a hole. */}
             <DeviceShowcase
-              desktop={c.devices?.desktop || c.cover}
-              mobile={c.devices?.mobile || c.cover}
+              desktop={c.devices?.desktop || `/img/cases/${c.slug}/screen-desktop.webp`}
+              mobile={c.devices?.mobile || `/img/cases/${c.slug}/screen-mobile.webp`}
+              fallback={c.cover}
               alt={`${c.client} — ${c.title}`}
             />
           </div>

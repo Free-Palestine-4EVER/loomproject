@@ -801,6 +801,14 @@ export const CASES = [
     cover: img('benetton', 'cover.webp'), feature: [], boards: boards('benetton', [22, 23, 24]),
     featured: false,
   },
+  {
+    slug: 'ojar', client: 'OJAR', country: 'Oman × UAE', year: '2026',
+    scope: ['Brand Identity', 'Product Photography', 'E-commerce', 'Campaign'], filter: ['branding', 'packaging', 'campaign'],
+    title: 'Hojari, bottled',
+    copy: 'A niche fragrance house built around six ingredients — oud, rose, frankincense, honey, sandalwood, musk — named for the finest Dhofar frankincense resin. Product photography, packaging and campaign imagery carrying the same coppery, sunlit identity from the flacon to the flatlay.',
+    cover: img('ojar', 'cover.webp'), feature: stars('ojar', 3), boards: boards('ojar', [49, 50]),
+    featured: false,
+  },
 ]
 
 export const FILTERS = [

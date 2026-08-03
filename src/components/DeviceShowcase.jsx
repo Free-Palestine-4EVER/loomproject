@@ -19,7 +19,19 @@ import './device-showcase.css'
  * @param {string} mobile  - image src shown behind the iPhone glass
  * @param {string} alt     - base alt text; " — desktop view" / " — mobile view" is appended
  */
-export function DeviceShowcase({ desktop, mobile, alt }) {
+// `fallback` is the swap-on-404, not a default prop: the generated screens are
+// resolved by slug convention in Work.jsx, so a case whose screens have not
+// been rendered yet would otherwise show a broken pane inside a real device
+// frame — worse than showing nothing. Swapping to the case's own cover keeps
+// the frame full. Guarded so a fallback that is itself missing cannot loop.
+const swapOnError = (fallback) => (e) => {
+  const el = e.currentTarget
+  if (!fallback || el.dataset.fellBack) { el.style.visibility = 'hidden'; return }
+  el.dataset.fellBack = '1'
+  el.src = fallback
+}
+
+export function DeviceShowcase({ desktop, mobile, alt, fallback }) {
   return (
     <div className="devshow" data-cursor>
       <div className="devshow-mac">
@@ -32,7 +44,7 @@ export function DeviceShowcase({ desktop, mobile, alt }) {
           alt="" aria-hidden="true" loading="lazy" decoding="async"
         />
         <div className="devshow-mac-screen">
-          <img src={desktop} alt={`${alt} — desktop view`} loading="lazy" decoding="async" />
+          <img src={desktop} alt={`${alt} — desktop view`} loading="lazy" decoding="async" onError={swapOnError(fallback)} />
         </div>
       </div>
       <div className="devshow-phone">
@@ -42,7 +54,7 @@ export function DeviceShowcase({ desktop, mobile, alt }) {
           alt="" aria-hidden="true" loading="lazy" decoding="async"
         />
         <div className="devshow-phone-screen">
-          <img src={mobile} alt={`${alt} — mobile view`} loading="lazy" decoding="async" />
+          <img src={mobile} alt={`${alt} — mobile view`} loading="lazy" decoding="async" onError={swapOnError(fallback)} />
         </div>
       </div>
     </div>
