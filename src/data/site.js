@@ -638,6 +638,17 @@ export const CONSULTANCY = {
     'A ranked build list with real budgets, not ranges',
     'A 90-day plan your team can run without us',
   ],
+  // The live calculator. Copy lives here so the assumptions can be edited
+  // without touching the maths; the maths itself lives in Consultancy.jsx
+  // because it is logic, not content, and the two must never quietly drift.
+  calculator: {
+    kicker: 'Try it on your numbers',
+    title: 'What is manual work actually costing you?',
+    sub: 'Move the sliders to match your business. Every assumption behind the number is written underneath it — nothing here is a made-up benchmark.',
+    ctaLabel: 'See your real number',
+    assumptions:
+      'Assumes a 40-hour week and 52 working weeks a year. The recovery range is what our own engagements actually return, not an industry average: 40–70% of the manual hours reclaimed once the workflow is automated, 15–30% of software spend found to be duplicate or dead. Your real figure needs the two weeks — this is the sketch, not the invoice.',
+  },
   faq: [
     {
       q: 'Do we have to build with you afterwards?',
