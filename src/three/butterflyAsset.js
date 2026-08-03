@@ -1,7 +1,7 @@
 // The butterfly the flight code flies.
 //
 // This used to fetch public/models/butterfly.glb — a baked, skinned, 32-bone
-// mesh with four clips. It is now the procedural Blossom butterfly from
+// mesh with four clips. It is now a procedural butterfly (Woven) from
 // src/three/butterfly-model.js: built in code at runtime, no GLB, no textures,
 // every wing pattern painted into a canvas. That swap is worth one thing above
 // all: the live model bends each wing membrane in a VERTEX SHADER, so the wing
@@ -25,9 +25,14 @@
 import * as THREE from 'three'
 import { createButterfly, SPECS } from './butterfly-model.js'
 
-// Blossom is the chosen variant (loom-butterfly/README.md). The others —
-// mango, aqua, lantern, velvet, woven — are one word away.
-const VARIANT = 'blossom'
+// The generator's README nominates Blossom, and Blossom is the wrong call HERE.
+// It is pale pink matte on a hero that is already a pink knitted world, so it
+// vanished into the backdrop and read as untextured plastic next to photoreal
+// wool. Woven is an actual warp/weft lattice with open gaps and a bound brass
+// selvedge — it holds its own against that backdrop because it has real surface
+// detail, and it is the obvious one for a studio whose whole name is the loom.
+// The others (blossom, mango, aqua, lantern, velvet) are one word away.
+const VARIANT = 'woven'
 
 // Companion sizes the butterfly from an assumed wingspan of 2.02 world units
 // (Companion.js:142-144) and every scale, bounce and clamp downstream is
@@ -48,7 +53,27 @@ export async function loadButterfly() {
   return { procedural: true }
 }
 
+// Every variant ships tuned for a preview turntable, where the butterfly fills
+// the frame and a coarse wing passes. On the page it is a hero element against
+// a photographic backdrop, and at the stock tessellation the silhouette went
+// visibly polygonal — the outline stepped, and the vertex-shader bend (the whole
+// reason we use the live model over the GLB) had too few rings to bend smoothly,
+// so the wing creased instead of curving.
+//
+// It matters more for `woven` than for any other variant: the lattice is real
+// geometry with open gaps, so the weave's own resolution is the wing's texture.
+// Starve it of rings and the cloth reads as a coarse net.
+//
+// Overriding the spec here rather than editing butterfly-model.js keeps that
+// file a byte-identical drop-in from ~/Desktop/loom-butterfly, so it can be
+// re-copied when the generator changes without re-applying a patch.
+const QUALITY = {
+  rings: 14,   // radial subdivisions root->rim; drives how smoothly the bend curves
+  segs: 56,    // subdivisions along the outline; drives silhouette smoothness
+}
+
 export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {}) {
+  Object.assign(SPECS[VARIANT], QUALITY)
   const bf = createButterfly(THREE, VARIANT)
   const root = bf.group
 
