@@ -5,12 +5,24 @@
 // sells a thing we hand over; this one sells the fortnight before anyone knows
 // what to build. That difference drives the whole layout:
 //
-//   · no tile grid — a grid says "pick one of these products". This is one
-//     engagement with three questions inside it, so it is three wide rows.
+//   · the three questions read left-to-right as one engagement (scale → costs
+//     → automate), not "pick one of these products" — a 3-up row still reads
+//     that way; it was three full-width rows stacked only because nobody had
+//     cut the height yet, not because the row shape was the point.
 //   · the photo sits on ITS OWN pastel sweep (same shoot as the eight needs),
-//     so the section reads as part of the set without being a ninth tile.
+//     so the section reads as part of the set without being a ninth tile —
+//     now beside the intro copy instead of under it, so it stops owning a
+//     full screen of scroll by itself.
 //   · the numbers-first copy in site.js is deliberate. Owners distrust the word
 //     "consultancy" because it is usually sold in adjectives.
+//
+// This section used to run ~2x the height of every other section on the page
+// for the same amount of substance — a full-bleed photo row, three full-width
+// pillar rows, and two separate felted-cream bands each paying their own
+// padding. Nothing below was deleted to shrink it: the photo moved beside the
+// copy, the pillars became a 3-up row, and the fortnight timeline + outcomes
+// list now share one card instead of two. Same content, roughly half the
+// scroll.
 //
 // Renders in two places from one source:
 //   <Consultancy />          the #consultancy section on the long page
@@ -188,34 +200,40 @@ export function Consultancy({ page = false }) {
 
   return (
     <section className={`consult ${page ? 'consult--page' : ''}`} id="consultancy">
-      <div className="section-head">
-        <p className="kicker"><span>—</span> {C.kicker}</p>
-        <SplitWords as={page ? 'h1' : 'h2'} className="h2" text={C.title} />
-        <Reveal delay={0.15}>
-          <p className="lede" style={{ marginTop: 22 }}>{C.lede}</p>
+      {/* the still used to be its own full-bleed row below the head — a whole
+          screen of vertical space for one photo. It now sits beside the copy
+          instead of under it: same asset, same "own pastel sweep" contract,
+          a fraction of the height because it no longer owns a row by itself. */}
+      <div className="section-head consult-head">
+        <div className="consult-head-copy">
+          <p className="kicker"><span>—</span> {C.kicker}</p>
+          <SplitWords as={page ? 'h1' : 'h2'} className="h2" text={C.title} />
+          <Reveal delay={0.15}>
+            <p className="lede" style={{ marginTop: 22 }}>{C.lede}</p>
+          </Reveal>
+        </div>
+        <Reveal delay={0.1} className="consult-shot">
+          <img
+            src="/img/needs/consultancy.webp"
+            alt=""
+            width={1200}
+            height={800}
+            loading="lazy"
+            decoding="async"
+            onError={(e) => { e.currentTarget.closest('.consult-shot')?.remove() }}
+          />
         </Reveal>
       </div>
-
-      {/* the still, full-bleed on its own sweep. Same graceful-degradation
-          contract as .cnt-photo: if the webp is missing the figure collapses
-          rather than leaving a white hole. */}
-      <Reveal delay={0.1} className="consult-shot">
-        <img
-          src="/img/needs/consultancy.webp"
-          alt=""
-          width={1200}
-          height={800}
-          loading="lazy"
-          decoding="async"
-          onError={(e) => { e.currentTarget.closest('.consult-shot')?.remove() }}
-        />
-      </Reveal>
 
       {/* the wow layer — see CostCalculator above for why this is a
           calculator and not another paragraph. */}
       {C.calculator && <CostCalculator copy={C.calculator} start={start} />}
 
-      {/* three questions, three rows — never a grid. See header note. */}
+      {/* three questions. Still never a "pick one" tile grid in spirit — the
+          copy still reads scale → costs → automate as one engagement — but
+          three full-width rows was 3× the same band shape stacked for no
+          reason; a 3-up row on desktop says the same thing in a third of
+          the height. Narrow viewports fall back to a single column. */}
       <div className="consult-pillars">
         {C.pillars.map((p, i) => (
           <Reveal key={p.id} delay={i * 0.08} y={24} className="consult-pillar">
@@ -231,6 +249,11 @@ export function Consultancy({ page = false }) {
         ))}
       </div>
 
+      {/* the fortnight timeline and the outcomes list used to be two separate
+          full-width sections, each paying its own top/bottom padding for the
+          same felted-cream beat. They are one card now — the steps ARE how
+          you get the outcomes, so reading them in one continuous band is
+          truer to the engagement than a hard section break implied. */}
       <div className="consult-band">
         <Reveal className="consult-band-head">
           <h3 className="h3">How the fortnight runs</h3>
@@ -249,9 +272,9 @@ export function Consultancy({ page = false }) {
             </li>
           ))}
         </ol>
-      </div>
 
-      <div className="consult-out">
+        <div className="consult-band-divider" aria-hidden="true" />
+
         <Reveal>
           <h3 className="h3">What you walk away with</h3>
         </Reveal>

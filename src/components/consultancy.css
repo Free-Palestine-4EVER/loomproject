@@ -3,17 +3,22 @@
    ═══════════════════════════════════════════════════════════
 
    The rest of the site sells objects, so it is built from tiles. This sells a
-   fortnight of thinking, so it is built from ROWS: full-width bands the eye
-   walks down in order, the same way the engagement actually runs. There is no
-   grid of three here on purpose — a 3-up would read as "choose one", and you
-   cannot buy only the cost audit.
+   fortnight of thinking, so it still reads top-to-bottom as one narrative in
+   order rather than a grid to "choose one from" — but a narrative does not
+   require every beat to be its own full-width band. This pass tightened the
+   section to roughly half its previous height by collapsing repeated full-
+   width rows into denser shapes (photo beside the intro, pillars in a 3-up
+   row, the fortnight timeline and outcomes sharing one card) — never by
+   cutting copy or dropping the calculator's prominence.
 
    Reuses the site's existing material vocabulary (.blk dyes, felt-cream strips,
    --yarn-* dyes) rather than inventing a palette. Nothing here recolours wool.
    ═══════════════════════════════════════════════════════════ */
 
 .consult {
-  padding-bottom: clamp(70px, 10vh, 130px);
+  /* was clamp(70px,10vh,130px) — the section no longer needs a landing pad
+     that big underneath it now that it is half the height overall */
+  padding-bottom: clamp(48px, 6vh, 90px);
   /* scroll-margin so the Lenis -70 offset lands the heading clear of the nav */
   scroll-margin-top: 70px;
 }
@@ -21,12 +26,20 @@
 /* the standalone /consultancy route has no sections above it to breathe against */
 .consult--page { padding-top: clamp(96px, 14vh, 170px); }
 
-/* ── the still ───────────────────────────────────────────── */
-/* Full-bleed inside the page padding, wide crop. The image arrives on its own
-   pastel studio sweep (same shoot as /img/needs/*.webp) — never tinted, never
-   cropped to square: the sweep IS the material. */
+/* ── head: intro copy beside the still ───────────────────── */
+/* The photo used to be a full-bleed row of its own below the head — a whole
+   screen of scroll for one image. It now shares the head's row instead of
+   owning one: same asset, same "own pastel sweep" contract, a fraction of
+   the footprint because a column-width image is not a viewport-width one. */
+.consult .section-head.consult-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+}
+.consult-head-copy { min-width: 0; }
+
 .consult-shot {
-  margin: clamp(34px, 4.5vw, 60px) var(--pad) 0;
   border-radius: calc(var(--radius) * 1.1);
   overflow: hidden;
   box-shadow:
@@ -37,8 +50,18 @@
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 3 / 2;
+  /* shorter crop than the old full-bleed 3:2 — this is a companion image next
+     to the copy now, not a hero still carrying the section on its own */
+  aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+@media (max-width: 860px) {
+  .consult .section-head.consult-head {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .consult-shot img { aspect-ratio: 16 / 9; }
 }
 
 /* ── the calculator (the wow layer) ──────────────────────── */
@@ -46,8 +69,8 @@
    fortnight-timeline are the section's two "different material" beats, so
    they share a recipe on purpose rather than each inventing their own. */
 .calc {
-  margin: clamp(38px, 5vw, 64px) var(--pad) 0;
-  padding: clamp(28px, 3.6vw, 52px);
+  margin: clamp(28px, 3.6vw, 48px) var(--pad) 0;
+  padding: clamp(22px, 3vw, 40px);
   border-radius: calc(var(--radius) * 1.1);
   background-color: var(--yarn-cream);
   background-image: url('/img/wool/tex/felt-cream.webp');
@@ -71,19 +94,19 @@
 .calc-body {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: clamp(28px, 4vw, 56px);
-  margin-top: clamp(28px, 3.4vw, 44px);
+  gap: clamp(24px, 3.4vw, 46px);
+  margin-top: clamp(20px, 2.6vw, 34px);
   align-items: start;
 }
 
-.calc-controls { display: grid; gap: clamp(20px, 2.4vw, 30px); min-width: 0; }
+.calc-controls { display: grid; gap: clamp(14px, 1.8vw, 22px); min-width: 0; }
 .calc-field { min-width: 0; }
 .calc-field-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .calc-field-head label {
   font-size: 0.92rem;
@@ -161,12 +184,12 @@
 /* the readout — a stat stack that reads as a receipt, not a dashboard widget */
 .calc-readout {
   display: grid;
-  gap: clamp(14px, 1.8vw, 20px);
+  gap: clamp(10px, 1.4vw, 16px);
   align-content: start;
   min-width: 0;
 }
 .calc-stat {
-  padding: 16px clamp(16px, 2vw, 22px);
+  padding: 13px clamp(14px, 1.8vw, 20px);
   border-radius: var(--radius);
   background-color: rgba(51, 36, 61, 0.06);
   border: 1px solid rgba(51, 36, 61, 0.14);
@@ -195,15 +218,15 @@
 
 .calc-assumptions {
   max-width: 74ch;
-  margin: clamp(22px, 2.6vw, 30px) 0 0;
-  padding-top: clamp(16px, 2vw, 22px);
+  margin: clamp(16px, 2vw, 22px) 0 0;
+  padding-top: clamp(12px, 1.6vw, 18px);
   border-top: 1px solid rgba(51, 36, 61, 0.16);
   font-size: 0.85rem;
-  line-height: 1.6;
+  line-height: 1.55;
   color: rgba(51, 36, 61, 0.68);
 }
 
-.calc > :last-child { margin-top: clamp(20px, 2.4vw, 26px); }
+.calc > :last-child { margin-top: clamp(16px, 2vw, 22px); }
 
 @media (max-width: 860px) {
   .calc-body { grid-template-columns: 1fr; }
@@ -214,14 +237,22 @@
 }
 
 /* ── the three questions ─────────────────────────────────── */
+/* Was three full-width rows stacked — three times the same band shape for no
+   reason once the content itself is this short per pillar. A 3-up row on
+   desktop says scale → costs → automate left-to-right in a third of the
+   height; it still reads as one engagement, not a "pick one" tile grid,
+   because the three cards share a sentence rhythm and a single row. */
 .consult-pillars {
   display: grid;
-  gap: clamp(14px, 1.8vw, 26px);
-  padding: clamp(38px, 5vw, 64px) var(--pad) 0;
+  gap: clamp(14px, 1.8vw, 22px);
+  padding: clamp(30px, 4vw, 52px) var(--pad) 0;
+}
+@media (min-width: 861px) {
+  .consult-pillars { grid-template-columns: repeat(3, 1fr); align-items: stretch; }
 }
 
 .consult-pillar {
-  padding: clamp(24px, 3vw, 40px);
+  padding: clamp(20px, 2.2vw, 28px);
   border-radius: calc(var(--radius) * 1.1);
   background-color: rgba(242, 240, 247, 0.035);
   border: 1px solid var(--line);
@@ -235,11 +266,11 @@
 .consult-pillar-head {
   display: flex;
   align-items: center;
-  gap: clamp(14px, 1.6vw, 20px);
-  margin-bottom: 14px;
+  gap: clamp(12px, 1.4vw, 16px);
+  margin-bottom: 12px;
 }
 .consult-medal {
-  --wool-icon: 56px;
+  --wool-icon: 44px;
   flex: none;
   transition: transform 0.4s var(--ease);
 }
@@ -248,30 +279,29 @@
 .consult-pillar-title {
   font-family: var(--display);
   font-weight: 620;
-  font-size: clamp(1.25rem, 2.1vw, 1.72rem);
-  line-height: 1.12;
+  font-size: clamp(1.12rem, 1.5vw, 1.36rem);
+  line-height: 1.15;
   letter-spacing: -0.015em;
 }
 
 .consult-pillar-copy {
-  max-width: 62ch;
   color: var(--ink-dim);
-  font-size: clamp(0.98rem, 1.15vw, 1.08rem);
-  line-height: 1.62;
+  font-size: 0.94rem;
+  line-height: 1.52;
 }
 
 .consult-points {
   list-style: none;
-  margin: 20px 0 0;
+  margin: 16px 0 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .consult-points li {
   position: relative;
-  padding-left: 26px;
-  font-size: 0.95rem;
-  line-height: 1.55;
+  padding-left: 24px;
+  font-size: 0.88rem;
+  line-height: 1.45;
   color: var(--ink);
 }
 /* a stitch, not a bullet — two threads of the brand stripe */
@@ -286,10 +316,15 @@
   background: linear-gradient(90deg, var(--magenta), var(--yarn-violet, var(--magenta)));
 }
 
-/* ── how the fortnight runs ──────────────────────────────── */
+/* ── how the fortnight runs + what you walk away with ────── */
+/* These were two separate full-width sections, each paying its own
+   clamp(46px,6vw,84px) of top padding for the same felted-cream background —
+   a repeated band shape with a seam that didn't need to exist. One card now:
+   the timeline and the outcomes it produces read as a continuous thought
+   instead of two section breaks. */
 .consult-band {
-  margin: clamp(46px, 6vw, 84px) var(--pad) 0;
-  padding: clamp(28px, 3.6vw, 52px);
+  margin: clamp(32px, 4.2vw, 56px) var(--pad) 0;
+  padding: clamp(24px, 3vw, 44px);
   border-radius: calc(var(--radius) * 1.1);
   /* the one felted-cream field in the section — the same inversion the Counter
      label strip uses, so the page has a light beat in the middle */
@@ -308,7 +343,7 @@
 
 .consult-steps {
   list-style: none;
-  margin: clamp(24px, 3vw, 38px) 0 0;
+  margin: clamp(20px, 2.6vw, 32px) 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -322,49 +357,59 @@
   font-size: 0.86rem;
   letter-spacing: 0.14em;
   color: rgba(51, 36, 61, 0.42);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .consult-step-title {
   font-family: var(--display);
   font-weight: 620;
-  font-size: 1.06rem;
+  font-size: 1.02rem;
   line-height: 1.2;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
 }
 .consult-step-copy {
-  font-size: 0.92rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.5;
   color: rgba(51, 36, 61, 0.78);
 }
 
+/* the seam between the two halves of the merged card — a hairline, not a gap,
+   so it reads as one card with two beats rather than two cards touching */
+.consult-band-divider {
+  height: 1px;
+  margin: clamp(24px, 3vw, 38px) 0;
+  background: rgba(51, 36, 61, 0.14);
+}
+
 /* ── what you walk away with ─────────────────────────────── */
-.consult-out { padding: clamp(46px, 6vw, 84px) var(--pad) 0; }
 .consult-out-list {
   list-style: none;
-  margin: clamp(20px, 2.6vw, 32px) 0 0;
+  margin: clamp(16px, 2vw, 24px) 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: clamp(12px, 1.6vw, 20px);
+  gap: clamp(10px, 1.4vw, 16px);
 }
 .consult-out-item { min-width: 0; }
 .consult-out-row {
   display: flex;
   align-items: flex-start;
-  gap: 13px;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 12px 16px;
   border-radius: var(--radius);
-  border: 1px solid var(--line);
-  background-color: rgba(242, 240, 247, 0.035);
-  font-size: 0.98rem;
-  line-height: 1.5;
+  /* now on the cream field (used to sit on the dark page background), so it
+     needs the light-on-light border .calc-stat already uses, not --line */
+  border: 1px solid rgba(51, 36, 61, 0.14);
+  background-color: rgba(51, 36, 61, 0.045);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: #33243d;
 }
 /* a felted tick drawn in CSS — no icon file for four instances */
 .consult-tick {
   flex: none;
   width: 16px;
   height: 9px;
-  margin-top: 5px;
+  margin-top: 4px;
   border-left: 2.5px solid var(--magenta);
   border-bottom: 2.5px solid var(--magenta);
   border-radius: 1px;
@@ -399,7 +444,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: clamp(16px, 2vw, 28px);
-  padding: clamp(38px, 4.6vw, 60px) var(--pad) 0;
+  padding: clamp(28px, 3.6vw, 48px) var(--pad) 0;
 }
 .consult-foot-link {
   font-weight: 640;
@@ -414,12 +459,21 @@
 /* ── responsive ──────────────────────────────────────────── */
 @media (max-width: 1000px) {
   .consult-steps { grid-template-columns: repeat(2, 1fr); }
-  .consult-medal { --wool-icon: 46px; }
 }
 @media (max-width: 719px) {
+  /* single column below 860px already (see .consult-head-copy rule above);
+     a touch shorter than 16:9 once the image is this narrow */
   .consult-shot img { aspect-ratio: 4 / 3; }
   .consult-out-list,
   .consult-faq-list { grid-template-columns: 1fr; }
-  .consult-steps { grid-template-columns: 1fr; gap: 22px; }
+  .consult-steps { grid-template-columns: 1fr; gap: 18px; }
   .consult-pillar-head { gap: 12px; }
+  /* .section-head's shared clamp(70px,10vh,130px) top padding (styles.css)
+     is sized for a section that opens with only a headline above it — this
+     one now opens with a photo too, so the same padding reads as dead air
+     once everything else in the section has been tightened. Scoped to
+     .consult only, so no other section's spacing moves. */
+  .consult .section-head.consult-head { padding-top: clamp(44px, 8vh, 80px); }
+  .consult-pillar { padding: 18px; }
+  .consult-band { padding: 20px 18px; }
 }
