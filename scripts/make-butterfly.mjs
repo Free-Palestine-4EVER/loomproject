@@ -1,3 +1,12 @@
+// STATUS (2026-08): not currently wired to the live site. Companion.js — the
+// rig that actually flies the butterfly down the page — switched to a
+// procedural, canvas-textured model built at runtime by
+// src/three/butterfly-model.js (see src/three/butterflyAsset.js's header for
+// the full story). This generator and the GLB it produces are kept only as
+// a reproducible reference / a possible future asset source; nothing in the
+// production bundle loads public/models/butterfly.glb. Confirmed by grepping
+// every built JS chunk in dist/assets/ for the filename: zero matches.
+//
 // Procedural felted-wool butterfly — geometry, skeleton, skinning and animation
 // clips authored in code, exported as a single self-contained .glb.
 //
@@ -46,24 +55,29 @@ if (typeof globalThis.FileReader === 'undefined') {
 }
 
 // ─────────────────────────────────────────────────────────── palette ──
-// Sampled off the felted reference, then pulled toward the LOOM hero so the
-// butterfly sits *in* the scene's violet light instead of on top of it.
+// v2: swallowtail redesign. The v1 wash — violet/periwinkle bands on a violet
+// body — sat almost invisibly close to the hero's own violet backdrop and
+// LOOM's actual brand marks (magenta/gold) never showed up on the mascot at
+// all. This pulls the wing straight onto the brand: near-black ground,
+// hot-magenta and gold bands, a warm cream eyespot instead of ice-blue, so
+// the butterfly reads as LOOM's own colour even before the field's emissive
+// tint is added on top.
 const C = {
-  deep:    new THREE.Color('#0a0418'), // margin black-violet
-  indigo:  new THREE.Color('#1b0a38'),
-  violet:  new THREE.Color('#361563'),
-  orchid:  new THREE.Color('#5e2ea0'),
-  lilac:   new THREE.Color('#8a5fce'),
-  peri:    new THREE.Color('#7d92dd'), // periwinkle wash
-  ice:     new THREE.Color('#cfe2ff'), // eyespot centres
-  frost:   new THREE.Color('#eaf1ff'),
-  vein:    new THREE.Color('#180a30'),
-  fuzzDark:new THREE.Color('#140a26'),
-  fuzzMid: new THREE.Color('#3d2068'),
-  fuzzHi:  new THREE.Color('#9b83d8'),
+  deep:    new THREE.Color('#0a0410'), // margin black
+  indigo:  new THREE.Color('#2a0a28'), // black warmed toward magenta
+  violet:  new THREE.Color('#5c1050'), // plum-magenta transition band
+  orchid:  new THREE.Color('#d4166f'), // crimson-magenta
+  lilac:   new THREE.Color('#f21c8c'), // brand magenta
+  peri:    new THREE.Color('#ffb23e'), // gold wash, stands in for the old periwinkle
+  ice:     new THREE.Color('#fff0cf'), // eyespot centres — warm cream, not ice-blue
+  frost:   new THREE.Color('#fff8ea'),
+  vein:    new THREE.Color('#200818'),
+  fuzzDark:new THREE.Color('#100810'),
+  fuzzMid: new THREE.Color('#4a0e3c'),
+  fuzzHi:  new THREE.Color('#f4b942'), // gold highlight fuzz, was lilac
   eye:     new THREE.Color('#080510'),
-  mouth:   new THREE.Color('#ff5fa8'),
-  leg:     new THREE.Color('#1a0f28'),
+  mouth:   new THREE.Color('#ffcf6b'),
+  leg:     new THREE.Color('#180810'),
 }
 
 // ─────────────────────────────────────────────────────────── skeleton ──
@@ -277,20 +291,22 @@ const FORE_PTS = [
   [0.28, -0.008],
   [0.14, -0.022],  // inner root
 ]
-// The hindwing carries the reference's two little tails at the anal angle.
+// v2: one long swallowtail spike instead of the reference's two stubby tails
+// — the single most recognisable silhouette swap that makes this read as a
+// different butterfly at a glance, not just a recolour.
 const HIND_PTS = [
   [0.095, 0.022],  // forward root, tucked under the forewing
-  [0.29, 0.008],
-  [0.47, -0.044],
-  [0.61, -0.136],
-  [0.665, -0.258],
-  [0.630, -0.392],
-  [0.520, -0.482],
-  [0.425, -0.585],  // long tail
-  [0.352, -0.468],
-  [0.268, -0.534],  // short tail
-  [0.206, -0.428],
-  [0.128, -0.302],
+  [0.300, 0.000],
+  [0.500, -0.060],
+  [0.640, -0.175],
+  [0.700, -0.310],
+  [0.665, -0.430],
+  [0.600, -0.485],  // tail base, outer side
+  [0.500, -0.760],  // tail tip — long spike
+  [0.430, -0.560],  // tail base, inner side
+  [0.340, -0.470],
+  [0.230, -0.360],
+  [0.130, -0.230],
   [0.070, -0.162],  // inner root
 ]
 

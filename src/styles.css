@@ -122,6 +122,13 @@ html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
 .sw.is-animating .sw-word { will-change: transform; }
 
 section { position: relative; }
+/* Clear the sticky header on every anchor landing that Lenis does NOT drive:
+   reduced-motion users (no Lenis at all, so App.jsx falls back to
+   scrollIntoView), and anyone who types or shares a /#work style URL. Lenis
+   measures the real header height at click time — this is the static mirror of
+   that, sized for the taller unscrolled bar so it can only ever be generous. */
+section[id], [id].section-anchor { scroll-margin-top: 114px; }
+@media (max-width: 900px) { section[id], [id].section-anchor { scroll-margin-top: 92px; } }
 .section-head { padding: clamp(70px, 10vh, 130px) var(--pad) clamp(30px, 5vh, 60px); }
 
 /* ——— buttons ——— */
@@ -151,7 +158,12 @@ section { position: relative; }
   font-family: var(--display); font-weight: 620;
   font-size: clamp(3rem, 10vw, 6.5rem);
   letter-spacing: 0.06em; line-height: 1;
-  overflow: hidden; display: inline-flex;
+  display: inline-flex;
+  /* No `overflow: hidden` here. It was a leftover from the old text loader,
+     where letter <span>s slid up out of a masked box. With the woven logo the
+     mask instead clips the img's magenta drop-shadow to the content box — the
+     soft glow gets a hard rectangular edge and reads as a grey plate behind
+     the mark. */
 }
 .loader-word span { display: inline-block; }
 .loader-thread {
@@ -557,14 +569,10 @@ html.cursor-hot .cursor-ring {
   border: 1px solid var(--line);
   aspect-ratio: 4 / 3; background: var(--bg-3);
 }
-/* DIRECT child only — as a descendant selector this also matched the felted
-   arrow medallion inside .case-veil, blowing the "Open case" pill out to a
-   463px blurred circle and promoting 23 static medallions to their own layer. */
-.case-media > img {
-  width: 100%; height: 112%; object-fit: cover; will-change: transform;
-  opacity: 0; transition: opacity 250ms ease-out;
-}
-.case-media > img.is-loaded { opacity: 1; }
+/* No `.case-media > img` rule any more: the card's thumbnail is no longer a
+   loose cover image, it is a MacBook + iPhone composite owned by
+   DeviceShowcase (`.case-devframe`, device-showcase.css). A blanket
+   `object-fit: cover` here would fight the frame apertures. */
 .overlay-gallery img { opacity: 0; transition: opacity 250ms ease-out; }
 .overlay-gallery img.is-loaded { opacity: 1; }
 .case-veil {
@@ -576,15 +584,9 @@ html.cursor-hot .cursor-ring {
   border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px; padding: 12px 26px;
   backdrop-filter: blur(6px); background: rgba(13, 7, 22, 0.35);
 }
-/* The MacBook chip — grounded bottom-right so it never collides with the
-   .case-reel badge pinned top-left, and sized to stay a proof-of-responsive
-   accent, not a second cover image competing with the real one underneath.
-   pointer-events: none because the card's own <button> is the click target;
-   the chip is decoration riding on top of it, not a second control. */
-.case-devshow {
-  position: absolute; z-index: 1; pointer-events: none;
-  right: 6%; bottom: 7%; width: 44%;
-}
+/* `.case-devshow` lived here when the MacBook was a small chip riding on top
+   of a cover photo. The device pair IS the thumbnail now, so the rule had
+   nothing left to match — see `.case-devframe` in device-showcase.css. */
 .case-video {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; opacity: 0; transition: opacity 0.45s var(--ease);

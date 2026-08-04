@@ -68,8 +68,8 @@ export async function loadButterfly() {
 // file a byte-identical drop-in from ~/Desktop/loom-butterfly, so it can be
 // re-copied when the generator changes without re-applying a patch.
 const QUALITY = {
-  rings: 14,   // radial subdivisions root->rim; drives how smoothly the bend curves
-  segs: 56,    // subdivisions along the outline; drives silhouette smoothness
+  rings: 18,   // radial subdivisions root->rim; drives how smoothly the bend curves
+  segs: 120,   // subdivisions along the outline; drives silhouette smoothness
 }
 
 export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {}) {
@@ -96,9 +96,20 @@ export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {
       // Tint is a lift toward the page's orchid, never a recolour: these wing
       // patterns are painted per-variant and repainting them in emissive would
       // throw away the thing that makes each variant itself.
+      //
+      // THE BUG THIS USED TO BE: MeshPhysicalMaterial defaults emissiveIntensity
+      // to 1, and this line used to write `Math.max(mat.emissiveIntensity ?? 1, 0.08)`
+      // — a "floor" of 0.08 that never once fires, because the default it is
+      // flooring is already 1. The result was a full-strength, completely flat
+      // (unlit, UV-independent) violet wash added over every pixel of the wing,
+      // which is what actually produced the "flat dull grey" look: emissive
+      // colour ignores lighting direction and the map entirely, so it steamrolled
+      // the hand-painted gold/cream weave into a uniform lavender-white flood.
+      // A lift has to stay visually subordinate to the painted albedo — cap the
+      // intensity low instead of flooring it.
       if (tint && mat.emissive) {
-        mat.emissive = mat.emissive.clone().lerp(tint, 0.35)
-        mat.emissiveIntensity = Math.max(mat.emissiveIntensity ?? 1, 0.08)
+        mat.emissive = mat.emissive.clone().lerp(tint, 0.22)
+        mat.emissiveIntensity = Math.min(mat.emissiveIntensity ?? 1, 0.1)
       }
       if (wingAlpha < 1 && mat.transparent !== undefined) {
         mat.transparent = true

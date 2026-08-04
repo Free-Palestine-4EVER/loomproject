@@ -8,6 +8,32 @@ import { WoolButton, WoolIcon } from './Wool.jsx'
 import { DeviceShowcase } from './DeviceShowcase.jsx'
 import './heads-v7.css'
 
+// Spelled-out numerals up to the range this board can plausibly reach; past
+// that the digit is fine and honest.
+const NUMBER_WORD = {
+  5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten',
+  11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen',
+  16: 'sixteen', 17: 'seventeen', 18: 'eighteen', 19: 'nineteen', 20: 'twenty',
+  21: 'twenty-one', 22: 'twenty-two', 23: 'twenty-three', 24: 'twenty-four',
+  25: 'twenty-five',
+}
+const titleCase = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1)
+
+// `country` is prose, not a code: "Sarajevo" means Bosnia, "CH / BiH" is two
+// countries, "German market" is a market served rather than a place worked in.
+// Normalise to real countries so the headline counts what it claims to count.
+const COUNTRY_ALIAS = {
+  sarajevo: 'Bosnia', bih: 'Bosnia', ch: 'Switzerland', switzerland: 'Switzerland',
+  'german market': 'Germany', germany: 'Germany', uae: 'UAE', oman: 'Oman',
+  jordan: 'Jordan', croatia: 'Croatia', usa: 'USA',
+}
+const COUNTRY_COUNT = new Set(
+  CASES.flatMap((c) => String(c.country || '').split(/[/×,]/))
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
+    .map((s) => COUNTRY_ALIAS[s] || s)
+).size
+
 // Fade images in on decode — ref callback handles the cached case (onLoad
 // never fires for images that were complete before hydration).
 const imgFade = (el) => { if (el && el.complete && el.naturalWidth) el.classList.add('is-loaded') }
@@ -68,28 +94,30 @@ function CaseCard({ c, onOpen }) {
     >
       <button className="case-hit" onClick={() => onOpen(c.slug)} aria-label={`Open case study: ${c.client} — ${c.title}`}>
         <div className="case-media">
-          <motion.img
-            src={c.cover} alt={`${c.client} — ${c.title}`} loading="lazy"
-            ref={imgFade} onLoad={onImgLoad}
+          {/* The thumbnail IS the product shot — no loose cover image sits
+              behind it any more. Every case renders on a real MacBook +
+              iPhone (DeviceShowcase's `card` mode: same pair the case
+              overlay shows at full size, scaled and centered to sit inside
+              this 4:3 tile — see device-showcase.css's .devshow--card for the
+              measured aperture rects and sizing). This wrapper is the motion
+              layer only (scroll parallax + the whole-composite hover scale,
+              same values the old cover img used); DeviceShowcase itself
+              drives the mac tilt / phone lift on hover via variant
+              propagation from .case-card's whileHover below. */}
+          <motion.div
+            className="case-devframe"
             style={{ y }}
-            variants={{ hover: { scale: 1.06 } }}
+            variants={{ hover: { scale: 1.035 } }}
             transition={{ duration: 0.8, ease: EASE }}
-          />
-          {/* The card-scale echo of overlay-devices below — same slug
-              convention, same fallback, same frame asset, just `compact` so
-              the phone pane (illegible this small, see DeviceShowcase.jsx)
-              drops out. Sits between the cover and the reel video in the DOM
-              on purpose: a case with `c.video` still gets its video full-bleed
-              on hover exactly as before, painting straight over this chip,
-              so the reel keeps first claim on the hover moment it already had. */}
-          <div className="case-devshow" aria-hidden="true">
+          >
             <DeviceShowcase
-              compact
+              card
               desktop={c.devices?.desktop || `/img/cases/${c.slug}/screen-desktop.webp`}
+              mobile={c.devices?.mobile || `/img/cases/${c.slug}/screen-mobile.webp`}
               fallback={c.cover}
               alt={`${c.client} — ${c.title}`}
             />
-          </div>
+          </motion.div>
           {c.video && (
             <video
               ref={vidRef} className="case-video" src={c.video} poster={c.cover}
@@ -320,7 +348,14 @@ export function Work() {
     <section className="work" id="work">
       <div className="section-head">
         <p className="kicker"><span>—</span> Selected work</p>
-        <SplitWords as="h2" className="h2" text="Seventeen brands launched across seven countries — not one template between them." />
+        {/* Counted from the data, never typed. The headline read "Seventeen"
+            while CASES held eighteen — a claim on a client-facing agency site
+            that drifts the moment someone adds a case. Countries are counted
+            the same way: `country` is a free-text field that mixes markets
+            ("German market") with pairs ("CH / BiH", "Oman × UAE"), so split
+            on the separators and fold the city onto its country before
+            counting distinct ones. */}
+        <SplitWords as="h2" className="h2" text={`${titleCase(NUMBER_WORD[CASES.length] ?? CASES.length)} brands launched across ${NUMBER_WORD[COUNTRY_COUNT] ?? COUNTRY_COUNT} countries — not one template between them.`} />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
             Everything on this board went live — and most of it went further. Open any tile and walk the whole case.

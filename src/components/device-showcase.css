@@ -9,13 +9,23 @@
    else in the app, so there is nothing to tie against — no double-class
    defensive pairing needed, unlike products-showcase.css.
 
-   FRAME MATH — copied, not re-derived, from the two places that already
-   measured these PNGs (scripts/make-device-frames.mjs prints these numbers;
-   re-run it and update both sites if the art ever changes):
-     macbook-frame.png  1600 x 930   screen at 12.07% / 6.09% / 78.31% / 86.14%
-       (Products.jsx .lab-mac, products-showcase.css:145)
-     iphone-frame.png    900 x 1813  screen at  5.71% /  2.39% / 88.52% / 95.19%
-       (Apps .app-phone, styles.css:691) */
+   FRAME MATH — re-measured directly off the actual PNGs on disk (1180x686 and
+   760x1531; the 1600x930 / 900x1813 numbers this comment used to cite were
+   from a since-replaced asset generation and no longer match — same aspect
+   ratio, different bezel proportions). Measured with a pixel scan
+   (numpy + scipy connected-components), two different techniques because the
+   two PNGs are built differently:
+     macbook-frame.png — the "screen" is NOT alpha-cut; it's painted solid
+       near-black (RGB ~0-30, alpha 255, identical alpha to the bezel). Found
+       by thresholding max(R,G,B) < 30 and taking the largest connected
+       region's bbox: left=10.34% top=0.73% width=80.17% height=91.69%
+       (px 122,5 to 1067,633 of 1180x686).
+     iphone-frame.png — the screen IS a true alpha cutout (alpha == 0 inside,
+       255 on the body). Found by flood-filling the transparent pixels and
+       discarding the one region that touches the image border (the outer
+       background): left=5.66% top=2.35% width=88.68% height=95.23%
+       (px 43,36 to 716,1493 of 760x1531).
+   If either PNG is regenerated, re-run the same scan before trusting these. */
 
 /* Wraps <DeviceShowcase> in Work.jsx, matching the same horizontal breathing
    room .overlay-head and .overlay-gallery already give the panel either side
@@ -39,7 +49,7 @@
 .devshow-mac {
   position: relative;
   width: 100%;
-  aspect-ratio: 1600 / 930;
+  aspect-ratio: 1180 / 686;
   filter: drop-shadow(0 20px 34px rgba(0, 0, 0, 0.5));
   animation: devshow-float 9s ease-in-out infinite;
 }
@@ -50,10 +60,14 @@
 }
 .devshow-mac-screen {
   position: absolute; z-index: 1; overflow: hidden;
-  left: 12.07%; top: 6.09%; width: 78.31%; height: 86.14%;
+  left: 10.34%; top: 0.73%; width: 80.17%; height: 91.69%;
   background: #05030a;
 }
-.devshow-mac-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.devshow-mac-screen img {
+  width: 100%; height: 100%; object-fit: cover; object-position: top;
+  opacity: 0; transition: opacity 300ms ease-out;
+}
+.devshow-mac-screen img.is-loaded { opacity: 1; }
 
 /* Positive `right` (never negative) is the load-bearing choice here — it
    keeps the phone's right edge inside the MacBook's box so the pair's total
@@ -63,7 +77,7 @@
 .devshow-phone {
   position: absolute; z-index: 2;
   width: 30%; right: 3%; bottom: -14%;
-  aspect-ratio: 900 / 1813;
+  aspect-ratio: 760 / 1531;
   filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.55));
   animation: devshow-float 9s ease-in-out infinite;
   animation-delay: 0.6s; /* off-beat from the MacBook so the pair doesn't bob in lockstep */
@@ -75,11 +89,15 @@
 }
 .devshow-phone-screen {
   position: absolute; z-index: 1; overflow: hidden;
-  left: 5.71%; top: 2.39%; width: 88.52%; height: 95.19%;
+  left: 5.66%; top: 2.35%; width: 88.68%; height: 95.23%;
   border-radius: 11.5% / 5.6%; /* the mockup's own display corner, see app-screen */
   background: #05030a;
 }
-.devshow-phone-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.devshow-phone-screen img {
+  width: 100%; height: 100%; object-fit: cover; object-position: top;
+  opacity: 0; transition: opacity 300ms ease-out;
+}
+.devshow-phone-screen img.is-loaded { opacity: 1; }
 
 /* A resting drift, same idea as .app-phone's phoneidle — a case that just
    sits there dead on the page reads like a screenshot; this is the smallest
@@ -102,17 +120,79 @@
   .devshow-phone { position: static; width: 46%; animation: none; }
 }
 
-/* Compact — Work.jsx's card-scale MacBook chip. Same component, same frame
-   maths above; only the box it sits in changes. The overlay's own sizing
-   (max-width, centering margin, the stacked-phone breakpoint) is all keyed to
-   filling a full panel and would otherwise fight the small absolute box
-   .case-devshow gives it, so compact opts out of that sizing and lets the
-   card own it instead. No phone pane exists in this mode (DeviceShowcase.jsx
-   drops it above `compact`), so there is nothing here to re-stack at narrow
-   widths — that's why this variant has no width-based media query of its own. */
+/* Compact — mac-only chip. Not currently used by Work.jsx (the grid moved to
+   the full `.devshow--card` pair below so the thumbnail itself is never a
+   loose image) but kept as a supported mode for any future spot that only
+   wants the MacBook. */
 .devshow--compact {
   max-width: none;
   margin: 0;
   width: 100%;
 }
 .devshow--compact .devshow-mac { animation-duration: 11s; }
+
+/* ————————————————————————————————————————————————————————
+   Card — Work.jsx's Selected-Work grid thumbnail. The card no longer shows a
+   loose cover photo at all: this pair, sized to sit inside a 4:3 tile, IS the
+   thumbnail. Wrapped by `.case-devframe` in Work.jsx, which owns the motion
+   (scroll parallax + overall hover scale) so this class only has to handle
+   layout — same separation of concerns as compact/overlay above.
+
+   Sizing: mac at 88% of the tile leaves ~17% of the tile's height as air
+   above/below the composite (mac height 0.88/1.7201 = 51.2% of tile width;
+   the phone's -14% bottom overhang brings the full composite to ~58.3% of
+   tile width; the tile itself is 75% of its own width tall, 4:3) — enough
+   breathing room to read as a deliberate product shot, not a crop.
+   ———————————————————————————————————————————————————————— */
+.case-devframe {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.devshow--card {
+  width: 88%;
+  max-width: none;
+  margin: 0;
+}
+/* 17 of these can be mounted in the grid at once — an always-on
+   drop-shadow-filtered float on every single one is exactly the "heavy
+   filter per card" this brief warns against. The float earns its keep in the
+   overlay, where only one is ever on screen; here the hover tilt (see
+   DeviceShowcase.jsx's macHover/phoneHover variants) carries the "this is
+   alive" signal instead, and only costs anything while actually hovered. */
+.devshow--card .devshow-mac, .devshow--card .devshow-phone { animation: none; }
+
+/* Phone-forward mobile fallback. Below 560px the grid is single-column and a
+   card runs nearly full viewport width — a landscape MacBook screen crushed
+   into that narrow reads worse than a portrait phone screen would, so the
+   MacBook shrinks into a secondary accent and the iPhone becomes the larger,
+   foreground read (it already paints on top — devshow-phone is z-index 2).
+
+   This breaks from the desktop composition's sizing model on purpose rather
+   than just re-percentaging the same two rules: there, the phone's size is a
+   fraction of the MacBook's own box (which is what makes the corner-lean
+   read as one object), but a phone widened enough to look "forward" blows
+   past the tile's fixed height if it stays proportional to the MacBook — a
+   760:1531 phone only needs to reach ~37% of the tile's own width before its
+   height alone exceeds the whole 4:3 tile (worked out by hand: tile height is
+   75% of tile width; phone height = phoneWidth * 1531/760 = phoneWidth *
+   2.014; solving phoneWidth * 2.014 = 0.75 gives phoneWidth ≈ 0.37). So at
+   this breakpoint both devices are pinned directly to the tile (`.devshow`
+   itself goes `position:absolute; inset:0`, i.e. it becomes the exact 4:3 box
+   instead of shrink-wrapping the MacBook) and sized/placed independently,
+   each comfortably inside 37% — no more shared reference box, no more
+   compounding percentages. The two-class selectors deliberately outrank the
+   plain `.devshow` stack-on-mobile rule above — which would otherwise also
+   match this element, since `.devshow--card` carries both classes — without
+   needing `!important`. */
+@media (max-width: 560px) {
+  .devshow.devshow--card {
+    position: absolute; inset: 0;
+    display: block; width: auto; max-width: none; margin: 0;
+  }
+  .devshow--card .devshow-mac {
+    position: absolute; left: 4%; top: 9%; width: 50%; animation: none;
+  }
+  .devshow--card .devshow-phone {
+    position: absolute; left: 50%; right: auto; bottom: 4%; width: 33%; animation: none;
+  }
+}

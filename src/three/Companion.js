@@ -26,21 +26,33 @@ import { loadButterfly, prepFlyer, waypointSampler } from './butterflyAsset.js'
 // The path deliberately lives in the outer thirds for most of the page. The
 // layer draws OVER the copy, and a butterfly parked on a headline is a bug no
 // matter how nicely it is rendered.
+//
+// Two things push the on-screen footprint around independently of xNorm: the
+// idle wander in _advance() (small, constant) and DEPTH — a positive depth
+// pulls the butterfly toward the camera and perspective magnifies its
+// projected box, a negative depth pushes it back and shrinks it. The
+// original path paired a few near-centre xNorm values with the closest
+// depths available (0.6-0.9), which is the worst combination for the duck
+// check: big AND central. Every waypoint below still visits the centre for
+// interest and still visits the camera for scale, but never both — the
+// closer depths (>=0.3) now only land on waypoints already out past ~|0.55|
+// on x, and the near-centre waypoints sit further back (more negative depth,
+// smaller on screen) than before.
 const PATH = [
   [0.00, 0.66, 0.12, 0.0],
-  [0.06, 0.44, -0.34, -1.3],
-  [0.13, -0.30, -0.10, -2.2],
-  [0.21, -0.68, 0.26, -0.4],
-  [0.29, -0.52, -0.36, 0.6],
-  [0.37, 0.16, 0.34, -2.6],
-  [0.45, 0.70, 0.04, -0.6],
-  [0.53, 0.58, -0.34, 0.9],
-  [0.61, -0.14, 0.30, -1.9],
-  [0.69, -0.72, -0.06, -0.2],
-  [0.77, -0.44, -0.36, 0.7],
-  [0.85, 0.26, 0.28, -2.4],
+  [0.06, 0.52, -0.34, -1.3],
+  [0.13, -0.46, -0.10, -2.2],
+  [0.21, -0.68, 0.26, -0.6],
+  [0.29, -0.66, -0.36, 0.35],
+  [0.37, 0.30, 0.34, -2.8],
+  [0.45, 0.70, 0.04, -0.7],
+  [0.53, 0.72, -0.34, 0.35],
+  [0.61, -0.28, 0.30, -2.1],
+  [0.69, -0.72, -0.06, -0.35],
+  [0.77, -0.62, -0.36, 0.3],
+  [0.85, 0.38, 0.28, -2.6],
   [0.93, 0.68, -0.12, -0.5],
-  [1.00, 0.40, 0.20, 0.4],
+  [1.00, 0.56, 0.20, 0.2],
 ]
 
 const VIOLET = new THREE.Color('#7b2fbe')
@@ -139,8 +151,14 @@ export class Companion {
     this.camera.updateProjectionMatrix()
     this.viewH = 2 * Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z
     this.viewW = this.viewH * this.camera.aspect
-    // model wingspan is ~2.02 units; hold it at a fixed fraction of the frame
-    const frac = this.isMobile ? 0.32 : 0.20
+    // model wingspan is ~2.02 units; hold it at a fixed fraction of the frame.
+    // Trimmed down from 0.32/0.20: the duck check's on-screen box scales
+    // directly off this, and on a copy-dense page the old fraction meant the
+    // box alone (before any padding) already covered 20-30% of the viewport
+    // width — big enough to catch text almost anywhere it flew. Still a
+    // clearly-sized creature, just no longer one that dominates a third of
+    // the frame.
+    const frac = this.isMobile ? 0.27 : 0.165
     this.baseScale = (frac * this.viewW) / 2.02
     // Keep the whole wingspan inside the frame. A flat ±0.92 clamp is fine on a
     // desktop where the butterfly is 13% of the width and clips by nothing; on a
@@ -215,7 +233,9 @@ export class Companion {
     // straight upstage, where all the reader gets is an abdomen — so it is
     // biased toward camera, which holds a legible three-quarter through every
     // turn without freezing into a fixed pose.
+    let oriented = false
     if (move.lengthSq() > 1e-8) {
+      oriented = true
       const fwd = move.clone().normalize()
       fwd.set(fwd.x, fwd.y * 0.55, fwd.z * 0.35 + 0.78).normalize()
       root.lookAt(this.pos.clone().add(fwd))
@@ -230,11 +250,38 @@ export class Companion {
     const rhythm = 0.5 + 0.5 * Math.sin(t * 1.35) * Math.sin(t * 0.47 + 1.1)
     const drive = THREE.MathUtils.clamp(this.speed * 0.14 + Math.abs(this.vel) * 0.16, 0, 1)
     this.burst += (Math.max(rhythm, drive) - this.burst) * (dt ? 0.06 : 1)
-    flap.setEffectiveWeight(0.14 + this.burst * 0.86)
-    // The clip is 0.34s, so timeScale is beats/0.34s: this tops out near 4.7 Hz.
-    // The old ceiling of 2.7 put it past 7 Hz on a fast scroll, which stops
-    // reading as wings and starts strobing against the frame rate.
-    flap.timeScale = 1.00 + this.burst * 0.60
+    // Amplitude never drops to a twitch. A butterfly coasting still holds its
+    // wings moving; at 0.14 the stroke was invisible and the whole thing read
+    // as a sticker being slid down the page.
+    flap.setEffectiveWeight(0.45 + this.burst * 0.55)
+    // The clip is 0.34s, so timeScale is beats/0.34s. Real butterflies run
+    // 5-12 Hz — 1.75 is 5.1 Hz coasting, 2.75 is 8.1 Hz in a burst. Below 5 Hz
+    // it stops looking like a wing and starts looking like a slow-motion clip.
+    flap.timeScale = 1.75 + this.burst * 1.0
+
+    // ── the bounce ──
+    // This is the single thing that separates flying from sliding: a butterfly
+    // is thrown UP on every downstroke and falls back between beats, so its
+    // path is a scallop, not a line. Read the stroke's own phase so the lift is
+    // locked to the wings the reader is watching rather than a free-running
+    // sine that drifts out of sync with them.
+    const clipDur = flap.getClip().duration || 0.34
+    const phase = ((flap.time % clipDur) / clipDur) * Math.PI * 2
+    const amp = 0.45 + this.burst * 0.55
+    const bounce = Math.sin(phase) * this.baseScale * 0.34 * amp
+
+    // ── the sawtooth ──
+    // Between bursts it sinks; a burst wins the height back. Integrating rather
+    // than reading a sine means altitude is a consequence of how hard it is
+    // beating, which is what makes the drifting feel like it costs something.
+    this.lift = (this.lift || 0) + (this.burst - 0.52) * dt * 1.5
+    this.lift = THREE.MathUtils.clamp(this.lift, -0.5, 0.5) * (dt ? Math.pow(0.55, dt) : 1)
+
+    root.position.y += bounce + this.lift * this.baseScale * 0.9
+    // Nose-up as it climbs out of each downstroke. rotateX is relative, so it
+    // may only run on a frame where lookAt() has just rewritten the rotation —
+    // otherwise the pitch integrates and the butterfly tumbles.
+    if (oriented) root.rotateX(Math.sin(phase - 0.6) * 0.16 * amp)
 
     const cruiseW = THREE.MathUtils.clamp((this.speed - 0.55) / 1.5, 0, 1)
     cruise.weight = cruiseW

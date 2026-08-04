@@ -1,12 +1,11 @@
 // LOOM-built software: Apps showcase (phone frames) + 3D Lab (tool cards)
 import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform, useReducedMotion, useInView } from 'motion/react'
+import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { APPS, TOOLS } from '../data/site.js'
-import { SplitWords, Reveal, EASE } from '../lib/motion.jsx'
+import { SplitWords, Reveal } from '../lib/motion.jsx'
 import { AppScreen } from './AppScreens.jsx'
 import { LabPreview } from './LabPreviews.jsx'
 import { LiveBadge } from './Rich.jsx'
-import { WoolButton } from './Wool.jsx'
 import './products-showcase.css'
 import './products-touch.css'
 import './heads-v7.css'
@@ -64,45 +63,133 @@ const PLATFORM_PARTS = {
   testflight: [
     { tag: 'path', cls: 'pm-plane', d: 'M4 12.5 20 4l-4.2 16-4.6-6.2L4 12.5ZM11.2 13.8 20 4' },
   ],
+  // A drawn nod to the Play triangle, not a trace of the trademarked mark —
+  // the two seam-lines from the back corners toward the tip are what read
+  // as "Google Play" at a glance without reproducing the actual logo.
+  googleplay: [
+    { tag: 'path', cls: 'pm-triangle', d: 'M6 3.6 20 12 6 20.4Z' },
+    { tag: 'path', cls: 'pm-seam', d: 'M6 3.6 15 12M6 20.4 15 12' },
+  ],
 }
 
-const PLATFORM_LABEL = { ios: 'iOS', macos: 'macOS', windows: 'Windows', linux: 'Linux', web: 'Web' }
+// ————————————————————————————————————————————————————————————
+// MOCK DOWNLOAD LINKS — every href below is a placeholder ('#').
+// TODO(client): real store URLs — swap these strings for the actual App
+// Store / Google Play / direct-download links the moment they're supplied.
+// Nothing else needs to change: the key is the platform id (must match a
+// PLATFORM_PARTS entry above + a DL_META entry below), the value is the URL.
+//
+// Platforms are picked per product, honestly:
+//  - the five native builds (Lahza, Evora Scan, Glowbar, TrueSize AR, Morphic)
+//    are iOS-only — RoomPlan/ARKit need iOS hardware, there is no Android
+//    build to link to, so none is offered.
+//  - TAWSIYAT is a web ordering app with no native wrapper — one "open the
+//    web app" link, not a store badge that would be lying about a native app.
+//  - Morphic is the one already on the App Store for real; the rest are
+//    TestFlight/coming-soon, which is why the button reads differently.
+// ————————————————————————————————————————————————————————————
+const DOWNLOADS = {
+  Lahza: { testflight: '#' },
+  'Evora Scan': { appstore: '#' },
+  Glowbar: { appstore: '#' },
+  TAWSIYAT: { web: '#' },
+  'TrueSize AR': { appstore: '#' },
+  Morphic: { appstore: '#' },
+}
 
-// Draws each glyph once, part by part, the moment it enters view — then
-// leaves a purposeful, per-icon hover/active nudge live in CSS (a leaf
-// tilting, tiles fanning like the real Windows boot mark, a plane lifting
-// off). `delay` lets a whole badge row settle a beat after the card itself
-// has risen, so the ink feels like it's drawn onto a shape already in place.
-function PlatformMark({ id, delay = 0 }) {
-  const reduced = useReducedMotion()
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-10% 0px' })
+// Same mock-link contract, for the 3D Lab / software row.
+// Picked per tool's actual runtime, not a uniform "all four buttons" grid:
+//  - KUN, ORBIT, ATELIER, TESSERA run today as browser tools (localhost
+//    servers) — a Windows/macOS installer for these doesn't exist yet.
+//  - SPLAT LAB trains on Apple-silicon Metal specifically — it is a macOS
+//    tool by nature, so it gets a mac link and nothing else.
+//  - 2D→3D STUDIO is the one tool that is genuinely packaged as desktop
+//    software today (the Evora Studio installer: a signed-off .dmg and a
+//    licensed .exe) — the only card that earns both buttons.
+const TOOL_DOWNLOADS = {
+  KUN: { web: '#' },
+  ORBIT: { web: '#' },
+  ATELIER: { web: '#' },
+  'SPLAT LAB': { macos: '#' },
+  '2D→3D STUDIO': { macos: '#', windows: '#' },
+  TESSERA: { web: '#' },
+}
+
+// The two-line "eyebrow + title" convention real store badges use — drawn in
+// the house type rather than importing anyone's artwork.
+const DL_META = {
+  appstore: { eyebrow: 'Download on the', title: 'App Store' },
+  testflight: { eyebrow: 'Public beta on', title: 'TestFlight' },
+  googleplay: { eyebrow: 'Get it on', title: 'Google Play' },
+  macos: { eyebrow: 'Download for', title: 'macOS' },
+  windows: { eyebrow: 'Download for', title: 'Windows' },
+  web: { eyebrow: 'Open in the', title: 'Browser' },
+}
+
+/* A mock download chip: real button (keyboard-focusable, visible focus ring),
+   going nowhere on purpose. `data-mock-href` carries the placeholder so the
+   intent is legible in devtools without the button ever actually navigating —
+   swapping in real URLs later is a one-line edit to DOWNLOADS/TOOL_DOWNLOADS,
+   not a markup change. */
+function DownloadButton({ id, href }) {
+  const meta = DL_META[id] || { eyebrow: '', title: id }
+  return (
+    <button
+      type="button"
+      className={`dl-btn dl-btn--${id}`}
+      data-mock-href={href}
+      onClick={(e) => e.preventDefault()}
+      title="Placeholder — real link coming soon"
+      aria-label={`${meta.eyebrow} ${meta.title} — placeholder link, coming soon`}
+    >
+      <PlatformMark id={id} />
+      <span className="dl-btn-copy">
+        {meta.eyebrow && <em>{meta.eyebrow}</em>}
+        <strong>{meta.title}</strong>
+      </span>
+    </button>
+  )
+}
+
+// Fully drawn the instant it mounts — a persistent control glyph, not a
+// one-time cinematic reveal. An earlier version gated this on its own
+// `useInView` (draw-in on scroll, independent of and lagging behind the
+// card's own Reveal entrance by up to ~1s). That's what made the icon read
+// as permanently missing: a fast/anchor-jump scroll can carry an element
+// straight from "not yet visible" to "already scrolled past" in one frame,
+// which an IntersectionObserver with `once: true` can miss entirely — and
+// even on an ordinary scroll, screenshotting the instant the card itself
+// looks settled could still catch the icon mid-delay, still at opacity 0.
+// A button's icon has to just be there; the CSS hover/active/focus-visible
+// nudges below (leaf tilt, plane lift, tile fan) still give it life on
+// interaction, with zero dependency on scroll timing.
+function PlatformMark({ id }) {
   const parts = PLATFORM_PARTS[id]
   if (!parts) return null
   return (
-    <svg ref={ref} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
       className={`platform-mark platform-mark--${id}`}>
       {parts.map(({ tag, cls, ...attrs }, i) => {
-        if (reduced) { const Static = tag; return <Static key={i} className={cls} {...attrs} /> }
-        const Tag = motion[tag]
-        return (
-          <Tag
-            key={i}
-            className={cls}
-            {...attrs}
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={inView ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-            transition={{ duration: 0.5, ease: EASE, delay: delay + i * 0.05 }}
-          />
-        )
+        const Tag = tag
+        return <Tag key={i} className={cls} {...attrs} />
       })}
     </svg>
   )
 }
 
+// APPS' `tag` field is always "Platform · Category" (e.g. "iOS · Events") —
+// split once here rather than touching data/site.js, so the card can show a
+// coloured platform eyebrow above the name and a discipline pill below it,
+// the same role/owns split the Crew cards use, without inventing new copy.
+function splitTag(tag) {
+  const parts = (tag || '').split(' · ')
+  return parts.length === 2 ? { platform: parts[0], category: parts[1] } : { platform: '', category: tag || '' }
+}
+
 function PhoneCard({ app, i }) {
   const [c1, c2] = app.grad
+  const { platform, category } = splitTag(app.tag)
   const cardRef = useRef(null)
   const shotRef = useRef(null)
   const coarse = useCoarsePointer()
@@ -163,42 +250,22 @@ function PhoneCard({ app, i }) {
           <div className="app-glow" aria-hidden="true" />
         </div>
         <div className="app-meta">
-          <header>
-            <h3>{app.name}</h3>
-            <span>{app.tag}</span>
-          </header>
+          {platform && <span className="app-eyebrow">{platform}</span>}
+          <h3>{app.name}</h3>
+          {category && <span className="app-pill">{category}</span>}
           <p>{app.blurb}</p>
-          <div className="app-badges">
-            {(app.platforms || []).map((p, pi) => (
-              <span className="app-badge" key={p}>
-                <PlatformMark id={p} delay={0.45 + pi * 0.05} />
-                {PLATFORM_LABEL[p] || p}
-              </span>
-            ))}
-            {app.store && (
-              <span className={`app-badge app-badge--store ${app.store === 'App Store' ? 'is-live' : ''}`}>
-                <PlatformMark id={app.store === 'App Store' ? 'appstore' : 'testflight'} delay={0.5} />
-                {app.store}
-              </span>
-            )}
-          </div>
-          {/* Real store links are pending — no APP in site.js carries a `storeUrl`
-              yet, and a fabricated App Store/TestFlight link on a live agency site
-              is worse than none. This renders nothing until the owner supplies a
-              real URL; the moment one lands in the data it becomes a live pill in
-              the same knitted-button language as every other CTA on the site. */}
-          {app.storeUrl && (
-            <div className="app-cta">
-              <WoolButton
-                label={app.store === 'App Store' ? 'App Store' : 'TestFlight'}
-                href={app.storeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                size="small"
-                yarn={app.store === 'App Store' ? 'gold' : 'blue'}
-                className="app-store-btn"
-              />
-            </div>
+          {/* Real store links are pending — see the DOWNLOADS map at the top
+              of this file. Every button below is a working, focusable control
+              that goes nowhere on purpose until the client supplies real URLs. */}
+          {Object.keys(DOWNLOADS[app.name] || {}).length > 0 && (
+            <>
+              <i className="app-meta-divider" aria-hidden="true" />
+              <div className="dl-row" role="group" aria-label={`${app.name} — downloads`}>
+                {Object.entries(DOWNLOADS[app.name]).map(([id, href]) => (
+                  <DownloadButton key={id} id={id} href={href} />
+                ))}
+              </div>
+            </>
           )}
         </div>
         <i className="app-thread" aria-hidden="true" />
@@ -321,12 +388,22 @@ function LabCard({ t, i }) {
           <span className="lab-floor" aria-hidden="true" />
         </div>
         </div>
+        <p className="lab-kicker">{t.kicker}</p>
         <header>
           <h3>{t.name}</h3>
           <span className="lab-tag">{t.tag}</span>
         </header>
-        <p className="lab-kicker">{t.kicker}</p>
         <p className="lab-blurb">{t.blurb}</p>
+        {Object.keys(TOOL_DOWNLOADS[t.name] || {}).length > 0 && (
+          <>
+            <i className="lab-meta-divider" aria-hidden="true" />
+            <div className="dl-row dl-row--lab" role="group" aria-label={`${t.name} — downloads`}>
+              {Object.entries(TOOL_DOWNLOADS[t.name]).map(([id, href]) => (
+                <DownloadButton key={id} id={id} href={href} />
+              ))}
+            </div>
+          </>
+        )}
         <i className="lab-thread" aria-hidden="true" />
       </article>
     </Reveal>

@@ -77,6 +77,20 @@ export function CountUp({ value, suffix = '', duration = 1.6 }) {
   return <span ref={ref}>{n}{suffix}</span>
 }
 
+/** True on coarse pointers (touch) — shared by Crew.jsx and Agents.jsx to
+ *  swap pointer-tilt for scroll-linked sway and hover-activate for tap-activate. */
+export function useCoarsePointer() {
+  const [coarse, setCoarse] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)')
+    const update = () => setCoarse(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+  return coarse
+}
+
 /** Magnetic hover — element leans toward the cursor. */
 export function Magnetic({ children, strength = 0.35, className = '' }) {
   const ref = useRef(null)

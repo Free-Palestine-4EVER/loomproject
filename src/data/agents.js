@@ -37,6 +37,15 @@
 // Same `ready` gate crew.js uses: an agent renders only once its character art
 // exists in /public/img/agents/, so the roster arrives as a finished set rather
 // than as a row of broken images.
+//
+// These no longer draw their own cards or their own art. The user decided the
+// crew IS the rentable roster — one section, four cards, not two. Every crew
+// member in crew.js carries a `rentsAs` id; Crew.jsx looks the matching record
+// up from here and folds its `does` / `needs` / `runsOn` / `cadence` straight
+// onto that crew member's own card, under its own mascot and name. This file
+// stays the single source of truth for the rental facts so nothing drifts out
+// of sync across two places — Agents.jsx now renders only that folded-in
+// detail block (no image, no separate card shell), reused inside CrewCard.
 // ————————————————————————————————————————————————————————
 
 export const AGENTS = [

@@ -1,27 +1,37 @@
-/* ——— Solutions Explorer ———
-   Rack + loom panel. Thirty industries live as compact rows on the left
-   (the "rack") — a rack you scan and scrub through — threaded to a single
-   persistent swatch on the right (the "panel") that gets real room to make
-   the case for whichever one is selected. Nothing here collapses in place
-   any more, so the old CSS grid-rows accordion trick is gone with it.
-
-   REDESIGN NOTE (visibility pass): the original rack rows sat at ~2% white
-   over near-black — the card boundary was nearly invisible and the 30-row
-   list ran on for 2-3x the panel's height, leaving a dead void beside a
-   sticky panel that stopped short of the fold. Both panes are now bounded
-   to ONE shared height (--sol-h below) and the rack scrolls INSIDE itself —
-   a real two-pane master/detail, not a page-scroll race between two columns
-   of wildly different length. Row surfaces, borders and body copy all got
-   a contrast pass (measured against --bg #0d0716, see PR notes) instead of
-   relying on the eye to average a near-black card into legibility. */
+/* ——— Solutions ———
+   REDESIGN (verdict: "too long, too much, too retarded"): the old build was
+   a 30-row scrolling rack beside a sticky detail panel, bounded to a shared
+   ~520-700px pane height, with a filter row on top — every row wearing the
+   exact same yarn-pill icon as every other row, an icon that told you
+   nothing thirty times over. Replaced with one idea, demonstrated instead
+   of explained: type your trade (or tap it below) and ONE tailored answer
+   resolves right under the search field. No list to scroll to get there.
+   The 30-strong index that used to be the whole section is now a compact
+   newspaper-style, multi-column index below the answer — plain grouped
+   type, no icons, a fraction of the old height. */
 .solutions {
-  padding-bottom: clamp(70px, 10vh, 130px);
+  padding-bottom: clamp(36px, 5vh, 64px);
   position: relative;
   isolation: isolate;
 }
-/* a faint wash of whatever group is selected (or magenta for "All"), so the
-   section reads as ONE warm surface instead of receding into flat --bg —
-   --sol-tint is set inline per render and was previously unused here */
+/* this section trades the shared section-head's usual generous air for
+   density on purpose — the whole redesign is about proving "a fraction of
+   the height," and the boilerplate title block was over a third of the old
+   section's weight on its own. Scoped here only: every other section keeps
+   the full-size rhythm from styles.css untouched. */
+.solutions .section-head {
+  padding-top: clamp(30px, 3.8vh, 48px);
+  padding-bottom: clamp(4px, 0.6vh, 8px);
+}
+.solutions .kicker { margin-bottom: 8px; }
+/* the headline stays the same confident display type as every other
+   section — just dialled down a size step. This is a dense search-and-index
+   tool, not a hero; a slightly smaller, single-line title is the honest
+   scale for it, and it's what buys back the room the console needs. */
+.solutions .h2 {
+  font-size: clamp(1.6rem, 3.4vw, 2.5rem);
+  max-width: 28ch;
+}
 .solutions::before {
   content: '';
   position: absolute; z-index: -1;
@@ -31,332 +41,235 @@
   pointer-events: none;
 }
 
-.sol-filters {
-  display: flex; flex-wrap: wrap; gap: 10px;
-  margin: 0 var(--pad) clamp(30px, 5vh, 50px);
-}
-/* the active pill takes the group's own yarn instead of always magenta —
-   filtering to "Beauty" should look and feel different from "Property" */
-.sol-filters .filter.is-active {
-  background: var(--pill-tint, var(--magenta));
-  border-color: var(--pill-tint, var(--magenta));
-}
-.sol-filters .filter.is-pale.is-active { color: #2b1e35; }
-
-.sol-layout {
-  --sol-h: clamp(520px, 66vh, 700px);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  align-items: stretch;
-  gap: clamp(20px, 3vw, 40px);
+/* ——————————————————————————————————————————————
+   The console — search field + the one resolved answer
+   —————————————————————————————————————————————— */
+.sol-console {
+  /* wider than the old 900px cap on purpose — the answer card spends this
+     width on ONE resolved line per deliverable instead of wrapping to two,
+     which is where a surprising share of the section's old height was
+     hiding. More width here, less height below. */
+  max-width: 1120px;
+  margin: 0 auto clamp(12px, 1.6vh, 18px);
   padding: 0 var(--pad);
 }
 
-/* ——————————————————————————————————————————————
-   The rack — now a bounded, internally-scrolling pane instead of a column
-   that just keeps going until 30 rows run out. Height matches the panel
-   beside it (--sol-h, set on .sol-layout) so neither pane strands the
-   other: the old sticky panel used to run out with a wall of blank page
-   still sliding past its right shoulder.
-   —————————————————————————————————————————————— */
-.sol-rack {
-  display: grid;
-  grid-template-columns: 1fr;
-  align-content: start;
-  gap: 7px;
-  height: var(--rack-h, var(--sol-h));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 4px 10px 4px 4px;
-  margin: -4px 0 -4px -4px;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--row-yarn, var(--magenta)) 60%, var(--ink-faint)) transparent;
-  /* edge fade hints there's more rack to scroll to, same trick the mobile
-     filter rail already uses for its horizontal overflow */
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
-  mask-image: linear-gradient(180deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+/* label sits INLINE to the left of the field rather than stacked above it
+   — one row instead of two. Below 700px there's no width to spare for
+   both, so it drops back to a caption above the input (see media query). */
+.sol-search-row { display: flex; align-items: center; gap: 16px; }
+.sol-search-label {
+  flex-shrink: 0;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-faint); white-space: nowrap;
 }
-.sol-rack::-webkit-scrollbar { width: 6px; }
-.sol-rack::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--magenta) 50%, var(--ink-faint));
-  border-radius: 999px;
-}
-.sol-rack::-webkit-scrollbar-track { background: transparent; }
-
-.rack-row {
-  position: relative;
-  display: flex; align-items: center; gap: 14px;
-  width: 100%; text-align: left;
-  padding: 13px 16px 13px 18px;
-  border-radius: calc(var(--radius) * 0.6);
-  /* a real, visible card edge at rest — the old 1px-transparent border only
-     ever appeared on hover, so the whole rack read as borderless text
-     floating on black rather than a set of scannable rows */
+.sol-search-field { position: relative; flex: 1; min-width: 0; }
+.sol-search {
+  width: 100%;
+  font-family: var(--display); font-weight: 560;
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  color: var(--ink);
+  background: var(--bg-3);
   border: 1px solid var(--line);
-  background: rgba(242, 240, 247, 0.05);
-  min-width: 0;
-  /* colour is the only thing that visibly changes on hover/active, so it's
-     the only thing that needs a transition — cheap, and instantly reversible */
-  transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease);
+  border-radius: calc(var(--radius) * 0.55);
+  padding: 11px 52px 11px 22px;
+  transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
 }
-.rack-row:hover { background: rgba(242, 240, 247, 0.09); border-color: rgba(242, 240, 247, 0.22); }
-.rack-row:focus-visible {
-  outline: 3px solid var(--cyan); outline-offset: 2px;
-  border-radius: calc(var(--radius) * 0.6);
+.sol-search::placeholder { color: var(--ink-faint); font-weight: 480; }
+.sol-search:hover { border-color: rgba(242, 240, 247, 0.22); }
+.sol-search:focus-visible {
+  outline: none;
+  border-color: var(--magenta);
+  background: color-mix(in srgb, var(--magenta) 6%, var(--bg-3));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--magenta) 25%, transparent);
 }
-/* the active row now takes a real wash of its own yarn colour rather than a
-   1.5px underline you had to be looking for — the whole card is the tell,
-   which is also what makes the near-identical spool icons stop mattering */
-.rack-row.is-active {
-  background: color-mix(in srgb, var(--row-yarn, var(--magenta)) 16%, rgba(242, 240, 247, 0.06));
-  border-color: color-mix(in srgb, var(--row-yarn, var(--magenta)) 65%, transparent);
-}
-/* a coloured spine down the left edge of every row — legible group-coding
-   at a glance, before you've even clocked the spool icon or read a word */
-.rack-row::before {
-  content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
-  border-radius: 2px;
-  background: var(--row-yarn, var(--magenta));
-  opacity: 0.45;
-  transition: opacity 0.25s var(--ease);
-}
-.rack-row.is-active::before, .rack-row:hover::before { opacity: 1; }
-/* a short thread laid along the bottom edge of whichever spool is threaded
-   through right now — cheap, GPU-only, and it's the one place colour lives
-   permanently rather than just on interaction */
-.rack-row::after {
-  content: ''; position: absolute; left: 16px; right: 16px; bottom: 3px; height: 1.5px;
-  background: var(--row-yarn, var(--magenta));
-  transform: scaleX(0); transform-origin: left;
-  opacity: 0.8;
-  transition: transform 0.4s var(--ease);
-}
-.rack-row.is-active::after { transform: scaleX(1); }
-
-.rack-spool {
-  flex-shrink: 0; display: block;
-  width: 38px; height: 18px; border-radius: 999px;
-  background-image:
-    url('/img/wool/yarn/magenta/yarn-cap-l.webp'),
-    url('/img/wool/yarn/magenta/yarn-cap-r.webp'),
-    url('/img/wool/yarn/magenta/yarn-mid.webp');
-  background-position: left center, right center, center center;
-  background-repeat: no-repeat, no-repeat, repeat-x;
-  background-size: auto 100%, auto 100%, auto 100%;
-  box-shadow: 0 3px 8px -3px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.25);
-  filter: saturate(0.9);
-  transition: transform 0.35s var(--wool-spring, var(--ease));
-}
-.rack-row.is-active .rack-spool,
-.rack-row:hover .rack-spool { transform: scale(1.1); filter: saturate(1.1); }
-.rack-spool.is-lg { width: 60px; height: 28px; box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.6); }
-
-/* one rule per yarn, same recipe as wool.css's own knit pills */
-.rack-spool--gold { background-image: url('/img/wool/yarn/gold/yarn-cap-l.webp'), url('/img/wool/yarn/gold/yarn-cap-r.webp'), url('/img/wool/yarn/gold/yarn-mid.webp'); }
-.rack-spool--blue { background-image: url('/img/wool/yarn/blue/yarn-cap-l.webp'), url('/img/wool/yarn/blue/yarn-cap-r.webp'), url('/img/wool/yarn/blue/yarn-mid.webp'); }
-.rack-spool--violet { background-image: url('/img/wool/yarn/violet/yarn-cap-l.webp'), url('/img/wool/yarn/violet/yarn-cap-r.webp'), url('/img/wool/yarn/violet/yarn-mid.webp'); }
-.rack-spool--crimson { background-image: url('/img/wool/yarn/crimson/yarn-cap-l.webp'), url('/img/wool/yarn/crimson/yarn-cap-r.webp'), url('/img/wool/yarn/crimson/yarn-mid.webp'); }
-.rack-spool--grey { background-image: url('/img/wool/yarn/grey/yarn-cap-l.webp'), url('/img/wool/yarn/grey/yarn-cap-r.webp'), url('/img/wool/yarn/grey/yarn-mid.webp'); }
-.rack-spool--cream { background-image: url('/img/wool/yarn/cream/yarn-cap-l.webp'), url('/img/wool/yarn/cream/yarn-cap-r.webp'), url('/img/wool/yarn/cream/yarn-mid.webp'); }
-
-.rack-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.rack-name {
-  font-family: var(--display); font-weight: 600; font-size: 1rem;
-  color: var(--ink); letter-spacing: -0.005em;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.rack-row.is-active .rack-name { color: #fff; }
-/* two lines, not one: on a two-column rack the row is ~160px wide and almost
-   every hook was being cut mid-word, which reads as broken rather than terse.
-   Bumped from --ink-faint (5:1 on flat --bg, worse once you factor in the
-   near-invisible old card surface) to --ink-dim, ~7.6:1 measured against the
-   card surface below — comfortably clears AA with margin to spare. */
-.rack-hook {
-  font-size: 0.82rem; color: var(--ink-dim); line-height: 1.35;
-  white-space: normal; overflow: hidden;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-}
-
-.rack-arrow {
-  flex-shrink: 0; width: 8px; height: 8px;
+/* a small arrow, same corner-fold mark the rack rows used to carry — reads
+   as "this resolves to something," not decoration for its own sake */
+.sol-search-arrow {
+  position: absolute; right: 22px; top: 50%; margin-top: -5px;
+  width: 9px; height: 9px; pointer-events: none;
   border-right: 1.5px solid var(--ink-faint); border-bottom: 1.5px solid var(--ink-faint);
   transform: rotate(-45deg);
-  transition: border-color 0.25s, transform 0.3s var(--ease);
-}
-.rack-row.is-active .rack-arrow, .rack-row:hover .rack-arrow {
-  border-color: var(--row-yarn, var(--magenta));
-  transform: rotate(-45deg) translateX(2px);
 }
 
-/* ——————————————————————————————————————————————
-   The panel — the swatch itself
-   —————————————————————————————————————————————— */
-/* the descendant selector is load-bearing: the panel also carries .sol-card,
-   whose `position: relative` (styles.css) is the same specificity and lands
-   later in the bundle, so a bare `.sol-panel` loses and the swatch scrolls
-   away up under the nav. Two classes beat it wherever the imports end up.
+.sol-answer-slot { margin-top: clamp(8px, 1vw, 10px); }
 
-   No longer `position: sticky` — the rack is now bounded to the same
-   --sol-h and scrolls INSIDE itself, so there's nothing left for the panel
-   to out-run. A sticky panel next to a self-contained rack was solving a
-   problem ("30 rows dwarf the panel") that a shared height removes outright,
-   and dropping it means the panel can sit in normal flow on every breakpoint
-   with one rule instead of a max-width media-query exception. The background
-   went from a near-transparent 50% wash (it read as barely-there over the
-   page's own near-black) to a solid --bg-3 pairing with the group's yarn
-   wash on top — the card now has an actual surface to contrast text against. */
-.sol-layout .sol-panel {
-  height: var(--panel-h, var(--sol-h));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.2);
+/* visually hidden but announced — the ticked list under a resolved name
+   and hook already reads as "what you get" at a glance, so the label that
+   used to sit above it as its own line is here for screen readers only. */
+.sol-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* the answer card itself: a wide, low, two-column card rather than a tall
+   single column — the whole point is that this replaces a much taller list,
+   so it spends the site's generous width instead of the old rack's height.
+   The right column carries the denser copy (four deliverable sentences vs.
+   a one-line hook), so it gets the bigger share of the grid — narrower text
+   measure was the single biggest hidden cost, forcing every deliverable
+   onto two lines instead of one. */
+.sol-answer {
+  position: relative;
+  display: grid;
+  grid-template-columns: 0.86fr 1.14fr;
+  gap: 6px clamp(28px, 4vw, 48px);
+  padding: clamp(14px, 1.8vw, 18px) clamp(20px, 2.4vw, 26px) clamp(14px, 1.6vw, 16px);
+  border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.1);
   background: var(--bg-3);
-  padding: clamp(26px, 3vw, 38px) clamp(24px, 2.8vw, 34px) clamp(28px, 3vw, 36px);
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--panel-yarn, var(--magenta)) 60%, var(--ink-faint)) transparent;
+  overflow: hidden;
 }
-.sol-layout .sol-panel::-webkit-scrollbar { width: 6px; }
-.sol-layout .sol-panel::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--panel-yarn, var(--magenta)) 55%, var(--ink-faint));
-  border-radius: 999px;
-}
-.sol-panel::after {
-  /* a soft wash of the niche's own yarn, low enough it never fights the text */
+.sol-answer::after {
   content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: radial-gradient(60% 50% at 100% 0%, color-mix(in srgb, var(--panel-yarn) 16%, transparent), transparent 70%);
+  background: radial-gradient(55% 65% at 100% 0%, color-mix(in srgb, var(--panel-yarn, var(--magenta)) 14%, transparent), transparent 70%);
 }
-.sol-panel-thread {
-  display: block; position: relative; z-index: 1;
-  height: 2px; width: 100%; margin-bottom: clamp(20px, 2.6vw, 28px);
-  background: linear-gradient(90deg, var(--panel-yarn), transparent 88%);
+.sol-answer > * { position: relative; z-index: 1; }
+
+.sol-answer-thread {
+  grid-column: 1 / -1;
+  display: block;
+  height: 2px; width: 100%; margin-bottom: clamp(10px, 1.4vw, 14px);
+  background: linear-gradient(90deg, var(--panel-yarn, var(--magenta)), transparent 88%);
   transform-origin: left;
 }
-.sol-panel-body { position: relative; z-index: 1; }
 
-.sol-panel-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
-.sol-panel-head-copy { min-width: 0; }
-.sol-panel-kicker {
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--panel-yarn);
+.sol-answer-left, .sol-answer-right { display: flex; flex-direction: column; min-width: 0; }
+.sol-answer-left { gap: 6px; }
+/* kicker and name share a baseline instead of stacking — the group tag
+   reads as a small coloured label riding beside the headline, not its own
+   line. Wraps back to two lines only if the width genuinely can't take it. */
+.sol-answer-head {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px;
 }
-.sol-panel-name {
+.sol-answer-kicker {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--panel-yarn, var(--magenta));
+}
+.sol-answer-name {
   font-family: var(--display); font-weight: 580; color: #fff;
-  font-size: clamp(1.5rem, 2.6vw, 2.1rem); line-height: 1.08; letter-spacing: -0.01em;
-  margin-top: 4px;
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.08; letter-spacing: -0.01em;
 }
-
-.sol-panel-hook {
+.sol-answer-hook {
   font-family: var(--display); font-weight: 500;
-  font-size: clamp(1.15rem, 1.8vw, 1.4rem); line-height: 1.35;
+  font-size: clamp(1rem, 1.4vw, 1.15rem); line-height: 1.38;
   color: var(--ink-dim);
-  margin-bottom: clamp(22px, 2.8vw, 30px);
+  max-width: 40ch;
+}
+.sol-cta { width: fit-content; margin-top: auto; padding-top: 8px; }
+
+.sol-answer-right { gap: 6px; }
+.sol-answer-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint);
 }
 
 .sol-deliverables {
   list-style: none;
-  display: flex; flex-direction: column; gap: 13px;
-  margin-bottom: 24px;
+  display: flex; flex-direction: column; gap: 5px;
 }
 .sol-deliverables li {
-  display: flex; align-items: flex-start; gap: 13px;
-  color: var(--ink-dim); font-size: 0.94rem; line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 9px;
+  color: var(--ink-dim); font-size: 0.83rem; line-height: 1.35;
 }
-/* A tick, stitched. The cross-stitch X that was here is the honest textile
-   mark, but in front of a list of things the client GETS it reads as "not
-   included" — the one place where the metaphor loses to the convention. Two
-   strokes at a tick's angles keep the hand-sewn look and the right meaning. */
 .sol-stitch {
-  flex-shrink: 0; width: 14px; height: 14px; margin-top: 4px; position: relative;
+  flex-shrink: 0; width: 12px; height: 12px; margin-top: 3px; position: relative;
 }
 .sol-stitch::before, .sol-stitch::after {
-  content: ''; position: absolute; top: 55%; left: 45%; height: 1.6px;
-  background: var(--panel-yarn); border-radius: 1px;
+  content: ''; position: absolute; top: 55%; left: 45%; height: 1.4px;
+  background: var(--panel-yarn, var(--magenta)); border-radius: 1px;
   transform-origin: left center;
 }
-.sol-stitch::before { width: 6px; transform: translate(-100%, -50%) rotate(45deg); }
-.sol-stitch::after { width: 11px; transform: translate(-4px, -50%) rotate(-50deg); }
+.sol-stitch::before { width: 5px; transform: translate(-100%, -50%) rotate(45deg); }
+.sol-stitch::after { width: 9px; transform: translate(-3px, -50%) rotate(-50deg); }
 
+/* one running line instead of a boxed kicker-then-copy callout — a border-
+   left accent carries the "this is the agent talking" cue on its own, so
+   the tag and the sentence can share a line instead of stacking two. */
 .sol-agent {
-  padding: 16px 18px;
-  border: 1px solid rgba(89, 230, 255, 0.3);
-  border-radius: calc(var(--radius) * 0.6);
-  background: rgba(89, 230, 255, 0.06);
-  margin-bottom: 20px;
+  padding: 6px 0 6px 12px;
+  border-left: 2px solid var(--cyan);
+  margin-top: 2px;
 }
 .sol-agent-kicker {
-  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--cyan); margin-bottom: 6px;
+  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--cyan);
+  margin-right: 7px;
 }
-.sol-agent-copy { color: var(--ink); font-size: 0.9rem; line-height: 1.5; }
+.sol-agent-copy { color: var(--ink); font-size: 0.84rem; line-height: 1.45; }
 
-.sol-moon {
-  display: flex; align-items: center; gap: 10px;
-  font-family: var(--display); font-weight: 560; font-size: 1.02rem;
-  color: var(--gold); margin-bottom: 26px;
+.sol-answer--empty { grid-template-columns: 1fr; }
+.sol-answer--empty .sol-answer-hook { max-width: 56ch; }
+
+/* ——————————————————————————————————————————————
+   The index — every one of the thirty, as one continuous run of plain
+   grouped type poured into balanced newspaper columns. This is the whole
+   "breadth is the claim" promise, kept without a single row of chrome: no
+   borders, no icons, no fixed-height scroll pane. It's deliberately ONE
+   paragraph rather than seven boxed groups — plain text wraps line by line,
+   so the browser's column-balance has fine-grained material to work with
+   and no single category can strand a column half-empty next to a full one.
+   —————————————————————————————————————————————— */
+.sol-index {
+  padding-top: clamp(14px, 1.6vw, 18px);
+  border-top: 1px solid var(--line);
+  margin: 0 var(--pad);
 }
-.sol-moon-mark { flex-shrink: 0; width: 16px; height: 1.5px; background: linear-gradient(90deg, var(--gold), transparent); }
+.sol-idx-flow {
+  columns: 3 220px;
+  column-gap: clamp(28px, 4vw, 56px);
+  font-family: var(--display); font-size: 0.86rem; line-height: 1.5;
+  color: var(--ink-dim);
+}
+.sol-idx-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--grp-yarn, var(--ink-faint));
+}
+.sol-idx-sep { color: var(--ink-faint); margin: 0 3px 0 1px; }
+.sol-idx-gap { color: var(--ink-faint); opacity: 0.5; }
 
-.sol-cta { width: fit-content; }
+.sol-idx-btn {
+  background: none; border: none; padding: 1px 2px;
+  font: inherit; color: inherit; cursor: pointer;
+  border-radius: 3px;
+  position: relative;
+  transition: color 0.2s var(--ease);
+}
+.sol-idx-btn::after {
+  content: ''; position: absolute; left: 2px; right: 2px; bottom: -1px; height: 1.5px;
+  background: var(--grp-yarn, var(--magenta));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s var(--ease);
+}
+.sol-idx-btn:hover { color: var(--ink); }
+.sol-idx-btn:hover::after { transform: scaleX(1); }
+.sol-idx-btn:focus-visible {
+  outline: 2px solid var(--cyan); outline-offset: 2px;
+  border-radius: 3px;
+}
+.sol-idx-btn.is-active { color: #fff; font-weight: 600; }
+.sol-idx-btn.is-active::after { transform: scaleX(1); }
 
 @media (prefers-reduced-motion: reduce) {
-  .rack-row, .rack-spool, .rack-arrow, .rack-row::after { transition-duration: 0.01ms !important; }
-  .rack-row.is-active .rack-spool, .rack-row:hover .rack-spool { transform: none; }
+  .sol-search, .sol-idx-btn, .sol-idx-btn::after { transition-duration: 0.01ms !important; }
 }
 
 /* ——————————————————————————————————————————————
    Responsive
    —————————————————————————————————————————————— */
-/* wide desktop only: the rack earns a second column so thirty rows don't
-   dwarf a panel that's sticky beside them */
-@media (min-width: 1180px) {
-  .sol-rack { grid-template-columns: repeat(2, 1fr); gap: 6px 14px; }
+@media (max-width: 880px) {
+  .sol-answer { grid-template-columns: 1fr; gap: 18px; }
+  .sol-cta { margin-top: 6px; }
+  .sol-idx-flow { columns: 2 200px; }
 }
 
-@media (max-width: 880px) {
-  /* below this width there's no room for two columns side by side — the
-     panel goes first (a visitor scrolling down should meet the swatch
-     before the list that fills it). The panel gets its natural height back
-     (--panel-h: auto) so its copy is never clipped or forced to scroll on a
-     touch screen; the rack keeps a bounded, internally-scrolling height
-     (--rack-h) so picking an industry costs a short scrub inside one card,
-     not a mile of page-scroll past 30 rows before you ever reach the footer. */
-  .sol-layout {
-    display: flex; flex-direction: column; gap: clamp(20px, 5vh, 30px);
-    --panel-h: auto;
-    --rack-h: clamp(340px, 48vh, 460px);
-  }
-  .sol-layout .sol-panel { order: -1; overflow-y: visible; }
-  .sol-rack { order: 1; }
+@media (max-width: 700px) {
+  /* no width left to run label and field side by side without crushing
+     the input — back to a caption sitting above it. */
+  .sol-search-row { flex-direction: column; align-items: stretch; gap: 8px; }
 }
 
 @media (max-width: 640px) {
-  .sol-filters { margin-left: var(--pad); margin-right: var(--pad); }
-  .rack-hook { display: none; } /* one line of name + spool is enough at this width */
-  .sol-panel-head { gap: 12px; }
-}
-
-/* mobile: group-filter pills become a horizontal scroll-snap rail
-   instead of wrapping into a tall block */
-@media (max-width: 767px) {
-  .sol-filters {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline: var(--pad);
-    padding-block: 2px;
-    /* edge fade so the cut-off pills read as "more to scroll" */
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--pad), #000 calc(100% - var(--pad)), transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 var(--pad), #000 calc(100% - var(--pad)), transparent);
-  }
-  .sol-filters::-webkit-scrollbar { display: none; }
-  .sol-filters { scrollbar-width: none; -ms-overflow-style: none; }
-  .sol-filters .filter {
-    flex-shrink: 0;
-    scroll-snap-align: start;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    padding-inline: 20px;
-  }
+  .sol-idx-flow { columns: 1; }
+  .sol-answer-name { font-size: 1.5rem; }
+  .sol-answer-head { gap: 2px 8px; }
 }

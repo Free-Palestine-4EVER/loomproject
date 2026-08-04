@@ -245,20 +245,48 @@ function velvetMaps(THREE, cfg) {
 }
 
 /* --- WOVEN: an actual warp/weft lattice with open gaps (LOOM) ------- */
+// A hex string in, an rgb() string lightened/darkened by `factor` out — used
+// to give every strand its own small brightness jitter so the lattice reads
+// as hand-loomed fibre rather than a printed grid.
+function shade(hex, factor) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, Math.round(((n >> 16) & 255) * factor));
+  const g = Math.min(255, Math.round(((n >> 8) & 255) * factor));
+  const b = Math.min(255, Math.round((n & 255) * factor));
+  return `rgb(${r},${g},${b})`;
+}
+
 function wovenMaps(THREE, cfg) {
   const W = 768;
   const H = 768;
   const [c, x] = newCanvas(W, H);
   const [a, ax] = newCanvas(W, H);
+  const rnd = lcg(5231);
 
-  x.clearRect(0, 0, W, H);
+  // Warm base wash — cream at the root deepening to gold at the tip — so the
+  // fibre itself carries colour before a single strand is drawn, and the
+  // open gaps in the weave show a coloured veil instead of a flat cutout.
+  // Canvas x = u (root -> tip). Previously this canvas started fully
+  // transparent (clearRect) with nothing but flat strand colour on top —
+  // one reason the wing read as pale and colourless once lit.
+  const wash = x.createLinearGradient(0, 0, W, 0);
+  cfg.stops.forEach(([t, col]) => wash.addColorStop(t, col));
+  x.fillStyle = wash;
+  x.fillRect(0, 0, W, H);
   ax.fillStyle = "#000"; // transparent by default — the gaps in the weave
   ax.fillRect(0, 0, W, H);
 
-  const warp = 30; // strands running root -> tip
-  const weft = 34; // strands running around
-  const tw = (H / warp) * 0.62;
-  const tf = (W / weft) * 0.62;
+  // A CHUNKY, legible knit. The original lattice was 30 spokes x 34 rings —
+  // fine enough that at the size this butterfly actually renders on the page
+  // (a 300-420px hero element), each gap fell below a screen pixel. An
+  // alternating light/dark pattern that fine does not survive mip-mapping;
+  // it just averages down to flat grey noise, which is exactly the
+  // "perforated dot-matrix" the wing used to read as. Few, thick strands
+  // read as yarn at real size instead of dissolving into static.
+  const warp = 9;  // spokes running root -> tip
+  const weft = 10; // rings running around
+  const tw = (H / warp) * 0.8;
+  const tf = (W / weft) * 0.8;
 
   const strand = (ctx, x0, y0, x1, y1, width, style) => {
     ctx.strokeStyle = style;
@@ -270,41 +298,69 @@ function wovenMaps(THREE, cfg) {
     ctx.stroke();
   };
 
-  // weft first (the "under" pass), then warp on top — the alternating
-  // highlight is what sells it as woven rather than a printed grid
+  // spokes first (the "under" pass, root -> tip), then rings on top — the
+  // alternating highlight is what sells it as woven rather than a printed
+  // grid. A small jitter per spoke keeps a fan of nine from reading as a
+  // perfect, machine-regular dartboard.
   for (let j = 0; j < warp; j++) {
-    const y = ((j + 0.5) / warp) * H;
-    strand(x, 0, y, W, y, tw, cfg.weftColor);
-    strand(x, 0, y - tw * 0.28, W, y - tw * 0.28, tw * 0.34, cfg.sheenLine);
+    const y = ((j + 0.5) / warp) * H + (rnd() - 0.5) * tw * 0.4;
+    const k = 0.86 + rnd() * 0.3;
+    strand(x, 0, y, W, y, tw, shade(cfg.weftColor, k));
+    strand(x, 0, y - tw * 0.3, W, y - tw * 0.3, tw * 0.32, cfg.sheenLine);
     strand(ax, 0, y, W, y, tw, "#fff");
   }
   for (let i = 0; i < weft; i++) {
-    const px = ((i + 0.5) / weft) * W;
+    const px = ((i + 0.5) / weft) * W + (rnd() - 0.5) * tf * 0.3;
+    const k = 0.86 + rnd() * 0.3;
     // Full-length pass first: without it the dashes below punch hard holes
-    // right through the wing where the warp is meant to only dip *under*.
-    strand(x, px, 0, px, H, tf * 0.82, cfg.warpShadow);
+    // right through the wing where the ring is meant to only dip *under*.
+    strand(x, px, 0, px, H, tf * 0.84, shade(cfg.warpShadow, k));
     strand(ax, px, 0, px, H, tf, "#fff");
-    // then the dashed "over" pass — the strand riding on top of the weft
-    [
-      [x, cfg.warpColor, tf, 0],
-      [x, cfg.sheenLine, tf * 0.3, -tf * 0.26],
+    // then the dashed "over" pass — the strand riding on top of the spoke
+    ;[
+      [x, shade(cfg.warpColor, k), tf * 0.92, 0],
+      [x, cfg.sheenLine, tf * 0.3, -tf * 0.28],
     ].forEach(([ctx, style, width, dx]) => {
       ctx.save();
-      ctx.setLineDash([(H / warp) * 0.56, (H / warp) * 0.44]);
+      ctx.setLineDash([(H / warp) * 0.6, (H / warp) * 0.46])
       ctx.lineDashOffset = (i % 2) * (H / warp) * 0.5;
       strand(ctx, px + dx, 0, px + dx, H, width, style);
       ctx.restore();
     });
   }
 
-  // solid selvedge: a bound edge all the way around the rim
+  // fibre grain: hundreds of short strokes running the local length of
+  // whichever strand they land on, so a "thread" reads as spun fibre —
+  // individual filaments catching the light — rather than a flat ribbon.
+  // One-time canvas paint at butterfly creation, not a per-frame cost.
+  x.lineWidth = 1.1;
+  for (let i = 0; i < 1100; i++) {
+    const onSpoke = rnd() > 0.45;
+    const light = rnd() > 0.5;
+    x.strokeStyle = light ? "rgba(255,250,232,0.15)" : "rgba(96,64,22,0.13)";
+    const len = 9 + rnd() * 16;
+    x.beginPath();
+    if (onSpoke) {
+      const xx = rnd() * W, yy = rnd() * H;
+      x.moveTo(xx, yy);
+      x.lineTo(xx + len, yy + (rnd() - 0.5) * 3);
+    } else {
+      const xx = rnd() * W, yy = rnd() * H;
+      x.moveTo(xx, yy);
+      x.lineTo(xx + (rnd() - 0.5) * 3, yy + len);
+    }
+    x.stroke();
+  }
+
+  // solid selvedge: a bound edge all the way around the rim, and a solid
+  // collar at the root where the wing meets the body (no gaps at the hinge)
   [x, ax].forEach((ctx, k) => {
     ctx.fillStyle = k === 0 ? cfg.edgeColor : "#fff";
-    ctx.fillRect(W * 0.88, 0, W * 0.12, H);
-    ctx.fillRect(0, 0, W * 0.1, H);
+    ctx.fillRect(W * 0.9, 0, W * 0.1, H);
+    ctx.fillRect(0, 0, W * 0.08, H);
   });
   x.fillStyle = cfg.sheenLine;
-  x.fillRect(W * 0.88, 0, W * 0.02, H);
+  x.fillRect(W * 0.9, 0, W * 0.016, H);
 
   return { map: toTex(THREE, c, true), alphaMap: toTex(THREE, a, false) };
 }
@@ -550,13 +606,19 @@ SPECS.woven = {
   antenna: 0x2b2018,
   antennaTip: 0xd8b568,
   material: { rough: 0.55, metal: 0.15, clearcoat: 0.3, sheen: 0.5, transmission: 0 },
-  membrane: { color: 0xffe9c0, opacity: 0.16 },
+  membrane: { color: 0xffe9c0, opacity: 0.22 },
   tex: {
-    warpColor: "#f2e6cc",
-    warpShadow: "#b08c4a",
-    weftColor: "#d3ab53",
-    sheenLine: "rgba(255,250,236,0.5)",
-    edgeColor: "#b8903a",
+    stops: [
+      [0.0, "#fff6e4"],
+      [0.45, "#f2d9a0"],
+      [0.8, "#dcaa55"],
+      [1.0, "#c08a3a"],
+    ],
+    warpColor: "#f7ecd2",
+    warpShadow: "#a97e3e",
+    weftColor: "#d9af57",
+    sheenLine: "rgba(255,250,236,0.55)",
+    edgeColor: "#a97e3e",
   },
 };
 

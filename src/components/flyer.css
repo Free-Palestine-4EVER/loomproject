@@ -25,6 +25,21 @@ html.menu-open .flyer-layer {
   opacity: 0;
 }
 
+/* The duck: Flyer.jsx projects the butterfly's actual wingspan through the
+   camera every frame and, ~7.5 times a second, checks whether that box is
+   sitting on a MEANINGFUL patch of rendered text — not a pixel of it, see
+   MIN_OVERLAP_AREA in Flyer.jsx — over a large enough chunk of a paragraph,
+   heading or link to actually interrupt reading. When it is, this fades it
+   down instead of letting it sit opaque on top of copy. 0.14 used to sit here
+   and, combined with the old hair-trigger "any glyph pixel" check, made the
+   creature vanish for the entire body of the page — measured at 87% of the
+   scroll. 0.4 still leaves every letter it crosses fully legible (verified by
+   screenshot) while keeping the (freshly rebuilt) woven wings visibly there
+   instead of erased. It never fully disappears and never freezes. */
+.flyer-layer.is-ducking {
+  opacity: 0.45;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .flyer-layer { display: none; }
 }

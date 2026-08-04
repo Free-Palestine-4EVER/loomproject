@@ -1,9 +1,24 @@
-// Solutions Explorer — 30 industries as spools on a rack, threaded to one
-// persistent swatch panel. Replaces the old flat 4-column grid of 30
-// identical bordered cards (a spreadsheet, not a showcase) with a rack you
-// scan and a panel that gets to actually make the case for one industry
-// at a time — the one a visitor is there for.
-import { forwardRef, useCallback, useMemo, useRef, useState } from 'react'
+// Solutions — a one-line search that resolves straight to the answer, plus a
+// compact typographic index carrying all 30 industries as plain text.
+//
+// This replaces the "rack" build: a two-pane master/detail with a 30-row
+// scrolling list on the left, every row wearing the exact same yellow yarn
+// pill as its "icon" (an icon that told you nothing, 30 times over). The
+// user's verdict was blunt — too long, too much, too retarded — and it was
+// right: the section was more machinery than the point it exists to make.
+//
+// The point is one sentence: whatever industry you're in, the loom already
+// knows it. So the section now IS that sentence, demonstrated in place —
+// type your trade (or tap it in the index below) and one tailored answer
+// resolves right under the search field, no list to scroll to get there.
+// The index stays because the breadth is the claim, but it's set as plain
+// grouped type in newspaper-index columns — honest, dense, and a fraction
+// of the height a row-per-industry list demanded. No per-row image at all:
+// the only per-industry mark left is a single hairline in that group's own
+// yarn colour under the active name, which is both truthful (each of the
+// seven groups really does have its own colour everywhere else on the site)
+// and impossible to confuse with a placeholder.
+import { useCallback, useMemo, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { NICHES, NICHE_GROUPS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
@@ -12,126 +27,69 @@ import { WoolButton } from './Wool.jsx'
 
 import './solutions.css'
 
-// Every group now gets its OWN photographed yarn. The old map put two pairs
-// of groups on the same colour (health & services both blue, beauty &
-// creative both magenta) which was invisible filler when nothing colour-coded
-// off it — now that the rack, the panel accent and the filter pills all read
-// this map, a shared colour would make two unrelated industries look related.
-// Seven groups, seven yarns on disk: one each, nothing left over.
+// Same seven-groups-seven-yarns map the old build used — kept, because the
+// colour coding is the one piece of the previous design that was actually
+// doing real work (it just had a redundant, identical icon riding along
+// with it). One yarn per group, nothing shared between two unrelated trades.
 const GROUP_YARN = {
   food: 'gold', health: 'blue', beauty: 'magenta', retail: 'violet',
   property: 'crimson', services: 'grey', creative: 'cream',
 }
-
-// Hex read straight off the site's own yarn tokens where one exists — crimson
-// and grey never got a --yarn-* custom property, only the rgba glows in
-// wool.css, so those two stay literal.
 const YARN_HEX = {
   gold: 'var(--yarn-gold)', blue: 'var(--yarn-blue)', magenta: 'var(--yarn-pink)',
   violet: 'var(--yarn-violet)', crimson: '#e0244a', grey: '#a9a8b6', cream: 'var(--yarn-cream)',
 }
-// same pale-yarn exception wool.css already makes for its knit buttons
-const PALE_YARN = new Set(['grey', 'cream'])
 
-const GROUP_LABEL = Object.fromEntries(
-  NICHE_GROUPS.filter((g) => g.id !== 'all').map((g) => [g.id, g.label])
-)
-
+const GROUPS = NICHE_GROUPS.filter((g) => g.id !== 'all')
+const GROUP_LABEL = Object.fromEntries(GROUPS.map((g) => [g.id, g.label]))
 const yarnOf = (n) => GROUP_YARN[n.group] ?? 'magenta'
 
-// forwardRef is load-bearing: AnimatePresence mode="popLayout" clones each row
-// with a ref to measure it before it exits, and that ref silently does nothing
-// on a plain function component — no measurement, no exit animation.
-const RackRow = forwardRef(function RackRow({ n, isActive, tabIndex, onSelect, reduced }, ref) {
-  const yarn = yarnOf(n)
+// Strip accents so "cafe" reaches "Cafés & Coffee" — nobody visiting types
+// the é, and a false "not on the list" on the site's own example query would
+// undercut the entire pitch of this section on the very first thing a
+// visitor tries.
+const fold = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
+
+// Cheapest possible "does the loom know this trade" resolver: exact name,
+// then starts-with, then a loose includes — in that priority order so typing
+// "cafe" resolves to Cafés & Coffee before it ever risks matching something
+// that merely contains those letters deeper in another name.
+function resolveNiche(raw) {
+  const q = fold(raw.trim().toLowerCase())
+  if (!q) return null
   return (
-    <motion.button
-      ref={ref}
-      type="button"
-      role="tab"
-      id={`sol-tab-${n.key}`}
-      aria-selected={isActive}
-      aria-controls="sol-panel"
-      tabIndex={tabIndex}
-      className={`rack-row${isActive ? ' is-active' : ''}`}
-      style={{ '--row-yarn': YARN_HEX[yarn] }}
-      onClick={() => onSelect(n.key)}
-      layout="position"
-      initial={reduced ? false : { opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={reduced ? undefined : { opacity: 0, x: 8 }}
-      transition={{ duration: reduced ? 0.15 : 0.36, ease: EASE }}
-    >
-      <span className={`rack-spool rack-spool--${yarn}`} aria-hidden="true" />
-      <span className="rack-copy">
-        <span className="rack-name">{n.name}</span>
-        <span className="rack-hook">{n.hook}</span>
-      </span>
-      <span className="rack-arrow" aria-hidden="true" />
-    </motion.button>
+    NICHES.find((n) => fold(n.name.toLowerCase()) === q) ||
+    NICHES.find((n) => fold(n.name.toLowerCase()).startsWith(q)) ||
+    NICHES.find((n) => fold(n.name.toLowerCase()).includes(q)) ||
+    null
   )
-})
+}
 
-const DetailPanel = forwardRef(function DetailPanel({ n, reduced, onOpen }, ref) {
+function AnswerCard({ n, reduced, onOpen }) {
   const yarn = yarnOf(n)
-
   return (
-    <article
-      ref={ref}
-      className="sol-card sol-panel"
-      id="sol-panel"
-      role="tabpanel"
-      aria-labelledby={`sol-tab-${n.key}`}
-      tabIndex={-1}
-      data-cursor
+    <motion.article
+      key={n.key}
+      className="sol-card sol-answer"
       style={{ '--panel-yarn': YARN_HEX[yarn] }}
+      initial={reduced ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduced ? undefined : { opacity: 0, y: -8 }}
+      transition={{ duration: reduced ? 0.01 : 0.4, ease: EASE }}
     >
-      {/* the first thing that happens on a switch: one thread drawn corner
-          to corner, THEN the swatch's content lands — the weave, not the growth */}
       <motion.i
-        key={`thread-${n.key}`}
-        className="sol-panel-thread"
+        className="sol-answer-thread"
         aria-hidden="true"
         initial={reduced ? false : { scaleX: 0 }}
         animate={{ scaleX: 1 }}
-        transition={{ duration: reduced ? 0.01 : 0.65, ease: EASE }}
+        transition={{ duration: reduced ? 0.01 : 0.6, ease: EASE }}
       />
-
-      <div className="sol-panel-body" key={n.key}>
-        <div className="sol-panel-head">
-          <span className={`rack-spool rack-spool--${yarn} is-lg`} aria-hidden="true" />
-          <div className="sol-panel-head-copy">
-            <p className="sol-panel-kicker">{GROUP_LABEL[n.group]}</p>
-            <h3 className="sol-panel-name">{n.name}</h3>
-          </div>
+      <div className="sol-answer-left">
+        <div className="sol-answer-head">
+          <p className="sol-answer-kicker">{GROUP_LABEL[n.group]}</p>
+          <h3 className="sol-answer-name">{n.name}</h3>
         </div>
-
-        <p className="sol-panel-hook">{n.hook}</p>
-
-        <ul className="sol-deliverables">
-          {n.deliverables.map((d, i) => (
-            <motion.li
-              key={d}
-              initial={reduced ? false : { opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: reduced ? 0.01 : 0.42, ease: EASE, delay: reduced ? 0 : 0.1 + i * 0.05 }}
-            >
-              <i className="sol-stitch" aria-hidden="true" />
-              <span>{d}</span>
-            </motion.li>
-          ))}
-        </ul>
-
-        <div className="sol-agent">
-          <p className="sol-agent-kicker">AI agent</p>
-          <p className="sol-agent-copy">{n.agent}</p>
-        </div>
-
-        <p className="sol-moon">
-          <i className="sol-moon-mark" aria-hidden="true" />
-          {n.moon}
-        </p>
-
+        <p className="sol-answer-hook">{n.hook}</p>
         <WoolButton
           label={`Build my ${n.name} system`}
           yarn={yarn}
@@ -139,67 +97,76 @@ const DetailPanel = forwardRef(function DetailPanel({ n, reduced, onOpen }, ref)
           onClick={() => onOpen(n)}
         />
       </div>
-    </article>
+      <div className="sol-answer-right">
+        <p className="sol-answer-label sol-sr-only">What resolves for {n.name}</p>
+        <ul className="sol-deliverables">
+          {n.deliverables.map((d) => (
+            <li key={d}>
+              <i className="sol-stitch" aria-hidden="true" />
+              <span>{d}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="sol-agent">
+          <span className="sol-agent-kicker">AI agent</span>
+          <span className="sol-agent-copy">{n.agent}</span>
+        </p>
+      </div>
+    </motion.article>
   )
-})
+}
+
+function NoMatchCard({ query, reduced, onOpen }) {
+  return (
+    <motion.article
+      key="no-match"
+      className="sol-card sol-answer sol-answer--empty"
+      initial={reduced ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduced ? undefined : { opacity: 0, y: -8 }}
+      transition={{ duration: reduced ? 0.01 : 0.4, ease: EASE }}
+    >
+      <motion.i
+        className="sol-answer-thread"
+        aria-hidden="true"
+        initial={reduced ? false : { scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: reduced ? 0.01 : 0.6, ease: EASE }}
+      />
+      <div className="sol-answer-left">
+        <p className="sol-answer-kicker">Not on the list — yet</p>
+        <h3 className="sol-answer-name">&ldquo;{query}&rdquo;</h3>
+        <p className="sol-answer-hook">
+          Tell us what you actually do and the loom sets itself up for it — same agents,
+          same content engine, tuned to your trade instead of these thirty.
+        </p>
+        <WoolButton
+          label={`Ask about "${query}"`}
+          yarn="magenta"
+          className="sol-cta"
+          onClick={() => onOpen(query)}
+        />
+      </div>
+    </motion.article>
+  )
+}
 
 export function Solutions() {
   const reduced = useReducedMotion()
   const { open } = useWizard()
-  const [group, setGroup] = useState('all')
-  const [activeKey, setActiveKey] = useState(NICHES[0].key)
-  const panelRef = useRef(null)
+  const [query, setQuery] = useState('')
+  const [pinnedKey, setPinnedKey] = useState(NICHES[0].key)
 
-  const list = useMemo(
-    () => (group === 'all' ? NICHES : NICHES.filter((n) => n.group === group)),
-    [group]
-  )
-  const active = useMemo(
-    () => list.find((n) => n.key === activeKey) ?? list[0],
-    [list, activeKey]
-  )
+  const typedMatch = useMemo(() => resolveNiche(query), [query])
+  const noMatch = query.trim().length > 1 && !typedMatch
+  const shown = typedMatch ?? NICHES.find((n) => n.key === pinnedKey) ?? NICHES[0]
 
-  // filtering re-centres the rack on that group's first spool — mirrors the
-  // old grid's "collapse the open card" reset, just aimed at a panel that's
-  // never allowed to go empty
-  const selectGroup = useCallback((id) => {
-    setGroup(id)
-    const next = id === 'all' ? NICHES : NICHES.filter((n) => n.group === id)
-    if (next.length) setActiveKey(next[0].key)
+  const pick = useCallback((n) => {
+    setPinnedKey(n.key)
+    setQuery(n.name)
   }, [])
 
-  // below ~880px the panel sits ABOVE the rack (see solutions.css), so tapping
-  // a row further down the list changes a panel the visitor has already
-  // scrolled past — carry them back up to see it land
-  // `scroll` is false when the selection came from arrow-key navigation: the
-  // rack keeps focus while scrubbing, and yanking the page to the panel on
-  // every keystroke scrolls the row you are actually on out of sight.
-  const selectNiche = useCallback((key, { scroll = true } = {}) => {
-    setActiveKey(key)
-    if (scroll && window.matchMedia('(max-width: 880px)').matches) {
-      panelRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
-    }
-  }, [reduced])
-
-  // roving tabindex over a role="tab" rack: arrow keys move AND select — the
-  // rack is cheap to re-render, so scrubbing through spools can be immediate
-  // rather than a separate "confirm" step
-  const onRackKeyDown = useCallback((e) => {
-    if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
-    const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]'))
-    if (!tabs.length) return
-    const i = tabs.indexOf(document.activeElement)
-    let next
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = tabs[(i + 1 + tabs.length) % tabs.length]
-    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = tabs[(i - 1 + tabs.length) % tabs.length]
-    else if (e.key === 'Home') next = tabs[0]
-    else next = tabs[tabs.length - 1]
-    e.preventDefault()
-    next.focus()
-    selectNiche(next.id.replace('sol-tab-', ''), { scroll: false })
-  }, [selectNiche])
-
-  const sectionAccent = group === 'all' ? 'var(--magenta)' : YARN_HEX[GROUP_YARN[group]]
+  const sectionAccent = YARN_HEX[GROUP_YARN[shown.group]]
 
   return (
     <section className="solutions" id="solutions" style={{ '--sol-tint': sectionAccent }}>
@@ -207,52 +174,83 @@ export function Solutions() {
         <p className="kicker"><span>05</span> Solutions</p>
         <SplitWords as="h2" className="h2" text="Thirty industries. One loom." />
         <Reveal delay={0.15}>
-          <p className="lede" style={{ marginTop: 22 }}>
-            Pick your industry and watch the loom set itself up for it — the agent that
-            answers at 3am, the content engine that never runs dry, the launch that lands.
+          <p className="lede" style={{ marginTop: 10 }}>
+            Type your industry — the loom already knows it.
           </p>
         </Reveal>
       </div>
 
-      {/* toggle buttons, not tabs — the rack below is the real tablist */}
-      <div className="sol-filters" role="group" aria-label="Filter industries by group">
-        {NICHE_GROUPS.map((g) => (
-          <button
-            key={g.id}
-            aria-pressed={group === g.id}
-            className={`filter ${group === g.id ? 'is-active' : ''}${PALE_YARN.has(GROUP_YARN[g.id]) ? ' is-pale' : ''}`}
-            style={g.id !== 'all' ? { '--pill-tint': YARN_HEX[GROUP_YARN[g.id]] } : undefined}
-            onClick={() => selectGroup(g.id)}
-          >
-            {g.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="sol-layout">
-        <div
-          className="sol-rack"
-          role="tablist"
-          aria-orientation="vertical"
-          aria-label="Industries"
-          onKeyDown={onRackKeyDown}
-        >
-          <AnimatePresence initial={false} mode="popLayout">
-            {list.map((n) => (
-              <RackRow
-                key={n.key}
-                n={n}
-                isActive={n.key === active.key}
-                tabIndex={n.key === active.key ? 0 : -1}
-                onSelect={selectNiche}
-                reduced={reduced}
-              />
-            ))}
-          </AnimatePresence>
+      <Reveal delay={0.05} className="sol-console">
+        <div className="sol-search-row">
+          <label className="sol-search-label" htmlFor="sol-search">Find your industry</label>
+          <div className="sol-search-field">
+            <input
+              id="sol-search"
+              className="sol-search"
+              type="text"
+              autoComplete="off"
+              spellCheck="false"
+              placeholder="Try “cafés”, “dental”, “real estate”…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              list="sol-search-list"
+              role="combobox"
+              aria-expanded="false"
+              aria-controls="sol-answer"
+              aria-describedby="sol-answer"
+            />
+            <span className="sol-search-arrow" aria-hidden="true" />
+            <datalist id="sol-search-list">
+              {NICHES.map((n) => <option key={n.key} value={n.name} />)}
+            </datalist>
+          </div>
         </div>
 
-        <DetailPanel ref={panelRef} n={active} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
-      </div>
+        <div id="sol-answer" role="region" aria-live="polite" aria-label="Selected industry" className="sol-answer-slot">
+          <AnimatePresence mode="wait" initial={false}>
+            {noMatch ? (
+              <NoMatchCard query={query} reduced={reduced} onOpen={(niche) => open({ niche })} />
+            ) : (
+              <AnswerCard n={shown} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
+            )}
+          </AnimatePresence>
+        </div>
+      </Reveal>
+
+      {/* the breadth IS the claim — every one of the thirty stays reachable
+          here, set as one continuous run of grouped type instead of thirty
+          bordered rows. It's a single flowing paragraph (not 7 separate
+          blocks) on purpose: multi-column text balances itself line by line,
+          so nothing forces one column to run long while its neighbours sit
+          half-empty — the failure mode a "keep each category boxed" layout
+          hit immediately. Clicking a name is the same "resolve" the search
+          field does above; this is just the other door into it. */}
+      <nav className="sol-index" aria-label="All industries, by category">
+        <p className="sol-idx-flow">
+          {GROUPS.map((g, gi) => {
+            const items = NICHES.filter((n) => n.group === g.id)
+            return (
+              <span className="sol-idx-group" key={g.id} style={{ '--grp-yarn': YARN_HEX[GROUP_YARN[g.id]] }}>
+                <span className="sol-idx-label">{g.label}</span>{' '}
+                {items.map((n, i) => (
+                  <span key={n.key}>
+                    <button
+                      type="button"
+                      className={`sol-idx-btn${n.key === shown.key && !noMatch ? ' is-active' : ''}`}
+                      aria-pressed={n.key === shown.key && !noMatch}
+                      onClick={() => pick(n)}
+                    >
+                      {n.name}
+                    </button>
+                    {i < items.length - 1 && <span className="sol-idx-sep" aria-hidden="true">·</span>}
+                  </span>
+                ))}
+                {gi < GROUPS.length - 1 && <span className="sol-idx-gap" aria-hidden="true"> — </span>}
+              </span>
+            )
+          })}
+        </p>
+      </nav>
     </section>
   )
 }

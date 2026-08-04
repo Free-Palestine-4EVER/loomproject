@@ -1,5 +1,26 @@
-// The LOOM Crew — the studio's mascot cast. Each character owns a discipline,
-// and between them they cover every service on the Capabilities list.
+// The LOOM Crew — the studio's mascot cast, AND the four things a client
+// rents. Each character owns a discipline, and between them they cover every
+// service on the Capabilities list. Each ready member also carries `rentsAs`:
+// the id of its matching product record in data/agents.js — the rentable
+// specifics (what it does, what it needs from you, what it runs on, its
+// cadence) live there once, as the single source of truth, and Crew.jsx looks
+// the record up rather than duplicating it here. See agents.js's own header
+// comment for why those four products exist and what they cost to build.
+//
+// The mapping is not a coin flip — three of the four pairs are the original
+// author's own signal, still visible in the data:
+//   · nexo → concierge: Nexo's own line ("answers your customers at 3am in
+//     Arabic and English, books the table") already previews Concierge's job
+//     almost word for word, and both share the violet accent (#7b2fbe).
+//   · spooly → shelf: Shelf's whole pitch is keeping one voice across a
+//     whole catalogue, in two languages, without drifting — that IS Spooly's
+//     "weaves it back tighter", applied to product copy instead of brand.
+//   · flick → spool: Flick shoots the content; Spool is the monthly engine
+//     that keeps writing and queuing more of it after the shoot wraps.
+//   · prism → ledger: the weakest link, kept honest rather than forced —
+//     Ledger's channels include "site forms", a surface Prism is the one who
+//     builds, and lead-routing is closer to Prism's systems/web territory
+//     than to any other crew member's.
 //
 // The first four shipped with the site. The second four are new hires: designed,
 // written and cast, but holding at `ready: false` until their reference art is
@@ -18,6 +39,7 @@ export const CREW = [
     accent: '#f21c8c',
     img: '/img/crew/spooly.webp',
     ready: true,
+    rentsAs: 'shelf',
   },
   {
     id: 'flick',
@@ -29,6 +51,7 @@ export const CREW = [
     accent: '#59e6ff',
     img: '/img/crew/flick.webp',
     ready: true,
+    rentsAs: 'spool',
   },
   {
     id: 'nexo',
@@ -40,6 +63,7 @@ export const CREW = [
     accent: '#7b2fbe',
     img: '/img/crew/nexo.webp',
     ready: true,
+    rentsAs: 'concierge',
   },
   {
     id: 'prism',
@@ -51,6 +75,7 @@ export const CREW = [
     accent: '#ffc740',
     img: '/img/crew/prism.webp',
     ready: true,
+    rentsAs: 'ledger',
   },
 
   // ——— the new hires ———

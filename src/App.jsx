@@ -6,7 +6,6 @@ import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { Crew } from './components/Crew.jsx'
-import { Agents } from './components/Agents.jsx'
 import { Moon } from './components/Moon.jsx'
 import { Counter, OfferPair, Bolt } from './components/Banners.jsx'
 import { Consultancy } from './components/Consultancy.jsx'
@@ -99,6 +98,18 @@ export default function App() {
   // flick cannot walk the tab into iOS Safari's memory ceiling.
   useEffect(() => mountViewportBudget(), [])
 
+  // The sticky header's height is not a constant: it shrinks once the page is
+  // scrolled, and the mobile bar is a different size again. A hardcoded -70
+  // left five of the eight nav targets landing with their kicker and the top of
+  // their h2 tucked behind a 96px header. Measure it at click time instead, and
+  // keep a small breath below it. `--nav-anchor-gap` mirrors this for the
+  // CSS-only path (scroll-margin-top, used by the reduced-motion fallback and
+  // by a hash typed straight into the address bar).
+  const anchorOffset = () => {
+    const h = document.querySelector('header')?.getBoundingClientRect().height || 70
+    return -(Math.round(h) + 18)
+  }
+
   const navigate = useCallback((href) => {
     // A hash link clicked while on /consultancy has no target in the DOM — the
     // long page is not mounted. Return to / first, then scroll on the commit
@@ -109,7 +120,7 @@ export default function App() {
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const t = href === '#top' ? document.body : document.querySelector(href)
         if (!t) return
-        if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : t, { offset: -70, duration: 1.2 })
+        if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : t, { offset: anchorOffset(), duration: 1.2 })
         else t.scrollIntoView({ behavior: 'smooth' })
       }))
       return
@@ -117,7 +128,7 @@ export default function App() {
     const el = href === '#top' ? document.body : document.querySelector(href)
     if (!el) return
     const run = () => {
-      if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : el, { offset: -70, duration: 1.4 })
+      if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : el, { offset: anchorOffset(), duration: 1.4 })
       else el.scrollIntoView({ behavior: 'smooth' })
     }
     // The menu/overlay lock is released in the SAME commit as this click, and
@@ -196,9 +207,6 @@ export default function App() {
             {/* directly under the eight needs: the visitor who did not see
                 themselves in a deliverable is the one this is for */}
             <Consultancy />
-            {/* an offer, not a portfolio piece — it sits with Consultancy and
-                OfferPair rather than after the work that follows */}
-            <Agents />
             <Work />
             <OfferPair />
             <AppsShowcase />

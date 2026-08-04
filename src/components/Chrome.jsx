@@ -28,7 +28,10 @@ export function Loader({ done }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.8, ease: EASE }}
             >
-              <img className="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" width="480" height="162" fetchPriority="high" />
+              {/* lowercase attr on purpose: React 18 does not know the camelCase
+                  `fetchPriority` prop and passes it through with a console
+                  warning. React 19 adds it; until then this is the quiet spelling. */}
+              <img className="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" width="480" height="162" fetchpriority="high" />
             </motion.div>
             <motion.div
               className="loader-thread"
@@ -61,7 +64,11 @@ export function ScrollProgress() {
 // which pushStates and swaps the page.
 const LINKS = [
   { href: '#work', label: 'Work' },
-  { href: '#agents', label: 'Agents' },
+  /* One entry, not two. The crew and the rentable agents used to be separate
+     sections; they are now a single roster where each character IS the thing
+     you rent, so 'Agents' and 'Crew' would scroll to the same place. `#agents`
+     still resolves (Crew.jsx keeps it as an anchor on the grid) so old links
+     and any shared URL keep working — it just no longer earns its own tab. */
   { href: '#crew', label: 'Crew' },
   { href: '#solutions', label: 'Solutions' },
   { href: '/consultancy', label: 'Consultancy' },

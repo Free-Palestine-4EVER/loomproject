@@ -174,25 +174,30 @@ export function OfferPair() {
                   .offer-aura in banners.css for why this is CSS, not a canvas */}
               <i className="offer-aura" aria-hidden="true" />
               <i className="offer-scrim" aria-hidden="true" />
-              <span className="offer-stamp" aria-hidden="true">
-                <WoolIcon name={o.mark} />
-              </span>
-              {o.photo && (
-                <img
-                  className="offer-photo"
-                  /* PNG, not webp: these are alpha cut-outs and the whole
-                     point is that there is no rectangle. */
-                  src={`/img/needs/${o.photo}.png`}
-                  alt=""
-                  width={1264}
-                  height={848}
-                  loading="lazy"
-                  decoding="async"
-                  aria-hidden="true"
-                  onLoad={(e) => e.currentTarget.closest('.offer-panel')?.classList.add('has-photo')}
-                  onError={(e) => { e.currentTarget.style.display = 'none' }}
-                />
-              )}
+              {/* the reserved band: art lives in its OWN row of the panel's
+                  flex column, never absolutely stacked over `.offer-face`
+                  below it — see the CSS comment on `.offer-media` for why. */}
+              <div className="offer-media" aria-hidden="true">
+                <span className="offer-stamp">
+                  <WoolIcon name={o.mark} />
+                </span>
+                {o.photo && (
+                  <img
+                    className="offer-photo"
+                    /* PNG, not webp: these are alpha cut-outs and the whole
+                       point is that there is no rectangle. */
+                    src={`/img/needs/${o.photo}.png`}
+                    alt=""
+                    width={1264}
+                    height={848}
+                    loading="lazy"
+                    decoding="async"
+                    aria-hidden="true"
+                    onLoad={(e) => e.currentTarget.closest('.offer-panel')?.classList.add('has-photo')}
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
+                )}
+              </div>
               <div className="offer-face">
                 <p className="offer-eyebrow">{o.eyebrow}</p>
                 <h3 className="offer-h">{o.title}</h3>

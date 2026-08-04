@@ -20,6 +20,11 @@
   gap: clamp(16px, 2.2vw, 30px);
   padding: 0 var(--pad);
   perspective: 1200px;
+  /* #agents used to be its own section further down the page; the nav still
+     carries that link (Chrome.jsx, not owned here), so it lands right on the
+     one merged roster instead of going dead. scroll-margin keeps it clear of
+     the fixed nav even without Lenis's JS offset. */
+  scroll-margin-top: 90px;
 }
 .crew-cell { height: 100%; }
 
@@ -67,7 +72,7 @@
 }
 
 .crew-meta {
-  padding: 4px clamp(16px, 2vw, 24px) clamp(20px, 2.6vw, 28px);
+  padding: 4px clamp(16px, 2vw, 24px) 2px;
   display: flex; flex-direction: column; gap: 6px;
 }
 .crew-role {

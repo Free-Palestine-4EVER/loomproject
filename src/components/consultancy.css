@@ -2,23 +2,20 @@
    CONSULTANCY — the advisory section / page
    ═══════════════════════════════════════════════════════════
 
-   The rest of the site sells objects, so it is built from tiles. This sells a
-   fortnight of thinking, so it still reads top-to-bottom as one narrative in
-   order rather than a grid to "choose one from" — but a narrative does not
-   require every beat to be its own full-width band. This pass tightened the
-   section to roughly half its previous height by collapsing repeated full-
-   width rows into denser shapes (photo beside the intro, pillars in a 3-up
-   row, the fortnight timeline and outcomes sharing one card) — never by
-   cutting copy or dropping the calculator's prominence.
+   Full interaction redesign. Every beat that used to be a static, full-width
+   band is now something a visitor operates: a segmented explorer for the
+   three questions, a native <details> disclosure around the ROI calculator,
+   a tab strip over the fortnight timeline, a native accordion for the FAQ.
+   The inline section only pays for the panel that is actually open — see
+   Consultancy.jsx's header comment for the full rationale.
 
-   Reuses the site's existing material vocabulary (.blk dyes, felt-cream strips,
-   --yarn-* dyes) rather than inventing a palette. Nothing here recolours wool.
+   Reuses the site's existing material vocabulary (.filter pills from
+   styles.css, felt-cream dyes, --yarn-* tokens) rather than inventing a
+   parallel visual language.
    ═══════════════════════════════════════════════════════════ */
 
 .consult {
-  /* was clamp(70px,10vh,130px) — the section no longer needs a landing pad
-     that big underneath it now that it is half the height overall */
-  padding-bottom: clamp(48px, 6vh, 90px);
+  padding-bottom: clamp(40px, 5vh, 76px);
   /* scroll-margin so the Lenis -70 offset lands the heading clear of the nav */
   scroll-margin-top: 70px;
 }
@@ -26,15 +23,15 @@
 /* the standalone /consultancy route has no sections above it to breathe against */
 .consult--page { padding-top: clamp(96px, 14vh, 170px); }
 
-/* ── head: intro copy beside the still ───────────────────── */
-/* The photo used to be a full-bleed row of its own below the head — a whole
-   screen of scroll for one image. It now shares the head's row instead of
-   owning one: same asset, same "own pastel sweep" contract, a fraction of
-   the footprint because a column-width image is not a viewport-width one. */
+/* ── head ─────────────────────────────────────────────────── */
+/* Inline: copy only — the companion still is decorative, not a fact, and
+   only earns a row on the page where the section can afford it. */
 .consult .section-head.consult-head {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
   gap: clamp(28px, 4vw, 56px);
+}
+.consult--page .section-head.consult-head {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
   align-items: center;
 }
 .consult-head-copy { min-width: 0; }
@@ -50,27 +47,109 @@
   display: block;
   width: 100%;
   height: auto;
-  /* shorter crop than the old full-bleed 3:2 — this is a companion image next
-     to the copy now, not a hero still carrying the section on its own */
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
 @media (max-width: 860px) {
-  .consult .section-head.consult-head {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
+  .consult--page .section-head.consult-head { grid-template-columns: 1fr; gap: 24px; }
   .consult-shot img { aspect-ratio: 16 / 9; }
 }
 
-/* ── the calculator (the wow layer) ──────────────────────── */
-/* Same felted-cream inversion as .consult-band — the calculator and the
-   fortnight-timeline are the section's two "different material" beats, so
-   they share a recipe on purpose rather than each inventing their own. */
+/* ── the pillar explorer (scale → costs → automate) ──────────
+   Was three full-width rows, then a 3-up grid. Now one question read at a
+   time — a role="tablist" pill row over a single panel, the same
+   "pick one, read one" contract Solutions.jsx uses for its industry rack. */
+.consult-explorer { margin: clamp(28px, 3.6vw, 48px) var(--pad) 0; }
+
+.consult-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.consult-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  /* .filter already sets padding/border/radius/color/transition — this only
+     adds room for the icon and the slightly stronger active affordance. */
+}
+.consult-tab:focus-visible { outline: 2px solid var(--magenta); outline-offset: 2px; }
+/* the medallion is a self-contained photographed felt badge (its own cream
+   backing), so it reads fine on both the dark pill and the magenta active
+   state without recolouring — only a scale-up marks the active one. */
+.consult-tab-icon { --wool-icon: 24px; flex: none; transition: transform 0.35s var(--ease); }
+.consult-tab.is-active .consult-tab-icon { transform: scale(1.12); }
+
+.consult-panel-frame {
+  margin-top: clamp(16px, 2.2vw, 26px);
+  /* AnimatePresence mode="wait" removes the outgoing panel before the
+     incoming one mounts — nothing to reserve height against, so a plain
+     block is enough; the fade+rise reads as a swap, not a jump. */
+}
+.consult-panel {
+  padding: clamp(22px, 2.8vw, 36px);
+  border-radius: calc(var(--radius) * 1.1);
+  background-color: rgba(242, 240, 247, 0.035);
+  border: 1px solid var(--line);
+}
+.consult-panel-head {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.4vw, 16px);
+  margin-bottom: 12px;
+}
+.consult-panel-icon { --wool-icon: 40px; flex: none; }
+.consult-panel-title {
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: clamp(1.14rem, 1.6vw, 1.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+.consult-panel-copy {
+  max-width: 62ch;
+  color: var(--ink-dim);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.consult-points {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+@media (min-width: 640px) {
+  .consult-points { grid-template-columns: repeat(2, 1fr); column-gap: 20px; }
+}
+.consult-points li {
+  position: relative;
+  padding-left: 24px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+/* a stitch, not a bullet — two threads of the brand stripe */
+.consult-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 13px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--magenta), var(--yarn-violet, var(--magenta)));
+}
+
+/* ── the calculator (the wow layer, now a disclosure) ────────
+   A native <details> — closed, it is a single summary row; opened, it is
+   the same slider calculator this section always had. Collapsing by
+   default on the inline section is most of this redesign's height budget. */
 .calc {
-  margin: clamp(28px, 3.6vw, 48px) var(--pad) 0;
-  padding: clamp(22px, 3vw, 40px);
+  display: block;
+  margin: clamp(22px, 3vw, 40px) var(--pad) 0;
   border-radius: calc(var(--radius) * 1.1);
   background-color: var(--yarn-cream);
   background-image: url('/img/wool/tex/felt-cream.webp');
@@ -80,12 +159,72 @@
     inset 0 2px 10px rgba(51, 36, 61, 0.14),
     0 30px 70px -34px rgba(0, 0, 0, 0.7);
 }
+.calc summary { list-style: none; }
+.calc summary::-webkit-details-marker { display: none; }
+.calc summary::marker { content: ''; }
+
+.calc-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(18px, 2.4vw, 28px) clamp(20px, 2.8vw, 34px);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.calc-summary:focus-visible {
+  outline: 2px solid var(--magenta);
+  outline-offset: -2px;
+  border-radius: calc(var(--radius) * 1.1);
+}
+.calc-summary-copy { display: grid; gap: 4px; min-width: 0; }
 .calc-kicker { color: rgba(51, 36, 61, 0.6); }
 .calc-kicker span { color: var(--magenta); }
-.calc-head .h3 { color: #33243d; margin-top: 6px; }
+.calc-summary-title {
+  color: #33243d;
+  font-size: clamp(1.05rem, 1.6vw, 1.32rem);
+  line-height: 1.25;
+}
+
+/* a felted bobbin — rotates open the same way the rack arrow does elsewhere */
+.calc-chevron {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(51, 36, 61, 0.3);
+  position: relative;
+  transition: transform 0.4s var(--ease), border-color 0.3s;
+}
+.calc-chevron::before,
+.calc-chevron::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 2px;
+  background: #33243d;
+  transform: translate(-50%, -50%);
+}
+.calc-chevron::after { transform: translate(-50%, -50%) rotate(90deg); transition: transform 0.35s var(--ease); }
+/* shared with .consult-band, the second disclosure below — same bobbin,
+   same open/hover behaviour, so the two cards feel like one mechanism */
+.calc[open] .calc-chevron,
+.consult-band[open] .calc-chevron { transform: rotate(180deg); border-color: var(--magenta); }
+.calc[open] .calc-chevron::after,
+.consult-band[open] .calc-chevron::after { transform: translate(-50%, -50%) rotate(0deg); }
+.calc-summary:hover .calc-chevron,
+.consult-band-summary:hover .calc-chevron { border-color: var(--magenta); }
+
+.calc-inner {
+  padding: 0 clamp(20px, 2.8vw, 34px) clamp(22px, 3vw, 40px);
+}
 .calc-sub {
   max-width: 58ch;
-  margin-top: 8px;
+  margin-top: -6px;
+  padding-top: clamp(10px, 1.4vw, 16px);
+  border-top: 1px solid rgba(51, 36, 61, 0.14);
   font-size: 0.98rem;
   line-height: 1.6;
   color: rgba(51, 36, 61, 0.75);
@@ -226,164 +365,124 @@
   color: rgba(51, 36, 61, 0.68);
 }
 
-.calc > :last-child { margin-top: clamp(16px, 2vw, 22px); }
+.calc-inner > :last-child { margin-top: clamp(16px, 2vw, 22px); }
 
 @media (max-width: 860px) {
   .calc-body { grid-template-columns: 1fr; }
 }
 @media (max-width: 719px) {
-  .calc { padding: 24px clamp(18px, 5vw, 28px); }
+  .calc-summary { padding: 18px clamp(18px, 5vw, 26px); }
+  .calc-inner { padding: 0 clamp(18px, 5vw, 26px) 24px; }
   .calc-stat-n { font-size: 1.4rem; }
 }
 
-/* ── the three questions ─────────────────────────────────── */
-/* Was three full-width rows stacked — three times the same band shape for no
-   reason once the content itself is this short per pillar. A 3-up row on
-   desktop says scale → costs → automate left-to-right in a third of the
-   height; it still reads as one engagement, not a "pick one" tile grid,
-   because the three cards share a sentence rhythm and a single row. */
-.consult-pillars {
-  display: grid;
-  gap: clamp(14px, 1.8vw, 22px);
-  padding: clamp(30px, 4vw, 52px) var(--pad) 0;
-}
-@media (min-width: 861px) {
-  .consult-pillars { grid-template-columns: repeat(3, 1fr); align-items: stretch; }
-}
-
-.consult-pillar {
-  padding: clamp(20px, 2.2vw, 28px);
-  border-radius: calc(var(--radius) * 1.1);
-  background-color: rgba(242, 240, 247, 0.035);
-  border: 1px solid var(--line);
-  transition: border-color 0.4s var(--ease), background-color 0.4s var(--ease);
-}
-.consult-pillar:hover {
-  border-color: rgba(242, 240, 247, 0.18);
-  background-color: rgba(242, 240, 247, 0.055);
-}
-
-.consult-pillar-head {
-  display: flex;
-  align-items: center;
-  gap: clamp(12px, 1.4vw, 16px);
-  margin-bottom: 12px;
-}
-.consult-medal {
-  --wool-icon: 44px;
-  flex: none;
-  transition: transform 0.4s var(--ease);
-}
-.consult-pillar:hover .consult-medal { transform: rotate(-7deg) scale(1.08); }
-
-.consult-pillar-title {
-  font-family: var(--display);
-  font-weight: 620;
-  font-size: clamp(1.12rem, 1.5vw, 1.36rem);
-  line-height: 1.15;
-  letter-spacing: -0.015em;
-}
-
-.consult-pillar-copy {
-  color: var(--ink-dim);
-  font-size: 0.94rem;
-  line-height: 1.52;
-}
-
-.consult-points {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-.consult-points li {
-  position: relative;
-  padding-left: 24px;
-  font-size: 0.88rem;
-  line-height: 1.45;
-  color: var(--ink);
-}
-/* a stitch, not a bullet — two threads of the brand stripe */
-.consult-points li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.62em;
-  width: 13px;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--magenta), var(--yarn-violet, var(--magenta)));
-}
-
-/* ── how the fortnight runs + what you walk away with ────── */
-/* These were two separate full-width sections, each paying its own
-   clamp(46px,6vw,84px) of top padding for the same felted-cream background —
-   a repeated band shape with a seam that didn't need to exist. One card now:
-   the timeline and the outcomes it produces read as a continuous thought
-   instead of two section breaks. */
+/* ── how the fortnight runs + what you walk away with ────────
+   One felted-cream card, same inversion the Counter label strip uses — and,
+   like the calculator above, a <details> disclosure: closed, it is a single
+   summary row; opened, it is the stepper + outcomes it always was. The
+   timeline inside it is a 4-tab stepper over a single panel instead of four
+   full-width columns each holding one sentence. */
 .consult-band {
-  margin: clamp(32px, 4.2vw, 56px) var(--pad) 0;
-  padding: clamp(24px, 3vw, 44px);
+  display: block;
+  margin: clamp(24px, 3.2vw, 40px) var(--pad) 0;
   border-radius: calc(var(--radius) * 1.1);
-  /* the one felted-cream field in the section — the same inversion the Counter
-     label strip uses, so the page has a light beat in the middle */
   background-color: var(--yarn-cream);
   background-image: url('/img/wool/tex/felt-cream.webp');
   background-size: 180px;
-  color: #33243d;                 /* the ONE dark ink allowed on cream (wool.css:253) */
+  color: #33243d;
   box-shadow: inset 0 2px 10px rgba(51, 36, 61, 0.14);
 }
+.consult-band summary { list-style: none; }
+.consult-band summary::-webkit-details-marker { display: none; }
+.consult-band summary::marker { content: ''; }
+
+.consult-band-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(18px, 2.4vw, 28px) clamp(20px, 2.8vw, 34px);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.consult-band-summary:focus-visible {
+  outline: 2px solid var(--magenta);
+  outline-offset: -2px;
+  border-radius: calc(var(--radius) * 1.1);
+}
+.consult-band-summary-copy { min-width: 0; }
 .consult-band .h3 { color: #33243d; }
 .consult-band-sub {
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: 0.98rem;
   color: rgba(51, 36, 61, 0.72);
 }
-
-.consult-steps {
-  list-style: none;
-  margin: clamp(20px, 2.6vw, 32px) 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(16px, 2vw, 30px);
+.consult-band-inner {
+  padding: clamp(6px, 1vw, 12px) clamp(20px, 2.8vw, 34px) clamp(24px, 3vw, 40px);
+  border-top: 1px solid rgba(51, 36, 61, 0.14);
 }
-.consult-step { min-width: 0; }
+
+.consult-stepper { margin-top: clamp(16px, 2vw, 24px); }
+.consult-step-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.consult-step-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 16px 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.18);
+  background: rgba(51, 36, 61, 0.04);
+  color: rgba(51, 36, 61, 0.72);
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+.consult-step-btn:hover { border-color: rgba(51, 36, 61, 0.34); color: #33243d; }
+.consult-step-btn:focus-visible { outline: 2px solid var(--magenta); outline-offset: 2px; }
+.consult-step-btn.is-active {
+  background: #33243d;
+  border-color: #33243d;
+  color: var(--yarn-cream);
+}
 .consult-step-n {
-  display: block;
   font-family: var(--display);
   font-weight: 700;
-  font-size: 0.86rem;
-  letter-spacing: 0.14em;
-  color: rgba(51, 36, 61, 0.42);
-  margin-bottom: 8px;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
 }
-.consult-step-title {
+.consult-step-btn.is-active .consult-step-n { opacity: 0.85; }
+.consult-step-label {
   font-family: var(--display);
-  font-weight: 620;
-  font-size: 1.02rem;
-  line-height: 1.2;
-  margin-bottom: 6px;
-}
-.consult-step-copy {
-  font-size: 0.88rem;
-  line-height: 1.5;
-  color: rgba(51, 36, 61, 0.78);
+  font-weight: 580;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
-/* the seam between the two halves of the merged card — a hairline, not a gap,
-   so it reads as one card with two beats rather than two cards touching */
+.consult-step-panel-frame {
+  margin-top: clamp(14px, 1.8vw, 20px);
+  min-height: 4.6em; /* reserves the longest step-copy's height so the card doesn't jump */
+}
+.consult-step-copy {
+  max-width: 62ch;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: rgba(51, 36, 61, 0.82);
+}
+
+/* the seam between the two halves of the card — a hairline, not a gap */
 .consult-band-divider {
   height: 1px;
-  margin: clamp(24px, 3vw, 38px) 0;
+  margin: clamp(22px, 2.8vw, 34px) 0;
   background: rgba(51, 36, 61, 0.14);
 }
 
 /* ── what you walk away with ─────────────────────────────── */
 .consult-out-list {
   list-style: none;
-  margin: clamp(16px, 2vw, 24px) 0 0;
+  margin: clamp(14px, 1.8vw, 20px) 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -396,8 +495,6 @@
   gap: 12px;
   padding: 12px 16px;
   border-radius: var(--radius);
-  /* now on the cream field (used to sit on the dark page background), so it
-     needs the light-on-light border .calc-stat already uses, not --line */
   border: 1px solid rgba(51, 36, 61, 0.14);
   background-color: rgba(51, 36, 61, 0.045);
   font-size: 0.92rem;
@@ -416,23 +513,57 @@
   transform: rotate(-45deg);
 }
 
-/* ── straight answers (page only) ────────────────────────── */
-.consult-faq { padding: clamp(46px, 6vw, 84px) var(--pad) 0; }
+/* ── straight answers (page only) — a native accordion group ── */
+.consult-faq { padding: clamp(40px, 5.2vw, 72px) var(--pad) 0; }
 .consult-faq-list {
-  margin-top: clamp(20px, 2.6vw, 32px);
+  margin-top: clamp(18px, 2.4vw, 28px);
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(18px, 2.4vw, 34px);
+  gap: 10px;
+  max-width: 78ch;
 }
+.consult-faq-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 4px clamp(18px, 2.2vw, 24px);
+  transition: border-color 0.3s, background-color 0.3s;
+}
+.consult-faq-item[open] { border-color: rgba(242, 240, 247, 0.24); background-color: rgba(242, 240, 247, 0.035); }
+.consult-faq-item summary { list-style: none; }
+.consult-faq-item summary::-webkit-details-marker { display: none; }
+.consult-faq-item summary::marker { content: ''; }
 .consult-faq-q {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  cursor: pointer;
   font-family: var(--display);
   font-weight: 620;
-  font-size: 1.08rem;
-  line-height: 1.25;
-  margin-bottom: 9px;
+  font-size: 1.02rem;
+  line-height: 1.3;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
 }
+.consult-faq-q:focus-visible { outline: 2px solid var(--magenta); outline-offset: -2px; border-radius: 8px; }
+/* a plus that becomes a minus, not a chevron — the same stitch-cross motif
+   the site's own "+" affordances use */
+.consult-faq-q::after {
+  content: '';
+  flex: none;
+  width: 13px;
+  height: 13px;
+  position: relative;
+  background:
+    linear-gradient(var(--magenta), var(--magenta)) center / 100% 1.5px no-repeat,
+    linear-gradient(var(--magenta), var(--magenta)) center / 1.5px 100% no-repeat;
+  transition: transform 0.35s var(--ease);
+}
+.consult-faq-item[open] .consult-faq-q::after { transform: rotate(90deg); opacity: 0; }
 .consult-faq-a {
   max-width: 56ch;
+  margin: 0 0 18px;
   font-size: 0.96rem;
   line-height: 1.62;
   color: var(--ink-dim);
@@ -444,7 +575,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: clamp(16px, 2vw, 28px);
-  padding: clamp(28px, 3.6vw, 48px) var(--pad) 0;
+  padding: clamp(26px, 3.4vw, 44px) var(--pad) 0;
 }
 .consult-foot-link {
   font-weight: 640;
@@ -456,24 +587,33 @@
 }
 .consult-foot-link:hover { color: var(--ink); border-color: var(--magenta); }
 
-/* ── responsive ──────────────────────────────────────────── */
-@media (max-width: 1000px) {
-  .consult-steps { grid-template-columns: repeat(2, 1fr); }
+/* ── reduced motion ───────────────────────────────────────────
+   Content must always be reachable and readable without motion. Every
+   interactive piece here (tabs, disclosure, accordion) is native HTML state
+   or plain React state — none of it depends on the fade/slide transitions
+   to function, so turning the transitions off never hides content. */
+@media (prefers-reduced-motion: reduce) {
+  .calc-chevron,
+  .calc-chevron::after,
+  .consult-faq-q::after,
+  .consult-step-btn,
+  .consult-tab {
+    transition: none !important;
+  }
 }
+
+/* ── responsive ──────────────────────────────────────────── */
 @media (max-width: 719px) {
-  /* single column below 860px already (see .consult-head-copy rule above);
-     a touch shorter than 16:9 once the image is this narrow */
-  .consult-shot img { aspect-ratio: 4 / 3; }
-  .consult-out-list,
-  .consult-faq-list { grid-template-columns: 1fr; }
-  .consult-steps { grid-template-columns: 1fr; gap: 18px; }
-  .consult-pillar-head { gap: 12px; }
-  /* .section-head's shared clamp(70px,10vh,130px) top padding (styles.css)
-     is sized for a section that opens with only a headline above it — this
-     one now opens with a photo too, so the same padding reads as dead air
-     once everything else in the section has been tightened. Scoped to
-     .consult only, so no other section's spacing moves. */
   .consult .section-head.consult-head { padding-top: clamp(44px, 8vh, 80px); }
-  .consult-pillar { padding: 18px; }
-  .consult-band { padding: 20px 18px; }
+  .consult-panel { padding: 18px; }
+  .consult-band-summary { padding: 16px 18px; }
+  .consult-band-inner { padding: 6px 18px 22px; }
+  .consult-out-list { grid-template-columns: 1fr; }
+  .consult-step-label { white-space: normal; }
+}
+
+/* very narrow phones: guarantee no horizontal overflow from the pill rows */
+@media (max-width: 400px) {
+  .consult-tabs, .consult-step-tabs { gap: 8px; }
+  .consult-tab, .consult-step-btn { font-size: 0.86rem; padding-left: 14px; padding-right: 16px; }
 }
