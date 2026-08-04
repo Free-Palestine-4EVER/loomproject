@@ -194,9 +194,6 @@ export function Solutions() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               list="sol-search-list"
-              role="combobox"
-              aria-expanded="false"
-              aria-controls="sol-answer"
               aria-describedby="sol-answer"
             />
             <span className="sol-search-arrow" aria-hidden="true" />

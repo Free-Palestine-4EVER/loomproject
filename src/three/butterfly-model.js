@@ -634,6 +634,9 @@ function buildFace(THREE, S, headR, group) {
   const style = S.eye.style || "googly";
   const size = S.eye.size;
   const parts = [];
+  // every material buildFace() constructs, so the caller can dispose them —
+  // geometries are already caught by Companion's scene traverse, materials aren't
+  const mats = [];
 
   const put = (mesh, sx, ox, oy, oz) => {
     mesh.position.set(sx * headR * ox, Y + headR * oy, headR * oz);
@@ -643,9 +646,11 @@ function buildFace(THREE, S, headR, group) {
   };
 
   const mouth = (color, radius, tube, arc, y, tilt) => {
+    const mouthMat = new THREE.MeshBasicMaterial({ color });
+    mats.push(mouthMat);
     const m = new THREE.Mesh(
       new THREE.TorusGeometry(headR * radius, headR * tube, 8, 28, arc),
-      new THREE.MeshBasicMaterial({ color })
+      mouthMat
     );
     m.position.set(0, Y + headR * y, headR * 0.98);
     m.rotation.set(-0.25, 0, Math.PI + Math.PI * 0.05 + (tilt || 0));
@@ -658,6 +663,7 @@ function buildFace(THREE, S, headR, group) {
     const white = new THREE.MeshPhysicalMaterial({ color: S.eye.color, roughness: 0.08, clearcoat: 1 });
     const pupil = new THREE.MeshBasicMaterial({ color: S.eye.pupil });
     const glint = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    mats.push(white, pupil, glint);
     [-1, 1].forEach((sx) => {
       put(new THREE.Mesh(new THREE.SphereGeometry(size, 24, 18), white), sx, 0.5, 0.06, 0.72);
       put(new THREE.Mesh(new THREE.SphereGeometry(size * 0.5, 18, 14), pupil), sx, 0.53, 0.042, 0.72 + (size / headR) * 0.66);
@@ -680,15 +686,18 @@ function buildFace(THREE, S, headR, group) {
       transparent: true,
     });
     const core = new THREE.MeshBasicMaterial({ color: S.eye.pupil });
+    mats.push(gem, core);
     [-1, 1].forEach((sx) => {
       const g = put(new THREE.Mesh(new THREE.IcosahedronGeometry(size * 1.05, 0), gem), sx, 0.5, 0.05, 0.7);
       g.rotation.set(0.4, sx * 0.5, 0.2);
       put(new THREE.Mesh(new THREE.OctahedronGeometry(size * 0.34, 0), core), sx, 0.5, 0.05, 0.7);
     });
     // a straight, cool little line of a mouth — gems don't grin
+    const lineMat = new THREE.MeshBasicMaterial({ color: S.eye.pupil });
+    mats.push(lineMat);
     const line = new THREE.Mesh(
       new THREE.CapsuleGeometry(headR * 0.05, headR * 0.34, 4, 10),
-      new THREE.MeshBasicMaterial({ color: S.eye.pupil })
+      lineMat
     );
     line.rotation.z = Math.PI / 2;
     line.position.set(0, Y - headR * 0.36, headR * 0.94);
@@ -699,6 +708,7 @@ function buildFace(THREE, S, headR, group) {
   if (style === "paper") {
     const ink = new THREE.MeshBasicMaterial({ color: S.eye.pupil, side: THREE.DoubleSide });
     const white = new THREE.MeshBasicMaterial({ color: S.eye.color, side: THREE.DoubleSide });
+    mats.push(ink, white);
     [-1, 1].forEach((sx) => {
       // printed on the head as flat discs, not glued-on balls
       const e = put(new THREE.Mesh(new THREE.CircleGeometry(size * 0.95, 26), ink), sx, 0.48, 0.08, 0.99);
@@ -709,6 +719,7 @@ function buildFace(THREE, S, headR, group) {
     });
     // rosy paper cheeks
     const blush = new THREE.MeshBasicMaterial({ color: 0xff9ec0, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+    mats.push(blush);
     [-1, 1].forEach((sx) => {
       const b = put(new THREE.Mesh(new THREE.CircleGeometry(size * 0.5, 20), blush), sx, 0.76, -0.3, 0.82);
       b.rotation.y = sx * -0.7;
@@ -725,6 +736,7 @@ function buildFace(THREE, S, headR, group) {
       roughness: 0.3,
     });
     const lead = new THREE.MeshStandardMaterial({ color: 0x1a120c, roughness: 0.8 });
+    mats.push(lit, lead);
     [-1, 1].forEach((sx) => {
       const ring = put(new THREE.Mesh(new THREE.TorusGeometry(size * 0.92, size * 0.2, 10, 26), lead), sx, 0.5, 0.06, 0.78);
       ring.rotation.y = sx * -0.25;
@@ -743,6 +755,7 @@ function buildFace(THREE, S, headR, group) {
     const iris = new THREE.MeshBasicMaterial({ color: S.eye.pupil });
     const lidMat = new THREE.MeshPhysicalMaterial({ color: S.body.color, roughness: 1, sheen: 1 });
     const lashMat = new THREE.MeshBasicMaterial({ color: S.eye.pupil });
+    mats.push(white, iris, lidMat, lashMat);
 
     [-1, 1].forEach((sx) => {
       put(new THREE.Mesh(new THREE.SphereGeometry(size, 26, 20), white), sx, 0.5, 0.05, 0.7);
@@ -773,6 +786,7 @@ function buildFace(THREE, S, headR, group) {
       clearcoatRoughness: 0.15,
     });
     const thread = new THREE.MeshBasicMaterial({ color: S.eye.pupil });
+    mats.push(btn, thread);
     [-1, 1].forEach((sx) => {
       const disc = put(new THREE.Mesh(new THREE.CylinderGeometry(size, size, size * 0.3, 26), btn), sx, 0.5, 0.05, 0.8);
       disc.rotation.set(Math.PI / 2, 0, 0);
@@ -802,7 +816,7 @@ function buildFace(THREE, S, headR, group) {
     }
   }
 
-  return { parts };
+  return { parts, mats };
 }
 
 /* ------------------------------------------------------------------ */
@@ -1021,5 +1035,11 @@ export function createButterfly(THREE, key) {
     // emissive, and each is its own canvas-backed texture
     Object.values(maps).forEach((t) => t?.dispose?.());
     wingMeshes.forEach((m) => m.geometry.dispose());
+    // body/antenna/face materials — geometries are caught by Companion's own
+    // scene traverse, but that traverse never touches .material
+    bodyMat.dispose();
+    antMat.dispose();
+    tipMat.dispose();
+    face.mats.forEach((m) => m.dispose());
   } };
 }

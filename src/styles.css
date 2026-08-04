@@ -197,6 +197,12 @@ html.cursor-hot .cursor-ring {
   position: fixed; top: 0; left: 0; right: 0; z-index: 80;
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px var(--pad);
+  /* unscrolled state sits directly on the hero photo — .nav-links a is
+     .ink-dim, which measures well under 4.5:1 against the pink cloud
+     backdrop with no scrim at all. This gradient is just enough to hold
+     contrast without reading as a bar; .nav--scrolled's solid fill wins
+     over it once the user scrolls. */
+  background: linear-gradient(180deg, rgba(9,4,16,0.4) 0%, rgba(9,4,16,0.12) 70%, rgba(9,4,16,0) 100%);
   /* the blur radius is NOT interpolated — ramping 0->14px across a 1440px bar
      every frame for 450ms was the expensive half of this transition */
   transition: background 0.45s, padding 0.45s;
@@ -411,7 +417,11 @@ html.cursor-hot .cursor-ring {
 .hero-type { max-width: 1100px; }
 .hero-eyebrow {
   font-size: 0.86rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
-  color: var(--ink-dim); margin-bottom: 26px;
+  /* .ink-dim measures ~1.36:1 here where the vignette is thinnest and the
+     clouds are brightest — .hero-vignette is shared with .hero-sub/.hero-h1
+     and was deliberately tuned down, so this text gets its own contrast
+     instead of raising that gradient. */
+  color: var(--ink); text-shadow: 0 1px 14px rgba(9,4,16,0.55); margin-bottom: 26px;
 }
 .hero-eyebrow .x { color: var(--magenta); }
 .hero-h1 {
