@@ -94,13 +94,48 @@ for (const f of walk(join(PUB, 'img/crew'), (n) => n.endsWith('.webp'))) {
   await reencode(f, { width: 900, quality: 84 })
 }
 
+// These three are WoolButton's single hardest-shared renders (nav + hero +
+// mobile burger menu, at three DIFFERENT box sizes) — a 2026-08 audit read
+// them oversized even after the blanket 560px pass below. A shared width
+// can't fix that without either blurring whichever context is biggest or
+// leaving the smaller contexts fat, so each gets its OWN target, sized off
+// the actual largest getBoundingClientRect it hits anywhere on the page
+// (measured with Playwright across 1440x900 / 1920x1080 / 390x844, every
+// scroll position, nav menu open): get-started maxes in the nav (120px,
+// size="small"), 256px is ~2.1x. see-the-work is hero-only, capped at 176px
+// by .hero-ctas' clamp; 360px is ~2x. start-weaving's biggest box is NOT the
+// 176px hero copy — it's the "big" CTA in the mobile burger menu, whose
+// clamp(210px, 19vw, 252px) floors at 210px for every width the menu can
+// even be open at (<=820px); 440px covers that at ~2.1x. Quality bumped to
+// 90 (from the blanket pass's 82) since these are the site's most-seen brand
+// buttons and got shrunk hard.
+const WOOL_BUTTON_OVERRIDES = {
+  'get-started': 256,
+  'start-weaving': 440,
+  'see-the-work': 360,
+}
+
 // The pills are photographs of real wool, so they need real resolution — but
 // 720px for a nav CTA painted at 120px is four times what any display can use.
 // 560px covers the largest one on the page (the hero pair, ~254px) at 2.2x.
 console.log('\nwool buttons — 720px photographs, painted between 120px and 254px')
 for (const f of walk(join(PUB, 'img/wool/buttons'), (n) => n.endsWith('.webp'))) {
+  if (Object.keys(WOOL_BUTTON_OVERRIDES).some((name) => f.endsWith(`/${name}.webp`))) continue
   await reencode(f, { width: 560, quality: 82 })
 }
+
+console.log('\nwool buttons (audited pair) — resized to their real max on-page box, not the shared 560px guess')
+for (const [name, width] of Object.entries(WOOL_BUTTON_OVERRIDES)) {
+  await reencode(join(PUB, `img/wool/buttons/${name}.webp`), { width, quality: 90 })
+}
+
+// The FAB mark is a fixed CSS box — 86px on desktop, 74px on mobile — at
+// every viewport, forever (see whatsapp-fab.css); it never grows. 500px
+// source was 5.8x oversampled AND eager-equivalent (downloaded on first
+// paint of every page). 180px is ~2.1x the 86px box; quality 90 to match
+// the wool buttons above — it's the same felted-cutout brand material.
+console.log('\nwhatsapp FAB mark — fixed 86px box on every viewport, never bigger')
+await reencode(join(PUB, 'img/whatsapp-wool.webp'), { width: 180, quality: 90 })
 
 console.log('\ncase covers + boards — grid tiles and overlay boards')
 for (const f of walk(join(PUB, 'img/cases'), (n) => n.endsWith('.webp'))) {

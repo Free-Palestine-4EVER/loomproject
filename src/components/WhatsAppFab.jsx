@@ -209,7 +209,25 @@ export function WhatsAppFab() {
         aria-hidden={!visible}
         tabIndex={visible ? 0 : -1}
       >
-        <img src="/img/whatsapp-wool.webp" alt="" width="192" height="192" loading="lazy" decoding="async" />
+        {/* `loading="lazy"` is a no-op here — this button is `position: fixed`
+            inside the viewport rect from the first frame, so the browser's
+            viewport-proximity heuristic always treats it as already visible
+            and fetches it immediately regardless of the attribute. The lever
+            that actually works for an always-in-view fixed element is
+            priority, not laziness: `fetchPriority="low"` keeps the request
+            off the critical path so it doesn't compete with the hero art and
+            fonts for bandwidth on first paint, without leaving the button
+            visibly empty the way deferring the src until an interaction
+            would. */}
+        <img
+          src="/img/whatsapp-wool.webp"
+          alt=""
+          width="192"
+          height="192"
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
+        />
         <span className="wa-fab__label">WhatsApp us</span>
       </motion.a>
     </div>
