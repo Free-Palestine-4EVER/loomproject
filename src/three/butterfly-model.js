@@ -598,11 +598,21 @@ SPECS.woven = {
   segs: 96,
   dome: 0.1,
   bend: 0.3,
-  flapMin: 5,
-  flapMax: 52,
+  // A REAL open/close. The old 5..52 band (47 degrees) never let the wings
+  // spread flat and never let them close over the back, so at any usable beat
+  // rate the stroke read as a vibration rather than as a wingbeat — no amount
+  // of profile tuning can fix that, because a flight profile can only scale
+  // the stroke AROUND its rest angle (strokeAmp), never widen this band.
+  // -14..76 spreads slightly below horizontal at the bottom of the stroke and
+  // brings the wings up near-together at the top, which is the shape a viewer
+  // reads as "opening and closing".
+  flapMin: -14,
+  flapMax: 76,
   period: 2.9,
   body: { color: 0x2b2018, rough: 0.75, len: 0.64, rad: 0.14 },
-  eye: { color: 0xf0e3c6, pupil: 0x4a3a24, size: 0.15, style: "button" },
+  // Smaller buttons. The whole button-eye construction (disc, thread holes,
+  // stitched smile) is sized off this one number, so it scales as a unit.
+  eye: { color: 0xf0e3c6, pupil: 0x4a3a24, size: 0.079, style: "button" },
   antenna: 0x2b2018,
   antennaTip: 0xd8b568,
   material: { rough: 0.55, metal: 0.15, clearcoat: 0.3, sheen: 0.5, transmission: 0 },

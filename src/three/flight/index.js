@@ -15,9 +15,11 @@ export const PROFILES = {
 }
 
 // Shipping default: what a visitor who never touches ?flight= or 1/2/3 sees.
-// Flutter is the closest of the three stubs to the flight feel this rig
-// already tuned (a burst-then-coast wingbeat with moderate banking), so it
-// is the safe "nothing selected" choice.
+// FLUTTER, chosen by eye on /flight-compare.html against the other two. It
+// is the only one of the three whose wings never stop (Glider parks them
+// mid-glide, Darter is deliberately nervous), which is what the site wants
+// from an always-on page companion. Do not change this without re-opening
+// the compare page — the choice is a design decision, not a default.
 export const DEFAULT_PROFILE_ID = 'b'
 
 // sessionStorage key both entry points read/write, so a profile switch made

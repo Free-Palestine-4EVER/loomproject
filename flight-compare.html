@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Dev-only SIDE-BY-SIDE flight chooser. Three live butterflies, one per
+     flight profile (src/three/flight/), each flying free in its own panel
+     with the SAME attitude/path maths Companion.js runs on the real page.
+     Nothing here is part of the build (vite only bundles index.html) and
+     nothing here edits the site — it exists purely so a flight can be
+     picked by eye. Open at /flight-compare.html during `npm run dev`. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>butterfly flight — pick one</title>
+    <style>
+      :root {
+        --ink: #efeaf8;
+        --dim: #a294c4;
+        --line: rgba(180, 150, 255, 0.16);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: #0d0716; color: var(--ink);
+        font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; overflow: hidden; }
+      /* explicit CSS size, so the canvas can never lay out at its intrinsic
+         (device-pixel) width on a retina display */
+      #gl { position: fixed; inset: 0; display: block; width: 100vw; height: 100vh; }
+      #ui { position: fixed; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr);
+        pointer-events: none; }
+      .panel { position: relative; display: flex; flex-direction: column;
+        justify-content: space-between; padding: 22px 24px 26px; }
+      .panel + .panel { border-left: 1px solid var(--line); }
+      .head .k { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+        color: var(--dim); }
+      .head h2 { margin: 6px 0 8px; font: 600 26px/1.1 ui-sans-serif, system-ui, sans-serif;
+        letter-spacing: -0.01em; }
+      .head p { margin: 0; max-width: 30ch; color: var(--dim); }
+      .foot { pointer-events: auto; }
+      .foot .stat { color: var(--dim); font-size: 11px; margin-bottom: 10px;
+        white-space: pre; min-height: 2.6em; }
+      button { pointer-events: auto; font: inherit; color: var(--ink); cursor: pointer;
+        background: rgba(166, 124, 255, 0.09); border: 1px solid var(--line);
+        border-radius: 999px; padding: 9px 18px; transition: background .18s, border-color .18s; }
+      button:hover { background: rgba(166, 124, 255, 0.2); border-color: rgba(180,150,255,.45); }
+      .panel.picked { background: rgba(166, 124, 255, 0.05); }
+      .panel.picked button { background: #a67cff; color: #17091f; border-color: #a67cff; }
+      #note { position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%);
+        color: var(--dim); font-size: 11px; }
+      #picked { position: fixed; left: 50%; top: 14px; transform: translateX(-50%);
+        color: var(--ink); font-size: 12px; background: rgba(20,10,32,.85);
+        border: 1px solid var(--line); border-radius: 999px; padding: 7px 16px;
+        opacity: 0; transition: opacity .25s; }
+      #picked.on { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <canvas id="gl"></canvas>
+    <div id="ui"></div>
+    <div id="picked"></div>
+    <div id="note">same rig, three flights · space = pause · r = restart all</div>
+    <script type="module" src="/src/three/flight-compare.js"></script>
+  </body>
+</html>
