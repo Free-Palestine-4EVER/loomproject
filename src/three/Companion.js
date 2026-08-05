@@ -270,7 +270,9 @@ export class Companion {
     this._rng = Math.random
     this._profileToken = 0 // guards against a superseded async load applying late
     this._hud = null
-    this._unbindHotkeys = bindProfileHotkeys((id) => this.setProfile(id))
+    // persist: true — a hotkey press IS the reader explicitly choosing a
+    // profile, and that is the only thing allowed to write the selection.
+    this._unbindHotkeys = bindProfileHotkeys((id) => this.setProfile(id, { persist: true }))
     // Fire-and-forget: the loop runs fine with this.profile still null for
     // the handful of frames before the first profile resolves (drive = {},
     // every FLIGHT_DEFAULTS/WING_RIG_DEFAULTS value applies — this is
@@ -338,7 +340,14 @@ export class Companion {
   // work happens here — this only swaps plain JS references — so switching
   // can never duplicate the rAF loop, leak a listener, or touch the WebGL
   // context.
-  async setProfile(id) {
+  // `persist` writes the id to sessionStorage, which is ALSO what marks the
+  // selection as explicit (see isExplicitProfileSelection) and therefore what
+  // un-hides the corner HUD. It must stay false for the initial load: this
+  // used to persist unconditionally, so simply opening the page stored the
+  // shipping default, `isExplicitProfileSelection()` went true immediately,
+  // and every real visitor got the dev HUD painted over the page in a
+  // production build.
+  async setProfile(id, { persist = false } = {}) {
     const token = ++this._profileToken
     let loaded
     try {
@@ -356,7 +365,7 @@ export class Companion {
     this.profile = loaded.module
     this.profileId = loaded.id
     this.profileLabel = loaded.label
-    setStoredProfileId(loaded.id)
+    if (persist) setStoredProfileId(loaded.id)
     // Reseeded on every activation — including re-selecting the same
     // profile — so a profile's own rng() sequence is fresh each time.
     this._rng = mulberry32((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0)
