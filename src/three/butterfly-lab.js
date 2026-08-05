@@ -11,13 +11,26 @@
 //   ?tint=0            skip the ORCHID emissive lift Companion applies (A/B)
 //   ?lights=studio     swap Companion's page-rig lights for a neutral 3-point
 //                       studio setup (A/B — isolates material from rig tuning)
-//   ?flap=0..1         additive flap WEIGHT (amplitude), matches Companion
-//   ?phase=0..1        freeze the flap at a fraction of its cycle
+//   ?flap=0..1         additive flap WEIGHT (amplitude), matches Companion.
+//                       Explicit presence of this param OVERRIDES whatever
+//                       weight the active flight profile would otherwise set
+//                       (rig overrides from the profile still apply).
+//   ?phase=0..1        freeze the flap at a fraction of its cycle (also
+//                       freezes the flight profile — nothing animates)
 //   ?a=deg &e=deg &d=units   azimuth / elevation / distance
 //   ?spin=0            stop the turntable
 //   ?bg=#hex           backdrop colour (defaults to the page's #0d0716)
+//   ?flight=a|b|c      flight profile (a=Glider, b=Flutter, c=Darter) — same
+//                       registry the real page uses (src/three/flight/),
+//                       persisted to sessionStorage; keys 1/2/3 switch live.
+//                       Drives flyer.rig every frame so a profile author can
+//                       see their own wing-rig behaviour on the turntable.
 import * as THREE from 'three'
 import { prepFlyer } from './butterflyAsset.js'
+import {
+  resolveInitialProfileId, loadProfile, bindProfileHotkeys, applyRigOverrides,
+  formatHudText, mulberry32,
+} from './flight/index.js'
 
 const q = new URLSearchParams(location.search)
 const num = (k, d) => (q.has(k) ? parseFloat(q.get(k)) : d)
@@ -101,19 +114,75 @@ flyer.root.traverse((o) => {
 })
 const box = new THREE.Box3().setFromObject(flyer.root)
 const size = box.getSize(new THREE.Vector3())
-hud.textContent = [
+const baseHud = [
   `variant: woven (procedural, live pipeline)`,
   `tint: ${tintOn ? 'on (ORCHID lift)' : 'off'}   lights: ${lightsMode}`,
   `meshes: ${meshN}   tris: ${Math.round(triN)}`,
   `bbox: ${size.x.toFixed(3)} x ${size.y.toFixed(3)} x ${size.z.toFixed(3)}`,
-].join('\n')
+]
 hud.style.whiteSpace = 'pre'
+
+// ── flight profile: same registry/switching mechanics as Companion.js ──
+const flapExplicit = q.has('flap')
+const frozen = q.has('phase')
+let profile = null, profileState = null, profileId = null, profileLabel = null
+let rng = Math.random
+let labTime = 0
+
+function buildCtx(dt) {
+  return {
+    t: labTime,
+    dt,
+    // The turntable has no scroll and no real flight path — a profile
+    // author reading these gets a static, honest zero rather than a faked
+    // number.
+    scrollP: 0, scrollRaw: 0, scrollVel: 0,
+    pos: flyer.root.position,
+    speed: 0,
+    baseScale: 1,
+    isMobile: false,
+    rng,
+  }
+}
+
+function updateHud() {
+  const flightLine = profileId ? formatHudText(profileId, profileLabel) : 'flight: loading…'
+  hud.textContent = [...baseHud, '', flightLine].join('\n')
+}
+updateHud()
+
+async function setProfile(id) {
+  const loaded = await loadProfile(id)
+  if (profile && typeof profile.dispose === 'function') {
+    try { profile.dispose(profileState) } catch (e) { /* profile bug, not ours */ }
+  }
+  profile = loaded.module
+  profileId = loaded.id
+  profileLabel = loaded.label
+  rng = mulberry32((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0)
+  profileState = typeof profile.init === 'function' ? (profile.init(buildCtx(0)) || {}) : {}
+  updateHud()
+}
+bindProfileHotkeys((id) => setProfile(id))
+setProfile(resolveInitialProfileId())
+
 window.__labReady = true
 
 function loop() {
   requestAnimationFrame(loop)
   const dt = Math.min(clock.getDelta(), 0.05)
-  if (!q.has('phase')) flyer.mixer.update(dt)
+  labTime += dt
+  if (!frozen) {
+    const drive = (profile && typeof profile.update === 'function')
+      ? (profile.update(buildCtx(dt), profileState) || {})
+      : {}
+    if (!flapExplicit && drive.flapWeight != null) {
+      flyer.flap.setEffectiveWeight(THREE.MathUtils.clamp(drive.flapWeight, 0, 1))
+    }
+    if (drive.flapRate != null) flyer.flap.timeScale = drive.flapRate * flyer.flap.getClip().duration
+    applyRigOverrides(flyer, drive.rig)
+    flyer.mixer.update(dt)
+  }
   if (spin) flyer.root.rotation.y += dt * 0.35 * spin
   renderer.render(scene, camera)
 }

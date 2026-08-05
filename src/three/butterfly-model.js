@@ -820,19 +820,48 @@ function buildFace(THREE, S, headR, group) {
 }
 
 /* ------------------------------------------------------------------ */
-/* builder                                                            */
+/* wing rig defaults                                                  */
+/*                                                                     */
+/* Every named field a flight profile may drive per-frame via the      */
+/* `drive` argument to update(t, drive). All fields are optional on a  */
+/* `drive` object — anything omitted falls back to the default here.   */
+/* Exported so callers (butterflyAsset.js, flight profiles) can read   */
+/* the defaults instead of re-typing the magic numbers.                */
 /* ------------------------------------------------------------------ */
+export const WING_RIG_DEFAULTS = Object.freeze({
+  strokeAmp: 1,          // multiplier on stroke angular range (0 = parked at rest angle)
+  strokeRate: 1,         // multiplier on beat frequency (cycles per unit t)
+  downstrokeFrac: 0.38,  // fraction of each beat spent on the fast power (down) stroke
+  pronationAmp: 0.34,    // radians, peak wing pitch/twist about the leading-edge axis
+  pronationPhase: 0.22,  // 0..1, phase offset of the pronation wave vs the stroke wave
+  sweepAmp: 0.12,        // radians, peak fore/aft sweep (deviation) of the wing
+  sweepPhase: 0,         // 0..1, phase offset of the sweep wave vs the stroke wave
+  hindPhase: 0.06,       // 0..1, phase LAG of the hindwing's whole cycle vs the forewing's
+  membraneLagFrac: 0.09, // fraction of the beat period used as the membrane-lag time constant
+  membraneCamber: 1,     // multiplier on the always-on spanwise camber bulge
+  bobAmp: 1,             // multiplier on the body's stroke-coupled vertical bob (position.y)
+  tiltAmp: 1,            // multiplier on the body's stroke-coupled pitch tilt (rotation.x)
+});
 
-export function createButterfly(THREE, key) {
-  const S = SPECS[key];
-  const group = new THREE.Group();
-
-  const maps =
-    S.style === "stained" ? stainedMaps(THREE, S.tex)
-    : S.style === "velvet" ? velvetMaps(THREE, S.tex)
-    : S.style === "woven" ? wovenMaps(THREE, S.tex)
-    : { map: wingTexture(THREE, S.tex) };
-
+// Builds one wing material (fore or hind get their own instance + uniforms,
+// because fore/hind can now run the stroke at a phase offset from each other
+// — a single shared bend uniform would only ever answer for one of them).
+// Shader responsibilities:
+//  1) bend the membrane: uBendLag is a JS-side EXPONENTIALLY LAGGED copy of
+//     the stroke openness (see update() below) — the trailing edge arrives
+//     late, proportional to how far behind the lag filter is.
+//  2) camber: uCamber is an always-on, un-lagged bulge proportional to the
+//     stroke's instantaneous angular velocity — a simple parabola across the
+//     span (zero at root and tip, peak mid-span) so the membrane looks like
+//     it is catching air, not just trailing.
+//  3) RECOMPUTE THE NORMAL analytically from the derivative of the already
+//     bent view-space position (dFdx/dFdy), blended with the mesh's own
+//     smooth vertex normal. Fixes the correctness bug where every frame bent
+//     real vertex positions while lighting kept answering for the flat bind
+//     pose — deeper deformation (lag + camber) makes that mismatch glaring.
+//     This is a lighting-correctness fix, not a restyle: the blend factor is
+//     fixed, not exposed as a tunable.
+function makeWingMaterial(THREE, S, maps) {
   const mat = new THREE.MeshPhysicalMaterial({
     map: maps.map,
     alphaMap: maps.alphaMap || null,
@@ -856,78 +885,212 @@ export function createButterfly(THREE, key) {
     flatShading: !!S.flat,
   });
 
-  // wing curl: shader-side bend so the membrane trails the flap
-  const bendU = { value: 0 };
+  const uniforms = { uBendLag: { value: 0 }, uCamber: { value: 0 } };
   mat.onBeforeCompile = (sh) => {
-    sh.uniforms.uBend = bendU;
+    sh.uniforms.uBendLag = uniforms.uBendLag;
+    sh.uniforms.uCamber = uniforms.uCamber;
     sh.vertexShader = sh.vertexShader
-      .replace("#include <common>", "#include <common>\nuniform float uBend;")
+      .replace(
+        "#include <common>",
+        "#include <common>\nuniform float uBendLag;\nuniform float uCamber;\nvarying vec3 vBendPos;"
+      )
       .replace(
         "#include <begin_vertex>",
         `#include <begin_vertex>
          float _u = uv.x;
-         transformed.z += uBend * _u * _u;
-         transformed.xy *= 1.0 - 0.06 * uBend * uBend * _u;`
+         transformed.z += uBendLag * _u * _u + uCamber * _u * (1.0 - _u) * 4.0;
+         transformed.xy *= 1.0 - 0.06 * uBendLag * uBendLag * _u;`
+      )
+      .replace(
+        "#include <project_vertex>",
+        "#include <project_vertex>\n        vBendPos = mvPosition.xyz;"
+      );
+    sh.fragmentShader = sh.fragmentShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vBendPos;")
+      .replace(
+        "#include <normal_fragment_begin>",
+        `#include <normal_fragment_begin>
+         {
+           vec3 _fdx = dFdx(vBendPos);
+           vec3 _fdy = dFdy(vBendPos);
+           vec3 _bentNormal = normalize(cross(_fdx, _fdy));
+           #ifdef DOUBLE_SIDED
+           _bentNormal *= faceDirection;
+           #endif
+           normal = normalize(mix(normal, _bentNormal, 0.65));
+         }`
       );
   };
+  return { mat, uniforms };
+}
 
-  // The veil has to bend with the weave, so it shares the same bend uniform.
-  const membraneMat = S.membrane
-    ? new THREE.MeshPhysicalMaterial({
-        color: S.membrane.color,
-        transparent: true,
-        opacity: S.membrane.opacity,
-        roughness: 0.35,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      })
-    : null;
-  if (membraneMat) membraneMat.onBeforeCompile = mat.onBeforeCompile;
+/* ------------------------------------------------------------------ */
+/* wing kinematics — pure functions of t, reused for fore and hind     */
+/* ------------------------------------------------------------------ */
+
+// cyclePos: 0..1 through the beat, warped asymmetric so the down-stroke (the
+// power stroke) burns through faster than the up-stroke (the recovery).
+// Both halves are their own smoothstep, so the warp is C1-continuous at
+// every junction (start of down-stroke, the reversal, and the wrap back to
+// the next down-stroke) — no seam for a fast scroll or a slow one to expose.
+// `phaseOffsetFrac` (0..1) shifts the whole cycle — this is how the hindwing
+// runs `hindPhase` behind the forewing.
+// Pronation (wing pitch about the leading edge) and sweep (fore/aft
+// deviation) are each a sine at the SAME frequency as the stroke, phase-
+// shifted by their own fraction of the cycle. Two rotations at one frequency
+// with a phase offset is exactly what makes a wingTIP trace a small
+// Lissajous loop (a tilted figure-eight) instead of hinging like a door.
+function wingCycle(t, period, rate, downFrac, pronPhaseFrac, sweepPhaseFrac, phaseOffsetFrac) {
+  const cyclePos = (((t * rate) / period + phaseOffsetFrac) % 1 + 1) % 1;
+  let openRaw; // 0 = spread, 1 = raised
+  if (cyclePos < downFrac) {
+    const x = cyclePos / downFrac;
+    openRaw = 1 - x * x * (3 - 2 * x); // raised -> spread: fast power stroke
+  } else {
+    const x = (cyclePos - downFrac) / (1 - downFrac);
+    openRaw = x * x * (3 - 2 * x); // spread -> raised: slower recovery
+  }
+  const pronCyc = ((cyclePos + pronPhaseFrac) % 1 + 1) % 1;
+  const sweepCyc = ((cyclePos + sweepPhaseFrac) % 1 + 1) % 1;
+  return {
+    openRaw,
+    pronRaw: Math.sin(pronCyc * Math.PI * 2),
+    sweepRaw: Math.sin(sweepCyc * Math.PI * 2),
+    cyclePos,
+  };
+}
+
+// Per-wing membrane state: an exponentially lagged copy of stroke openness
+// (the trailing edge arriving late, proportional to how far the lag has
+// fallen behind) plus an always-on camber bulge driven by the stroke's
+// instantaneous angular velocity (a wing catching air cambers; a stalled one
+// doesn't). `t` is the caller's own clock — see butterflyAsset.js's header
+// for why it isn't always real seconds — so the lag time constant is
+// expressed as a FRACTION of the beat period, keeping the trail's relative
+// length constant whether the flap is coasting or mid-burst.
+function makeBendTracker(S) {
+  let lastT = null;
+  let lastOpen = 0.5;
+  let bendState = 0;
+  return function trackBend(openness, t, lagFrac, camberMult, uniforms) {
+    const dtLocal = lastT === null ? 0 : Math.max(0, t - lastT);
+    lastT = t;
+    const targetBend = -(openness * 2 - 1) * S.bend;
+    const lagTau = Math.max(1e-4, S.period * lagFrac);
+    const lagRate = dtLocal > 0 ? 1 - Math.exp(-dtLocal / lagTau) : 1;
+    bendState += (targetBend - bendState) * lagRate;
+    const velNorm = dtLocal > 0 ? ((openness - lastOpen) / dtLocal) * S.period : 0;
+    lastOpen = openness;
+    uniforms.uBendLag.value = bendState;
+    // No THREE reference in this pure helper (only createButterfly gets
+    // THREE injected) — a manual clamp instead of THREE.MathUtils.clamp.
+    const camberRaw = Math.max(-1, Math.min(1, velNorm * 0.18));
+    uniforms.uCamber.value = camberRaw * S.bend * camberMult;
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* builder                                                            */
+/* ------------------------------------------------------------------ */
+
+export function createButterfly(THREE, key) {
+  const S = SPECS[key];
+  const group = new THREE.Group();
+
+  const maps =
+    S.style === "stained" ? stainedMaps(THREE, S.tex)
+    : S.style === "velvet" ? velvetMaps(THREE, S.tex)
+    : S.style === "woven" ? wovenMaps(THREE, S.tex)
+    : { map: wingTexture(THREE, S.tex) };
+
+  // Fore and hind each get their own material + bend uniforms so they can
+  // run the stroke (and therefore the membrane lag/camber that follows it)
+  // at a phase offset from one another. Both sides (L/R) of a given wing
+  // share one material — mirroring is a transform (scale.x = sx), not a
+  // material change.
+  const { mat: foreMat, uniforms: foreU } = makeWingMaterial(THREE, S, maps);
+  const { mat: hindMat, uniforms: hindU } = makeWingMaterial(THREE, S, maps);
+
+  // The veil behind an open weave shares its wing's bend uniforms, so it
+  // curls exactly in step with the mesh it is backing.
+  function makeMembraneMat(sourceMat) {
+    if (!S.membrane) return null;
+    const m = new THREE.MeshPhysicalMaterial({
+      color: S.membrane.color,
+      transparent: true,
+      opacity: S.membrane.opacity,
+      roughness: 0.35,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    m.onBeforeCompile = sourceMat.onBeforeCompile;
+    return m;
+  }
+  const foreMembraneMat = makeMembraneMat(foreMat);
+  const hindMembraneMat = makeMembraneMat(hindMat);
 
   const wingMeshes = [];
   const sides = [1, -1];
   const hinges = [];
 
   sides.forEach((sx) => {
-    const hinge = new THREE.Group();
-    hinge.name = sx > 0 ? "WingHinge_R" : "WingHinge_L";
-    // Wings hinge on the SIDE of the thorax and sit BEHIND the body, the way a
-    // real butterfly's do. Pivoting on the body's centre axis (0,0,0) swings
-    // the wing surface straight through the abdomen and head on every stroke —
-    // no amount of tweaking the wing shape fixes that, the axis is the bug.
-    hinge.position.set(sx * S.body.rad * 0.62, 0.3, -S.body.rad * 1.5);
-    group.add(hinge);
-    hinges.push({ hinge, sx });
+    // Shoulder: the fixed anchor point on the side of the thorax, BEHIND the
+    // body, the way a real butterfly's wing root sits. Pivoting on the
+    // body's centre axis (0,0,0) swings the wing surface straight through
+    // the abdomen and head on every stroke — no amount of tweaking the wing
+    // shape fixes that, the axis is the bug. Fore and hind each get their
+    // OWN hinge under this shared shoulder so they can be driven
+    // independently (phase offset, different amplitudes).
+    const shoulder = new THREE.Group();
+    shoulder.name = sx > 0 ? "Shoulder_R" : "Shoulder_L";
+    shoulder.position.set(sx * S.body.rad * 0.62, 0.3, -S.body.rad * 1.5);
+    group.add(shoulder);
+
+    const foreHinge = new THREE.Group();
+    foreHinge.name = sx > 0 ? "WingHinge_R_fore" : "WingHinge_L_fore";
+    shoulder.add(foreHinge);
+    const hindHinge = new THREE.Group();
+    hindHinge.name = sx > 0 ? "WingHinge_R_hind" : "WingHinge_L_hind";
+    shoulder.add(hindHinge);
+    hinges.push({ hinge: foreHinge, sx, wing: "fore" }, { hinge: hindHinge, sx, wing: "hind" });
 
     const fore = new THREE.Mesh(
       wingGeometry(THREE, foreShape(THREE, S.fore), S.rings, S.segs, S.dome, S.scallop),
-      mat
+      foreMat
     );
     const hind = new THREE.Mesh(
       wingGeometry(THREE, hindShape(THREE, S.hind), S.rings, S.segs, S.dome * 0.8, S.scallop),
-      mat
+      hindMat
     );
     // hindwing tucks behind and a touch below the fore
     hind.position.set(0.02, -0.06, -0.03);
 
-    if (S.foreSpots) eyespots(THREE, fore, fore.geometry, S.foreSpots, S.rings, S.segs, mat);
-    if (S.hindSpots) eyespots(THREE, hind, hind.geometry, S.hindSpots, S.rings, S.segs, mat);
+    if (S.foreSpots) eyespots(THREE, fore, fore.geometry, S.foreSpots, S.rings, S.segs, foreMat);
+    if (S.hindSpots) eyespots(THREE, hind, hind.geometry, S.hindSpots, S.rings, S.segs, hindMat);
 
-    const w = new THREE.Group();
-    w.add(fore, hind);
-
-    // optional veil behind an open weave, so the wing still reads as a surface
-    if (S.membrane) {
-      [fore, hind].forEach((src) => {
-        const veil = new THREE.Mesh(src.geometry, membraneMat);
-        veil.position.copy(src.position);
-        veil.position.z -= 0.012;
-        w.add(veil);
-      });
+    const foreWing = new THREE.Group();
+    foreWing.scale.x = sx;
+    foreWing.rotation.z = sx * -0.05;
+    foreWing.add(fore);
+    if (foreMembraneMat) {
+      const veil = new THREE.Mesh(fore.geometry, foreMembraneMat);
+      veil.position.z -= 0.012;
+      foreWing.add(veil);
     }
-    w.scale.x = sx;
-    w.rotation.z = sx * -0.05;
-    hinge.add(w);
+    foreHinge.add(foreWing);
+
+    const hindWing = new THREE.Group();
+    hindWing.scale.x = sx;
+    hindWing.rotation.z = sx * -0.05;
+    hindWing.add(hind);
+    if (hindMembraneMat) {
+      const veil = new THREE.Mesh(hind.geometry, hindMembraneMat);
+      veil.position.copy(hind.position);
+      veil.position.z -= 0.012;
+      hindWing.add(veil);
+    }
+    hindHinge.add(hindWing);
+
     wingMeshes.push(fore, hind);
   });
 
@@ -996,24 +1159,72 @@ export function createButterfly(THREE, key) {
   group.scale.setScalar(S.scale);
 
   /* ---- animation ---- */
-  // eased flap: lingers at the top of the stroke, snaps gently through the down-beat
-  function update(t) {
-    const ph = (t / S.period) * Math.PI * 2;
-    const raw = Math.sin(ph);
-    const eased = Math.sign(raw) * Math.pow(Math.abs(raw), 0.72);
-    const lo = THREE.MathUtils.degToRad(S.flapMin);
-    const hi = THREE.MathUtils.degToRad(S.flapMax);
-    const open = eased * 0.5 + 0.5; // 0 = spread, 1 = raised
+  // Per-wing (fore/hind) exponential bend trackers: closure state so the
+  // membrane lag has a real "time since last call" to filter against. Two
+  // independent instances because fore and hind can run at a phase offset.
+  const foreBend = makeBendTracker(S);
+  const hindBend = makeBendTracker(S);
 
-    hinges.forEach(({ hinge, sx }) => {
-      hinge.rotation.y = sx * (lo + open * (hi - lo));
+  const lo = THREE.MathUtils.degToRad(S.flapMin);
+  const hi = THREE.MathUtils.degToRad(S.flapMax);
+  const restAngle = lo + 0.5 * (hi - lo);
+
+  // update(t, drive) — `drive` is optional; every field in WING_RIG_DEFAULTS
+  // may be overridden per-frame by a flight profile. Called with no `drive`
+  // (or `drive` omitted entirely), the rig runs on its own defaults and
+  // looks correct with nothing driving it — this is what ButterflyField.js's
+  // plain `bf.update(t)` calls get.
+  function update(t, drive) {
+    const d = drive || null;
+    const rate = d?.strokeRate ?? WING_RIG_DEFAULTS.strokeRate;
+    const downFrac = THREE.MathUtils.clamp(d?.downstrokeFrac ?? WING_RIG_DEFAULTS.downstrokeFrac, 0.05, 0.95);
+    const strokeAmp = d?.strokeAmp ?? WING_RIG_DEFAULTS.strokeAmp;
+    const pronationAmp = d?.pronationAmp ?? WING_RIG_DEFAULTS.pronationAmp;
+    const pronationPhase = d?.pronationPhase ?? WING_RIG_DEFAULTS.pronationPhase;
+    const sweepAmp = d?.sweepAmp ?? WING_RIG_DEFAULTS.sweepAmp;
+    const sweepPhase = d?.sweepPhase ?? WING_RIG_DEFAULTS.sweepPhase;
+    const hindPhase = d?.hindPhase ?? WING_RIG_DEFAULTS.hindPhase;
+    const membraneLagFrac = Math.max(1e-3, d?.membraneLagFrac ?? WING_RIG_DEFAULTS.membraneLagFrac);
+    const membraneCamber = d?.membraneCamber ?? WING_RIG_DEFAULTS.membraneCamber;
+    const bobAmp = d?.bobAmp ?? WING_RIG_DEFAULTS.bobAmp;
+    const tiltAmp = d?.tiltAmp ?? WING_RIG_DEFAULTS.tiltAmp;
+
+    // Two independent kinematic cycles — stroke (phi), pronation/supination
+    // (alpha, wing pitch about the leading edge) and sweep (theta, fore/aft
+    // deviation) — each a function of the SAME warped, asymmetric cyclePos
+    // so the three combine into a small Lissajous loop at the wingtip every
+    // beat instead of a flat arc. Hind runs `hindPhase` behind fore.
+    const foreCyc = wingCycle(t, S.period, rate, downFrac, pronationPhase, sweepPhase, 0);
+    const hindCyc = wingCycle(t, S.period, rate, downFrac, pronationPhase, sweepPhase, hindPhase);
+
+    hinges.forEach(({ hinge, sx, wing }) => {
+      const cyc = wing === "fore" ? foreCyc : hindCyc;
+      const angle = lo + cyc.openRaw * (hi - lo);
+      // strokeAmp scales the deviation from the mid-stroke REST angle, so
+      // strokeAmp=0 parks the wing half-open (coasting) rather than snapping
+      // it flat — same "amplitude around rest" contract prepFlyer's weight
+      // used to bolt on after the fact, now native to the rig.
+      hinge.rotation.y = sx * (restAngle + (angle - restAngle) * strokeAmp);
+      hinge.rotation.x = sx * pronationAmp * cyc.pronRaw;
+      hinge.rotation.z = sx * sweepAmp * cyc.sweepRaw;
     });
 
-    bendU.value = -eased * S.bend;
+    // Membrane lag + camber, tracked against the FINAL amplitude-scaled
+    // openness (0..1) so a parked (strokeAmp=0) wing's membrane goes still
+    // too, instead of rippling on motion the hinge itself isn't performing.
+    const foreOpen = 0.5 + (foreCyc.openRaw - 0.5) * strokeAmp;
+    const hindOpen = 0.5 + (hindCyc.openRaw - 0.5) * strokeAmp;
+    foreBend(foreOpen, t, membraneLagFrac, membraneCamber, foreU);
+    hindBend(hindOpen, t, membraneLagFrac, membraneCamber, hindU);
 
-    // body follows the stroke: lift on the down-beat, settle on the up-beat
-    group.position.y = Math.sin(ph - 0.5) * 0.055;
-    group.rotation.x = -0.08 + Math.sin(ph - 0.9) * 0.05;
+    // body follows the stroke: lift on the down-beat, settle on the up-beat.
+    // Derived from the SAME forewing cyclePos the hinges just used (so it
+    // tracks strokeRate automatically) — this is the ONLY place in the whole
+    // rig that couples body position/rotation to the wingbeat; Companion.js
+    // must never add a second one (see its own header comment).
+    const bobPhase = foreCyc.cyclePos * Math.PI * 2;
+    group.position.y = Math.sin(bobPhase - 0.5) * 0.07 * bobAmp;
+    group.rotation.x = -0.08 + Math.sin(bobPhase - 0.9) * 0.065 * tiltAmp;
     group.rotation.z = Math.sin(t * 0.42) * 0.06;
     group.rotation.y = Math.sin(t * 0.31) * 0.14;
 
@@ -1029,8 +1240,10 @@ export function createButterfly(THREE, key) {
   root.add(group);
 
   return { group: root, inner: group, hinges, update, spec: S, dispose: () => {
-    mat.dispose();
-    membraneMat?.dispose();
+    foreMat.dispose();
+    hindMat.dispose();
+    foreMembraneMat?.dispose();
+    hindMembraneMat?.dispose();
     // every map the style produced — a wing can carry colour, alpha and
     // emissive, and each is its own canvas-backed texture
     Object.values(maps).forEach((t) => t?.dispose?.());

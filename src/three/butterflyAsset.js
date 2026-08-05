@@ -9,21 +9,23 @@
 // not animation data and cannot ride inside a GLB, which is exactly why the
 // baked version always looked stiffer than the preview it came from.
 //
-// What did NOT change is the rig the page drives. Companion.js computes a
-// flight path with lag, a flap amplitude and rate that ride scroll airspeed, a
-// stroke-locked bounce and a sawtooth altitude — that is the valuable part and
-// it is untouched. So prepFlyer still returns the same shape it always did:
+// What did NOT change is the LEGACY surface the page already drove. prepFlyer
+// returns:
 //
-//   { root, mixer, flutter, cruise, flap, disposables }
+//   { root, mixer, flutter, cruise, flap, rig, bf, disposables }
 //
-// with `flap` presenting the slice of three's AnimationAction API that the
-// flight code actually uses (setEffectiveWeight / timeScale / time /
-// getClip().duration). Underneath there is no AnimationMixer at all — the
-// stroke is driven directly on the two wing hinges. Emulating the interface
-// rather than rewriting Companion keeps every tuned constant in that file
-// meaningful, and means the model can be swapped again without touching it.
+// `flap` is still the slice of three's AnimationAction API the flight code
+// already used (setEffectiveWeight / timeScale / time / getClip().duration) —
+// ButterflyField.js only ever touches this and never needs to change.
+// Underneath there is no AnimationMixer at all — the stroke is driven
+// directly on the wing hinges. Two fields are NEW, additive, and optional:
+// `rig` is the live wing-rig drive object (see butterfly-model.js's
+// WING_RIG_DEFAULTS for every field) that a flight profile writes into via
+// Companion; `bf` is the raw model instance, for callers (the lab, a future
+// profile) that want to drive update(t, drive) directly. Neither is required
+// reading — a caller that only knows `flap` still gets full-quality motion.
 import * as THREE from 'three'
-import { createButterfly, SPECS } from './butterfly-model.js'
+import { createButterfly, SPECS, WING_RIG_DEFAULTS } from './butterfly-model.js'
 
 // The generator's README nominates Blossom, and Blossom is the wrong call HERE.
 // It is pale pink matte on a hero that is already a pink knitted world, so it
@@ -119,13 +121,7 @@ export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {
     }
   })
 
-  // The rest angle of the stroke — mid-way between the spread and raised
-  // limits. Amplitude scales the hinge AROUND this, so weight 0 parks the
-  // wings half-open (a coasting butterfly) rather than snapping them flat.
   const S = bf.spec
-  const lo = THREE.MathUtils.degToRad(S.flapMin)
-  const hi = THREE.MathUtils.degToRad(S.flapMax)
-  const restY = lo + 0.5 * (hi - lo)
 
   // The emulated action. `time` advances at `timeScale` beats-per-BEAT exactly
   // as the mixer used to advance the clip, so Companion's phase read — and the
@@ -147,6 +143,17 @@ export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {
   const flutter = inert()
   const cruise = inert()
 
+  // The rig-drive channel. A plain, mutable object — a flight profile (via
+  // Companion) writes any subset of WING_RIG_DEFAULTS' fields onto it any
+  // time before mixer.update(dt) runs for that frame; unset fields keep
+  // whatever they were last, starting from the model's own defaults. This is
+  // separate from `flap`: `flap.weight`/`timeScale` stay the one legacy
+  // channel every caller (ButterflyField included) already speaks — mixer
+  // update() below derives `rig.strokeAmp` from `flap.weight` every frame,
+  // but never touches any other field on `rig`, so a profile's own writes to
+  // (say) `rig.hindPhase` or `rig.bobAmp` are never stomped.
+  const rig = { ...WING_RIG_DEFAULTS }
+
   // Real elapsed seconds, kept separately from the stroke clock. The two are
   // NOT the same rate and conflating them is the whole reason this needs a
   // comment: see below.
@@ -160,7 +167,14 @@ export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {
       // The model derives everything from one `t`, via t / spec.period. To make
       // one rig beat equal one wing cycle we have to hand it a clock running
       // period/BEAT — about 6.5x — faster than real time.
-      bf.update(flap.time * (S.period / BEAT))
+      //
+      // strokeAmp is the ONE rig field this layer owns unconditionally: it is
+      // the native replacement for the old post-hoc "scale hinge.rotation.y
+      // around the rest angle" patch, driven straight from flap.weight so
+      // every existing caller (ButterflyField included) keeps working with
+      // zero changes on their end.
+      rig.strokeAmp = THREE.MathUtils.clamp(flap.weight, 0, 1)
+      bf.update(flap.time * (S.period / BEAT), rig)
 
       // ...which is correct for the stroke and WRONG for everything in that
       // same function that is written in real seconds. The idle sway terms
@@ -172,21 +186,13 @@ export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {
       // stroke clock.
       bf.inner.rotation.z = Math.sin(elapsed * 0.42) * 0.06
       bf.inner.rotation.y = Math.sin(elapsed * 0.31) * 0.14
-
-      // Then scale the stroke by amplitude, around the mid-stroke rest angle.
-      // Done AFTER update() rather than by patching the model, so
-      // butterfly-model.js stays a drop-in from the source folder.
-      const w = THREE.MathUtils.clamp(flap.weight, 0, 1)
-      for (const { hinge, sx } of bf.hinges) {
-        hinge.rotation.y = sx * restY + (hinge.rotation.y - sx * restY) * w
-      }
     },
     stopAllAction() {},
   }
 
   disposables.push({ dispose: () => bf.dispose?.() })
 
-  return { root, mixer, flutter, cruise, flap, disposables }
+  return { root, mixer, flutter, cruise, flap, rig, bf, disposables }
 }
 
 // Each call to prepFlyer builds its own butterfly, so there is no shared
