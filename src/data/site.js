@@ -122,20 +122,6 @@ export const APPS = [
     blurb: 'Drop true-to-scale products into a customer’s room before they buy.',
   },
   {
-    name: 'KwaKwa', tag: 'iOS · Couples',
-    platforms: ['ios'],
-    store: 'TestFlight',
-    // real device capture (iPhone 16, 1206×2622) from the running build —
-    // the sign-in surface, because it is the one screen that carries the
-    // duckling, the wordmark and the whole warmth of the app at once
-    shot: '/img/apps/kwakwa.webp',
-    logo: '/img/apps/kwakwa-icon.webp',
-    icon: 'duck',
-    grad: ['#ffc740', '#ff9f5a'],
-    glyph: 'M12 4a4 4 0 0 1 4 4v1h3l-2.4 2.4A7 7 0 0 1 5 12V8a4 4 0 0 1 4-4h3ZM10 8h.01',
-    blurb: 'A private pond for two — chat, calls, a shared playlist, and an egg you raise into a duck together.',
-  },
-  {
     name: 'Morphic', tag: 'iOS · AI Imaging',
     platforms: ['ios'],
     store: 'App Store',
@@ -145,6 +131,24 @@ export const APPS = [
     grad: ['#f21c8c', '#ffc740'],
     glyph: 'M12 4a8 8 0 1 0 8 8M16 4h4v4M21 3l-6 6',
     blurb: 'On-device face morphing — studio-grade edits with zero photos leaving the phone.',
+  },
+  // Last, deliberately: seven cards leave a lone card in the final row, and
+  // the grid centres it (styles.css, .app-cell:last-child:nth-child(3n+1)).
+  // KwaKwa is the one product here with a live, working download link, so it
+  // is the one that earns that centred slot.
+  {
+    name: 'KwaKwa', tag: 'iOS · Couples',
+    platforms: ['ios'],
+    store: 'TestFlight',
+    // real device capture (iPhone 16, 1206×2622) from the running build —
+    // the sign-in surface, because it is the one screen carrying the
+    // duckling, the wordmark and the whole warmth of the app at once
+    shot: '/img/apps/kwakwa.webp',
+    logo: '/img/apps/kwakwa-icon.webp',
+    icon: 'duck',
+    grad: ['#ffc740', '#ff9f5a'],
+    glyph: 'M12 4a4 4 0 0 1 4 4v1h3l-2.4 2.4A7 7 0 0 1 5 12V8a4 4 0 0 1 4-4h3ZM10 8h.01',
+    blurb: 'A private pond for two — chat, calls, a shared playlist, and an egg you raise into a duck together.',
   },
 ]
 

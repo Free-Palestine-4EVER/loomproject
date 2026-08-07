@@ -90,9 +90,11 @@ const PLATFORM_PARTS = {
 //  - Morphic is the one already on the App Store for real; the rest are
 //    TestFlight/coming-soon, which is why the button reads differently.
 // ————————————————————————————————————————————————————————————
-// KwaKwa's public TestFlight invite. This is a REAL, live URL — the one
-// button on this page that actually navigates. Keep it in one named const so
-// re-issuing the beta link is a single-line change.
+// KwaKwa's public TestFlight invite. Kept in its own named const because it
+// is the first link here that will be REAL: set it to the
+// https://testflight.apple.com/join/… URL and the chip promotes itself from a
+// dead button to a live anchor (with a pulsing dot) with no other edit. The
+// live path is verified — anchor, target=_blank, rel=noopener, real navigation.
 const KWAKWA_TESTFLIGHT = '#'
 
 const DOWNLOADS = {
