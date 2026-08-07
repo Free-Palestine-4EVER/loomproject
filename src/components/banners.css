@@ -298,6 +298,105 @@
   .counter .cnt-label { font-size: 0.9rem; }
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   1b · THE TREE — the breath between the needs and the fork
+
+   One <img> plus composited transforms. No canvas, no filter, no blur on a
+   parent with children. Every animated property here is transform or
+   opacity, so the whole thing lives on the compositor and costs no layout —
+   which is the entire budget it is allowed, on a page that already runs two
+   WebGL layers.
+   ═══════════════════════════════════════════════════════════ */
+.treebreak {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: clamp(10px, 3vh, 40px) var(--pad) clamp(20px, 4vh, 54px);
+  overflow: hidden;
+  isolation: isolate;
+}
+/* The ground the tree floats on. A radial gradient rather than a shadow so it
+   reads as light in the air, not as a plate under the art. */
+.treebreak .tb-glow {
+  position: absolute;
+  z-index: 0;
+  width: min(900px, 88vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 46%,
+    rgba(242, 28, 140, 0.20) 0%,
+    rgba(166, 124, 255, 0.13) 34%,
+    rgba(13, 7, 22, 0) 68%
+  );
+  animation: tb-breathe 9s var(--ease, ease-in-out) infinite;
+}
+.treebreak .tb-stage {
+  position: relative;
+  z-index: 1;
+  width: min(560px, 46vw);
+  display: grid;
+  place-items: center;
+}
+.treebreak .tb-tree {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* the cutout carries its own alpha, so the only shadow it can take is one
+     that follows the silhouette — drop-shadow on a LEAF element (no children)
+     is the exception the rest of this file's "never drop-shadow" rule allows */
+  filter: drop-shadow(0 30px 44px rgba(10, 2, 16, 0.55));
+  animation: tb-float 11s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Petals. Positioned across the canopy's width and falling past the island;
+   each one takes its index as --i and derives its own lane, delay and
+   duration from it, so seven elements never resolve into a visible cycle. */
+.treebreak .tb-petals {
+  position: absolute;
+  inset: -6% -14% -10%;
+  z-index: 2;
+  pointer-events: none;
+}
+.treebreak .tb-petals span {
+  position: absolute;
+  top: 14%;
+  left: calc(8% + var(--i) * 12.5%);
+  width: clamp(7px, 0.9vw, 12px);
+  height: clamp(9px, 1.1vw, 15px);
+  border-radius: 60% 60% 60% 60% / 80% 80% 40% 40%;
+  background: linear-gradient(160deg, #ffd0e8, #f76fb4);
+  opacity: 0;
+  animation: tb-fall calc(9s + var(--i) * 1.35s) linear infinite;
+  animation-delay: calc(var(--i) * -2.1s);
+  will-change: transform, opacity;
+}
+
+@keyframes tb-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(0, -14px, 0) rotate(-0.9deg); }
+}
+@keyframes tb-breathe {
+  0%, 100% { transform: scale(1);    opacity: 0.85; }
+  50%      { transform: scale(1.07); opacity: 1; }
+}
+@keyframes tb-fall {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg);          opacity: 0; }
+  12%  { opacity: 0.9; }
+  80%  { opacity: 0.75; }
+  100% { transform: translate3d(-38px, 300px, 0) rotate(220deg); opacity: 0; }
+}
+
+@media (max-width: 767px) {
+  .treebreak .tb-stage { width: 84vw; }
+  /* four lanes, not seven — the canopy is much narrower here and the extra
+     petals bunch into a column instead of reading as a drift */
+  .treebreak .tb-petals span:nth-child(n + 5) { display: none; }
+}
+
 /* ═══════════════════════════════════════════════════════════
    2 · THE OFFER — the split promo pair
    A SHORT lead-in, not the full section clamp: this answers the work above it,
@@ -305,11 +404,15 @@
    ═══════════════════════════════════════════════════════════ */
 .offer { padding: clamp(40px, 6vh, 70px) var(--pad) clamp(60px, 9vh, 115px); }
 
+/* panel · TREE · panel. The tree takes the widest column and the panels are
+   deliberately the narrow ones: the tree is the subject here and the two
+   choices flank it. align-items: center rather than stretch is what makes the
+   three read as floating in one space instead of as a filled row. */
 .offer .offer-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 0.76fr) minmax(0, 1.1fr) minmax(0, 0.76fr);
   gap: clamp(18px, 2vw, 28px);
-  align-items: stretch;           /* unequal heights read as one half being an
+  align-items: center;             /* not stretch: centred is what floats. Unequal heights read as one half being an
                                      afterthought — the pair dies there */
   max-width: 1560px;
   margin-inline: auto;
@@ -713,6 +816,13 @@
   .counter .cnt-tile:hover .cnt-arrow { transform: none; }
   .counter .cnt-tile:hover .cnt-strip { transform: none; }
 
+  /* the tree holds its pose: the float, the halo breath and the petals all
+     stop. The petals are not rendered at all under reduced motion (Banners.jsx
+     gates them on useReducedMotion), so this only has to catch the two that
+     are always in the DOM. */
+  .treebreak .tb-tree,
+  .treebreak .tb-glow { animation: none; }
+
   .offer .offer-panel:hover { transform: none; }
   .offer .offer-panel:hover .offer-stamp { transform: none; }
 
@@ -721,4 +831,85 @@
   .offer .offer-aura { animation: none; transform: none; }
   .offer .offer-photo,
   .offer .offer-panel:hover .offer-photo { transition: none; transform: rotate(-1.5deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   1b/2 · THE FLOATING COMPOSITION — panel · tree · panel
+   ═══════════════════════════════════════════════════════════ */
+
+/* The tree is the middle grid child and the largest thing in the row. */
+.offer .treebreak {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: clamp(6px, 1.5vw, 24px) 0;
+}
+.offer .treebreak .tb-stage { width: 100%; }
+.offer .treebreak .tb-tree { width: 100%; }
+
+/* Smaller, so the tree is unmistakably the subject: the panels lose the tall
+   min-height they carried as a 2-up pair, and their art band comes down with
+   them so the crew inside is not cropped to fit the new box. */
+.offer .offer-panel { min-height: 0; padding: clamp(18px, 1.7vw, 26px); }
+.offer .offer-media { aspect-ratio: 4 / 3; }
+.offer .offer-title { font-size: clamp(1.15rem, 1.5vw, 1.5rem); }
+.offer .offer-body { font-size: 0.92rem; }
+
+/* Each of the three floats on its own duration and phase. A shared timing is
+   what makes a "floating" row read as one rigid object sliding up and down. */
+.offer .offer-cell:first-of-type .offer-panel { animation: tb-float 13s ease-in-out infinite; }
+.offer .offer-cell:last-of-type  .offer-panel { animation: tb-float 15s ease-in-out -4s infinite; }
+.offer .offer-panel { will-change: transform; }
+
+@media (max-width: 1099px) {
+  /* Stacked — and the DOM order already puts the tree between the two panels,
+     so no `order:` juggling is needed and the reading order stays identical to
+     the visual one for a screen reader. Same composition, one column. */
+  .offer .offer-row { grid-template-columns: minmax(0, 1fr); }
+  .offer .treebreak { padding: clamp(4px, 3vw, 26px) 0; }
+  .offer .treebreak .tb-stage { width: min(86vw, 480px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offer .offer-cell .offer-panel { animation: none; }
+}
+
+/* ── corrections after seeing the three-up composition on screen ── */
+
+/* The tree's halo is a circle far larger than its grid cell, and .treebreak
+   inherited `overflow: hidden` from when it was a full-width section — so the
+   glow was being clipped into a visible dark RECTANGLE behind the tree. It is
+   a grid child now and has nothing to clip. */
+.offer .treebreak { overflow: visible; }
+.offer .treebreak .tb-glow { width: min(680px, 120%); opacity: 0.75; }
+
+/* Narrow columns turned the panels into tall portrait strips — narrower is not
+   the same as smaller. Give the panels back some width and take the height out
+   of their contents instead, so all three end up closer to a square and the
+   row reads as one composition rather than two towers beside a tree. */
+.offer .offer-row { grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.02fr) minmax(0, 0.94fr); }
+.offer .offer-media { aspect-ratio: 16 / 9; }
+.offer .offer-body { font-size: 0.86rem; line-height: 1.5; }
+/* the two dense lists are supporting detail, not the pitch */
+.offer .offer-care, .offer .offer-proof { font-size: 0.66rem; letter-spacing: 0.06em; }
+
+/* CASCADE — this block must stay LAST in the file.
+   The three-column rule above was appended after the stacking media query, and
+   with equal specificity source order wins, so the phone kept trying to fit
+   panel · tree · panel across 390px: two ~90px columns of one-word-per-line
+   text with the tree behind them. Re-declaring the stack here, after every
+   desktop rule, is what actually collapses it. */
+@media (max-width: 1099px) {
+  .offer .offer-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(20px, 5vw, 34px);
+  }
+  .offer .offer-panel { min-height: 0; }
+  .offer .offer-media { aspect-ratio: 16 / 10; }
+  .offer .offer-body { font-size: 0.95rem; }
+  .offer .offer-care, .offer .offer-proof { font-size: 0.72rem; }
+  .offer .treebreak { padding: clamp(6px, 4vw, 30px) 0; }
+  .offer .treebreak .tb-stage { width: min(84vw, 460px); }
+  .offer .treebreak .tb-glow { width: min(560px, 118%); }
 }

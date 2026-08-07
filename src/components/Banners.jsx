@@ -12,6 +12,7 @@
 // No filter, no blur, no hue-rotate. The wool is never recoloured —
 // wool.css:174-176 already records why (hue-rotate sent violet to indigo).
 // ————————————————————————————————————————————————————————
+import { Fragment } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { BRAND, WIZARD, SERVICES, PROCESS, APPS, TOOLS } from '../data/site.js'
 import { EASE, SplitWords, Reveal, Magnetic } from '../lib/motion.jsx'
@@ -122,6 +123,49 @@ export function Counter() {
   )
 }
 
+/* ═══════════════════ 1b · THE TREE ═══════════════════ */
+/* The centre of the fork: panel · TREE · panel, one row, one section. It is
+   a DIV and a grid child, not a section of its own — that is what lets the
+   three float as a single composition and keeps the tree between the two
+   panels when the row stacks on a phone.
+
+   It is one <img> and a handful of composited transforms — no canvas, no
+   particle system. Deliberate: the page already carries two WebGL layers and
+   measured ~6x faster with them off, so an element whose only job is to be
+   beautiful does not get to allocate a third context. Everything animated
+   here is transform or opacity, so it runs on the compositor at no layout
+   cost. */
+function TreeBreak() {
+  const reduced = useReducedMotion()
+  return (
+    <div className="treebreak" aria-hidden="true">
+      <i className="tb-glow" />
+      <div className="tb-stage">
+        <img
+          className="tb-tree"
+          src="/img/tree/bloom-tree.webp"
+          srcSet="/img/tree/bloom-tree-sm.webp 800w, /img/tree/bloom-tree.webp 1600w"
+          sizes="(max-width: 767px) 88vw, min(720px, 34vw)"
+          alt=""
+          width={1860}
+          height={1723}
+          loading="lazy"
+          decoding="async"
+        />
+        {/* Petals: 7 spans, each drifting on its own duration/delay so the fall
+            never reads as a loop. Count is the whole budget — a real petal
+            system here would be the third animation layer on a page that is
+            already GPU-bound. */}
+        {!reduced && (
+          <div className="tb-petals">
+            {Array.from({ length: 7 }, (_, i) => <span key={i} style={{ '--i': i }} />)}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ═══════════════════ 2 · THE OFFER ═══════════════════ */
 
 const OFFER = [
@@ -162,8 +206,12 @@ export function OfferPair() {
     // a subject, so it takes the short lead-in clamp.
     <section className="offer" id="offer" aria-label="Already trading, or starting from an idea">
       <div className="offer-row">
+        {/* panel · TREE · panel — the tree is the third grid child, not a
+            section of its own, so the three float together as one composition
+            and stay in that order when the row stacks on a phone. */}
         {OFFER.map((o, i) => (
-          <Reveal key={o.id} delay={i * 0.08} y={28} className="offer-cell">
+          <Fragment key={o.id}>
+          <Reveal delay={i * 0.08} y={28} className="offer-cell">
             <article className={`offer-panel blk blk--${o.dye}`} data-cursor>
               <i className="blk-rail" aria-hidden="true" />
               {/* one flat gradient rect value-flattens the knit under the type.
@@ -225,6 +273,8 @@ export function OfferPair() {
               </div>
             </article>
           </Reveal>
+          {i === 0 && <TreeBreak />}
+          </Fragment>
         ))}
       </div>
     </section>

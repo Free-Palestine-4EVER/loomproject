@@ -22,8 +22,10 @@
   font-style: italic;
   font-display: swap;
 }
-/* LOOM Bloom — the studio's own display face. Drawn in `type/`, built to
-   public/fonts/loom-bloom/, and given away on /type. Caps-only by design. */
+/* LOOM Bloom — the studio's own display family: one plain cut and four planted
+   ones, each carrying a different flower. Drawn in `type/`, built to
+   public/fonts/loom-bloom/, given away on /type. Caps-only by design. The
+   planted cuts are heavy (44–72 KB each) — load them on /type, not sitewide. */
 @font-face {
   font-family: 'LOOM Bloom';
   src: url('/fonts/loom-bloom/LOOMBloom-Regular.woff2') format('woff2');
@@ -31,8 +33,26 @@
   font-display: swap;
 }
 @font-face {
-  font-family: 'LOOM Bloom Floral';
-  src: url('/fonts/loom-bloom/LOOMBloomFloral-Regular.woff2') format('woff2');
+  font-family: 'LOOM Bloom Rose';
+  src: url('/fonts/loom-bloom/LOOMBloomRose-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Daisy';
+  src: url('/fonts/loom-bloom/LOOMBloomDaisy-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Tulip';
+  src: url('/fonts/loom-bloom/LOOMBloomTulip-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Ivy';
+  src: url('/fonts/loom-bloom/LOOMBloomIvy-Regular.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
@@ -475,22 +495,69 @@ html.cursor-hot .cursor-ring {
 @keyframes drip { 0% { transform: scaleY(0); } 45% { transform: scaleY(1); } 100% { transform: scaleY(0); transform-origin: bottom; } }
 
 /* ——— marquee ——— */
+/* The second thing after the hero, so it has to carry weight rather than act
+   as a rule between two sections. It gets real height, its own lit ground, and
+   a four-yarn hairline top and bottom — the same stripe .kicker::after and
+   .blk-rail already run, so the wall belongs to the system rather than
+   inventing a decoration. */
 .marquee {
-  border-block: 1px solid var(--line);
-  padding: 22px 0; overflow: hidden;
-  background: rgba(18, 10, 31, 0.6);
+  position: relative;
+  padding: clamp(30px, 5vh, 58px) 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 160% at 50% 50%, rgba(242, 28, 140, 0.10), rgba(18, 10, 31, 0) 62%),
+    rgba(14, 7, 24, 0.72);
+  isolation: isolate;
 }
+/* the yarn hairlines, top and bottom */
+.marquee::before,
+.marquee::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 3px;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px, var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px, var(--yarn-gold) 21px 28px
+  );
+  opacity: 0.5;
+}
+.marquee::before { top: 0; }
+.marquee::after { bottom: 0; }
+/* Edges fade instead of cutting. The names arrive out of the dark and leave
+   into it, which is what stops a moving row from reading as a clipped strip. */
+.marquee-track { mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
+/* gap: 0 is load-bearing. The track holds the client list TWICE and slides by
+   exactly -50% to loop, so the two halves have to be byte-identical in width.
+   With `gap: 44px` on the track they are not: 2N children carry 2N-1 gaps, so
+   half the track width is one copy PLUS half a gap, and every 46s the row
+   jumped 22px sideways. The spacing moves onto the item itself
+   (padding-inline-end below) — 2N items of identical width, and -50% lands
+   perfectly on the seam. */
 .marquee-track {
-  display: flex; gap: 44px; width: max-content;
-  animation: marquee 46s linear infinite;
+  display: flex; gap: 0; width: max-content;
+  animation: marquee 64s linear infinite;
+  /* promote once, so the slide is a composited transform rather than a
+     per-frame layout of 40 inline-flex children */
+  will-change: transform;
 }
 /* The client wall reads WHITE, with a pink sheen travelling through it.
    `color` stays declared as the real fallback: if background-clip: text is
    unsupported the names are plain white, never invisible. */
 .marquee span {
-  font-family: var(--display); font-weight: 480;
-  font-size: 1.15rem; letter-spacing: 0.04em; color: #fff;
+  font-family: var(--display); font-weight: 560;
+  /* Big. This is the client wall — Benetton, UNICEF, Vodafone, MAC — and at
+     1.05rem it was reading as a caption strip. Fluid so it stays large on a
+     wide monitor without overflowing a phone. */
+  font-size: clamp(1.5rem, 2.9vw, 2.9rem);
+  letter-spacing: 0.10em; color: #fff;
+  text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 44px; white-space: nowrap;
+  /* the track's spacing lives here — see .marquee-track on why gap: 0 there */
+  padding-inline-end: 44px;
 
   background-image: linear-gradient(
     100deg,
