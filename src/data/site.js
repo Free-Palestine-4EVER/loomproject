@@ -122,6 +122,20 @@ export const APPS = [
     blurb: 'Drop true-to-scale products into a customer’s room before they buy.',
   },
   {
+    name: 'KwaKwa', tag: 'iOS · Couples',
+    platforms: ['ios'],
+    store: 'TestFlight',
+    // real device capture (iPhone 16, 1206×2622) from the running build —
+    // the sign-in surface, because it is the one screen that carries the
+    // duckling, the wordmark and the whole warmth of the app at once
+    shot: '/img/apps/kwakwa.webp',
+    logo: '/img/apps/kwakwa-icon.webp',
+    icon: 'duck',
+    grad: ['#ffc740', '#ff9f5a'],
+    glyph: 'M12 4a4 4 0 0 1 4 4v1h3l-2.4 2.4A7 7 0 0 1 5 12V8a4 4 0 0 1 4-4h3ZM10 8h.01',
+    blurb: 'A private pond for two — chat, calls, a shared playlist, and an egg you raise into a duck together.',
+  },
+  {
     name: 'Morphic', tag: 'iOS · AI Imaging',
     platforms: ['ios'],
     store: 'App Store',
@@ -558,115 +572,12 @@ export const WIZARD = {
     { id: 'rebrand', icon: 'refresh-brand', wool: 'settings', title: 'I need a rebrand', sub: 'What we have no longer fits' },
     { id: 'explore', icon: 'compass', wool: 'search', title: 'Just exploring', sub: 'Show me what’s possible' },
   ],
-  // 'Consultancy' is the ninth chip here but NOT a ninth Counter tile:
-  // banners.css:226 records why the grid may only ever be 8 (4×2 / 2×4, never a
-  // ragged 3×3−1). Counter filters on NEED_BLOCK, so the questionnaire can grow
-  // past the grid without breaking the rectangle. See Consultancy.jsx.
   needs: [
     'Brand identity', 'Website', 'Mobile app', 'Social content',
     'AI systems', '3D / AR experience', 'Launch campaign', 'Not sure yet',
-    'Consultancy',
   ],
   budgets: ['Under $1k', '$1k – $5k', '$5k – $15k', '$15k+', 'Let’s discuss'],
   timelines: ['ASAP', 'Within a month', '1–3 months', 'Flexible'],
-}
-
-// ————— consultancy —————
-// The one offer that is not a deliverable. Everything else on this site is a
-// thing we hand over; this is the work that happens before anyone knows what to
-// build. It gets its own section AND its own URL (/consultancy) because it is
-// the entry point for businesses that already run — they are not shopping for a
-// website, they are shopping for someone to tell them the truth about their
-// numbers. Photo lives at /img/needs/consultancy.webp, same shoot as the eight.
-export const CONSULTANCY = {
-  kicker: 'Consultancy',
-  title: 'We read your business before we build you anything.',
-  lede:
-    'Two weeks inside your operation. We map where the money goes, where the hours go, and where the ceiling is — then hand you a costed plan you could run without us.',
-  // The three questions every owner is actually asking, in their order.
-  pillars: [
-    {
-      id: 'scale',
-      wool: 'upload',
-      title: 'Find the room to scale',
-      copy:
-        'Where demand already exists and you are not serving it. We size the gap, name the channel and price the move — so growth is a decision, not a gamble.',
-      points: [
-        'Revenue and margin mapped per product, channel and customer',
-        'The three moves ranked by return, not by how exciting they sound',
-        'A 90-day plan with owners, budgets and a number to hit',
-      ],
-    },
-    {
-      id: 'costs',
-      wool: 'tag',
-      title: 'Cut the cost that is not working',
-      copy:
-        'Most businesses are paying twice for the same job — a tool, a retainer, a manual step nobody owns. We find it, price it and switch it off.',
-      points: [
-        'Full audit of software, subscriptions, vendors and retainers',
-        'The duplicate spend and the dead spend, listed with the exact figure',
-        'What to cancel this month and what it saves you this year',
-      ],
-    },
-    {
-      id: 'automate',
-      wool: 'settings',
-      title: 'Automate the rest',
-      copy:
-        'Every repeated keystroke is a salary you are paying for nothing. We map the workflows worth automating and build the ones that pay for themselves fastest.',
-      points: [
-        'Every manual process timed, costed and ranked by hours returned',
-        'AI and integration builds scoped, with the honest ones flagged as not worth it',
-        'Handover docs and training so your team owns it after we leave',
-      ],
-    },
-  ],
-  // What actually happens, week by week — an owner buying advice wants to know
-  // exactly how much of their week we are about to take.
-  steps: [
-    { n: '01', title: 'Open the books', copy: 'Numbers, tools, org chart, funnel. One session with you, then we read on our own time.' },
-    { n: '02', title: 'Sit in the workflow', copy: 'We follow a real job end to end and time every hand-off. This is where the waste always is.' },
-    { n: '03', title: 'Model the options', copy: 'Three routes, each costed, each with the downside written down as plainly as the upside.' },
-    { n: '04', title: 'Hand over the plan', copy: 'A costed roadmap, a savings figure and a build list — yours to keep whether or not you hire us to run it.' },
-  ],
-  // Deliberately concrete. Vague consultancy promises are why owners distrust
-  // the word; every line here is something we can be held to.
-  outcomes: [
-    'A written diagnosis of what is actually limiting the business',
-    'A savings figure with the invoices it comes from',
-    'A ranked build list with real budgets, not ranges',
-    'A 90-day plan your team can run without us',
-  ],
-  // The live calculator. Copy lives here so the assumptions can be edited
-  // without touching the maths; the maths itself lives in Consultancy.jsx
-  // because it is logic, not content, and the two must never quietly drift.
-  calculator: {
-    kicker: 'Try it on your numbers',
-    title: 'What is manual work actually costing you?',
-    sub: 'Move the sliders to match your business. Every assumption behind the number is written underneath it — nothing here is a made-up benchmark.',
-    ctaLabel: 'See your real number',
-    assumptions:
-      'Assumes a 40-hour week and 52 working weeks a year. The recovery range is what our own engagements actually return, not an industry average: 40–70% of the manual hours reclaimed once the workflow is automated, 15–30% of software spend found to be duplicate or dead. Your real figure needs the two weeks — this is the sketch, not the invoice.',
-  },
-  faq: [
-    {
-      q: 'Do we have to build with you afterwards?',
-      a: 'No. The plan is yours either way. Roughly half of the businesses we assess take it in-house or to another studio, and that is a fine outcome — we would rather be the ones who told you the truth than the ones who sold you a rebuild you did not need.',
-    },
-    {
-      q: 'How long does it take?',
-      a: 'Two weeks for most businesses. Larger operations with several locations or product lines run to four. You lose about three hours of your own time in total.',
-    },
-    {
-      q: 'What does it cost?',
-      a: 'It is priced on the size of the operation, not on a day rate — so the incentive is to finish, not to linger. We quote a fixed fee before we start and it does not move.',
-    },
-    {
-      q: 'Is this only for big companies?',
-      a: 'No. A two-person shop usually has the clearest wins, because nothing has been audited yet. The smaller the business, the faster the savings show up.',
-    },
-  ],
 }
 
 const img = (slug, f) => `/img/cases/${slug}/${f}`

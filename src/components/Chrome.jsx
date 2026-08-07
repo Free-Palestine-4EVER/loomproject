@@ -59,7 +59,6 @@ export function ScrollProgress() {
 }
 
 // One array, three renderers (desktop header, mobile menu, footer).
-// 'Consultancy' is the only entry with a real path instead of a hash: it has a
 // dedicated route. `go` below leaves non-hash hrefs to the App-level handler,
 // which pushStates and swaps the page.
 const LINKS = [
@@ -71,7 +70,6 @@ const LINKS = [
      and any shared URL keep working — it just no longer earns its own tab. */
   { href: '#crew', label: 'Crew' },
   { href: '#solutions', label: 'Solutions' },
-  { href: '/consultancy', label: 'Consultancy' },
   { href: '#apps', label: 'Apps' },
   { href: '#lab', label: '3D Lab' },
   { href: '#ascent', label: 'Ascent' },
@@ -118,9 +116,10 @@ export function Nav({ onNavigate }) {
     }
   }, [open])
   const go = (e, href) => {
-    // Path links (/consultancy) are NOT scroll targets — onNavigate would run
-    // querySelector('/consultancy') and throw on an invalid selector. Close the
-    // menu and let the click bubble to the App-level route handler.
+    // Every LINKS entry is a hash today, but the guard stays: a path link is
+    // not a scroll target, and onNavigate would hand querySelector a string
+    // like '/pricing' and throw on the invalid selector. Close the menu and
+    // let a non-hash click bubble as an ordinary navigation.
     if (!href.startsWith('#')) { setOpen(false); return }
     e.preventDefault(); setOpen(false); onNavigate(href)
   }

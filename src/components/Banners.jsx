@@ -59,10 +59,9 @@ export function Counter() {
 
       <div className="cnt-grid">
         {/* NEED_BLOCK is the gate, not WIZARD.needs. The questionnaire may carry
-            more options than the grid — 'Consultancy' is the first — and line 226
-            of banners.css is a hard constraint: 8 tiles form a rectangle, 9 form
-            a ragged 3×3−1. A need earns a tile by being given a block, and
-            Consultancy has its own section instead. */}
+            more options than the grid, and line 226 of banners.css is a hard
+            constraint: 8 tiles form a rectangle, 9 form a ragged 3×3−1. A need
+            earns a tile by being given a block. */}
         {WIZARD.needs.filter((n) => NEED_BLOCK[n]).map((need, i) => {
           const b = NEED_BLOCK[need]
           return (

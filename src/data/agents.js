@@ -12,12 +12,11 @@
 //   · every agent states where it RUNS (`runsOn`). "AI agent" means nothing
 //     until you say which inbox it sits in.
 //   · `does` are capabilities, never outcomes. No "+300% engagement" — we do
-//     not know that, and the Consultancy section already argues that inventing
-//     numbers is how this industry lost people's trust.
+//     not know that, and inventing numbers is how this industry lost people's trust.
 //
 // No prices here on purpose. Rent is quoted on volume and on how much of the
 // setup the client already has; a made-up "from $X/mo" would be the exact fake
-// precision CONSULTANCY.calculator refuses to print.
+// precision a real quote refuses to print.
 //
 // Four, not six, and these four on purpose. The cut was "what can we actually
 // build and hand over", not "what sounds impressive":

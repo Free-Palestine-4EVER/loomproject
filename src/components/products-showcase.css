@@ -139,6 +139,30 @@
 .apps-grid .app-card .app-meta h3 {
   font-weight: 640; font-size: clamp(1.22rem, 1.7vw, 1.5rem); letter-spacing: -0.01em;
 }
+/* the real app icon, worn as the iOS squircle rather than a plain square, so
+   it reads as "this is the thing on your home screen" at a glance. The
+   gradient ring is the card's own --g1/--g2, so it never fights the art. */
+.apps-grid .app-card .app-meta h3.has-mark {
+  display: flex; align-items: center; gap: 11px;
+}
+.apps-grid .app-card .app-mark {
+  width: 34px; height: 34px; flex: none;
+  border-radius: 10px; /* ~30% — iOS squircle proportion at this size */
+  object-fit: cover;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--g1, var(--magenta)) 45%, transparent),
+    0 6px 14px rgba(0, 0, 0, 0.42);
+  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+}
+.app-card:hover .app-mark,
+.app-card:focus-within .app-mark {
+  transform: translateY(-2px) rotate(-3deg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--g2, var(--magenta)) 70%, transparent),
+    0 10px 22px rgba(0, 0, 0, 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .apps-grid .app-card .app-mark { transition: none; }
+  .app-card:hover .app-mark, .app-card:focus-within .app-mark { transform: none; }
+}
 .apps-grid .app-card .app-pill {
   font-size: 0.72rem; font-weight: 700; color: var(--ink-dim);
   border: 1px solid var(--line); border-radius: 999px;
@@ -276,6 +300,25 @@
   outline: 2px solid var(--dl-accent, var(--magenta)); outline-offset: 3px;
 }
 .dl-row .dl-btn svg { width: 19px; height: 19px; color: var(--dl-accent, var(--ink)); flex: none; }
+
+/* The chip rendered as a real <a> rather than a dead <button>: same box, but
+   it needs the anchor defaults stripped, and it earns a small live dot so a
+   working link is visibly different from the placeholders beside it. */
+.dl-row .dl-btn--real { text-decoration: none; padding-right: 26px; }
+.dl-row .dl-btn--real::after {
+  content: ''; position: absolute; top: 10px; right: 10px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--dl-accent, var(--magenta));
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--dl-accent, var(--magenta)) 60%, transparent);
+  animation: dl-live-pulse 2.4s var(--ease) infinite;
+}
+@keyframes dl-live-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--dl-accent, var(--magenta)) 55%, transparent); }
+  55%      { box-shadow: 0 0 0 4px color-mix(in srgb, var(--dl-accent, var(--magenta)) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dl-row .dl-btn--real::after { animation: none; }
+}
 
 .dl-btn-copy { display: flex; flex-direction: column; gap: 1px; text-align: left; line-height: 1.15; }
 .dl-btn-copy em {

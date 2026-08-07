@@ -73,11 +73,13 @@ const PLATFORM_PARTS = {
 }
 
 // ————————————————————————————————————————————————————————————
-// MOCK DOWNLOAD LINKS — every href below is a placeholder ('#').
-// TODO(client): real store URLs — swap these strings for the actual App
-// Store / Google Play / direct-download links the moment they're supplied.
-// Nothing else needs to change: the key is the platform id (must match a
-// PLATFORM_PARTS entry above + a DL_META entry below), the value is the URL.
+// DOWNLOAD LINKS. An href of '#' is a placeholder and renders as a dead
+// (but focusable) button; anything else renders as a real anchor that opens
+// in a new tab — see DownloadButton. KwaKwa's TestFlight link is the first
+// real one; the rest are still awaiting URLs.
+// TODO(client): real store URLs for the remaining apps. Nothing else needs
+// to change: the key is the platform id (must match a PLATFORM_PARTS entry
+// above + a DL_META entry below), the value is the URL.
 //
 // Platforms are picked per product, honestly:
 //  - the five native builds (Lahza, Evora Scan, Glowbar, TrueSize AR, Morphic)
@@ -88,12 +90,18 @@ const PLATFORM_PARTS = {
 //  - Morphic is the one already on the App Store for real; the rest are
 //    TestFlight/coming-soon, which is why the button reads differently.
 // ————————————————————————————————————————————————————————————
+// KwaKwa's public TestFlight invite. This is a REAL, live URL — the one
+// button on this page that actually navigates. Keep it in one named const so
+// re-issuing the beta link is a single-line change.
+const KWAKWA_TESTFLIGHT = '#'
+
 const DOWNLOADS = {
   Lahza: { testflight: '#' },
   'Evora Scan': { appstore: '#' },
   Glowbar: { appstore: '#' },
   TAWSIYAT: { web: '#' },
   'TrueSize AR': { appstore: '#' },
+  KwaKwa: { testflight: KWAKWA_TESTFLIGHT },
   Morphic: { appstore: '#' },
 }
 
@@ -126,13 +134,41 @@ const DL_META = {
   web: { eyebrow: 'Open in the', title: 'Browser' },
 }
 
-/* A mock download chip: real button (keyboard-focusable, visible focus ring),
-   going nowhere on purpose. `data-mock-href` carries the placeholder so the
-   intent is legible in devtools without the button ever actually navigating —
-   swapping in real URLs later is a one-line edit to DOWNLOADS/TOOL_DOWNLOADS,
-   not a markup change. */
+/* A download chip. Two states, one look:
+
+   - real href → a genuine <a target="_blank">, which navigates.
+   - '#' (or empty) → a keyboard-focusable <button> that goes nowhere on
+     purpose, with `data-mock-href` so the intent stays legible in devtools.
+
+   Both render identical markup inside, so promoting an app from placeholder
+   to live is a one-line edit to DOWNLOADS/TOOL_DOWNLOADS, never a markup or
+   CSS change. */
 function DownloadButton({ id, href }) {
   const meta = DL_META[id] || { eyebrow: '', title: id }
+  const live = Boolean(href) && href !== '#'
+  const inner = (
+    <>
+      <PlatformMark id={id} />
+      <span className="dl-btn-copy">
+        {meta.eyebrow && <em>{meta.eyebrow}</em>}
+        <strong>{meta.title}</strong>
+      </span>
+    </>
+  )
+  if (live) {
+    return (
+      <a
+        className={`dl-btn dl-btn--${id} dl-btn--real`}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-cursor
+        aria-label={`${meta.eyebrow} ${meta.title} — opens in a new tab`}
+      >
+        {inner}
+      </a>
+    )
+  }
   return (
     <button
       type="button"
@@ -142,11 +178,7 @@ function DownloadButton({ id, href }) {
       title="Placeholder — real link coming soon"
       aria-label={`${meta.eyebrow} ${meta.title} — placeholder link, coming soon`}
     >
-      <PlatformMark id={id} />
-      <span className="dl-btn-copy">
-        {meta.eyebrow && <em>{meta.eyebrow}</em>}
-        <strong>{meta.title}</strong>
-      </span>
+      {inner}
     </button>
   )
 }
@@ -251,7 +283,17 @@ function PhoneCard({ app, i }) {
         </div>
         <div className="app-meta">
           {platform && <span className="app-eyebrow">{platform}</span>}
-          <h3>{app.name}</h3>
+          {/* Apps that ship a real icon get it shown as the squircle the
+              user actually taps on their home screen, sitting inline with
+              the name. Apps without one fall back to the name alone rather
+              than to a placeholder tile. */}
+          <h3 className={app.logo ? 'has-mark' : undefined}>
+            {app.logo && (
+              <img className="app-mark" src={app.logo} alt=""
+                aria-hidden="true" loading="lazy" decoding="async" width="34" height="34" />
+            )}
+            <span>{app.name}</span>
+          </h3>
           {category && <span className="app-pill">{category}</span>}
           <p>{app.blurb}</p>
           {/* Real store links are pending — see the DOWNLOADS map at the top
@@ -282,9 +324,10 @@ export function AppsShowcase() {
         <SplitWords as="h2" className="h2" text="We don’t just market software. We ship it." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
-            {/* Five of the six carry a REAL BUILD badge and are genuine captures —
-                from the simulator, from a LiDAR device, and from the running web
-                app. The claim names all three rather than only the simulator. */}
+            {/* Six of the seven carry a REAL BUILD badge and are genuine captures —
+                from the simulator, from a LiDAR device, from a real iPhone, and
+                from the running web app. The claim names them rather than
+                implying everything came out of the simulator. */}
             These phones are not mockups. Every screen wearing a{' '}
             <strong>REAL BUILD</strong> badge was captured from the running app —
             in the simulator, on-device, or in the browser.
