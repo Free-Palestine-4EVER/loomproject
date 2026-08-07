@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Butterfly swatches</title>
+<style>
+  html,body{margin:0;background:#0d0716;color:#e8e0ff;
+    font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+  #wrap{position:relative;width:1600px}
+  canvas{display:block}
+  #labels{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;
+    padding:0 0 22px}
+  #labels b{display:block;font-size:16px;letter-spacing:.04em;color:#fff}
+  #labels span{color:#a898c8;font-size:11.5px}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas><div id="labels"></div></div>
+<script type="module">
+import * as THREE from 'three'
+import { createButterfly, SPECS } from '/src/three/butterfly-model.js'
+
+const q = new URLSearchParams(location.search)
+const SHEET = q.get('sheet') || 'colors'
+
+// ── the four colourways ──
+// Same woven warp/weft construction as the live butterfly — this is a COLOUR
+// decision, not a different wing material. Palettes are pulled off the LOOM
+// brand colours already in Companion.js (ORCHID/VIOLET/MAGENTA/CYAN).
+const COLORWAYS = [
+  { key: 'sw_brass', name: 'Brass', note: 'current — cream + gold',
+    body: 0x2b2018, ant: 0x2b2018, tip: 0xd8b568, membrane: 0xffe9c0,
+    tex: { stops: [[0,'#fff6e4'],[.45,'#f2d9a0'],[.8,'#dcaa55'],[1,'#c08a3a']],
+      warpColor:'#f7ecd2', warpShadow:'#a97e3e', weftColor:'#d9af57',
+      sheenLine:'rgba(255,250,236,0.55)', edgeColor:'#a97e3e' } },
+  { key: 'sw_orchid', name: 'Orchid', note: 'violet — the brand tint',
+    body: 0x2a1b3d, ant: 0x2a1b3d, tip: 0xd9c2ff, membrane: 0xe6d6ff,
+    tex: { stops: [[0,'#f6eeff'],[.45,'#cdb0f2'],[.8,'#9a63d8'],[1,'#6f34ad']],
+      warpColor:'#efe2ff', warpShadow:'#6b3aa0', weftColor:'#a873e0',
+      sheenLine:'rgba(246,238,255,0.6)', edgeColor:'#6b3aa0' } },
+  { key: 'sw_rose', name: 'Rose', note: 'LOOM magenta',
+    body: 0x3a1020, ant: 0x3a1020, tip: 0xffc2dd, membrane: 0xffd9ec,
+    tex: { stops: [[0,'#fff0f7'],[.45,'#ffb3d6'],[.8,'#f2559f'],[1,'#c01c6d']],
+      warpColor:'#ffe6f2', warpShadow:'#bb2a72', weftColor:'#f56cae',
+      sheenLine:'rgba(255,240,247,0.6)', edgeColor:'#bb2a72' } },
+  { key: 'sw_ice', name: 'Ice', note: 'cyan — coolest of the four',
+    body: 0x102a33, ant: 0x102a33, tip: 0xbdf0ff, membrane: 0xd6f6ff,
+    tex: { stops: [[0,'#f0fdff'],[.45,'#a8e8f7'],[.8,'#4fc3e8'],[1,'#1d7fa8']],
+      warpColor:'#e4f9ff', warpShadow:'#1f6f92', weftColor:'#5ec9ea',
+      sheenLine:'rgba(240,253,255,0.62)', edgeColor:'#1f6f92' } },
+]
+
+// ── the four eye treatments ──
+// All on the CURRENT Brass body so only the eyes differ.
+const EYES = [
+  { key: 'ey_button',  name: 'Button',  note: 'current — stitched disc',
+    eye: { color: 0xf0e3c6, pupil: 0x4a3a24, size: 0.079, style: 'button' } },
+  { key: 'ey_glow',    name: 'Glow',    note: 'lit, warm halo',
+    eye: { color: 0xfff6e2, pupil: 0x140d07, size: 0.145, style: 'glow', glow: 0xffcf7a } },
+  { key: 'ey_sleepy',  name: 'Sleepy',  note: 'lidded + lashes',
+    eye: { color: 0xfff7f2, pupil: 0x2a1220, size: 0.165, style: 'sleepy' } },
+  { key: 'ey_crystal', name: 'Crystal', note: 'faceted, glassy',
+    eye: { color: 0x9fe4f2, pupil: 0x06303c, size: 0.145, style: 'crystal' } },
+]
+
+// Register each option as a throwaway SPECS entry — createButterfly(THREE, key)
+// looks its spec up by key, so this is the seam that lets us vary one field.
+const clone = (o) => JSON.parse(JSON.stringify(o))
+const items = []
+if (SHEET === 'colors') {
+  for (const c of COLORWAYS) {
+    const s = clone(SPECS.woven)
+    s.id = c.key; s.tex = c.tex
+    s.body.color = c.body; s.antenna = c.ant; s.antennaTip = c.tip
+    s.membrane.color = c.membrane
+    SPECS[c.key] = s
+    items.push({ key: c.key, name: c.name, note: c.note })
+  }
+} else {
+  for (const e of EYES) {
+    const s = clone(SPECS.woven)
+    s.id = e.key; s.eye = e.eye
+    SPECS[e.key] = s
+    items.push({ key: e.key, name: e.name, note: e.note })
+  }
+}
+
+const W = 1600, CELL = W / 4, H = SHEET === 'colors' ? 460 : 440
+const canvas = document.getElementById('c')
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
+renderer.setPixelRatio(2)
+renderer.setSize(W, H)
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 1.15
+renderer.outputColorSpace = THREE.SRGBColorSpace
+renderer.setScissorTest(true)
+
+// Companion.js's exact page rig, so a swatch is lit like the real thing.
+function makeScene() {
+  const sc = new THREE.Scene()
+  sc.background = new THREE.Color('#0d0716')
+  const key = new THREE.DirectionalLight(new THREE.Color('#ffd9a0'), 2.8)
+  key.position.set(2.5, 3.5, 4); sc.add(key)
+  const fill = new THREE.DirectionalLight(new THREE.Color('#7b2fbe'), 1.8)
+  fill.position.set(-3, -1, 2); sc.add(fill)
+  sc.add(new THREE.AmbientLight(0x3a2856, 1.7))
+  const rim = new THREE.PointLight(new THREE.Color('#a67cff'), 5, 6, 2)
+  rim.position.set(-1, 0.5, -1.4); sc.add(rim)
+  const lamp = new THREE.PointLight(new THREE.Color('#ffd9a0'), 8, 5, 2)
+  lamp.position.set(1.1, 1.2, 1.8); sc.add(lamp)
+  return sc
+}
+
+const cams = [], scenes = [], updates = []
+for (const it of items) {
+  const bf = createButterfly(THREE, it.key)
+  const sc = makeScene()
+  sc.add(bf.group)
+  // normalise to the same 2.02 wingspan prepFlyer uses, so every swatch is
+  // the same size regardless of its spec
+  bf.update(0.62)
+  const box = new THREE.Box3().setFromObject(bf.group)
+  const span = box.max.x - box.min.x
+  bf.inner.scale.multiplyScalar(2.02 / span)
+  const box2 = new THREE.Box3().setFromObject(bf.group)
+  const mid = new THREE.Vector3(); box2.getCenter(mid)
+
+  const cam = new THREE.PerspectiveCamera(38, CELL / H, 0.01, 100)
+  if (SHEET === 'colors') {
+    cam.position.set(0, mid.y, 3.5)
+    cam.lookAt(0, mid.y, 0)
+  } else {
+    // frame the head: it sits near the top of the bbox
+    const headY = box2.max.y - (box2.max.y - box2.min.y) * 0.30
+    cam.position.set(0, headY, 1.30)
+    cam.lookAt(0, headY, 0)
+  }
+  cams.push(cam); scenes.push(sc); updates.push(bf.update)
+}
+
+document.getElementById('labels').innerHTML =
+  items.map((i) => `<div><b>${i.name}</b><span>${i.note}</span></div>`).join('')
+
+// Freeze at a phase where the wings are open and flat to camera.
+const T = 0.62
+updates.forEach((u) => u(T, { strokeAmp: 0.18, bobAmp: 0, tiltAmp: 0 }))
+for (let i = 0; i < items.length; i++) {
+  renderer.setViewport(i * CELL, 0, CELL, H)
+  renderer.setScissor(i * CELL, 0, CELL, H)
+  renderer.render(scenes[i], cams[i])
+}
+document.body.dataset.ready = '1'
+</script>
+</body>
+</html>

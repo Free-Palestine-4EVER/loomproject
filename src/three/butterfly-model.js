@@ -609,26 +609,32 @@ SPECS.woven = {
   flapMin: -14,
   flapMax: 76,
   period: 2.9,
-  body: { color: 0x2b2018, rough: 0.75, len: 0.64, rad: 0.14 },
-  // Smaller buttons. The whole button-eye construction (disc, thread holes,
-  // stitched smile) is sized off this one number, so it scales as a unit.
-  eye: { color: 0xf0e3c6, pupil: 0x4a3a24, size: 0.079, style: "button" },
-  antenna: 0x2b2018,
-  antennaTip: 0xd8b568,
+  body: { color: 0x3a1020, rough: 0.75, len: 0.64, rad: 0.14 },
+  // Glow, not button. The stitched-disc eye is lovely on a turntable and
+  // disappears on the page: it flies at roughly 165px of wingspan, where the
+  // disc is ~6px and its thread holes are sub-pixel, so it read as a blank
+  // head. The glow eye carries its own emissive, which is what keeps it
+  // legible at flight size and against the dark lower sections.
+  eye: { color: 0xfff6e2, pupil: 0x140d07, size: 0.145, style: "glow", glow: 0xffcf7a },
+  antenna: 0x3a1020,
+  antennaTip: 0xffc2dd,
   material: { rough: 0.55, metal: 0.15, clearcoat: 0.3, sheen: 0.5, transmission: 0 },
-  membrane: { color: 0xffe9c0, opacity: 0.22 },
+  membrane: { color: 0xffd9ec, opacity: 0.22 },
+  // Rose — the LOOM magenta (#f21c8c) carried through the warp/weft rather
+  // than the original brass. Same woven construction, recoloured: the weave
+  // is the brand idea, the palette is the choice.
   tex: {
     stops: [
-      [0.0, "#fff6e4"],
-      [0.45, "#f2d9a0"],
-      [0.8, "#dcaa55"],
-      [1.0, "#c08a3a"],
+      [0.0, "#fff0f7"],
+      [0.45, "#ffb3d6"],
+      [0.8, "#f2559f"],
+      [1.0, "#c01c6d"],
     ],
-    warpColor: "#f7ecd2",
-    warpShadow: "#a97e3e",
-    weftColor: "#d9af57",
-    sheenLine: "rgba(255,250,236,0.55)",
-    edgeColor: "#a97e3e",
+    warpColor: "#ffe6f2",
+    warpShadow: "#bb2a72",
+    weftColor: "#f56cae",
+    sheenLine: "rgba(255,240,247,0.6)",
+    edgeColor: "#bb2a72",
   },
 };
 

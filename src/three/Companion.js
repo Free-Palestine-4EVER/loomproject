@@ -34,9 +34,11 @@
 // The body's orientation is ONE quaternion, composed fresh every frame from
 // three independent signals and SLERPed toward (never snapped to with
 // lookAt()/rotateX()/rotateZ() the way this used to run):
-//   heading — the smoothed velocity direction, biased toward camera so a
-//             turn holds a legible three-quarter instead of showing the
-//             reader an abdomen.
+//   heading — the direction from the butterfly to the CAMERA POSITION (not
+//             to world +Z — see _advance() for why the difference matters
+//             on a perspective camera), leaned off that by a little of the
+//             smoothed velocity direction. The butterfly holds the reader's
+//             eye wherever in the frame it happens to be.
 //   AoA     — angle of attack: a nose-up/down pitch derived from the
 //             SMOOTHED VERTICAL VELOCITY (climbing pitches the nose up,
 //             diving pitches it down), plus a small constant cruise bias.
@@ -245,6 +247,7 @@ export class Companion {
     // costs zero garbage per frame.
     this._move = new THREE.Vector3()
     this.velSmooth = new THREE.Vector3()
+    this._velDir = new THREE.Vector3()
     this._fwd = new THREE.Vector3()
     this._eyeTarget = new THREE.Vector3()
     this._up = new THREE.Vector3(0, 1, 0)
@@ -514,15 +517,50 @@ export class Companion {
     this.velSmooth.y = damp(this.velSmooth.y, dt > 0 ? this._move.y / dt : 0, 8, dt)
     this.velSmooth.z = damp(this.velSmooth.z, dt > 0 ? this._move.z / dt : 0, 8, dt)
 
-    if (this.velSmooth.lengthSq() > 1e-6) {
-      // Heading: +Z is forward. Raw path velocity regularly aims the
-      // butterfly straight upstage, where all the reader gets is an abdomen
-      // — so it is biased toward camera, which holds a legible three-quarter
-      // through every turn without freezing into a fixed pose.
-      this._fwd.copy(this.velSmooth).normalize()
-      this._fwd.set(this._fwd.x, this._fwd.y * 0.55, this._fwd.z * 0.35 + 0.78).normalize()
+    {
+      // ── Heading: aim at the READER, not at an axis ──
+      // The model's local +Z is the wing normal AND the direction its face
+      // looks (bbox is 2.02 x 1.26 x 0.28 — it is a flat thing in Z), so
+      // pointing +Z at the eye is what puts the full dorsal spread, both
+      // eyes and the antennae square to the viewer.
+      //
+      // "At the eye" is the whole point, and it is NOT the same as world +Z.
+      // This camera is a PERSPECTIVE camera parked at (0, 0, 6) while the
+      // butterfly flies out to roughly ±2.7 world units sideways and ±1.8
+      // vertically. From a waypoint at the edge of the frame, world +Z is up
+      // to ~30° away from where the reader actually is — so a heading biased
+      // toward world +Z (what this used to do) still reads as a three-quarter
+      // exactly where the path spends most of its time. Aiming at
+      // camera.position is correct at every waypoint and every depth, and it
+      // costs the same one subtraction.
+      this._fwd.subVectors(this.camera.position, root.position).normalize()
+
+      // Then lean off that by a little of where it is actually going, so it
+      // is a creature holding your eye rather than a decal pinned to the
+      // glass. LEAN is the sine of the worst-case deviation: 0.3 -> ~17° at
+      // full tilt, and less than that whenever velocity is not perpendicular
+      // to the view ray. Bank and angle-of-attack compose on top below.
+      const LEAN = 0.3
+      if (this.velSmooth.lengthSq() > 1e-6) {
+        this._velDir.copy(this.velSmooth).normalize()
+        this._fwd.addScaledVector(this._velDir, LEAN).normalize()
+      }
       this._eyeTarget.copy(root.position).add(this._fwd)
-      this._lookMat.lookAt(root.position, this._eyeTarget, this._up)
+      // ARGUMENT ORDER IS LOAD-BEARING, and it is not the order it reads as.
+      // THREE.Matrix4.lookAt(eye, target, up) sets +Z = normalize(eye -
+      // target): it builds a CAMERA basis, and cameras look down -Z.
+      // Object3D.lookAt() hides this by passing (target, position) for
+      // anything that is not a camera or a light, and (position, target)
+      // only for those that are — see Object3D.js. This code drives the
+      // matrix directly, so it has to do that compensation itself.
+      //
+      // It did not, and passed the camera order, which pointed the
+      // butterfly's +Z a full 180° away from the aim vector — so every
+      // "bias the heading toward the reader" tweak was steering its BACK
+      // toward the reader, harder. Symmetric, wings spread, no eyes.
+      // (target, position) is the mesh order and is what puts its face on
+      // the aim vector.
+      this._lookMat.lookAt(this._eyeTarget, root.position, this._up)
       this._qHeading.setFromRotationMatrix(this._lookMat)
 
       // Roll/bank: a CONSEQUENCE of turning, not an independent input —
