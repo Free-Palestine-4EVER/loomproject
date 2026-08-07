@@ -725,22 +725,6 @@ export const CASES = [
     featured: false,
   },
   {
-    slug: 'vucko', client: 'Vučko ZOI84', country: 'Sarajevo', year: '2024',
-    scope: ['VFX', 'CGI', 'AR'], filter: ['vfx'],
-    title: 'An Olympic mascot walks again',
-    copy: 'Forty years after the 1984 Winter Olympics, we brought Vučko back — a CGI character roaming real Sarajevo streets, bridging a city’s Olympic heritage with its present in one citywide campaign.',
-    cover: img('vucko', 'cover.webp'), feature: stars('vucko', 2), boards: boards('vucko', [47, 48]),
-    featured: true,
-  },
-  {
-    slug: 'sahmat', client: 'Šah Mat Burger', country: 'CH / BiH', year: '2023',
-    scope: ['Branding', 'Franchise'], filter: ['branding'],
-    title: 'Checkmate, extra sauce',
-    copy: 'A chess-themed burger brand built for franchising — logo, packaging, collateral and interiors, all playing the same opening.',
-    cover: img('sahmat', 'cover.webp'), feature: stars('sahmat', 3), boards: boards('sahmat', [37, 38]),
-    featured: false,
-  },
-  {
     slug: 'weitnauer', client: 'Weitnauer Holding', country: 'Switzerland', year: '2024',
     scope: ['Rebranding', 'Identity'], filter: ['branding'],
     title: 'Swiss precision, rewoven',
