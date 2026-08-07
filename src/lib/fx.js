@@ -82,6 +82,7 @@ function navScramble() {
     if (t) { clearInterval(t.interval); clearTimeout(t.timeout); timers.delete(el) }
     const original = el.dataset.original
     if (original !== undefined) el.textContent = original
+    el.style.width = ''
   }
 
   const scramble = (el) => {
@@ -91,6 +92,24 @@ function navScramble() {
     const stepMs = 32
     const start = performance.now()
     const len = original.length
+
+    // Freeze the span's width for the run. THIS is what stopped the nav
+    // flickering: the glyph pool mixes very wide characters (W, M, #, %)
+    // with very narrow ones (I, /, \, -), so swapping textContent every
+    // 32ms re-measured the span at a different width each step. The span
+    // is inline-block and `.nav-links a` is inline-block sized by it, so
+    // that width landed straight in the flex row and shoved every other
+    // nav item sideways ~20 times per hover. Nothing was fading or
+    // repainting wrongly — the whole menu was physically jittering.
+    //
+    // Measured per run rather than cached: the nav font-size is responsive
+    // and the label is the real text at this instant, so a stale
+    // measurement would clamp the word to the wrong width after a resize.
+    // The `a` is position:relative and the ::after roll-up copy is
+    // absolutely positioned against it, so pinning the span cannot
+    // disturb the incoming magenta line.
+    el.style.width = `${el.getBoundingClientRect().width}px`
+
     const interval = setInterval(() => {
       const p = (performance.now() - start) / duration
       let out = ''
@@ -107,16 +126,28 @@ function navScramble() {
     const timeout = setTimeout(() => {
       clearInterval(interval)
       el.textContent = original
+      el.style.width = ''
       timers.delete(el)
     }, duration)
     timers.set(el, { interval, timeout })
   }
 
   const onEnter = (e) => scramble(e.currentTarget)
-  spans.forEach((s) => s.addEventListener('mouseenter', onEnter))
+  // Leaving mid-run used to leave the word scrambling into empty space for
+  // the rest of its 350ms while the CSS roll-up was already travelling the
+  // other way — two animations disagreeing about what the label says.
+  // Settling on leave ends it on the real word.
+  const onLeave = (e) => settle(e.currentTarget)
+  spans.forEach((s) => {
+    s.addEventListener('mouseenter', onEnter)
+    s.addEventListener('mouseleave', onLeave)
+  })
 
   return () => {
-    spans.forEach((s) => s.removeEventListener('mouseenter', onEnter))
+    spans.forEach((s) => {
+      s.removeEventListener('mouseenter', onEnter)
+      s.removeEventListener('mouseleave', onLeave)
+    })
     timers.forEach((_, el) => settle(el))
   }
 }
