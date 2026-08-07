@@ -96,6 +96,10 @@
   background: none;
   border-radius: calc(var(--radius) * 1.1);
   overflow: hidden;
+  /* the pill below is positioned against the tile, not the band, so it can
+     float over the full-bleed still instead of sitting in a strip under it */
+  position: relative;
+  aspect-ratio: 4 / 5;
   -webkit-tap-highlight-color: transparent;
   /* the lifted-felt recipe, lifted verbatim from .felt (wool.css:22).
      box-shadow on a rounded box — the cheap version IS the exact one, the same
@@ -117,12 +121,28 @@
 .counter .cnt-tile:active { transform: translateY(-1px); transition-duration: 0.1s; }
 .counter .cnt-tile:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 4px; }
 
+/* Full-bleed: the still is the tile now, not a 4/3 window above a label
+   strip. The old split spent ~30% of every tile on a cream bar carrying one
+   word, which cropped the knitted set — the spool characters were losing
+   their feet — for no gain the pill below does not deliver better. The
+   tile's own aspect-ratio reserves the box, so nothing reflows on decode. */
 .counter .cnt-band {
   display: block;
-  /* box reserved before the texture paints — a grid that reflows on load is
-     illegible for the first several hundred ms no matter how good the material */
-  aspect-ratio: 4 / 3;
+  position: absolute;
+  inset: 0;
   border-radius: 0;               /* the tile clips; never round twice */
+}
+/* Reads the pill off the photo on a light still without tinting the set:
+   a bottom-anchored scrim only, no blur, no filter on a parent with
+   children. Sits under the pill (z 2) and over the photo (z 1). */
+.counter .cnt-tile::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 46%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(24, 12, 34, 0.52), rgba(24, 12, 34, 0) 78%);
 }
 /* Fixed size, anchored top-left. The instant the medallion out-weighs the word
    the tile reads as clip-art. `--wool-icon` is a custom property, so it beats
@@ -160,20 +180,43 @@
    STRUCTURE preserved (saturated field over near-white label), ~11:1.
    min-height is the whole peer read: 1-line and 2-line labels give the SAME
    tile height, which is what makes eight tiles read as equals. */
+/* The label is a real button now, not a bar. A felt pill floating on the
+   still, sized to its word rather than to the tile — so the set behind it
+   stays whole and eight tiles still read as equals because the pill's
+   HEIGHT is fixed while only its width follows the word.
+   Same cream felt material as before: contrast structure (dark ink on
+   near-white photographed felt, ~11:1) is preserved exactly. */
 .counter .cnt-strip {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  min-height: 62px;
-  padding: 14px 16px;
+  gap: 12px;
+  min-height: 54px;
+  padding: 10px 10px 10px 18px;
+  border-radius: 999px;
   background-color: var(--yarn-cream);
   background-image: url('/img/wool/tex/felt-cream.webp');
   background-size: 180px;
   color: #33243d;                 /* the ONE dark ink wool.css:253 puts on cream.
                                      Never a brand colour: cream felt is speckled
                                      and brand hues drop under 4.5:1 in the flecks. */
-  box-shadow: inset 0 2px 8px rgba(51, 36, 61, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 6px rgba(51, 36, 61, 0.16),
+    0 10px 22px -12px rgba(0, 0, 0, 0.7);
+  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+}
+.counter .cnt-tile:hover .cnt-strip {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -2px 6px rgba(51, 36, 61, 0.16),
+    0 16px 30px -12px rgba(0, 0, 0, 0.78);
 }
 .counter .cnt-label {
   font-family: var(--display);
@@ -187,19 +230,36 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* The chevron gets its own magenta chip — the pill's one saturated element,
+   and the thing that makes it read as pressable rather than as a caption.
+   Drawn with borders on a ::after so it stays one element and one repaint;
+   the chip is the box, the arrowhead is its pseudo. */
 .counter .cnt-arrow {
   flex: none;
-  width: 15px;
-  height: 15px;
-  border-right: 2px solid #33243d;
-  border-top: 2px solid #33243d;
-  transform: rotate(45deg) scale(0.72);
-  opacity: 0.45;
-  transition: transform 0.4s var(--ease), opacity 0.4s var(--ease);
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--magenta, #f21c8c);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  opacity: 1;
+  transition: transform 0.4s var(--ease), background-color 0.4s var(--ease);
+}
+.counter .cnt-arrow::after {
+  content: '';
+  position: absolute;
+  left: 48%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #fff;
+  border-top: 2px solid #fff;
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 .counter .cnt-tile:hover .cnt-arrow {
-  transform: translateX(3px) rotate(45deg) scale(0.72);
-  opacity: 0.9;
+  transform: translateX(3px) scale(1.06);
+  background: #ff3d9e;
 }
 
 .counter .cnt-foot {
@@ -227,8 +287,11 @@
    Never 1-up: peripheral scanning is the entire value of this shape. */
 @media (max-width: 719px) {
   .counter .cnt-grid { grid-template-columns: repeat(2, 1fr); }
-  .counter .cnt-band { aspect-ratio: 5 / 4; }   /* more air for the medallion */
-  .counter .cnt-strip { min-height: 64px; padding: 12px 14px; }
+  /* 2-up: squarer box so the still is not a letterbox and the pill keeps
+     its air. The band is inset:0 now — the TILE owns the ratio. */
+  .counter .cnt-tile { aspect-ratio: 1 / 1; }
+  .counter .cnt-strip { min-height: 50px; padding: 8px 8px 8px 15px; left: 11px; right: 11px; bottom: 11px; }
+  .counter .cnt-arrow { width: 30px; height: 30px; }
 }
 @media (max-width: 400px) {
   .counter .cnt-medal { --wool-icon: 44px; left: 11px; top: 12px; }
@@ -644,8 +707,11 @@
   .counter .cnt-tile:hover,
   .counter .cnt-tile:active { transform: none; }
   .counter .cnt-tile:hover .cnt-medal { transform: none; }
-  /* the chevron is the only hover affordance left, so it stays — just static */
-  .counter .cnt-tile:hover .cnt-arrow { transform: rotate(45deg) scale(0.72); opacity: 0.9; }
+  /* the chip is the only hover affordance left, so it stays — just static.
+     Its rest transform is none now (the arrowhead's rotate lives on the
+     ::after), so freezing it means exactly that. */
+  .counter .cnt-tile:hover .cnt-arrow { transform: none; }
+  .counter .cnt-tile:hover .cnt-strip { transform: none; }
 
   .offer .offer-panel:hover { transform: none; }
   .offer .offer-panel:hover .offer-stamp { transform: none; }

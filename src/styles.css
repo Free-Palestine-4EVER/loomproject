@@ -22,6 +22,20 @@
   font-style: italic;
   font-display: swap;
 }
+/* LOOM Bloom — the studio's own display face. Drawn in `type/`, built to
+   public/fonts/loom-bloom/, and given away on /type. Caps-only by design. */
+@font-face {
+  font-family: 'LOOM Bloom';
+  src: url('/fonts/loom-bloom/LOOMBloom-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Floral';
+  src: url('/fonts/loom-bloom/LOOMBloomFloral-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
 
 :root {
   --bg: #0d0716;
@@ -470,16 +484,47 @@ html.cursor-hot .cursor-ring {
   display: flex; gap: 44px; width: max-content;
   animation: marquee 46s linear infinite;
 }
+/* The client wall reads WHITE, with a pink sheen travelling through it.
+   `color` stays declared as the real fallback: if background-clip: text is
+   unsupported the names are plain white, never invisible. */
 .marquee span {
   font-family: var(--display); font-weight: 480;
-  font-size: 1.15rem; letter-spacing: 0.04em; color: var(--ink-dim);
+  font-size: 1.15rem; letter-spacing: 0.04em; color: #fff;
   display: inline-flex; align-items: center; gap: 44px; white-space: nowrap;
+
+  background-image: linear-gradient(
+    100deg,
+    #fff 0%, #fff 34%,
+    var(--magenta) 46%, #ff9ed0 52%, var(--magenta) 58%,
+    #fff 70%, #fff 100%
+  );
+  background-size: 260% 100%;
+  /* repeat-x, NOT no-repeat: the sheen travels a full tile width (-260%), and
+     an unrepeated gradient leaves the box entirely partway through that
+     journey — which paints nothing, and since the fill is transparent the
+     names simply vanish. Tiling keeps the box covered at every offset, and
+     the ramp starts and ends on #fff so the seam is invisible. */
+  background-repeat: repeat-x;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: wall-sheen 7s linear infinite;
 }
-.marquee em { color: var(--magenta); font-style: normal; font-size: 0.8rem; }
+/* The asterisk is a separator, not a name — it keeps its own solid magenta.
+   Without re-filling it explicitly it inherits the transparent fill above
+   and the separators vanish. */
+.marquee em {
+  color: var(--magenta); font-style: normal; font-size: 0.8rem;
+  background: none; -webkit-text-fill-color: var(--magenta);
+  animation: none;
+}
 @keyframes marquee { to { transform: translateX(-50%); } }
+@keyframes wall-sheen { to { background-position: -260% 0; } }
 @media (prefers-reduced-motion: reduce) {
   .marquee-track { animation: none; flex-wrap: wrap; width: auto; padding: 0 var(--pad); gap: 18px; }
-  .marquee span { gap: 18px; }
+  /* Freeze the sheen mid-gradient rather than dropping to flat white — the
+     wall keeps its pink without anything moving. */
+  .marquee span { gap: 18px; animation: none; background-position: -130% 0; }
 }
 
 /* ——— manifesto ——— */
