@@ -614,8 +614,11 @@ SPECS.woven = {
   // disappears on the page: it flies at roughly 165px of wingspan, where the
   // disc is ~6px and its thread holes are sub-pixel, so it read as a blank
   // head. The glow eye carries its own emissive, which is what keeps it
-  // legible at flight size and against the dark lower sections.
-  eye: { color: 0xfff6e2, pupil: 0x140d07, size: 0.145, style: "glow", glow: 0xffcf7a },
+  // legible at flight size and against the dark lower sections. Pink, not
+  // the lantern's gold: gold on the Rose wings read as a second warm accent
+  // fighting the magenta, where pink makes the eyes the one lit thing on
+  // the creature.
+  eye: { color: 0xffe2f1, pupil: 0x2a0a18, size: 0.145, style: "glow", glow: 0xff4fa8 },
   antenna: 0x3a1020,
   antennaTip: 0xffc2dd,
   material: { rough: 0.55, metal: 0.15, clearcoat: 0.3, sheen: 0.5, transmission: 0 },
@@ -745,13 +748,22 @@ function buildFace(THREE, S, headR, group) {
 
   /* ---- GLOW (Lantern): the eyes are two little lit panes ----------- */
   if (style === "glow") {
+    // Base and lead are DERIVED from the glow colour, not hardcoded. They
+    // used to be a fixed warm brown (0x2a1c10 / 0x1a120c), which is right
+    // for a lantern-gold eye and muddy under any other hue — a pink glow
+    // over a brown pane reads as dirty orange, because the unlit base is
+    // what you see everywhere the emissive does not saturate. Scaling the
+    // glow colour keeps the hue consistent from the darkest part of the
+    // pane out to the hot centre. Lantern is unaffected: its 0xffcf7a
+    // scaled by 0.12 lands within a shade of the old constant.
+    const glow = new THREE.Color(S.eye.glow);
     const lit = new THREE.MeshStandardMaterial({
-      color: 0x2a1c10,
-      emissive: new THREE.Color(S.eye.glow),
+      color: glow.clone().multiplyScalar(0.12),
+      emissive: glow,
       emissiveIntensity: 2.4,
       roughness: 0.3,
     });
-    const lead = new THREE.MeshStandardMaterial({ color: 0x1a120c, roughness: 0.8 });
+    const lead = new THREE.MeshStandardMaterial({ color: glow.clone().multiplyScalar(0.07), roughness: 0.8 });
     mats.push(lit, lead);
     [-1, 1].forEach((sx) => {
       const ring = put(new THREE.Mesh(new THREE.TorusGeometry(size * 0.92, size * 0.2, 10, 26), lead), sx, 0.5, 0.06, 0.78);
