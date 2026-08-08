@@ -170,6 +170,14 @@ why no anchor has to be checked against the outline. `type/preview.py` and
 `zoom.py` render contact sheets to SVG for eyeballing (`qlmanage -t` turns them
 into PNGs); `type/out/proof.html` is the same check through the real font.
 
+**Flower placement is measured, not guessed.** `type/place.py` samples every
+glyph into a mask, runs a distance-to-edge transform, and returns the middle of
+each thick part of the letter plus the clearance it has; `floral.py` then cuts
+ONE bloom per spot, scaled to that clearance. Anything too thin gets none. The
+result is cached in `type/out/anchors.json` — delete it to recompute (it is the
+slow part of the build). `motif_single()` is the in-letter flower;
+`ornament()` stays the free-standing cluster used by the ❀ ✿ ❦ glyphs.
+
 **The motifs are line-work, not silhouettes.** v1.100 redrew all four species:
 the rose is a spiral of four open bands (not petals round a disc), the daisy has
 eleven tapered petals and a seeded eye, the tulip is one smooth cup with two rim

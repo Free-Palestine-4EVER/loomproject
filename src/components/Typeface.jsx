@@ -9,7 +9,7 @@ import { PosterMachine } from './PosterMachine.jsx'
 import './typeface.css'
 
 const DIR = '/fonts/loom-bloom'
-const ZIP_SIZE = '936 KB'
+const ZIP_SIZE = '413 KB'
 
 // One plain cut and four planted ones. Every cut shares the Regular's metrics
 // exactly, so a line of text lines up character for character across all five.
@@ -23,10 +23,10 @@ const CUTS = [
 
 const SIZES = {
   LOOMBloom: ['13 KB', '15 KB', '7 KB'],
-  LOOMBloomRose: ['319 KB', '325 KB', '67 KB'],
-  LOOMBloomDaisy: ['425 KB', '456 KB', '78 KB'],
-  LOOMBloomTulip: ['176 KB', '181 KB', '41 KB'],
-  LOOMBloomIvy: ['191 KB', '199 KB', '44 KB'],
+  LOOMBloomRose: ['190 KB', '195 KB', '31 KB'],
+  LOOMBloomDaisy: ['226 KB', '241 KB', '34 KB'],
+  LOOMBloomTulip: ['84 KB', '88 KB', '18 KB'],
+  LOOMBloomIvy: ['58 KB', '63 KB', '14 KB'],
 }
 
 const FORMATS = [
@@ -178,9 +178,9 @@ export function Typeface() {
               corner radius — drawn from scratch in our own type pipeline, not
               licensed from anyone. Five cuts: the plain face, and four planted
               ones — Rose, Daisy, Tulip and Ivy — each with a different flower
-              cut out of the letterforms. v1.100 redraws every motif, and adds
-              per-glyph spacing, a real kerning pass, and the accents both our
-              cities need.
+              cut out of the letterforms. Every flower is placed by measuring
+              the letter itself — one bloom per part thick enough to hold one,
+              sized to the room it has.
             </p>
             <div className="tf-hero-cta">
               <Magnetic strength={0.2}>

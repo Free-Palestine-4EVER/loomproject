@@ -449,10 +449,12 @@ def _rose(r=140):
     size instead of as a ring of blobs."""
     s = r / 140.0
     bands = []
-    for k, (rad, a0, span, w) in enumerate((
-            (44, 20, 330, 26), (74, -40, 320, 27), (104, -110, 310, 28), (132, -190, 285, 28))):
-        bands.append(rarc(0, 0, rad * s, rad * s * 0.96, a0, a0 + span, w * s))
-    return U(circle(0, 0, 22 * s), *bands)
+    for rad, a0, span, w, ox, oy in (
+            (46, 30, 320, 25, 5, 4), (78, -50, 300, 27, 14, 11),
+            (110, -130, 290, 29, 24, 18), (140, -210, 260, 30, 34, 25)):
+        bands.append(rarc(ox * s, oy * s, rad * s, rad * s * 0.94,
+                          a0, a0 + span, w * s))
+    return U(circle(4 * s, 3 * s, 21 * s), *bands)
 
 
 def _daisy(r=135):
@@ -496,24 +498,24 @@ def _tulip(h=190):
     body = U(cup, tips)
     # two thin cuts from the rim down the shoulder — enough to read as three
     # petals without striping the whole cup
-    notch = U(rcapsule((-34 * s, h * 0.66), (-16 * s, -h * 0.02), 13 * s),
-              rcapsule((34 * s, h * 0.66), (16 * s, -h * 0.02), 13 * s))
+    notch = U(rcapsule((-36 * s, h * 0.72), (-18 * s, -h * 0.20), 17 * s),
+              rcapsule((36 * s, h * 0.72), (18 * s, -h * 0.20), 17 * s))
     neck = rcapsule((0, -h * 0.80), (0, -h * 1.85), 20 * s)
     return U(DIFF(body, notch), neck)
 
 
 def _ivy(size=120):
-    """A three-lobe ivy leaf, built from soft lobes rather than a spiked polygon
-    — at ornament scale a zig-zag outline reads as a thistle."""
+    """An ivy leaf as a pointed heart — two round shoulders and a sharp tip.
+    Lobed versions dissolve into a cloud once they are scaled into a stem."""
     s = size / 120.0
-    lobes = U(ellipse(0, 30 * s, 60 * s, 66 * s),
-              ellipse(-64 * s, -14 * s, 52 * s, 46 * s),
-              ellipse(64 * s, -14 * s, 52 * s, 46 * s),
-              ISECT(ellipse(0, -30 * s, 74 * s, 96 * s),
-                    rect(-80 * s, -130 * s, 80 * s, -14 * s)))
-    vein = rcapsule((0, -100 * s), (0, 78 * s), 10 * s)
-    stem = rcapsule((0, -104 * s), (0, -176 * s), 13 * s)
-    return U(DIFF(lobes, vein), stem)
+    shoulders = U(circle(-36 * s, 38 * s, 48 * s), circle(36 * s, 38 * s, 48 * s))
+    blade = poly([(-82 * s, 30 * s), (82 * s, 30 * s), (0, -120 * s)])
+    body = U(shoulders, blade)
+    # the dip between the shoulders, and the midrib
+    dip = poly([(-30 * s, 100 * s), (30 * s, 100 * s), (0, 26 * s)])
+    vein = rcapsule((0, -104 * s), (0, 58 * s), 11 * s)
+    stem = rcapsule((0, -108 * s), (0, -178 * s), 13 * s)
+    return U(DIFF(body, U(dip, vein)), stem)
 
 
 def _swirl(scale=1.0):
@@ -544,6 +546,35 @@ def _sprig(n=5, spread=300, scale=1.0):
         px, py = arc_pt(0, 0, spread * 0.9, spread * 0.5, t)
         leaves.append(xform(_leaf(150 * scale, 62 * scale), rot=t + 90, dx=px, dy=py))
     return U(stem, *leaves)
+
+
+def motif_single(kind=0, fam='floral'):
+    """ONE bloom, centred on the origin, about 150 units across at scale 1.
+
+    The cluster in ornament() is for the ornament glyphs and for free-standing
+    use. Inside a letter a cluster cannot be fitted — its bounding box is wider
+    than most stems — so the planted cuts place these instead: one flower per
+    piece of the letter that is actually thick enough to hold one.
+    """
+    from geom import xform
+    k = kind % 3
+    if fam == 'daisy':
+        f = _daisy(132 if k == 0 else 108 if k == 1 else 148)
+    elif fam == 'tulip':
+        f = xform(_tulip(150 if k == 0 else 122 if k == 1 else 168), rot=(k - 1) * 16)
+    elif fam == 'ivy':
+        f = xform(_ivy(150 if k == 0 else 124 if k == 1 else 170), rot=(k - 1) * 22)
+    else:
+        f = _rose(136 if k == 0 else 112 if k == 1 else 152)
+    if fam == 'ivy':
+        # ivy is a leaf already — pairing it with an almond leaf made every spot
+        # read as two crossed blobs
+        second = xform(_ivy(86 if k else 74), rot=150 + k * 40, dx=-88 + k * 30, dy=-72 + k * 26)
+        return U(f, second)
+    # one leaf tucked behind, on alternating sides, so a spot never reads as a
+    # sticker dropped on the stem
+    leaf = xform(_leaf(230, 96), rot=200 + k * 55, dx=-30 + k * 24, dy=-60 + k * 30)
+    return U(f, leaf)
 
 
 def ornament(kind=0, fam='floral'):
