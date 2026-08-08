@@ -37,8 +37,12 @@ const CUTS = [
 // The planted cuts share the scroll between them, so this file never hard-codes
 // how many there are — adding a cut to CUTS above re-times the whole sequence.
 const PLANTED = CUTS.length - 1
-const BLOOM_FROM = 0.28
-const BLOOM_TO = 0.80
+// The whole sequence must FINISH before act three starts (the earliest layout
+// beat is 0.68) — otherwise the last cuts bloom while the word has already
+// shrunk into the wall of type behind the copy, and they are never really seen
+// as the word. At five cuts 0.80 was fine; at seven it hid three of them.
+const BLOOM_FROM = 0.24
+const BLOOM_TO = 0.64
 const BLOOM_STEP = (BLOOM_TO - BLOOM_FROM) / Math.max(1, PLANTED - 1)
 
 const STATS = [['8', 'cuts'], ['98', 'glyphs each'], ['0', 'licences bought']]

@@ -2,7 +2,7 @@
 
 .ts {
   position: relative;
-  height: 340vh;                 /* the scroll budget for the whole act */
+  height: 420vh;                 /* the scroll budget: seven cuts need room */
   background:
     radial-gradient(80% 60% at 15% 10%, rgba(242, 28, 140, 0.14), transparent 60%),
     radial-gradient(70% 60% at 85% 90%, rgba(123, 47, 190, 0.18), transparent 62%);
@@ -220,7 +220,7 @@
 }
 
 @media (max-width: 900px) {
-  .ts { height: 300vh; }
+  .ts { height: 360vh; }
   .ts-copy-slot { padding-inline: var(--pad); }
 
   /* The kicker is a single uppercase line at 0.2em tracking; on a 390px phone
