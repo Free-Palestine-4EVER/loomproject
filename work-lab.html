@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LOOM — work lab · three card walls, all sixteen at once</title>
+<link rel="preload" href="/fonts/ClashDisplay-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/Satoshi-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<style>
+@font-face{font-family:'Clash Display';src:url('/fonts/ClashDisplay-Variable.woff2') format('woff2');font-weight:200 700;font-display:swap}
+@font-face{font-family:'Satoshi';src:url('/fonts/Satoshi-Variable.woff2') format('woff2');font-weight:300 900;font-display:swap}
+
+:root{
+  --bg:#0d0716; --bg-2:#120a1f; --bg-3:#1a1029;
+  --ink:#f2f0f7; --ink-dim:#a89fc0;
+  --magenta:#f21c8c; --magenta-deep:#b3126a; --violet:#7b2fbe; --gold:#ffc740;
+  --line:rgba(242,240,247,.1);
+  --yarn-pink:#d6247e; --yarn-violet:#9b55c9; --yarn-blue:#5cc0e8; --yarn-gold:#e0a82f; --yarn-cream:#efe7da;
+  --display:'Clash Display','Avenir Next',sans-serif;
+  --body:'Satoshi','Helvetica Neue',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --spring:linear(0,.0088 1.1%,.0346 2.3%,.1442 4.9%,.7688 14.2%,.9202 16.7%,1.0139 19.3%,1.0498 21.9%,1.0546 24.7%,1.0338 28.2%,.9994 32.6%,.9895 37.3%,.9994 44.2%,1.0026 55.3%,1);
+  --pad:clamp(20px,5vw,96px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+
+.lab-head{padding:clamp(56px,9vh,110px) var(--pad) 22px;max-width:920px}
+.lab-head h1{font-family:var(--display);font-weight:620;font-size:clamp(2.1rem,5.6vw,3.7rem);line-height:.98;letter-spacing:-.02em}
+.lab-head p{color:var(--ink-dim);margin-top:15px;max-width:62ch;line-height:1.6}
+.lab-head p+p{margin-top:11px}
+.lab-head em{color:var(--ink);font-style:italic}
+.jump{display:flex;gap:8px;flex-wrap:wrap;padding:0 var(--pad) 8px}
+.jump a{font-family:var(--display);font-weight:560;font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:9px 15px;transition:.3s var(--ease)}
+.jump a:hover{color:#fff;border-color:var(--magenta)}
+
+.concept{padding:clamp(48px,7vh,86px) var(--pad) clamp(56px,8vh,100px);border-top:1px solid var(--line);scroll-margin-top:0}
+.c-head{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+.c-num{font-family:var(--display);font-weight:620;font-size:.78rem;letter-spacing:.2em;color:var(--magenta)}
+.c-head h2{font-family:var(--display);font-weight:620;font-size:clamp(1.5rem,3.2vw,2.3rem);letter-spacing:-.01em}
+.c-note{color:var(--ink-dim);max-width:70ch;line-height:1.65;margin-bottom:34px;font-size:.96rem}
+.c-note b{color:var(--ink);font-weight:600}
+.c-note .bad{color:#ffb0d5}
+
+/* the section heading exactly as the live site words it */
+.demo-head{margin-bottom:26px}
+.kicker{font-family:var(--display);font-weight:560;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--magenta);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.demo-head h3{font-family:var(--display);font-weight:600;font-size:clamp(1.45rem,3.1vw,2.5rem);line-height:1.04;letter-spacing:-.02em;max-width:20em}
+
+/* ═══════════════════════════════════════════════════════════════
+   01 · THE LABEL WALL — sixteen identical woven labels. The card
+   face is the client's NAME, set large on felt; the photography is
+   the reward for stopping on one.
+   ═══════════════════════════════════════════════════════════════ */
+.wall{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,1.1vw,16px)}
+.label{position:relative;aspect-ratio:1;border-radius:16px;overflow:hidden;isolation:isolate;
+  background:var(--bg-2);border:1px solid var(--line);
+  display:flex;flex-direction:column;justify-content:space-between;padding:clamp(14px,1.5vw,22px);
+  transition:transform .5s var(--ease),border-color .4s var(--ease)}
+.label:hover,.label:focus-visible{transform:translateY(-5px);border-color:rgba(242,28,140,.55);outline:none}
+/* the felt: a fine knit weave, drawn in gradients so it costs nothing */
+.label .felt{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.55;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.028) 0 1px,transparent 1px 4px),
+    repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 4px),
+    radial-gradient(120% 90% at 18% 0%,rgba(123,47,190,.30),transparent 62%)}
+/* selvedge — the woven top edge, a different yarn per card */
+.label .selvedge{position:absolute;inset:0 0 auto 0;height:5px;z-index:3}
+/* the art, held back until interest */
+.label .art{position:absolute;inset:0;z-index:1;opacity:0;transform:scale(1.06);
+  transition:opacity .5s var(--ease),transform .9s var(--ease)}
+.label .art img{width:100%;height:100%;object-fit:cover}
+.label .art::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(8,4,14,.94) 4%,rgba(8,4,14,.55) 46%,rgba(8,4,14,.32))}
+.label:hover .art,.label:focus-visible .art{opacity:1;transform:scale(1)}
+.label .top,.label .bot{position:relative;z-index:4}
+.label .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.label .lw-n{font-family:var(--display);font-weight:560;font-size:.68rem;letter-spacing:.2em;color:#8a7fa8;
+  transition:color .35s var(--ease)}
+.label:hover .lw-n{color:var(--magenta)}
+.label .lw-yr{font-family:var(--display);font-weight:560;font-size:.68rem;letter-spacing:.12em;color:#8a7fa8}
+.label h4{font-family:var(--display);font-weight:620;font-size:clamp(1.15rem,1.9vw,1.72rem);line-height:.98;
+  letter-spacing:-.03em;margin-top:auto;text-wrap:balance}
+/* the ghost monogram fills the upper half at rest — the label's stamped
+   initials — and gets out of the way the moment the photograph arrives */
+.label .ghost{position:absolute;z-index:2;left:50%;top:36%;transform:translate(-50%,-50%);
+  font-family:var(--display);font-weight:620;font-size:clamp(3.4rem,6.2vw,5.4rem);letter-spacing:-.04em;
+  line-height:1;color:transparent;-webkit-text-stroke:1.4px rgba(242,240,247,.13);pointer-events:none;
+  transition:opacity .4s var(--ease),transform .6s var(--ease)}
+.label:hover .ghost,.label:focus-visible .ghost{opacity:0;transform:translate(-50%,-58%)}
+.label .lw-line{display:block;font-size:.82rem;line-height:1.35;color:var(--ink-dim);margin-top:9px;
+  transition:color .35s var(--ease)}
+.label:hover .lw-line{color:var(--ink)}
+.label .lw-scope{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.label .lw-scope i{font-style:normal;font-size:.6rem;letter-spacing:.11em;text-transform:uppercase;color:#9a90b8;
+  border:1px solid var(--line);border-radius:999px;padding:4px 8px;line-height:1;white-space:nowrap}
+/* padding-right keeps the market clear of the seal in the same corner */
+.label .lw-mkt{display:block;font-size:.63rem;letter-spacing:.16em;text-transform:uppercase;color:#7f759c;
+  margin-top:11px;padding-right:36px}
+/* the stitched seal that says the card opens something */
+.label .seal{position:absolute;right:14px;bottom:14px;z-index:5;width:30px;height:30px;border-radius:50%;
+  display:grid;place-items:center;background:var(--magenta);color:#fff;
+  opacity:0;transform:scale(.6);transition:opacity .35s var(--ease),transform .45s var(--spring)}
+.label:hover .seal,.label:focus-visible .seal{opacity:1;transform:scale(1)}
+.label .seal svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:1100px){.wall{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.wall{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .label{aspect-ratio:.86;padding:13px}
+  .label h4{font-size:1.02rem}
+  .label .lw-line{font-size:.74rem;margin-top:6px}
+  .label .lw-scope{display:none}
+  .label .lw-mkt{font-size:.58rem;margin-top:8px}
+  /* no hover on a phone — the art rests visible at low strength instead */
+  .label .art{opacity:.5;transform:none}
+  .label .seal{opacity:.85;transform:scale(1);width:24px;height:24px;right:10px;bottom:10px}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   02 · THE MOSAIC — one wall, four card sizes, and the sizes MOVE.
+   Size is still the ranking, but the ranking is re-argued every few
+   seconds: one block of the wall re-tiles at a time and the cards
+   inside it swap size class, FLIP-animated from old box to new.
+   The grid is deliberately partitioned into three blocks of exactly
+   two rows each (5 + 5 + 6 cards), and every size map a block can
+   take fills those two rows with no holes — so the wall's total
+   height never changes, nothing below it ever reflows, and all
+   sixteen cards are on screen in every state and every frame.
+   ═══════════════════════════════════════════════════════════════ */
+.mosaic{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-auto-rows:clamp(118px,12.2vw,176px);gap:clamp(9px,1vw,16px)}
+.tile{position:relative;border-radius:16px;overflow:hidden;isolation:isolate;background:var(--bg-3);
+  box-shadow:0 20px 46px -30px #000;transition:transform .55s var(--ease),opacity .45s var(--ease);
+  /* FLIP maths is written top-left-relative, so the box must scale from 0,0 */
+  transform-origin:0 0}
+.tile:hover,.tile:focus-visible{transform:translateY(-6px);outline:none}
+/* a card mid-move overlaps its neighbours — it has to sit on top of them */
+.tile.is-moving{z-index:6;transition:none}
+.tile.is-moving:hover{transform:none}
+/* the wall answers as ONE surface: enter it and the fifteen cards you are not on
+   step back a little, so the card under the pointer is lit without anything
+   having to grow. Opacity only — no filter, nothing that touches layout. */
+/* @media(hover:hover) because a touch browser keeps :hover on the last thing
+   tapped — without it a phone tap would leave fifteen cards dimmed for good */
+@media(hover:hover){.mosaic:hover .tile:not(:hover){opacity:.7}}
+.mosaic:focus-within .tile:not(:focus-visible){opacity:.7}
+
+/* ── the photograph is a THREE-layer stack ───────────────────────────────────
+   Three independent motions have to live on the same picture at the same time,
+   and each of them owns exactly one node, so nothing ever overwrites anything
+   and no two non-uniform scales can ever multiply:
+
+     .ph   the FLIP counter-scale, and the hover push-in. It rests at
+           scale(1.04) — that 4% is deliberately spent slack: it is the margin
+           the pointer drift below is allowed to travel into.
+     .par  the pointer drift. Inline transform written from a rAF, CSS-
+           transitioned so the crop TRAILS the cursor instead of tracking it.
+     img   the ambient breath — a 27–48s Ken-Burns pan/zoom on its own period
+           and its own phase. Owned by a Web-Animations animation, which is
+           precisely why no CSS rule and no other script may write this node.
+
+   Only .ph is ever scaled non-uniformly, and only for the length of a FLIP,
+   where it is the exact inverse of the tile's own box scale. .par translates
+   and img scales uniformly, so the composite crop can never stretch. */
+.tile .ph{position:absolute;inset:0;z-index:0;transform:scale(1.04);
+  transition:transform .7s var(--ease)}
+.tile:hover .ph,.tile:focus-visible .ph{transform:scale(1.1)}
+.tile .par{position:absolute;inset:0;transition:transform .6s var(--ease)}
+.tile .par img{width:100%;height:100%;object-fit:cover}
+.tile .scrim{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(to top,rgba(8,4,14,.93) 0,rgba(8,4,14,.72) 26%,rgba(8,4,14,.14) 62%,transparent 88%)}
+/* the caption is counter-scaled during a move, anchored to the bottom-left
+   corner it already sits in, so the type never stretches with the box */
+.tile .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:clamp(12px,1.3vw,20px);
+  transform-origin:0 100%}
+.tile .rank{font-family:var(--display);font-weight:560;font-size:.62rem;letter-spacing:.2em;color:var(--magenta);
+  display:block;margin-bottom:6px}
+.tile h4{font-family:var(--display);font-weight:600;letter-spacing:-.02em;line-height:1.06;
+  font-size:clamp(.98rem,1.25vw,1.28rem)}
+.tile .m-f h4{font-size:clamp(1.3rem,2.2vw,2.1rem)}
+.tile .rev{display:block;overflow:hidden;max-height:0;opacity:0;
+  transition:max-height .5s var(--ease),opacity .4s var(--ease),transform .5s var(--ease);transform:translateY(6px)}
+.tile:hover .rev,.tile:focus-visible .rev{max-height:150px;opacity:1;transform:translateY(0)}
+.tile .rev p{font-size:.83rem;line-height:1.36;color:#ded7ef;margin-top:7px}
+.tile .rev .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px;
+  font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:#a396c4}
+.tile .rev .meta span+span{padding-left:8px;border-left:1px solid rgba(242,240,247,.18)}
+/* feature tiles are big enough to say the line without being asked */
+.tile.m-f .rev{max-height:150px;opacity:1;transform:none}
+.tile .thread{position:absolute;left:0;right:0;top:0;height:3px;z-index:3;transform-origin:0 50%;transform:scaleX(0);
+  transition:transform .55s var(--ease)}
+.tile:hover .thread,.tile:focus-visible .thread{transform:scaleX(1)}
+
+.tile.m-f{grid-column:span 2;grid-row:span 2}
+.tile.m-t{grid-column:span 1;grid-row:span 2}
+.tile.m-w{grid-column:span 2;grid-row:span 1}
+.tile.m-s{grid-column:span 1;grid-row:span 1}
+.mosaic-key{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:18px;font-size:.68rem;
+  letter-spacing:.14em;text-transform:uppercase;color:#7f759c}
+.mosaic-key b{color:var(--ink-dim);font-weight:500}
+.mosaic-key .pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--magenta);
+  margin-right:8px;vertical-align:middle;animation:mosaicPulse 2.4s var(--ease) infinite}
+@keyframes mosaicPulse{0%,100%{opacity:.28;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+/* .mosaic-key is the immediate sibling of .mosaic — the dot reports the state
+   of the wall it sits under, and goes dim whenever the cycle is stood down */
+.mosaic.is-held + .mosaic-key .pulse{animation:none;opacity:.28;transform:scale(.7)}
+@media(prefers-reduced-motion:reduce){.mosaic-key .pulse{animation:none;opacity:.28}}
+
+@media(max-width:1000px){
+  /* two columns: the wall settles. The size-switching is turned off in JS
+     below 1001px (see LIVE.wide) and every block is pinned to its base map,
+     which at two columns is feature 2x2 + standards + two full-width bands —
+     that tiles exactly, with no holes and no card ever narrower than a column. */
+  .mosaic{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:clamp(112px,17vw,168px)}
+  .tile.m-f{grid-column:span 2;grid-row:span 2}
+  .tile.m-w{grid-column:span 2;grid-row:span 1}
+  /* m-t must be named too: a tall card in a 2-col grid strands a half row */
+  .tile.m-t{grid-column:span 1;grid-row:span 1}
+  .tile.m-s{grid-column:span 1;grid-row:span 1}
+}
+@media(max-width:640px){
+  /* one column: the row-span ladder stops meaning anything, so each
+     class becomes an aspect ratio instead and the wall keeps its rhythm */
+  .mosaic{grid-template-columns:1fr;grid-auto-rows:auto;gap:10px}
+  /* every size class has to be named here: `.tile{grid-column:1}` alone loses
+     to `.tile.m-f{grid-column:span 2}` above, which pushed half the wall into
+     an implicit second column of zero width and collapsed six tiles to 0x0 */
+  .tile.m-f,.tile.m-t,.tile.m-w,.tile.m-s{grid-column:1;grid-row:auto}
+  .tile.m-f{aspect-ratio:5/4}
+  .tile.m-t{aspect-ratio:3/4}
+  .tile.m-w{aspect-ratio:16/9}
+  .tile.m-s{aspect-ratio:4/3}
+  .tile .rev{max-height:150px;opacity:1;transform:none}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   03 · THE ATLAS — the same sixteen cards, clustered by the market
+   they shipped into. Everything is on the face; nothing hides.
+   ═══════════════════════════════════════════════════════════════ */
+.atlas{display:flex;flex-direction:column;gap:clamp(28px,3.4vh,44px)}
+.cluster-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding-bottom:11px;margin-bottom:15px;
+  border-bottom:1px solid var(--line)}
+.cluster-head h4{font-family:var(--display);font-weight:600;font-size:clamp(1.05rem,1.8vw,1.4rem);letter-spacing:-.015em}
+.cluster-head .cn{font-family:var(--display);font-weight:560;font-size:.68rem;letter-spacing:.2em;color:var(--magenta)}
+.cluster-head .cs{font-size:.78rem;color:#7f759c;margin-left:auto;letter-spacing:.04em}
+.cluster-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.1vw,16px)}
+.at-card{position:relative;display:grid;grid-template-columns:clamp(78px,7.4vw,104px) minmax(0,1fr);gap:clamp(12px,1.3vw,18px);
+  align-items:start;padding:clamp(12px,1.2vw,16px);border:1px solid var(--line);border-radius:14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,0));
+  transition:transform .45s var(--ease),border-color .35s var(--ease),background-color .35s var(--ease)}
+.at-card:hover,.at-card:focus-visible{transform:translateY(-3px);border-color:rgba(242,28,140,.5);
+  background-color:rgba(242,28,140,.05);outline:none}
+.at-shot{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--bg-3)}
+.at-shot img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
+.at-card:hover .at-shot img{transform:scale(1.06)}
+.at-shot .yarn{position:absolute;left:0;right:0;bottom:0;height:3px}
+.at-body{min-width:0}
+.at-top{display:flex;align-items:baseline;gap:10px;margin-bottom:5px}
+.at-n{font-family:var(--display);font-weight:560;font-size:.62rem;letter-spacing:.18em;color:#7f759c}
+.at-yr{font-family:var(--display);font-weight:560;font-size:.62rem;letter-spacing:.12em;color:#7f759c;margin-left:auto}
+.at-card h5{font-family:var(--display);font-weight:600;font-size:clamp(1rem,1.45vw,1.22rem);letter-spacing:-.02em;line-height:1.08}
+.at-card .at-line{display:block;font-size:.85rem;line-height:1.38;color:var(--ink-dim);margin-top:5px}
+.at-scope{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.at-scope i{font-style:normal;font-size:.58rem;letter-spacing:.11em;text-transform:uppercase;color:#9a90b8;
+  border:1px solid var(--line);border-radius:999px;padding:4px 8px;line-height:1}
+.at-place{display:block;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#7f759c;margin-top:9px}
+.atlas-foot{margin-top:26px;font-size:.8rem;color:#7f759c;letter-spacing:.03em}
+@media(max-width:900px){.cluster-grid{grid-template-columns:1fr}}
+@media(max-width:520px){
+  .at-card{grid-template-columns:66px minmax(0,1fr);gap:12px;padding:11px}
+  .at-card h5{font-size:.98rem}
+  .at-card .at-line{font-size:.78rem}
+  .at-scope i{font-size:.54rem;padding:3px 6px}
+  .cluster-head .cs{margin-left:0;width:100%}
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<header class="lab-head">
+  <h1>Sixteen cards. All of them, all at once.</h1>
+  <p>Three card walls, same sixteen jobs, same photography, same words. Every one of them puts <em>all sixteen cases on screen together</em> — nothing behind a click, nothing off the right edge, no “load more”. What changes is the card itself: what it leads with, how big it is allowed to be, how much it says without being asked, and whether the sixteen are one flat set or sorted into groups.</p>
+  <p>They are deliberately three different answers, not three skins: <em>a name wall, a picture wall, and a map</em>. Each is honestly better at some things and worse at others — the note under each one says which.</p>
+</header>
+<nav class="jump">
+  <a href="#c1">01 The Label Wall</a><a href="#c2">02 The Mosaic</a><a href="#c3">03 The Atlas</a>
+</nav>
+
+<!-- ══════════════ 01 · THE LABEL WALL ══════════════ -->
+<section class="concept" id="c1">
+  <div class="c-head"><span class="c-num">01</span><h2>The Label Wall</h2></div>
+  <p class="c-note">Sixteen identical squares, laid out like a sheet of woven care-labels — the studio's own felt-and-yarn material, one selvedge stripe of coloured yarn per card. The card leads with <b>the client's name set large</b>, then the line, the disciplines and the market: at rest this is a wall of <em>names</em>, and the range of the roster is the first thing the eye reads, not any one photograph. The photography is still there — it fills the card the moment you stop on it, with the felt and the type sitting on top. Uniform size is a statement in itself: <b>no case is ranked above another</b>, a Benetton square is exactly the size of a Sarajevo bakery square. <span class="bad">The trade: it is the coldest of the three on arrival</span> — a studio that sells visual craft is showing type first, and a visitor who never moves the pointer sees very little art. Long client names ("Maison de l'Avenir", "ModulArt · Liberty Group") fight the big type, and at 390px the squares are small enough that the scope chips have to be dropped.</p>
+
+  <div class="demo-head">
+    <p class="kicker"><span>—</span> Selected work</p>
+    <h3>Sixteen brands launched across nine countries — not one template between them.</h3>
+  </div>
+  <div class="wall" id="wall"></div>
+</section>
+
+<!-- ══════════════ 02 · THE MOSAIC ══════════════ -->
+<section class="concept" id="c2">
+  <div class="c-head"><span class="c-num">02</span><h2>The Mosaic</h2></div>
+  <p class="c-note">One picture wall in four card sizes, and <b>the size is the argument</b> — except the argument never sits still. The wall is split into three blocks of two rows each, and a block re-tiles every 2.6 seconds: a standard card opens into a wide band, a band stands up into a tower, the flagship draws itself back down to make room. Each move takes 3.4 seconds, which is <em>longer than the gap between them</em> — so the next block sets off while the last is still settling and there is never a frame with nothing in flight. Grid spans can't be animated, so each move is done by FLIP — measure every box, swap the classes, measure again, then run the moved cards from their old box to their new one on transform alone, with the photograph counter-scaled so it re-crops instead of stretching. <b>And under all of that the photographs are alive</b>: every card runs a permanent Ken-Burns drift of its own — a pan under a percent and a few points of zoom, over 27 to 48 seconds, each card on its own period, its own bearing and its own phase, so the sixteen never once fall into step. <b>The wall answers the pointer too</b> — each crop leans toward the cursor by an amount that falls off with distance, and the fifteen cards you are not on step back, which turns sixteen framed pictures into one surface you are moving over. <b>All sixteen cards are on screen in every state and in every frame of every move</b>: each block's maps were built to fill their two rows exactly, so the wall is always six rows tall and nothing under it ever shifts. <b>Attention overrides the cycle</b> — hover or tab to a card and its block walks to the map that gives that card the most room, and the re-tiling stands down while your pointer is in the wall, though the breathing never does. <span class="bad">The trade: it publicly ranks your own clients, and now it does so out loud</span> — a card that shrinks while you're reading it is a card telling you it matters less. It also depends entirely on the covers being strong, and it costs the most of the three: it is the only one of the three walls that is never at rest. Below 1001px the re-tiling settles — at one or two columns a "tall" card is just a column-wide card — but the breathing stays, because on a phone it is the whole design and only the two cards actually on screen are ever running.</p>
+
+  <div class="demo-head">
+    <p class="kicker"><span>—</span> Selected work</p>
+    <h3>Sixteen brands launched across nine countries — not one template between them.</h3>
+  </div>
+  <div class="mosaic" id="mosaic"></div>
+  <p class="mosaic-key">
+    <span><i class="pulse" aria-hidden="true"></i>A block re-tiles every 2.6s · each move lasts 3.4s, so they overlap</span>
+    <span><b>Flagship</b> — never below a tower</span><span><b>Tower</b> 1×2</span>
+    <span><b>Band</b> 2×1</span><span><b>Standard</b> 1×1</span>
+    <span>Every photograph breathes on its own 27–48s period</span>
+    <span>Hover to promote · the crop leans toward your pointer</span>
+  </p>
+</section>
+
+<!-- ══════════════ 03 · THE ATLAS ══════════════ -->
+<section class="concept" id="c3">
+  <div class="c-head"><span class="c-num">03</span><h2>The Atlas</h2></div>
+  <p class="c-note">The same sixteen cards, clustered by <b>the market each one shipped into</b> — Bosnia, the Gulf, Jordan, Central Europe, North America — with a count on every cluster heading. The card turns on its side: a square of the work on the left, and on the right the client, the line, every discipline and the year, all of it <em>on the face</em>. Nothing is hidden behind a hover, which makes this the only one of the three that reads identically on a phone, in a screenshot, and to a screen reader. It is also the one that answers the question a prospect actually asks — <em>have you worked in my market?</em> — and the clusters make "nine countries" something you can count rather than something we claim. <span class="bad">The trade: it is the least dramatic wall of the three</span> — clean editorial cards, small images, no single hero moment, and it is the tallest section on the page because every card carries its full text. It also hard-codes a grouping that flatters the biggest cluster (six Bosnian cases) and leaves the USA on its own with a single card.</p>
+
+  <div class="demo-head">
+    <p class="kicker"><span>—</span> Selected work</p>
+    <h3>Sixteen brands launched across nine countries — not one template between them.</h3>
+  </div>
+  <div class="atlas" id="atlas"></div>
+  <p class="atlas-foot" id="atlasFoot"></p>
+</section>
+
+<script>
+/* ─── the real sixteen, straight out of src/data/site.js ─── */
+const CASES = [
+  { slug:'ellie', client:'Ana Ellie', country:'Jordan', year:'2026',
+    scope:['Product Photography','AI Imaging','E-commerce'], filter:['campaign','packaging','ai'],
+    title:'A whole catalogue, no studio',
+    copy:'A full pet-accessories product line — bowls, plush, tunnels, wheels — shot, branded and catalogued without a single studio booking.' },
+  { slug:'maison', client:'Maison de l’Avenir', country:'UAE', year:'2026',
+    scope:['Campaign','AI Imaging','Fragrance'], filter:['campaign','ai'],
+    title:'Nebula Nectar, carved in ice',
+    copy:'A niche fragrance launch built entirely in generative production — the flacon suspended in glacial ice, citrus and mint frozen mid-fall.' },
+  { slug:'evorahome', client:'Evora Future Home', country:'Jordan', year:'2026',
+    scope:['3D Catalogue','E-commerce','AR'], filter:['web','packaging','ai'],
+    title:'A furniture catalogue that builds itself',
+    copy:'Every piece in the range rendered on one seamless set — consistent light, consistent shadow, infinite angles.' },
+  { slug:'boccapiena', client:'Boccapiena', country:'Croatia', year:'2024',
+    scope:['Social Media','Campaign','Franchise'], filter:['campaign','social'],
+    title:'#MouthfulOfHappiness',
+    copy:'A candy-bright brand world for Croatia’s happiest gelato franchise — hand-drawn sticker universes, neon-lit parlours and a social engine that made joy repeatable.' },
+  { slug:'auraa', client:'Auraa Desire × Savia', country:'UAE', year:'2024',
+    scope:['Campaign','Content','Social Media'], filter:['campaign','social'],
+    title:'Extrait de désir',
+    copy:'Luxury fragrance launches for the Gulf: marble-set flacon families, silk-drenched product noir and model-led key visuals.' },
+  { slug:'scion', client:'Scion International', country:'UAE', year:'2024–25',
+    scope:['Campaign','Social Media'], filter:['campaign','social'],
+    title:'Four houses, one cinema',
+    copy:'A multi-house fragrance portfolio — four maisons, each given its own cinematic key-visual language under one production pipeline.' },
+  { slug:'weitnauer', client:'Weitnauer Holding', country:'Switzerland', year:'2024',
+    scope:['Rebranding','Identity'], filter:['branding'],
+    title:'Swiss precision, rewoven',
+    copy:'A full visual identity and rebrand for a Swiss holding — from wordmark to facade signage, engineered to feel inevitable.' },
+  { slug:'slatko', client:'Slatko i Slano', country:'BiH', year:'2023–25',
+    scope:['360 Campaign','VFX'], filter:['campaign','vfx'],
+    title:'A bakery, fully baked',
+    copy:'Three years of full-stack brand work for Bosnia’s beloved bakery chain — refreshed identity, seasonal campaigns and CGI spots.' },
+  { slug:'herbas', client:'Herbas', country:'BiH', year:'2025',
+    scope:['Branding','Packaging'], filter:['branding','packaging'],
+    title:'Nature, shelf-ready',
+    copy:'Packaging and brand system for a natural cosmetics line — botanical warmth with the discipline of a pharmacy shelf.' },
+  { slug:'place87', client:'The Place 87', country:'Sarajevo', year:'2023',
+    scope:['Logo','Web Design'], filter:['branding','web'],
+    title:'An address becomes a brand',
+    copy:'Identity and website for Sarajevo’s The Place 87 — a mark, a system and a site that carry one address with confidence.' },
+  { slug:'modulart', client:'ModulArt · Liberty Group', country:'German market', year:'2024',
+    scope:['Branding','Web','UI/UX'], filter:['branding','web'],
+    title:'Architecture in modules',
+    copy:'Brand, web design and UI/UX for a modular architecture venture aimed at the German market.' },
+  { slug:'shteq', client:'SHTEQ', country:'BiH', year:'2024',
+    scope:['Product Launch','OOH'], filter:['campaign','packaging'],
+    title:'A launch you can’t drive past',
+    copy:'Product launch and out-of-home campaign — packaging, key visuals and billboards built to land at 60 km/h.' },
+  { slug:'zen2fit', client:'Zen2Fit', country:'USA', year:'2024–25',
+    scope:['Branding','Social Media'], filter:['branding','social'],
+    title:'Calm strength, loud feed',
+    copy:'Brand energy and social system for a US fitness platform — balance in the identity, intensity in the content.' },
+  { slug:'bezdrob', client:'Bezdrob', country:'BiH', year:'2023–24',
+    scope:['Personal Branding','Social Media'], filter:['branding','social'],
+    title:'A person, positioned',
+    copy:'Personal brand and content identity for a transformation program — one voice, one look, every post on message.' },
+  { slug:'benetton', client:'United Colors of Benetton', country:'BiH', year:'2023–24',
+    scope:['Campaign','Social Media'], filter:['campaign','social'],
+    title:'Global colors, local voice',
+    copy:'Seasonal retail campaigns for Benetton’s Bosnian market — global brand codes, translated with local instinct.' },
+  { slug:'ojar', client:'OJAR', country:'Oman × UAE', year:'2026',
+    scope:['Brand Identity','Product Photography','E-commerce','Campaign'], filter:['branding','packaging','campaign'],
+    title:'Hojari, bottled',
+    copy:'A niche fragrance house built around six ingredients, named for the finest Dhofar frankincense resin — photography, packaging and campaign under one coppery, sunlit identity.' },
+];
+
+// Three cases — ellie, maison, evorahome — currently ship the SAME bytes as
+// cover.webp (verified by md5 in public/img/cases). On a wall showing all
+// sixteen covers at once that reads as a rendering bug, so those three fall
+// back to their own star-0.webp, which is real, unique and theirs.
+const ART = { ellie:'star-0.webp', maison:'star-0.webp', evorahome:'star-0.webp' };
+const cover = c => `/img/cases/${c.slug}/${ART[c.slug] || 'cover.webp'}`;
+
+const YARNS = ['var(--yarn-pink)','var(--yarn-violet)','var(--yarn-blue)','var(--yarn-gold)','var(--yarn-cream)'];
+const el = h => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const n2 = i => String(i + 1).padStart(2, '0');
+const byId = Object.fromEntries(CASES.map(c => [c.slug, c]));
+// The stamped initials on a woven label. Particles ("de", "i", "×", "·") are
+// dropped so "Maison de l’Avenir" reads MA and "Slatko i Slano" reads SS;
+// a one-word client (OJAR, Herbas) gives up its first two letters instead.
+const SKIP = new Set(['de','the','i','of','and','×','·','x']);
+const monogram = (name) => {
+  const w = name.split(/[\s·×]+/)
+    .map(s => s.replace(/^[ld][’']/i, ''))   // l’Avenir -> Avenir, so Maison reads MA and not ML
+    .filter(s => s && !SKIP.has(s.toLowerCase().replace(/[^a-z×·]/g, '')));
+  return (w.length > 1 ? w.slice(0, 2).map(s => s[0]) : [...(w[0] || name).slice(0, 2)]).join('').toUpperCase();
+};
+// stand-in for the real case overlay
+const nudge = (node) => node.animate(
+  [{ transform:'translateY(-4px)' },{ transform:'translateY(1px)' },{ transform:'translateY(-4px)' }],
+  { duration: reduced() ? 0 : 300, easing:'cubic-bezier(.16,1,.3,1)' });
+
+/* ═══════════ 01 · THE LABEL WALL ═══════════ */
+{
+  const wall = document.getElementById('wall');
+  CASES.forEach((c, i) => {
+    const card = el(`
+      <button class="label" type="button" data-slug="${c.slug}"
+              aria-label="Open case study: ${esc(c.client)} — ${esc(c.title)}">
+        <span class="selvedge" style="background:repeating-linear-gradient(90deg,${YARNS[i % 5]} 0 9px,rgba(0,0,0,.35) 9px 12px)"></span>
+        <span class="felt"></span>
+        <span class="art"><img src="${cover(c)}" alt="" loading="lazy" decoding="async"></span>
+        <span class="ghost" aria-hidden="true">${esc(monogram(c.client))}</span>
+        <span class="top">
+          <span class="lw-n">${n2(i)} / 16</span>
+          <span class="lw-yr">${esc(c.year)}</span>
+        </span>
+        <span class="bot">
+          <h4>${esc(c.client)}</h4>
+          <span class="lw-line">${esc(c.title)}</span>
+          <span class="lw-scope">${c.scope.map(s => `<i>${esc(s)}</i>`).join('')}</span>
+          <span class="lw-mkt">${esc(c.country)}</span>
+        </span>
+        <span class="seal" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7v8"/></svg></span>
+      </button>`);
+    card.addEventListener('click', () => nudge(card));
+    wall.append(card);
+  });
+}
+
+/* ═══════════ 02 · THE MOSAIC ═══════════ */
+{
+  /* ── the wall, and why it can move at all ────────────────────────────────
+     Sixteen cards in one fixed DOM order (which is also the reading order,
+     the tab order and the 01..16 numbering — none of that ever changes). The
+     wall is partitioned into three BLOCKS of contiguous cards, and each block
+     is built to occupy exactly two grid rows of the four-column grid:
+
+        A  cards 01-05   rows 1-2
+        B  cards 06-10   rows 3-4
+        C  cards 11-16   rows 5-6
+
+     A block's "map" is the list of size classes its cards wear. Every map
+     below was hand-checked against CSS grid's sparse auto-placement to fill
+     its two rows EXACTLY — no holes, no spill into the next block, no card
+     pushed to an implicit row. Because every map of a block is the same two
+     rows tall, the wall is always six rows tall: swapping a map never changes
+     the height of the section and never reflows anything under it.
+
+     m-f = 2 cols x 2 rows   m-t = 1 x 2   m-w = 2 x 1   m-s = 1 x 1        */
+
+  const FIVE = {                       // five cards, eight cells, two rows
+    f1: ['m-f','m-s','m-s','m-s','m-s'],   // feature left, four standards right
+    t2: ['m-t','m-t','m-w','m-s','m-s'],   // two towers, a band, two standards
+    t3: ['m-t','m-t','m-s','m-s','m-w'],   // …band drops to the second row
+    t4: ['m-t','m-s','m-s','m-t','m-w'],   // towers to the outside, band centred
+  };
+  const SIX = {                        // six cards, eight cells, two rows
+    w1: ['m-s','m-s','m-w','m-s','m-s','m-w'],
+    b1: ['m-s','m-s','m-s','m-s','m-w','m-w'],   // the base map: four + two bands
+    b2: ['m-s','m-s','m-s','m-t','m-s','m-w'],
+    b3: ['m-s','m-t','m-s','m-s','m-s','m-w'],
+    b4: ['m-t','m-s','m-s','m-s','m-w','m-s'],
+  };
+
+  /* Each block walks its chain like a metronome — 0,1,2,3,2,1,0,… — because
+     ADJACENT maps in these chains differ in only three or four cards. Jumping
+     across a chain would re-flow the whole block; stepping along it moves the
+     smallest legible number of cards. */
+  const BLOCKS = [
+    { key:'A', from:0,  to:5,  chain:['f1','t2','t3','t4'], maps:FIVE, at:0 },
+    { key:'B', from:5,  to:10, chain:['f1','t2','t3','t4'], maps:FIVE, at:0 },
+    { key:'C', from:10, to:16, chain:['w1','b1','b2','b3','b4'], maps:SIX, at:1 },
+  ];
+
+  // The flagships (OJAR, Boccapiena) lead their block, and index 0 of the FIVE
+  // chain is m-f or m-t in every map — so the ranking still holds at the tier
+  // level: a flagship is never demoted to a standard card, it just breathes
+  // between four-cell and two-cell. Only the sizes argue; the order doesn't.
+  const ORDER = [
+    'ojar','auraa','maison','ellie','herbas',
+    'boccapiena','slatko','scion','evorahome','place87',
+    'modulart','shteq','zen2fit','bezdrob','weitnauer','benetton',
+  ];
+
+  const mosaic = document.getElementById('mosaic');
+  const tiles = ORDER.map((slug, i) => {
+    const c = byId[slug];
+    const tile = el(`
+      <button class="tile m-s" type="button" data-slug="${slug}"
+              aria-label="Open case study: ${esc(c.client)} — ${esc(c.title)}">
+        <span class="ph"><span class="par"><img src="${cover(c)}" alt="${esc(c.client)} — ${esc(c.title)}" loading="lazy" decoding="async"></span></span>
+        <span class="scrim"></span>
+        <span class="thread" style="background:repeating-linear-gradient(90deg,var(--yarn-pink) 0 12px,var(--yarn-violet) 12px 24px,var(--yarn-blue) 24px 36px,var(--yarn-gold) 36px 48px)"></span>
+        <span class="cap">
+          <span class="rank">${n2(i)}</span>
+          <h4>${esc(c.client)}</h4>
+          <span class="rev">
+            <p>${esc(c.title)}</p>
+            <span class="meta"><span>${esc(c.scope.slice(0, 2).join(' · '))}</span><span>${esc(c.country)}</span><span>${esc(c.year)}</span></span>
+          </span>
+        </span>
+      </button>`);
+    tile.addEventListener('click', () => nudge(tile));
+    mosaic.append(tile);
+    return tile;
+  });
+  BLOCKS.forEach(b => { b.tiles = tiles.slice(b.from, b.to); b.dir = 1; b.busy = 0; });
+
+  const SIZES = ['m-f','m-t','m-w','m-s'];
+  const AREA = { 'm-f':4, 'm-t':2, 'm-w':2, 'm-s':1 };
+  const wear = (block, at) => {
+    const map = block.maps[block.chain[at]];
+    block.tiles.forEach((t, i) => {
+      t.classList.remove(...SIZES);
+      t.classList.add(map[i]);
+      // the caption carries .m-f too — that's what drives the bigger heading
+      t.querySelector('.cap').classList.toggle('m-f', map[i] === 'm-f');
+    });
+    block.at = at;
+  };
+  // the resting composition, and what the wall falls back to on a phone,
+  // under reduced motion, and on every resize below the switching threshold
+  const BASE = BLOCKS.map(b => b.at);
+  const rest = () => BLOCKS.forEach((b, i) => wear(b, BASE[i]));
+  rest();
+
+  /* ── the move itself: FLIP ───────────────────────────────────────────────
+     A grid span is not an animatable property — swapping `grid-column: span 2`
+     for `span 1` snaps. So: read every rect in the block, swap the classes,
+     read the rects again, then run each moved card from its OLD box to its
+     new one on transform alone. Nothing here touches layout after the single
+     measure/mutate/measure pass; the frames themselves are compositor work.
+
+     Two counter-animations stop the content deforming inside a box that is
+     being scaled non-uniformly:
+       · the .ph LAYER — not the img itself, which is busy breathing — gets
+         scale(1.04c/sx, 1.04c/sy) where c = max(sx,sy), resolving to its
+         resting scale(1.04). The card's own scale(sx,sy) multiplies through it
+         and leaves scale(1.04c, 1.04c) — a UNIFORM scale about the photo's
+         centre, so it never stretches; it is only ever cropped tighter or
+         looser, and 1.04c >= c >= sx, sy guarantees it still covers the box at
+         every frame of the move even with the drift and the breath riding
+         inside it (both are bounded to stay within their own slack).
+       · the CAP gets scale(1/sx, 1/sy) about its own bottom-left anchor, so
+         the type is drawn at its true proportions throughout. It dips to 12%
+         opacity for the first tenth of the move and comes back by a third,
+         which covers the one thing that can't be transformed away — the
+         heading changing size class under it. The move is long now, so the
+         dip has to be front-loaded rather than spread across the middle. */
+  const DUR = 3400, STAGGER = 140;
+  const EASE = 'cubic-bezier(.42,0,.24,1)';   // long, soft in, no snap at the end
+
+  function moveTo(block, at) {
+    if (block.busy || at === block.at || at < 0 || at >= block.chain.length) return;
+    const first = block.tiles.map(t => t.getBoundingClientRect());
+    wear(block, at);
+    const last = block.tiles.map(t => t.getBoundingClientRect());
+
+    const movers = [];
+    block.tiles.forEach((t, i) => {
+      const a = first[i], b = last[i];
+      if (!b.width || !b.height) return;                       // never divide by a zero box
+      const dx = a.left - b.left, dy = a.top - b.top;
+      const sx = a.width / b.width, sy = a.height / b.height;
+      if (Math.abs(dx) < .5 && Math.abs(dy) < .5 &&
+          Math.abs(sx - 1) < .004 && Math.abs(sy - 1) < .004) return;
+      movers.push({ t, dx, dy, sx, sy });
+    });
+    if (!movers.length) return;
+
+    block.busy = movers.length;
+    movers.forEach((m, k) => {
+      const delay = k * STAGGER;
+      const timing = { duration: DUR, delay, easing: EASE, fill: 'backwards' };
+      m.t.classList.add('is-moving');
+      m.t.style.willChange = 'transform';     // only while moving — 16 permanent layers is not free
+      const c = Math.max(m.sx, m.sy);
+      const ph = m.t.querySelector('.ph'), cap = m.t.querySelector('.cap');
+      ph.style.willChange = 'transform';
+      ph.animate([
+        { transform:`scale(${1.04 * c / m.sx},${1.04 * c / m.sy})` },
+        { transform:'scale(1.04)' },
+      ], timing);
+      cap.animate([
+        { transform:`scale(${1 / m.sx},${1 / m.sy})`, opacity:.12, offset:0 },
+        { opacity:.12, offset:.1 },
+        { opacity:1, offset:.34 },
+        { transform:'none', offset:1 },
+      ], timing);
+      const run = m.t.animate(
+        [{ transform:`translate(${m.dx}px,${m.dy}px) scale(${m.sx},${m.sy})` }, { transform:'none' }],
+        timing);
+      run.finished.then(() => {
+        m.t.classList.remove('is-moving');
+        m.t.style.willChange = ph.style.willChange = '';
+        if (--block.busy <= 0) { block.busy = 0; invalidateBoxes(); }
+      }).catch(() => { block.busy = 0; m.t.classList.remove('is-moving'); invalidateBoxes(); });
+    });
+  }
+
+  /* ── the cadence ─────────────────────────────────────────────────────────
+     One block per beat, 2.6s apart, rotating A → C → B so two consecutive
+     moves are never in touching rows. The move itself lasts 3.4s plus up to
+     three 140ms stagger steps — LONGER than the gap between beats — so the
+     next block sets off while the last one is still settling and there is
+     never an instant with no card in flight. A block still only recomposes
+     once every 7.8s, so no single card is ever hurried.
+
+     The cost of a beat is unchanged: one class swap, one forced layout, and
+     three or four compositor animations. Two beats now overlap, so the peak is
+     seven or eight moving cards rather than four — still under half the wall,
+     and the other eight or nine are not read, not written and not moved. */
+  const CADENCE = 2600;
+  const ROTATION = [0, 2, 1];
+  let beat = null, spin = 0, held = false, onScreen = false, hoverT = null;
+  const wide = () => window.matchMedia('(min-width:1001px)').matches;
+  const live = () => !reduced() && wide() && onScreen && !held && !document.hidden;
+
+  const tick = () => {
+    const b = BLOCKS[ROTATION[spin++ % ROTATION.length]];
+    let next = b.at + b.dir;
+    if (next >= b.chain.length || next < 0) { b.dir *= -1; next = b.at + b.dir; }
+    moveTo(b, next);
+  };
+  const sync = () => {
+    if (beat) { clearInterval(beat); beat = null; }
+    if (live()) {
+      beat = setInterval(tick, CADENCE);
+      // arriving at the wall should not mean waiting a whole beat for the first
+      // move — but only kick if nothing is already in flight, or every stray
+      // pointerleave would fire an extra beat
+      if (!BLOCKS.some(b => b.busy)) setTimeout(() => { if (live() && !BLOCKS.some(b => b.busy)) tick(); }, 420);
+    }
+    mosaic.classList.toggle('is-held', !live());
+  };
+
+  // Attention sets size. Hovering or tab-focusing a card walks its block to
+  // whichever of its maps gives THAT card the most area, and the ambient cycle
+  // stands down while the pointer is anywhere in the wall.
+  const best = new Map();
+  BLOCKS.forEach(b => b.tiles.forEach((t, i) => {
+    let bi = b.at, ba = -1;
+    b.chain.forEach((k, ci) => { const a = AREA[b.maps[k][i]]; if (a > ba) { ba = a; bi = ci; } });
+    best.set(t, { block: b, at: bi });
+    t._block = b;
+  }));
+  // same gate as the ambient cycle minus the pause flags — a promotion is
+  // wanted precisely when the pointer IS in the wall
+  const askable = () => !reduced() && wide() && !document.hidden;
+  const promote = (t) => {
+    if (!askable()) return;
+    clearTimeout(hoverT);
+    const p = best.get(t);
+    hoverT = setTimeout(() => moveTo(p.block, p.at), 200);   // don't thrash on a sweep
+  };
+  tiles.forEach(t => {
+    t.addEventListener('pointerenter', () => promote(t));
+    t.addEventListener('focus', () => promote(t));
+  });
+  mosaic.addEventListener('pointerenter', () => { held = true; sync(); });
+  mosaic.addEventListener('pointerleave', () => { held = false; clearTimeout(hoverT); sync(); });
+  mosaic.addEventListener('focusin',  () => { held = true; sync(); });
+  mosaic.addEventListener('focusout', () => { held = false; sync(); });
+
+  /* ── the breath: sixteen live windows, not sixteen stills ────────────────
+     Every card's photograph runs a permanent, very slow Ken-Burns drift — a
+     pan of under a percent and a zoom of four to seven points, over 27 to 48
+     seconds. It is deliberately below the threshold where you can watch it
+     happen: you notice that the wall is alive, not that anything moved.
+
+     Nothing about it is shared. Each card gets its own period (27.00s + i×1.37s
+     — sixteen values with no common factor, so the wall can never fall into
+     step), its own drift bearing (the golden angle, 137.508° apart, so no two
+     cards travel the same way), its own zoom range and its own starting phase.
+     Ten minutes in, the sixteen are still as scattered as they were at load.
+
+     WHY IT CANNOT DISTORT THE PHOTO. The breath owns the <img> and nothing
+     else does; the FLIP counter-scale lives one node up on .ph. Both scales
+     are uniform on their own node, and the pan is bounded by the zoom: the
+     minimum scale s0 leaves a margin of (s0-1)/2 on every edge, and the pan
+     amplitude is chosen strictly under that margin (0.55% ≤ 0.9%, 0.67 ≤ 1.2,
+     0.79 ≤ 1.5, 0.91 ≤ 1.8). So the breathing image always covers its own box
+     with room to spare, and every transform outside it only ever scales that
+     covered region up. A card mid-FLIP is cropped, never stretched.
+
+     WHAT IT COSTS. A compositor-only transform animation per card, created
+     lazily and PAUSED the moment the card leaves the viewport (its own
+     IntersectionObserver — the wall is taller than a laptop viewport, so this
+     is usually eight or nine running, not sixteen) or the tab goes away. No
+     will-change anywhere: a running WAAPI transform gets its layer for the
+     duration and gives it back on pause. Reduced motion cancels them outright.
+
+     It runs at every width, INCLUDING the phone, where the size-switching is
+     deliberately off. It is the cheapest thing on the page and at one column
+     it is the only thing keeping the wall from being a stack of stills — a
+     phone shows two cards at a time, so two animations are ever live. */
+  const BREATH = tiles.map((t, i) => {
+    const dur   = 27000 + i * 1370;                    // 27.00s … 47.55s, all distinct
+    const ang   = i * 137.508 * Math.PI / 180;         // golden angle: no shared bearing
+    const s0    = 1.018 + (i % 4) * 0.006;             // 1.018 … 1.036 — the floor
+    const s1    = s0 + 0.038 + (i % 5) * 0.007;        // +3.8 … +6.6 points of zoom
+    const amp   = 0.55 + (i % 4) * 0.12;               // %, strictly under (s0-1)/2
+    const phase = (i * 6700 + (i % 3) * 4100) % (2 * dur);
+    return { t, i, img: t.querySelector('img'), par: t.querySelector('.par'),
+             dur, s0, s1, phase, vis: false, anim: null,
+             tx: +(amp * Math.cos(ang)).toFixed(3), ty: +(amp * Math.sin(ang)).toFixed(3) };
+  });
+  const syncBreath = (b) => {
+    if (!reduced() && b.vis && !document.hidden) {
+      if (!b.anim) {
+        b.anim = b.img.animate([
+          { transform:`translate(${-b.tx}%,${-b.ty}%) scale(${b.s0})` },
+          { transform:`translate(${b.tx}%,${b.ty}%) scale(${b.s1})` },
+        ], { duration: b.dur, iterations: Infinity, direction:'alternate',
+             easing:'cubic-bezier(.45,0,.55,1)' });
+        b.anim.currentTime = b.phase;
+      }
+      if (b.anim.playState !== 'running') b.anim.play();
+    } else if (b.anim) {
+      if (reduced()) { b.anim.cancel(); b.anim = null; } else b.anim.pause();
+    }
+  };
+  const syncBreathAll = () => BREATH.forEach(syncBreath);
+
+  /* ── the pointer: the crop leans toward you ──────────────────────────────
+     Every card in view slides its crop a fraction of a percent TOWARDS the
+     cursor, by an amount that falls off with distance — so the card you are
+     over leans hardest and the wall behind it follows a beat later. That is
+     the whole point: it makes sixteen framed pictures read as one surface you
+     are moving over, and it costs one rAF and sixteen string writes per
+     pointer move, with no measurement (the boxes are cached and only re-read
+     after a block settles or the window resizes).
+
+     It lives on .par, between the counter-scaled .ph and the breathing img,
+     and it spends the 4% of slack .ph is permanently holding — 1.35% of drift
+     against ~1.9% of headroom, so it can never expose an edge either. The
+     0.6s transition means it trails the cursor instead of snapping to it. */
+  const DRIFT = 1.35;
+  let boxes = null, praf = 0, ptr = null;
+  function invalidateBoxes(){ boxes = null; }
+  const clamp1 = v => v < -1 ? -1 : v > 1 ? 1 : v;
+  const drift = () => {
+    praf = 0;
+    if (!boxes) boxes = tiles.map(t => {
+      const r = t.getBoundingClientRect();
+      return { cx: r.left + scrollX + r.width / 2, cy: r.top + scrollY + r.height / 2,
+               w: Math.max(r.width, 1), h: Math.max(r.height, 1) };
+    });
+    BREATH.forEach((b, i) => {
+      if (!ptr || !b.vis || reduced()) { if (b.par.style.transform) b.par.style.transform = ''; return; }
+      const q = boxes[i];
+      const dx = clamp1((ptr.x - q.cx) / (q.w * 1.6)), dy = clamp1((ptr.y - q.cy) / (q.h * 1.6));
+      b.par.style.transform = `translate(${(dx * DRIFT).toFixed(3)}%,${(dy * DRIFT).toFixed(3)}%)`;
+    });
+  };
+  const askDrift = () => { if (!praf) praf = requestAnimationFrame(drift); };
+  mosaic.addEventListener('pointermove', e => {
+    if (reduced() || e.pointerType === 'touch') return;
+    ptr = { x: e.clientX + scrollX, y: e.clientY + scrollY };
+    askDrift();
+  }, { passive: true });
+  mosaic.addEventListener('pointerleave', () => { ptr = null; askDrift(); });
+
+  new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; sync(); },
+    { rootMargin: '120px' }).observe(mosaic);
+  const tileIO = new IntersectionObserver(es => es.forEach(e => {
+    const b = BREATH.find(x => x.t === e.target);
+    if (!b) return;
+    b.vis = e.isIntersecting;
+    syncBreath(b);
+    if (!b.vis && b.par.style.transform) b.par.style.transform = '';
+  }), { rootMargin: '80px' });
+  BREATH.forEach(b => tileIO.observe(b.t));
+  document.addEventListener('visibilitychange', () => { sync(); syncBreathAll(); });
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => {
+    if (reduced()) { rest(); ptr = null; }
+    sync();
+    syncBreathAll();
+    drift();
+  });
+  // below 1001px the wall settles: at one or two columns a size class no longer
+  // buys a distinct shape (a "tall" card is just a column-wide card), the maps
+  // stop tiling cleanly, and every switch would push the rest of the document
+  // up and down. So the phone and tablet get the base composition, held still.
+  let wasWide = wide();
+  addEventListener('resize', () => {
+    invalidateBoxes();
+    const now = wide();
+    if (now !== wasWide) { wasWide = now; if (!now) rest(); }
+    sync();
+  });
+  sync();
+
+  // handles for QA — the harness drives beats deterministically through these
+  window.__mosaic = { tiles, BLOCKS, BREATH, tick, moveTo, rest, live, wide,
+                      syncBreathAll, CADENCE, DUR, DRIFT,
+                      breathParams: BREATH.map(b => ({ i: b.i, slug: b.t.dataset.slug,
+                        durMs: b.dur, phaseMs: b.phase, s0: b.s0, s1: b.s1, tx: b.tx, ty: b.ty })) };
+}
+
+/* ═══════════ 03 · THE ATLAS ═══════════ */
+{
+  // `country` is free text and mixes cities with markets, so the clusters are
+  // declared rather than parsed — each card still prints its own exact string.
+  const CLUSTERS = [
+    { name:'Bosnia & Herzegovina', sub:'Sarajevo — the home market', slugs:['slatko','herbas','shteq','bezdrob','benetton','place87'] },
+    { name:'The Gulf', sub:'UAE and Oman — fragrance and luxury retail', slugs:['ojar','auraa','scion','maison'] },
+    { name:'Jordan', sub:'Amman — the second studio', slugs:['evorahome','ellie'] },
+    { name:'Central Europe', sub:'Switzerland, Germany, Croatia', slugs:['weitnauer','modulart','boccapiena'] },
+    { name:'North America', sub:'United States', slugs:['zen2fit'] },
+  ];
+  const atlas = document.getElementById('atlas');
+  let n = 0;
+  CLUSTERS.forEach((cl, ci) => {
+    const sec = el(`
+      <section class="cluster">
+        <div class="cluster-head">
+          <span class="cn">${n2(ci)}</span>
+          <h4>${esc(cl.name)}</h4>
+          <span class="cs">${cl.slugs.length} ${cl.slugs.length === 1 ? 'case' : 'cases'} · ${esc(cl.sub)}</span>
+        </div>
+        <div class="cluster-grid"></div>
+      </section>`);
+    const grid = sec.querySelector('.cluster-grid');
+    cl.slugs.forEach((slug) => {
+      const c = byId[slug];
+      const i = n++;
+      const card = el(`
+        <button class="at-card" type="button" data-slug="${slug}"
+                aria-label="Open case study: ${esc(c.client)} — ${esc(c.title)}">
+          <span class="at-shot">
+            <img src="${cover(c)}" alt="" loading="lazy" decoding="async">
+            <span class="yarn" style="background:${YARNS[i % 5]}"></span>
+          </span>
+          <span class="at-body">
+            <span class="at-top"><span class="at-n">${n2(i)} / 16</span><span class="at-yr">${esc(c.year)}</span></span>
+            <h5>${esc(c.client)}</h5>
+            <span class="at-line">${esc(c.title)}</span>
+            <span class="at-scope">${c.scope.map(s => `<i>${esc(s)}</i>`).join('')}</span>
+            <span class="at-place">${esc(c.country)}</span>
+          </span>
+        </button>`);
+      card.addEventListener('click', () => nudge(card));
+      grid.append(card);
+    });
+    atlas.append(sec);
+  });
+  document.getElementById('atlasFoot').textContent =
+    `${n} cases · ${CLUSTERS.length} markets · every one of them live.`;
+}
+</script>
+</body>
+</html>

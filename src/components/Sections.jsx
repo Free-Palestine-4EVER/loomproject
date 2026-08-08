@@ -1,6 +1,6 @@
 // Page sections: Hero, Marquee, Manifesto, Process, Stats, Studios, Contact
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { motion, useMotionValueEvent, useScroll, useTransform, useReducedMotion } from 'motion/react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { cubicBezier, motion, useMotionValueEvent, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { BRAND, CLIENT_WALL, PROCESS, STATS } from '../data/site.js'
 import { EASE, SplitWords, Reveal, CountUp, Magnetic } from '../lib/motion.jsx'
 import { ContactWizard } from './ContactWizard.jsx'
@@ -218,42 +218,93 @@ export function Marquee() {
   )
 }
 
-/** Manifesto headline: words fill from --ink-faint to full white as the reader
- *  scrolls through the section — thread pulling taut through cloth, not a
- *  once-on-enter reveal. Driven by the SAME section scroll progress the media
- *  parallax uses, just windowed to the entrance so it resolves before the
- *  reader is even a third of the way down. */
+/** Manifesto headline: each word rises, flips up off its own baseline and
+ *  ignites through the brand magenta on its way from unlit grey to white as the
+ *  reader scrolls through the section — thread pulling taut through cloth, not
+ *  a once-on-enter reveal. Driven by the SAME section scroll progress the media
+ *  reaction uses, just windowed to the entrance so it resolves before the
+ *  reader is even halfway down.
+ *
+ *  The words stay real, wrappable text. Each <span> is inline-block (a
+ *  transform needs that) but the separating spaces are ordinary text nodes
+ *  BETWEEN the spans, not characters inside them: whitespace at the end of an
+ *  inline-block is stripped as end-of-line whitespace, which is why the
+ *  previous version had to smuggle a NO-BREAK space inside each word — and a
+ *  no-break space is exactly what stops a long headline wrapping on a phone.
+ *  A plain space text node between two inline-blocks is a real break
+ *  opportunity, so the line wraps normally at every width. The h2 keeps the
+ *  full sentence in aria-label and every span is aria-hidden, so assistive tech
+ *  still reads one clean sentence. */
 function ManifestoHeadline({ text, progress, reduced }) {
   const words = useMemo(() => text.split(' '), [text])
+  const ranges = useMemo(() => inkRanges(words.length), [words])
   const n = words.length
   return (
     <h2 className="h2 manifesto-ink" aria-label={text}>
       {words.map((w, i) => (
-        <InkWord
-          key={i}
-          word={w}
-          last={i === n - 1}
-          progress={progress}
-          range={[i / n, Math.min(1, (i + 0.72) / n)]}
-          reduced={reduced}
-        />
+        <Fragment key={i}>
+          <InkWord word={w} progress={progress} range={ranges[i]} reduced={reduced} />
+          {i < n - 1 ? ' ' : null}
+        </Fragment>
       ))}
     </h2>
   )
 }
 
-function InkWord({ word, last, progress, range, reduced }) {
-  const color = useTransform(progress, range, ['#6b6284', '#ffffff'])
+/** The word-landing easing: the house expo-out, as a real easing function so
+ *  useTransform can bake it into each word's 0 to 1 landing value. */
+const INK_EASE = cubicBezier(0.16, 1, 0.3, 1)
+
+/** Per-word scroll windows for the headline.
+ *
+ *  A strictly linear i/n stagger reads as a queue: seven identical beats one
+ *  metronome tick apart. The sine term below front-loads the line (the gaps
+ *  between successive words start wide and then close up), so the reveal reads
+ *  as a crest rolling along the sentence and settling on the last word, which
+ *  is where the meaning is. Windows are 0.34 long against a 0.66 span of
+ *  starts, so about four words are in flight at any moment: a wave with a
+ *  body, not a row of separate pop-ins.
+ *
+ *  The last word finishes at 0.61 + 0.34 = 0.95 of the ink window, which lands
+ *  well inside the section: nobody is ever parked on a half-grey headline. */
+function inkRanges(n) {
+  return Array.from({ length: n }, (_, i) => {
+    const base = n === 1 ? 0 : i / (n - 1)
+    const start = Math.max(0, Math.min(0.66, base * 0.66 + Math.sin(base * Math.PI * 1.5) * 0.05))
+    return [start, Math.min(1, start + 0.34)]
+  })
+}
+
+function InkWord({ word, progress, range, reduced }) {
+  // ONE clamped, eased 0->1 value per word; every visual property below is a
+  // cheap derivation of it, so a word costs one scroll interpolation rather
+  // than five independent scroll subscriptions.
+  const t = useTransform(progress, range, [0, 1], { ease: INK_EASE })
+  // Grey cloth -> magenta ignition -> hot filament -> white. The magenta stop
+  // sits early (0.38) so the flare happens while the word is still tilted and
+  // rising; by the time it is flat on its baseline it has cooled to white.
+  const color = useTransform(t, [0, 0.38, 0.7, 1], ['#6b6284', '#f21c8c', '#ff9ed1', '#ffffff'])
+  // % units, not px/em: they resolve against the word's own box, so the rise
+  // scales with the clamp()ed display size instead of being tuned for one width.
+  const y = useTransform(t, [0, 1], ['52%', '0%'])
+  const rotateX = useTransform(t, [0, 1], [-74, 0])
+  const scale = useTransform(t, [0, 1], [0.93, 1])
+  // Never starts at 0: an unlit ghost of the sentence is always present, so the
+  // headline reads as ink filling existing cloth, not as missing text.
+  const opacity = useTransform(t, [0, 0.3, 1], [0.14, 0.9, 1])
   if (reduced) {
-    return (
-      <span className="ink-word" aria-hidden="true" style={{ color: '#fff' }}>
-        {word}{!last && ' '}
-      </span>
-    )
+    return <span className="ink-word" aria-hidden="true" style={{ color: '#fff' }}>{word}</span>
   }
   return (
-    <motion.span className="ink-word" aria-hidden="true" style={{ color }}>
-      {word}{!last && ' '}
+    <motion.span
+      className="ink-word"
+      aria-hidden="true"
+      // Per-word perspective rather than one on the h2: a container perspective
+      // has a single vanishing point, so words at the ends of a long line would
+      // flip on visibly skewed axes. Per word, every flip is identical.
+      style={{ color, y, rotateX, scale, opacity, transformPerspective: 620 }}
+    >
+      {word}
     </motion.span>
   )
 }
@@ -262,8 +313,25 @@ export function Manifesto() {
   const ref = useRef(null)
   const reduced = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const inkProgress = useTransform(scrollYProgress, [0.08, 0.4], [0, 1])
-  const ruleScale = useTransform(scrollYProgress, [0.08, 0.4], [0, 1])
+  // The ink window. Everything the headline does happens between 5% and 42% of
+  // the section's travel, i.e. while the section is entering and coming to rest
+  // in the middle of the viewport; by the time a reader has it fully on screen
+  // the sentence is already resolved white.
+  const inkProgress = useTransform(scrollYProgress, [0.05, 0.42], [0, 1])
+  // The rule draws itself only once the first words have landed, and a spark
+  // head runs at the front of the fill and burns out as it reaches the end:
+  // a line being drawn, not a progress bar filling.
+  const ruleScale = useTransform(inkProgress, [0.22, 1], [0, 1])
+  const headX = useTransform(inkProgress, [0.22, 1], ['-100%', '0%'])
+  const headOpacity = useTransform(inkProgress, [0.2, 0.34, 0.9, 1], [0, 1, 1, 0])
+  // The laptop answers the same progress: a slow parallax across the whole
+  // section, plus a tilt/scale that resolves on the headline's own beat, so the
+  // column and the image read as one move rather than two unrelated ones.
+  const mediaY = useTransform(scrollYProgress, [0, 1], ['7%', '-7%'])
+  const mediaScale = useTransform(inkProgress, [0, 1], [0.9, 1])
+  const mediaRotateY = useTransform(inkProgress, [0, 1], [12, 0])
+  const mediaRotateX = useTransform(inkProgress, [0, 1], [7, 0])
+  const mediaOpacity = useTransform(inkProgress, [0, 0.5], [0.25, 1])
   return (
     <section className="manifesto" ref={ref}>
       <div className="manifesto-grid">
@@ -274,10 +342,15 @@ export function Manifesto() {
             progress={inkProgress}
             reduced={reduced}
           />
-          <motion.span
-            className="manifesto-ink-rule" aria-hidden="true"
-            style={{ scaleX: reduced ? 1 : ruleScale }}
-          />
+          <span className="manifesto-ink-rule" aria-hidden="true">
+            <motion.span
+              className="manifesto-ink-fill"
+              style={{ scaleX: reduced ? 1 : ruleScale }}
+            />
+            {!reduced && (
+              <motion.span className="manifesto-ink-head" style={{ x: headX, opacity: headOpacity }} />
+            )}
+          </span>
           <Reveal delay={0.15}>
             <p className="lede" style={{ marginTop: 18 }}>
               LOOM is two studios threaded through one machine — Amman for the engine, Sarajevo for
@@ -292,7 +365,17 @@ export function Manifesto() {
             </p>
           </Reveal>
         </div>
-        <div className="manifesto-media">
+        <motion.div
+          className="manifesto-media"
+          style={reduced ? undefined : {
+            y: mediaY,
+            scale: mediaScale,
+            rotateY: mediaRotateY,
+            rotateX: mediaRotateX,
+            opacity: mediaOpacity,
+            transformPerspective: 1400,
+          }}
+        >
           <img
             className="manifesto-laptop"
             src="/img/manifesto/laptop-mascot-cutout.webp"
@@ -300,7 +383,7 @@ export function Manifesto() {
             loading="lazy"
           />
           <p className="manifesto-caption">The edge is intentional.</p>
-        </div>
+        </motion.div>
       </div>
     </section>
   )

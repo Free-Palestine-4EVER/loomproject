@@ -7,17 +7,34 @@ reference display faces of this class behave.
 """
 import math
 
-from geom import (U, DIFF, ISECT, arc, arc_pt, capsule, circle, ellipse, poly,
-                  rect, ring)
+from geom import (U, DIFF, ISECT, arc_pt, circle, ellipse, poly, rect, ring)
+from geom import arc as _arc, bar as _bar, capsule as rcapsule, polystroke
+from geom import rrect, rring
+
+
+# LOOM Bloom is a CONDENSED BRUTAL face: no round terminals anywhere. Every
+# straight stroke is a square-capped bar, every arc is cut flat on the radius,
+# and each finished glyph is trimmed to its cap-height box so the joins come out
+# as hard corners instead of chopped-off capsule ends.
+def capsule(p0, p1, w, cap0=True, cap1=True):
+    return _bar(p0, p1, w)
+
+
+def arc(cx, cy, rx, ry, a0, a1, w, cap0=False, cap1=False):
+    return _arc(cx, cy, rx, ry, a0, a1, w, cap0=False, cap1=False)
+
+
+rarc = _arc
 
 UPM = 1000
 CAP = 700          # cap height
-W = 176            # the one stem weight
+W = 178            # the one stem weight
 OV = 14            # round overshoot
-SB = 52            # default sidebearing
+SB = 40            # default sidebearing
 DESC = -200
 
 HW = W / 2.0
+R1 = 168            # the one corner radius the round half is built on
 
 
 def vstem(x, y0=0.0, y1=CAP):
@@ -29,18 +46,19 @@ def hbar(y, x0, x1):
 
 
 def diag(p0, p1, w=W):
-    return capsule(p0, p1, w)
+    # diagonals run PAST their endpoint and get trimmed to the glyph box, so an
+    # apex or a leg joins as a hard corner instead of a chopped-off stroke end
+    return _bar(p0, p1, w, ext=w * 0.95)
 
 
 # ————————————————————————————————————————————————— letters
 def _A(B=640):
-    apex = (B / 2, CAP - HW)
-    left = diag((HW, HW), apex)
-    right = diag((B - HW, HW), apex)
-    t = (215.0 - HW) / (CAP - W)
-    xl = HW + t * (B / 2 - HW)
-    bar = capsule((xl + 26, 215), (B - xl - 26, 215), W * 0.9)
-    return U(left, right, bar), B
+    # one mitred polyline up to the apex and back down, then the crossbar
+    body = polystroke([(HW - 40, -90), (B / 2, CAP + 130), (B - HW + 40, -90)], W)
+    t = (190.0 + 90) / (CAP + 130 + 90)
+    xl = (HW - 40) + t * (B / 2 - HW + 40)
+    bar = capsule((xl + 30, 190), (B - xl - 30, 190), W * 0.86)
+    return U(body, bar), B
 
 
 def _bowl(join_x, ytop, ybot, right, wid=W):
@@ -51,282 +69,255 @@ def _bowl(join_x, ytop, ybot, right, wid=W):
     return arc(join_x, cy, rx, ry, -90, 90, wid, cap0=False, cap1=False)
 
 
-def _B(B=620):
-    ymid = CAP * 0.525
-    jx = B * 0.30
-    top = U(_bowl(jx, CAP - HW, ymid, B - 12), hbar(CAP - HW, 0, jx + HW))
-    bot = U(_bowl(jx, ymid, HW, B), hbar(HW, 0, jx + HW))
-    return U(vstem(0), top, bot, hbar(ymid, 0, jx + HW)), B
+def _bowl_r(x0, y0, x1, y1, cy0, cy1, r=None, ri=64):
+    """A right-side bowl: outer rounded box, counter box stated separately so the
+    top and bottom rails can be different weights."""
+    r = R1 if r is None else r
+    return DIFF(rrect(x0, y0, x1, y1, r, corners=(0, 1, 1, 0)),
+                rrect(x0 + W, cy0, x1 - W, cy1, ri, corners=(0, 1, 1, 0)))
 
 
-def _C(B=650):
-    cx, cy = B / 2, CAP / 2
-    return arc(cx, cy, B / 2 - HW, CAP / 2 - HW + OV, 54, 306, W), B
+def _B(B=650):
+    # straight left stem, two flat-sided bowls. The middle rail is lighter than
+    # the outer two, which is what buys both counters their height.
+    wm = W * 0.72
+    yw = CAP * 0.520
+    top = _bowl_r(0, yw - wm / 2, B * 0.96, CAP, yw + wm / 2, CAP - W, r=R1 * 0.82)
+    bot = _bowl_r(0, 0, B, yw + wm / 2, W, yw - wm / 2, r=R1 * 0.92)
+    return U(rect(0, 0, W, CAP), top, bot,
+             rect(0, yw - wm / 2, B * 0.70, yw + wm / 2)), B
 
 
-def _D(B=650):
-    jx = B * 0.28
-    return U(vstem(0), hbar(CAP - HW, 0, jx + HW), hbar(HW, 0, jx + HW),
-             _bowl(jx, CAP - HW, HW, B)), B
+def _C(B=660):
+    mouth = rect(B * 0.55, CAP * 0.235, B + 20, CAP * 0.765)
+    return DIFF(rring(0, 0, B, CAP, W, R1), mouth), B
+
+
+def _D(B=660):
+    return rring(0, 0, B, CAP, W, R1, corners=(0, 1, 1, 0)), B
 
 
 def _E(B=560):
-    return U(vstem(0), hbar(CAP - HW, 0, B), hbar(CAP / 2, 0, B * 0.90),
-             hbar(HW, 0, B)), B
+    return U(rect(0, 0, W, CAP), rect(0, CAP - W, B, CAP),
+             rect(0, CAP / 2 - W * 0.43, B * 0.88, CAP / 2 + W * 0.43),
+             rect(0, 0, B, W)), B
 
 
 def _F(B=540):
-    return U(vstem(0), hbar(CAP - HW, 0, B), hbar(CAP * 0.50, 0, B * 0.88)), B
+    return U(rect(0, 0, W, CAP), rect(0, CAP - W, B, CAP),
+             rect(0, CAP * 0.50 - W * 0.43, B * 0.86, CAP * 0.50 + W * 0.43)), B
 
 
-def _G(B=660):
-    cx, cy = B / 2, CAP / 2
-    rx, ry = B / 2 - HW, CAP / 2 - HW + OV
-    a1 = 314
-    body = arc(cx, cy, rx, ry, 54, a1, W)
-    ex, ey = arc_pt(cx, cy, rx, ry, a1)
-    bar_y = CAP * 0.50
-    spur = capsule((ex, ey), (ex, bar_y), W)
-    bar = capsule((B * 0.52, bar_y), (ex, bar_y), W)
-    return U(body, spur, bar), B
+def _G(B=680):
+    mouth = rect(B * 0.55, CAP * 0.30, B + 20, CAP * 0.765)
+    body = DIFF(rring(0, 0, B, CAP, W, R1), mouth)
+    bar = rect(B * 0.46, CAP * 0.30, B, CAP * 0.30 + W)
+    return U(body, bar), B
 
 
 def _H(B=660):
-    return U(vstem(0), vstem(B - W), hbar(CAP / 2, 0, B)), B
+    return U(rect(0, 0, W, CAP), rect(B - W, 0, B, CAP),
+             rect(0, CAP / 2 - W / 2, B, CAP / 2 + W / 2)), B
 
 
 def _I(B=W):
-    return vstem(0), B
+    return rect(0, 0, W, CAP), B
 
 
 def _J(B=540):
-    ry = 132.0
-    cy = HW + ry
-    rx = (B - W) / 2
-    cx = B / 2
-    hook = arc(cx, cy, rx, ry, 0, -180, W, cap0=False)
-    stem = capsule((cx + rx, cy), (cx + rx, CAP - HW), W)
-    return U(hook, stem), B
+    h = CAP * 0.62
+    ri = max(R1 - W * 0.62, 24)
+    hook = DIFF(rrect(0, 0, B, h, R1, corners=(0, 0, 1, 1)),
+                rrect(W, W, B - W, h + 80, ri, corners=(0, 0, 0, 1)))
+    hook = DIFF(hook, rect(-1, R1 + 1, W + 1, h + 80))       # no left wall on a J
+    return U(rect(B - W, R1 * 0.5, B, CAP), hook), B
 
 
-def _K(B=640):
-    return U(vstem(0),
-             diag((W * 0.86, CAP * 0.46), (B - HW, CAP - HW)),
-             diag((W * 0.72, CAP * 0.42), (B - HW, HW))), B
+def _L(B=520):
+    return U(rect(0, 0, W, CAP), rect(0, 0, B, W)), B
 
 
-def _L(B=530):
-    return U(vstem(0), hbar(HW, 0, B)), B
+def _O(B=680):
+    return rring(0, 0, B, CAP, W, R1), B
 
 
-def _M(B=800):
-    apex_y = CAP * 0.20
-    return U(vstem(0), vstem(B - W),
-             diag((HW, CAP - HW), (B / 2, apex_y)),
-             diag((B - HW, CAP - HW), (B / 2, apex_y))), B
+def _P(B=630):
+    yb = CAP * 0.30
+    return U(rect(0, 0, W, CAP),
+             _bowl_r(0, yb, B, CAP, yb + W, CAP - W, r=R1 * 0.95)), B
 
 
-def _N(B=670):
-    return U(vstem(0), vstem(B - W), diag((HW, CAP - HW), (B - HW, HW))), B
+def _Q(B=680):
+    tail = poly([(B * 0.50, CAP * 0.26), (B * 0.50 + W, CAP * 0.26),
+                 (B * 0.94, -CAP * 0.08), (B * 0.94 - W, -CAP * 0.08)])
+    return U(rring(0, 0, B, CAP, W, R1), tail), B
 
 
-def _O(B=690):
-    return ring(B / 2, CAP / 2, B / 2 - HW, CAP / 2 - HW + OV, W), B
+def _R(B=660):
+    yb = CAP * 0.38
+    leg = polystroke([(B * 0.42, yb + W * 0.30), (B - W * 0.30, -90)], W)
+    return U(rect(0, 0, W, CAP),
+             _bowl_r(0, yb, B * 0.95, CAP, yb + W, CAP - W, r=R1 * 0.9), leg), B
 
 
-def _P(B=610):
-    ymid = CAP * 0.44
-    jx = B * 0.30
-    return U(vstem(0), hbar(CAP - HW, 0, jx + HW), hbar(ymid, 0, jx + HW),
-             _bowl(jx, CAP - HW, ymid, B)), B
+def _S(B=640):
+    # two flat-sided bowls that overlap at the waist; each has one side cut away
+    h = (CAP + W) / 2
+    top = DIFF(rring(0, CAP - h, B, CAP, W, R1),
+               rect(B - W - 1, CAP - h - 1, B + 1, CAP - h + h * 0.42))
+    bot = DIFF(rring(0, 0, B, h, W, R1),
+               rect(-1, h * 0.58, W + 1, h + 1))
+    return U(top, bot), B
 
 
-def _Q(B=690):
-    o, _ = _O(B)
-    tail = capsule((B * 0.60, CAP * 0.30), (B * 0.94, -46), W * 0.92)
-    return U(o, tail), B
-
-
-def _R(B=630):
-    ymid = CAP * 0.44
-    p, _ = _P(B)
-    leg = diag((B * 0.40, ymid + HW * 0.4), (B - HW, HW))
-    return U(p, leg), B
-
-
-def _S(B=620):
-    # two flat bowls plus a waist. ry is sized so 2*(2ry + W) lands just over the
-    # cap height — any rounder and the bowls swallow each other into a blob.
-    cx = B / 2
-    rx = B / 2 - HW
-    ry = CAP * 0.205
-    cyt = CAP - HW + OV - ry
-    cyb = HW - OV + ry
-    a_top_end, a_bot_end = 252.0, 72.0
-    cxt, cxb = cx - 10, cx + 10
-    top = arc(cxt, cyt, rx, ry, 8, a_top_end, W, cap1=False)
-    bot = arc(cxb, cyb, rx, ry, 188, 360 + a_bot_end, W, cap0=False)
-    waist = capsule(arc_pt(cxt, cyt, rx, ry, a_top_end),
-                    arc_pt(cxb, cyb, rx, ry, a_bot_end), W * 0.92)
-    return U(top, bot, waist), B
-
-
-def _T(B=610):
-    return U(hbar(CAP - HW, 0, B), capsule((B / 2, HW), (B / 2, CAP - HW), W)), B
+def _T(B=620):
+    return U(rect(0, CAP - W, B, CAP), rect(B / 2 - W / 2, 0, B / 2 + W / 2, CAP)), B
 
 
 def _U(B=660):
-    ry = CAP * 0.32
-    cy = HW - OV + ry
-    rx = B / 2 - HW
-    cx = B / 2
-    hook = arc(cx, cy, rx, ry, 180, 360, W, cap0=False, cap1=False)
-    return U(hook, capsule((cx - rx, cy), (cx - rx, CAP - HW), W),
-             capsule((cx + rx, cy), (cx + rx, CAP - HW), W)), B
+    return U(rring(0, 0, B, CAP, W, R1, corners=(0, 0, 1, 1)),
+             rect(0, CAP * 0.5, W, CAP), rect(B - W, CAP * 0.5, B, CAP)), B
+
+
+def _K(B=640):
+    j = (W * 0.80, CAP * 0.44)
+    return U(rect(0, 0, W, CAP), polystroke([(B + 90, CAP + 90), j, (B + 90, -90)], W)), B
+
+
+def _M(B=800):
+    apex_y = CAP * 0.16
+    return polystroke([(HW, -90), (HW, CAP + 90), (B / 2, apex_y),
+                       (B - HW, CAP + 90), (B - HW, -90)], W), B
+
+
+def _N(B=670):
+    return polystroke([(HW, -90), (HW, CAP + 90), (B - HW, -20),
+                       (B - HW, CAP + 90)], W), B
 
 
 def _V(B=650):
-    return U(diag((HW, CAP - HW), (B / 2, HW)),
-             diag((B - HW, CAP - HW), (B / 2, HW))), B
+    return polystroke([(HW, CAP + 90), (B / 2, -110), (B - HW, CAP + 90)], W), B
 
 
 def _W(B=920):
-    mid_y = CAP * 0.58
-    return U(diag((HW, CAP - HW), (B * 0.275, HW)),
-             diag((B * 0.275, HW), (B / 2, mid_y)),
-             diag((B / 2, mid_y), (B * 0.725, HW)),
-             diag((B * 0.725, HW), (B - HW, CAP - HW))), B
+    mid_y = CAP * 0.62
+    return polystroke([(HW - 30, CAP + 90), (B * 0.29, -110), (B / 2, mid_y),
+                       (B * 0.71, -110), (B - HW + 30, CAP + 90)], W), B
 
 
 def _X(B=640):
-    return U(diag((HW, CAP - HW), (B - HW, HW)),
-             diag((B - HW, CAP - HW), (HW, HW))), B
+    return U(polystroke([(HW - 60, CAP + 90), (B - HW + 60, -90)], W),
+             polystroke([(B - HW + 60, CAP + 90), (HW - 60, -90)], W)), B
 
 
 def _Y(B=630):
-    j = (B / 2, CAP * 0.40)
-    return U(diag((HW, CAP - HW), j), diag((B - HW, CAP - HW), j),
-             capsule(j, (B / 2, HW), W)), B
+    j = (B / 2, CAP * 0.42)
+    return U(polystroke([(HW - 30, CAP + 90), j, (B - HW + 30, CAP + 90)], W),
+             capsule((B / 2, HW), (B / 2, j[1] + 20), W)), B
 
 
 def _Z(B=600):
-    return U(hbar(CAP - HW, 0, B), hbar(HW, 0, B),
-             diag((B - HW, CAP - HW), (HW, HW))), B
+    return polystroke([(-90, CAP - HW), (B - HW * 0.7, CAP - HW),
+                       (HW * 0.7, HW), (B + 90, HW)], W, miter=2.2), B
 
 
 # ————————————————————————————————————————————————— figures
-def _zero(B=650):
-    return ring(B / 2, CAP / 2, B / 2 - HW, CAP / 2 - HW + OV, W), B
+def _zero(B=620):
+    return rring(0, 0, B, CAP, W, R1), B
 
 
 def _one(B=420):
-    stem = capsule((B * 0.60, HW), (B * 0.60, CAP - HW), W)
-    flag = diag((B * 0.10, CAP * 0.74), (B * 0.60 - HW * 0.3, CAP - HW), W * 0.9)
-    return U(stem, flag), B
+    x = B * 0.58
+    return polystroke([(B * 0.02, CAP * 0.72), (x, CAP + 90), (x, -90)], W), B
 
 
 def _two(B=610):
-    rx = B / 2 - HW
-    ry = (CAP * 0.56 - W) / 2
-    cx, cy = B / 2, CAP - HW + OV - ry
-    top = arc(cx, cy, rx, ry, 200, -20, W)
-    ex, ey = arc_pt(cx, cy, rx, ry, -20)
-    return U(top, diag((ex, ey), (HW + 10, HW)), hbar(HW, 0, B)), B
+    h = CAP * 0.56
+    bowl = DIFF(rring(0, CAP - h, B, CAP, W, R1),
+                rect(-1, CAP - h - 1, W + 1, CAP - h + h * 0.55))
+    dia = polystroke([(B - W / 2, CAP - h + h * 0.34), (W * 0.62, W / 2),
+                      (B + 90, W / 2)], W, miter=2.2)
+    return U(bowl, dia), B
 
 
-def _three(B=610):
-    rx = B / 2 - HW
-    ry = CAP * 0.205
-    cyt = CAP - HW + OV - ry
-    cyb = HW - OV + ry
-    cx = B / 2
-    top = arc(cx, cyt, rx, ry, 172, -86, W)
-    bot = arc(cx, cyb, rx, ry, 86, -172, W)
+def _three(B=600):
+    h = (CAP + W) / 2
+    top = DIFF(rring(0, CAP - h, B, CAP, W, R1, corners=(1, 1, 1, 1)),
+               rect(-1, CAP - h - 1, W + 1, CAP - h + h * 0.62))
+    bot = DIFF(rring(0, 0, B, h, W, R1),
+               rect(-1, h * 0.38, W + 1, h + 1))
     return U(top, bot), B
 
 
 def _four(B=650):
-    apex = (B * 0.66, CAP - HW)
-    return U(capsule(apex, (B * 0.66, HW), W),
-             diag(apex, (HW, CAP * 0.29)),
-             hbar(CAP * 0.29, 0, B)), B
+    xs, yb = B * 0.68, CAP * 0.30
+    return U(polystroke([(xs, CAP + 90), (-30, yb), (B + 90, yb)], W, miter=2.4),
+             capsule((xs, -90), (xs, CAP), W)), B
 
 
 def _five(B=600):
-    ry = (CAP * 0.60 - W) / 2
-    cy = HW - OV + ry
-    rx = B / 2 - HW
-    cx = B / 2
-    bowl = arc(cx, cy, rx, ry, 104, -186, W)
-    shoulder = cy + ry
-    return U(bowl, capsule((HW, shoulder), (HW, CAP - HW), W),
-             hbar(CAP - HW, 0, B * 0.96),
-             capsule((HW, shoulder), (cx - rx * 0.1, shoulder), W)), B
+    h = CAP * 0.58
+    bowl = DIFF(rring(0, 0, B, h, W, R1),
+                rect(-1, h * 0.52, W + 1, h + 1))
+    return U(bowl, rect(0, h * 0.52 - W, W, CAP), rect(0, CAP - W, B * 0.96, CAP)), B
 
 
-def _six(B=640):
-    ry = (CAP * 0.58 - W) / 2
-    cy = HW - OV + ry
-    rx = B / 2 - HW
-    cx = B / 2
-    bowl = ring(cx, cy, rx, ry, W)
-    spine = arc(cx, cy, rx, CAP - HW - cy, 180, 108, W, cap0=False)
+def _six(B=620):
+    h = CAP * 0.60
+    bowl = rring(0, 0, B, h, W, R1)
+    spine = polystroke([(B - W * 0.5, CAP + 90), (W * 0.5, h * 0.55)], W)
     return U(bowl, spine), B
 
 
 def _seven(B=590):
-    return U(hbar(CAP - HW, 0, B), diag((B - HW, CAP - HW), (B * 0.22, HW))), B
+    return polystroke([(-90, CAP - W / 2), (B - W * 0.6, CAP - W / 2),
+                       (B * 0.20, -90)], W, miter=2.4), B
 
 
-def _eight(B=660):
-    w = W * 0.82
-    ryt, ryb = 118.0, 132.0
-    cyt = CAP - w / 2 + OV - ryt
-    cyb = w / 2 - OV + ryb
-    return U(ring(B / 2, cyt, B / 2 - w / 2 - 24, ryt, w),
-             ring(B / 2, cyb, B / 2 - w / 2, ryb, w)), B
+def _eight(B=640):
+    h = (CAP + W * 0.9) / 2
+    return U(rring(B * 0.02, CAP - h, B * 0.98, CAP, W, R1),
+             rring(0, 0, B, h, W, R1)), B
 
 
-def _nine(B=640):
-    ry = (CAP * 0.58 - W) / 2
-    cy = CAP - HW + OV - ry
-    rx = B / 2 - HW
-    cx = B / 2
-    bowl = ring(cx, cy, rx, ry, W)
-    tail = arc(cx, cy, rx, cy - HW, 0, -72, W, cap0=False)
+def _nine(B=620):
+    h = CAP * 0.60
+    bowl = rring(0, CAP - h, B, CAP, W, R1)
+    tail = polystroke([(W * 0.5, -90), (B - W * 0.5, CAP - h * 0.55)], W)
     return U(bowl, tail), B
 
 
 # ————————————————————————————————————————————————— punctuation
 def _period(B=W):
-    return circle(HW, HW, HW), B
+    return rect(0, 0, W, W), B
 
 
 def _comma(B=W + 20):
-    return U(circle(HW, HW, HW), capsule((HW, HW), (HW * 0.55, -110), W * 0.72)), B
+    return poly([(0, W), (W, W), (W * 0.62, -150), (0, -150)]), B
 
 
 def _colon(B=W):
-    return U(circle(HW, HW, HW), circle(HW, CAP * 0.46, HW)), B
+    return U(rect(0, 0, W, W), rect(0, CAP * 0.46 - HW, W, CAP * 0.46 + HW)), B
 
 
 def _semicolon(B=W + 20):
     c, _ = _comma()
-    return U(c, circle(HW, CAP * 0.46, HW)), B
+    return U(c, rect(0, CAP * 0.46 - HW, W, CAP * 0.46 + HW)), B
 
 
 def _exclam(B=W):
-    return U(circle(HW, HW, HW), capsule((HW, CAP * 0.30), (HW, CAP - HW), W)), B
+    return U(rect(0, 0, W, W), poly([(W * 0.06, CAP * 0.30), (W * 0.94, CAP * 0.30),
+                                     (W, CAP), (0, CAP)])), B
 
 
-def _question(B=520):
-    cx = B * 0.52
-    rx = B / 2 - HW
-    ry = CAP * 0.20
-    cy = CAP - HW - ry
-    top = arc(cx, cy, rx, ry, 200, -55, W)
-    ex, ey = arc_pt(cx, cy, rx, ry, -55)
-    return U(top, capsule((ex, ey), (cx, CAP * 0.32), W), circle(cx, HW, HW)), B
+def _question(B=560):
+    h = CAP * 0.62
+    y0 = CAP - h
+    bowl = DIFF(rring(0, y0, B, CAP, W, R1 * 0.9),
+                rect(-1, y0 - 1, B * 0.52, y0 + h * 0.52))   # open the bottom-left
+    sx = B * 0.52
+    stem = rect(sx, CAP * 0.26, sx + W, y0 + W)
+    return U(bowl, stem, rect(sx, 0, sx + W, W)), B
 
 
 def _hyphen(B=380):
@@ -354,11 +345,13 @@ def _quotedbl(B=W * 2 + 60):
              capsule((W + 60 + HW, CAP * 0.70), (W + 60 + HW, CAP - HW), W)), B
 
 
-def _paren(B=360, flip=False):
-    rx, ry = B * 1.05, CAP * 0.58
-    cx = B / 2 - rx * 0.72 if not flip else B / 2 + rx * 0.72
-    a0, a1 = (-44, 44) if not flip else (224, 136)
-    return arc(cx, CAP * 0.42, rx, ry, a0, a1, W * 0.92), B
+def _paren(B=310, flip=False):
+    ring = rring(-B * 1.4, -CAP * 0.06, B * 0.95, CAP * 0.86, W * 0.92, R1 * 3)
+    half = ISECT(ring, rect(0, -200, B, CAP + 200))
+    if flip:
+        from geom import xform
+        half = xform(half, sx=-1, dx=B)
+    return half, B
 
 
 def _slash(B=460):
@@ -369,32 +362,33 @@ def _backslash(B=460):
     return diag((HW - 20, CAP - HW + 20), (B - HW + 20, -60)), B
 
 
-def _ampersand(B=740):
-    w = W * 0.76
-    rt = CAP * 0.185
-    cxt, cyt = B * 0.36, CAP - w / 2 - rt
-    rbx, rby = B * 0.30, CAP * 0.215
-    cxb, cyb = B * 0.34, w / 2 - OV + rby
-    top = ring(cxt, cyt, rt, rt, w)
-    bot = ring(cxb, cyb, rbx, rby, w)
-    tail = capsule((cxb + rbx * 0.55, cyb - rby * 0.55), (B - w / 2, CAP * 0.42), w)
+def _ampersand(B=700):
+    w = W * 0.58
+    st, sb = CAP * 0.44, CAP * 0.60
+    top = rring(B * 0.06, CAP - st, B * 0.06 + st * 0.88, CAP, w, R1 * 0.48)
+    bot = rring(0, 0, sb * 0.94, sb, w, R1 * 0.52)
+    tail = polystroke([(sb * 0.86, sb * 0.26), (B - w * 0.5, CAP * 0.46)], w)
     return U(top, bot, tail), B
 
 
-def _at(B=880):
+def _at(B=820):
+    # a blocky @: a cut ring, a squared-off inner bowl, and the bar that closes it
     cx, cy = B / 2, CAP * 0.50
-    w = W * 0.56
-    outer = arc(cx, cy, B / 2 - w / 2, cy - w / 2, -54, 290, w)
-    hook = arc(cx, cy, B * 0.21, CAP * 0.26, -74, 176, w)
-    eye = ring(cx, cy, B * 0.055, CAP * 0.06, w)
-    return U(outer, hook, eye), B
+    w = W * 0.52
+    outer = arc(cx, cy, B / 2 - w / 2, cy - w / 2, -48, 292, w)
+    ix, iy = B * 0.20, CAP * 0.20
+    inner = DIFF(rect(cx - ix, cy - iy, cx + ix, cy + iy),
+                 rect(cx - ix + w, cy - iy + w, cx + ix - w, cy + iy - w))
+    stub = rect(cx + ix - w, cy - iy - w * 1.1, cx + ix, cy - iy)
+    return U(outer, inner, stub), B
 
 
 def _percent(B=760):
-    r = CAP * 0.16
-    return U(ring(r + HW, CAP - HW - r, r, r, W * 0.8),
-             ring(B - r - HW, HW + r, r, r, W * 0.8),
-             diag((B * 0.14, HW), (B * 0.86, CAP - HW), W * 0.86)), B
+    s = CAP * 0.40
+    w = W * 0.58
+    return U(rring(0, CAP - s, s, CAP, w, R1 * 0.42),
+             rring(B - s, 0, B, s, w, R1 * 0.42),
+             polystroke([(B * 0.04, -90), (B * 0.96, CAP + 90)], W * 0.86)), B
 
 
 def _plus(B=560):
@@ -424,14 +418,15 @@ def _numbersign(B=740):
     return U(*a), B
 
 
-def _bullet(B=340):
-    return circle(B / 2, CAP * 0.42, W * 0.62), B
+def _bullet(B=320):
+    r = W * 0.44
+    return rect(B / 2 - r, CAP * 0.42 - r, B / 2 + r, CAP * 0.42 + r), B
 
 
 def _asciitilde(B=560):
-    p = arc(B * 0.28, CAP * 0.40, B * 0.20, CAP * 0.10, 180, 0, W * 0.8)
-    q = arc(B * 0.72, CAP * 0.40, B * 0.20, CAP * 0.10, 180, 360, W * 0.8)
-    return U(p, q), B
+    y, h = CAP * 0.40, CAP * 0.085
+    return polystroke([(0, y - h), (B * 0.34, y + h), (B * 0.66, y - h), (B, y + h)],
+                      W * 0.78, miter=2.0), B
 
 
 def _degree(B=380):
@@ -439,54 +434,207 @@ def _degree(B=380):
 
 
 # ————————————————————————————————————————————————— ornaments
-def _leaf(length=260, wid=120, bend=0.30):
-    """A pointed leaf: two arcs meeting at both tips, plus a black vein."""
+def _petal(length, wid, ang, dist):
+    """One petal: an ellipse pushed out from the centre and rotated into place."""
+    from geom import xform
+    return xform(ellipse(0, 0, length / 2, wid / 2), rot=ang, dx=0, dy=0) if False else \
+        xform(ellipse(length / 2 + dist, 0, length / 2, wid / 2), rot=ang)
+
+
+def _rose(r=140):
+    """An open bloom seen from above: six outer petals, five inner, a seeded
+    centre — and black gaps cut on the seams so the petals actually read as
+    petals instead of fusing into one white lump."""
+    from geom import xform
+    s = r / 140.0
+    outer = U(*[_petal(126 * s, 92 * s, a, 30 * s) for a in range(0, 360, 60)])
+    inner = U(*[_petal(74 * s, 58 * s, a + 30, 14 * s) for a in range(0, 360, 72)])
+    heart = circle(0, 0, 30 * s)
+    body = U(outer, inner, heart)
+
+    # seams: one thin radial cut between each pair of adjacent petals
+    seams = [rcapsule((66 * s * math.cos(math.radians(a)), 66 * s * math.sin(math.radians(a))),
+                     (168 * s * math.cos(math.radians(a)), 168 * s * math.sin(math.radians(a))),
+                     14 * s) for a in range(30, 390, 60)]
+    seams += [rcapsule((30 * s * math.cos(math.radians(a)), 30 * s * math.sin(math.radians(a))),
+                      (92 * s * math.cos(math.radians(a)), 92 * s * math.sin(math.radians(a))),
+                      11 * s) for a in range(66, 396, 72)]
+    # the ring that separates the inner whorl from the outer one, and one dot
+    # of a centre — anything busier reads as a wheel, not a flower
+    seams.append(DIFF(circle(0, 0, 60 * s), circle(0, 0, 48 * s)))
+    seams.append(circle(0, 0, 14 * s))
+    return DIFF(body, U(*seams))
+
+
+def _bud(r=52):
+    """A small closed bud on a neck — reads as a flower at half the size."""
+    from geom import xform
+    cup = ISECT(ellipse(0, 0, r, r * 1.15), rect(-r * 1.2, -r * 1.3, r * 1.2, r * 0.5))
+    petals = U(cup, ellipse(0, r * 0.36, r * 0.62, r * 0.62))
+    cuts = U(rcapsule((-r * 0.34, -r * 0.9), (-r * 0.2, r * 0.5), r * 0.13),
+             rcapsule((r * 0.34, -r * 0.9), (r * 0.2, r * 0.5), r * 0.13))
+    neck = rcapsule((0, -r * 1.05), (0, -r * 2.1), r * 0.24)
+    return U(DIFF(petals, cuts), neck)
+
+
+def _leaf(length=360, wid=165, bend=0.30):
+    """A pointed leaf: two arcs meeting at both tips, a fat midrib and four ribs
+    cut back out so it reads as a leaf and not a white almond."""
     r = (length ** 2 / 4 + wid ** 2 / 4) / max(wid, 1)
     top = ISECT(circle(length / 2, -r + wid / 2, r), rect(-10, -wid, length + 10, wid))
     bot = ISECT(circle(length / 2, r - wid / 2, r), rect(-10, -wid, length + 10, wid))
     body = ISECT(top, bot)
-    vein = capsule((length * 0.10, 0), (length * 0.92, 0), 16)
-    ribs = U(*[capsule((length * t, 0),
-                       (length * t + 42, -30 if i % 2 else 30), 12)
-               for i, t in enumerate((0.30, 0.42, 0.54, 0.66))])
-    leaf = DIFF(body, U(vein, ribs))
+    k = length / 360.0
+    vein = rcapsule((length * 0.06, 0), (length * 0.95, 0), 26 * k)
+    ribs = U(*[rcapsule((length * t, 0),
+                       (length * t + 46 * k, -34 * k if i % 2 else 34 * k), 18 * k)
+               for i, t in enumerate((0.28, 0.42, 0.56, 0.70))])
+    stem = rcapsule((-length * 0.16, 0), (length * 0.08, 0), 30 * k)
     from geom import xform
-    return xform(leaf, rot=math.degrees(bend))
-
-
-def _rose(r=95):
-    """A little rose: nested open arcs, so it reads as line-work when cut out."""
-    petals = U(*[arc(0, 0, r * s, r * s * 0.92, a, a + 300, r * 0.20)
-                 for s, a in ((1.0, 20), (0.62, 200), (0.30, 40))])
-    return U(petals, circle(0, 0, r * 0.12))
+    return xform(U(DIFF(body, U(vein, ribs)), stem), rot=math.degrees(bend))
 
 
 def _swirl(scale=1.0):
-    """A curling vine."""
+    """A curling vine with two buds on it."""
     from geom import xform
-    parts = [arc(0, 0, 150, 150, 180, 20, 26),
-             arc(150 + 96, 0, 96, 96, 200, -140, 22),
-             arc(150 + 96 + 120, 40, 60, 60, 160, -60, 18)]
+    parts = [rarc(0, 0, 150, 150, 172, 20, 30),
+             rarc(150 + 96, 0, 96, 96, 200, -140, 26),
+             rarc(150 + 96 + 120, 40, 58, 58, 156, -70, 21)]
     return xform(U(*parts), sx=scale, sy=scale)
 
 
-def ornament(kind=0):
-    """The floral motif that gets cut out of a letter. Origin at its anchor."""
+def _daisy(r=135):
+    """A daisy: twelve narrow petals, a seeded eye, black seams on every seam."""
     from geom import xform
-    if kind == 0:
-        return U(xform(_rose(96), dx=0, dy=0),
-                 xform(_leaf(300, 130), rot=205, dx=-40, dy=60),
-                 xform(_leaf(250, 110), rot=-15, dx=70, dy=-70),
-                 xform(_swirl(0.9), rot=120, dx=-30, dy=-40))
-    if kind == 1:
-        return U(xform(_rose(78), dx=90, dy=40),
-                 xform(_rose(52), dx=-70, dy=-70),
-                 xform(_leaf(280, 120), rot=250, dx=10, dy=-30),
-                 xform(_swirl(0.75), rot=40, dx=-40, dy=60))
-    return U(xform(_leaf(320, 140), rot=160, dx=60, dy=40),
-             xform(_rose(70), dx=-50, dy=-40),
-             xform(_swirl(0.85), rot=-160, dx=60, dy=-60),
-             xform(_leaf(210, 96), rot=30, dx=-30, dy=90))
+    s = r / 135.0
+    petals = U(*[_petal(120 * s, 44 * s, a, 26 * s) for a in range(0, 360, 30)])
+    eye = circle(0, 0, 42 * s)
+    body = U(petals, eye)
+    seams = [rcapsule((44 * s * math.cos(math.radians(a)), 44 * s * math.sin(math.radians(a))),
+                      (168 * s * math.cos(math.radians(a)), 168 * s * math.sin(math.radians(a))),
+                      12 * s) for a in range(15, 375, 30)]
+    seams.append(DIFF(circle(0, 0, 44 * s), circle(0, 0, 33 * s)))
+    seams += [circle(20 * s * math.cos(math.radians(a)), 20 * s * math.sin(math.radians(a)), 8 * s)
+              for a in range(0, 360, 60)]
+    return DIFF(body, U(*seams))
+
+
+def _tulip(h=190):
+    """A tulip: a cup of three petals on a neck."""
+    from geom import xform
+    s = h / 190.0
+    cup = ISECT(ellipse(0, 0, 104 * s, h * 0.96), rect(-130 * s, -h, 130 * s, h * 0.50))
+    tips = U(xform(ellipse(0, 0, 40 * s, 40 * s), dx=-50 * s, dy=h * 0.44),
+             xform(ellipse(0, 0, 42 * s, 48 * s), dy=h * 0.52),
+             xform(ellipse(0, 0, 40 * s, 40 * s), dx=50 * s, dy=h * 0.44))
+    body = U(cup, tips)
+    seams = U(rcapsule((-42 * s, -h * 0.48), (-30 * s, h * 0.52), 14 * s),
+              rcapsule((42 * s, -h * 0.48), (30 * s, h * 0.52), 14 * s))
+    neck = rcapsule((0, -h * 0.86), (0, -h * 1.9), 22 * s)
+    return U(DIFF(body, seams), neck)
+
+
+def _ivy(size=120):
+    """An ivy leaf: three lobes and a stem."""
+    from geom import xform
+    s = size / 120.0
+    lobes = U(xform(ellipse(0, 0, 62 * s, 76 * s), dy=30 * s),
+              xform(ellipse(0, 0, 56 * s, 50 * s), dx=-64 * s, dy=-14 * s),
+              xform(ellipse(0, 0, 56 * s, 50 * s), dx=64 * s, dy=-14 * s),
+              poly([(-38 * s, -34 * s), (38 * s, -34 * s), (0, -104 * s)]))
+    vein = U(rcapsule((0, -92 * s), (0, 78 * s), 10 * s),
+             rcapsule((0, -6 * s), (-52 * s, 24 * s), 8 * s),
+             rcapsule((0, -6 * s), (52 * s, 24 * s), 8 * s))
+    return U(DIFF(lobes, vein), rcapsule((0, -84 * s), (0, -150 * s), 16 * s))
+
+
+def _sprig(n=5, spread=300, scale=1.0):
+    """A run of small leaves down a stem — filler between the big blooms."""
+    from geom import xform
+    stem = rarc(0, 0, spread * 0.9, spread * 0.5, 200, 340, 26 * scale)
+    leaves = []
+    for i in range(n):
+        t = 200 + (140 * (i + 0.5) / n)
+        px, py = arc_pt(0, 0, spread * 0.9, spread * 0.5, t)
+        leaves.append(xform(_leaf(150 * scale, 66 * scale), rot=t + 90, dx=px, dy=py))
+    return U(stem, *leaves)
+
+
+def ornament(kind=0, fam='floral'):
+    """The cluster cut out of a letter. Origin sits at the anchor point;
+    everything that hangs off the letter simply disappears. `fam` picks the
+    species — each cut of the family carries a different flower."""
+    from geom import xform
+    if fam != 'floral':
+        return _ornament_other(kind, fam)
+    if kind == 0:      # a full rose with two leaves and a trailing vine
+        return U(xform(_rose(140)),
+                 xform(_leaf(330, 150), rot=196, dx=-96, dy=104),
+                 xform(_leaf(280, 128), rot=-24, dx=118, dy=-104),
+                 xform(_bud(56), rot=-40, dx=176, dy=118),
+                 xform(_swirl(0.9), rot=126, dx=-52, dy=-72))
+    if kind == 1:      # rose and bud on a vine, leaning the other way
+        return U(xform(_rose(118), dx=96, dy=52),
+                 xform(_bud(66), rot=28, dx=-118, dy=-46),
+                 xform(_leaf(320, 145), rot=232, dx=26, dy=-58),
+                 xform(_leaf(240, 112), rot=16, dx=176, dy=-138),
+                 xform(_swirl(0.78), rot=44, dx=-66, dy=96))
+    return U(xform(_rose(126), dx=-58, dy=-40),        # leafy sprig
+             xform(_leaf(345, 158), rot=152, dx=96, dy=76),
+             xform(_leaf(255, 118), rot=34, dx=-56, dy=138),
+             xform(_bud(58), rot=150, dx=-186, dy=76),
+             xform(_swirl(0.85), rot=-150, dx=86, dy=-96))
+
+
+def _ornament_other(kind, fam):
+    from geom import xform
+    k = kind % 3
+    if fam == 'daisy':
+        if k == 0:
+            return U(xform(_daisy(132)),
+                     xform(_daisy(78), dx=168, dy=126),
+                     xform(_leaf(300, 132), rot=200, dx=-96, dy=90),
+                     xform(_leaf(240, 108), rot=-26, dx=110, dy=-104),
+                     xform(_swirl(0.8), rot=130, dx=-40, dy=-70))
+        if k == 1:
+            return U(xform(_daisy(112), dx=90, dy=60),
+                     xform(_daisy(70), dx=-110, dy=-72),
+                     xform(_leaf(280, 122), rot=240, dx=20, dy=-46),
+                     xform(_sprig(4, 250, 0.9), rot=30, dx=-60, dy=70))
+        return U(xform(_daisy(96), dx=-64, dy=-40),
+                 xform(_daisy(120), dx=110, dy=88),
+                 xform(_leaf(300, 130), rot=150, dx=70, dy=-70),
+                 xform(_swirl(0.7), rot=-150, dx=-70, dy=60))
+    if fam == 'tulip':
+        if k == 0:
+            return U(xform(_tulip(200)),
+                     xform(_tulip(140), rot=-20, dx=150, dy=-40),
+                     xform(_leaf(330, 120), rot=210, dx=-90, dy=40),
+                     xform(_leaf(300, 110), rot=-30, dx=90, dy=-120))
+        if k == 1:
+            return U(xform(_tulip(180), rot=14, dx=60, dy=30),
+                     xform(_tulip(120), rot=-24, dx=-130, dy=-60),
+                     xform(_leaf(320, 116), rot=240, dx=10, dy=-40),
+                     xform(_sprig(4, 240, 0.85), rot=20, dx=-50, dy=80))
+        return U(xform(_tulip(210), rot=-8, dx=-40, dy=20),
+                 xform(_leaf(340, 124), rot=160, dx=90, dy=60),
+                 xform(_leaf(260, 100), rot=26, dx=-40, dy=130),
+                 xform(_tulip(120), rot=26, dx=140, dy=-80))
+    # ivy — no big bloom, a dense trailing vine instead
+    if k == 0:
+        return U(xform(_sprig(5, 320, 1.0), rot=10),
+                 xform(_ivy(126), rot=-14, dx=-40, dy=60),
+                 xform(_ivy(96), rot=150, dx=140, dy=-40),
+                 xform(_swirl(0.85), rot=120, dx=-60, dy=-60))
+    if k == 1:
+        return U(xform(_sprig(6, 300, 0.9), rot=190),
+                 xform(_ivy(112), rot=24, dx=60, dy=-70),
+                 xform(_ivy(88), rot=-160, dx=-120, dy=50),
+                 xform(_swirl(0.75), rot=-40, dx=60, dy=70))
+    return U(xform(_sprig(5, 340, 0.95), rot=100),
+             xform(_ivy(120), rot=200, dx=-70, dy=-60),
+             xform(_ivy(90), rot=-30, dx=90, dy=90),
+             xform(_swirl(0.8), rot=210, dx=40, dy=-90))
 
 
 # ————————————————————————————————————————————————— registry
@@ -511,7 +659,7 @@ PUNCT = {
     'exclam': _exclam, 'question': _question, 'hyphen': _hyphen,
     'endash': _endash, 'emdash': _emdash, 'underscore': _underscore,
     'quotesingle': _quotesingle, 'quotedbl': _quotedbl,
-    'parenleft': lambda: _paren(), 'parenright': lambda: _paren(flip=True),
+    'parenleft': lambda: _paren(flip=True), 'parenright': lambda: _paren(),
     'slash': _slash, 'backslash': _backslash, 'ampersand': _ampersand,
     'at': _at, 'percent': _percent, 'plus': _plus, 'equal': _equal,
     'asterisk': _asterisk, 'numbersign': _numbersign, 'bullet': _bullet,
@@ -539,11 +687,46 @@ CMAP.update({
 })
 
 
+# How condensed the face is. Every glyph's body width is scaled by this; the
+# stem weight is NOT, which is what makes it read as a compressed grotesque.
+CONDENSE = 0.86
+
+# Glyphs whose diagonals overshoot: after the union, clip to this box (as a
+# fraction-free tuple of x0, y0, x1, y1, with B substituted for the body width).
+# Everything else is left alone so round overshoot survives.
+TRIM = {
+    'A': (0, 0, 'B', CAP), 'K': (0, 0, 'B', CAP), 'M': (0, 0, 'B', CAP),
+    'N': (0, 0, 'B', CAP), 'R': (0, 0, 'B', CAP), 'V': (0, 0, 'B', CAP),
+    'W': (0, 0, 'B', CAP), 'X': (0, 0, 'B', CAP), 'Y': (0, 0, 'B', CAP),
+    'Z': (0, 0, 'B', CAP),
+    'one': (0, 0, 'B', CAP), 'four': (0, 0, 'B', CAP), 'seven': (0, 0, 'B', CAP),
+    'two': (0, 0, 'B', CAP + OV + 2),
+    'percent': (0, 0, 'B', CAP), 'seven': (0, 0, 'B', CAP),
+    'slash': (0, -180, 'B', CAP + 60), 'backslash': (0, -180, 'B', CAP + 60),
+}
+
+
+def _fit(name, path, B):
+    box = TRIM.get(name)
+    if not box:
+        return path
+    x0, y0, x1, y1 = [B if v == 'B' else v for v in box]
+    return ISECT(path, rect(x0, y0, x1, y1))
+
+
 def build_glyphs():
     """name -> (Path, advance width). Space is handled by the builder."""
+    import inspect
     out = {}
     for name, fn in list(LETTERS.items()) + list(FIGURES.items()) + list(PUNCT.items()):
-        path, body = fn()
+        sig = inspect.signature(fn)
+        kw = {}
+        if 'B' in sig.parameters:
+            default = sig.parameters['B'].default
+            if isinstance(default, (int, float)):
+                kw['B'] = max(W, default * CONDENSE)
+        path, body = fn(**kw)
+        path = _fit(name, path, body)
         path.simplify(fix_winding=True, keep_starting_points=False)
         out[name] = (path, body + 2 * SB)
     return out

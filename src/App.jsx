@@ -16,10 +16,33 @@ import { WizardModal } from './components/WizardModal.jsx'
 import { mountInteractions } from './lib/interactions.js'
 import { mountFx } from './lib/fx.js'
 import { mountViewportBudget } from './lib/viewportBudget.js'
+import { Typeface } from './components/Typeface.jsx'
+import { TypeShowcase } from './components/TypeShowcase.jsx'
+
+// firebase.json rewrites ** -> /index.html, so every path already boots this
+// SPA. A real URL therefore costs one pathname check, not a router dependency
+// or a second Vite entry: /type renders the typeface specimen, everything else
+// renders the long page. Trailing slash tolerated (cleanUrls is on). PAGES is
+// also the allow-list for the in-page link interceptor below.
+const PAGES = ['/type']
+
+const currentRoute = () => {
+  if (typeof window === 'undefined') return '/'
+  const path = window.location.pathname.replace(/\/+$/, '') || '/'
+  return PAGES.includes(path) ? path : '/'
+}
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
   const lenisRef = useRef(null)
+  // Read once at mount, then keep in sync with back/forward — the in-page links
+  // below use pushState, so popstate is the only way back without a reload.
+  const [route, setRoute] = useState(currentRoute)
+  useEffect(() => {
+    const onPop = () => setRoute(currentRoute())
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
   // Read live, not just at mount — a user who flips reduced-motion mid-session
   // (OS setting or Chrome's Battery Saver) must lose Lenis/FX immediately, not
   // just on next reload. Mirrors useIsMobile in lib/sheet.jsx.
@@ -94,6 +117,20 @@ export default function App() {
   }
 
   const navigate = useCallback((href) => {
+    // A hash link clicked from a sub-page has no target in the DOM — the long
+    // page is not mounted. Return to / first, then scroll on the commit after
+    // the sections exist.
+    if (href.startsWith('#') && currentRoute() !== '/') {
+      window.history.pushState({}, '', '/')
+      setRoute('/')
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const t = href === '#top' ? document.body : document.querySelector(href)
+        if (!t) return
+        if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : t, { offset: anchorOffset(), duration: 1.2 })
+        else t.scrollIntoView({ behavior: 'smooth' })
+      }))
+      return
+    }
     const el = href === '#top' ? document.body : document.querySelector(href)
     if (!el) return
     const run = () => {
@@ -124,6 +161,27 @@ export default function App() {
     return () => document.removeEventListener('click', onClick)
   }, [navigate])
 
+  // Client-side hop between / and the sub-pages. Same-origin, plain-left-click
+  // only — modified clicks and new-tab middle clicks must stay native so
+  // "open in new tab" on a link keeps working, and [download] must never be
+  // intercepted or the font files would navigate instead of saving.
+  useEffect(() => {
+    const onClick = (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = e.target.closest?.('a[href]')
+      if (!a || a.target === '_blank' || a.hasAttribute('download')) return
+      const href = a.getAttribute('href')
+      if (href !== '/' && !PAGES.includes(href)) return
+      e.preventDefault()
+      window.history.pushState({}, '', href)
+      setRoute(href === '/' ? '/' : href)
+      window.scrollTo(0, 0)
+      if (lenisRef.current) lenisRef.current.scrollTo(0, { immediate: true })
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [])
+
   return (
     <WizardProvider>
       {/* the loom never stops running — a fixed, compositor-only backdrop
@@ -139,7 +197,20 @@ export default function App() {
       <ScrollProgress />
       <Nav onNavigate={navigate} />
       <main>
+        {route === '/type' ? (
+          /* /type — the specimen and download page for LOOM Bloom, the
+             studio's own display face. Contact stays off it on purpose: the
+             page's job is the download, not a lead. */
+          <Typeface />
+        ) : (
+        <>
         <Hero />
+        {/* Second on the page, straight off the hero. LOOM drew a whole
+            typeface from nothing and gives it away — that is the strongest
+            single proof of craft the studio has, and it asks the visitor for
+            nothing, so it earns the slot before the client wall rather than
+            after the tools. */}
+        <TypeShowcase />
         <Marquee />
         <Manifesto />
         <Counter />
@@ -162,6 +233,8 @@ export default function App() {
         <Bolt />
         <Studios />
         <Contact />
+        </>
+        )}
       </main>
       <Footer onNavigate={navigate} />
       {/* the butterfly rides the whole page, above the copy and under the nav */}

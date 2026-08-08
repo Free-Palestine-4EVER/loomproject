@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LOOM — apps lab · 3 ways to show the products</title>
+<link rel="preload" href="/fonts/ClashDisplay-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/Satoshi-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<style>
+@font-face{font-family:'Clash Display';src:url('/fonts/ClashDisplay-Variable.woff2') format('woff2');font-weight:200 700;font-display:swap}
+@font-face{font-family:'Satoshi';src:url('/fonts/Satoshi-Variable.woff2') format('woff2');font-weight:300 900;font-display:swap}
+
+:root{
+  --bg:#0d0716; --bg-2:#120a1f; --bg-3:#1a1029;
+  --ink:#f2f0f7; --ink-dim:#a89fc0;
+  --magenta:#f21c8c; --magenta-deep:#b3126a; --violet:#7b2fbe; --gold:#ffc740; --cyan:#59e6ff;
+  --line:rgba(242,240,247,.1);
+  --yarn-pink:#d6247e; --yarn-violet:#9b55c9; --yarn-blue:#5cc0e8; --yarn-gold:#e0a82f; --yarn-cream:#efe7da;
+  --display:'Clash Display','Avenir Next',sans-serif;
+  --body:'Satoshi','Helvetica Neue',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --spring:linear(0,.0088 1.1%,.0346 2.3%,.1442 4.9%,.7688 14.2%,.9202 16.7%,1.0139 19.3%,1.0498 21.9%,1.0546 24.7%,1.0338 28.2%,.9994 32.6%,.9895 37.3%,.9994 44.2%,1.0026 55.3%,1);
+  --pad:clamp(20px,5vw,96px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+
+.lab-head{padding:clamp(56px,9vh,110px) var(--pad) 22px;max-width:880px}
+.lab-head h1{font-family:var(--display);font-weight:620;font-size:clamp(2.1rem,5.6vw,3.7rem);line-height:.98;letter-spacing:-.02em}
+.lab-head p{color:var(--ink-dim);margin-top:15px;max-width:60ch;line-height:1.6}
+.jump{display:flex;gap:8px;flex-wrap:wrap;padding:0 var(--pad) 8px}
+.jump a{font-family:var(--display);font-weight:560;font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:9px 15px;transition:.3s var(--ease)}
+.jump a:hover{color:#fff;border-color:var(--magenta)}
+
+.concept{padding:clamp(48px,7vh,86px) var(--pad) clamp(56px,8vh,100px);border-top:1px solid var(--line);scroll-margin-top:24px}
+.c-head{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+.c-num{font-family:var(--display);font-weight:620;font-size:.78rem;letter-spacing:.2em;color:var(--magenta)}
+.c-head h2{font-family:var(--display);font-weight:620;font-size:clamp(1.5rem,3.2vw,2.3rem);letter-spacing:-.01em}
+.c-note{color:var(--ink-dim);max-width:66ch;line-height:1.65;margin-bottom:14px;font-size:.96rem}
+.c-note b{color:var(--ink);font-weight:600}
+/* the dot is a ::before, not a flex item — whitespace between an inline <i>
+   and its sibling text makes anonymous flex items and shreds the line */
+.cost{display:block;position:relative;max-width:78ch;margin-bottom:34px;padding:11px 18px 11px 34px;
+  border-radius:16px;border:1px solid var(--line);background:rgba(46,230,168,.05);
+  font-size:.8rem;line-height:1.6;letter-spacing:.01em;color:#8fe9c6}
+.cost::before{content:'';position:absolute;left:16px;top:1.28em;width:7px;height:7px;border-radius:50%;background:#2ee6a8}
+.cost b{color:#d6fff0;font-weight:600}
+.cost code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em}
+
+/* ═══════════ THE ICON — shared by all three concepts ═══════════
+   Only KwaKwa ships a real icon file. Every other app's icon is drawn
+   here from the two fields site.js already carries: `grad` (the colour
+   pair) and `glyph` (a 24×24 stroke path). Flat gradient squircle, one
+   inset highlight, one stroked glyph — no image request, no filter. */
+/* display:block matters — .ic is a <span>, and an inline box ignores both
+   `width` and `aspect-ratio`, which collapses it to nothing inside the
+   non-flex rail buttons. */
+.ic{display:block;position:relative;flex:none;border-radius:23%;overflow:hidden;
+  background:linear-gradient(146deg,var(--g1),var(--g2));
+  box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 -8px 18px -10px rgba(0,0,0,.6) inset,
+    0 8px 20px -12px rgba(0,0,0,.9)}
+.ic::after{content:'';position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(160deg,rgba(255,255,255,.26),rgba(255,255,255,0) 46%)}
+.ic svg{position:absolute;inset:0;margin:auto;width:52%;height:52%;
+  stroke:#fff;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  opacity:.96;z-index:2}
+.ic img{width:100%;height:100%;object-fit:cover}
+.ic--photo::after{background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,0) 50%)}
+
+.store{display:inline-flex;align-items:center;gap:6px;font-family:var(--display);font-weight:560;
+  font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;
+  border-radius:999px;padding:4px 9px;border:1px solid rgba(242,240,247,.18);color:var(--ink-dim)}
+.store i{width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
+.store[data-s="App Store"]{color:#7ff0c4;border-color:rgba(46,230,168,.35)}
+.store[data-s="TestFlight"]{color:var(--gold);border-color:rgba(255,199,64,.32)}
+
+/* ═══════════════════════════════════════════════════════════════
+   01 · THE SHELF — icons first, App-Store style. Breadth in one screen.
+   ═══════════════════════════════════════════════════════════════ */
+.shelf{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,1.4vw,20px)}
+@media(max-width:1080px){.shelf{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.shelf{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.shelf{grid-template-columns:minmax(0,1fr)}}
+/* min-width:0 — a grid item's automatic minimum is its MIN-CONTENT width, so
+   the icon + name row pushes the track past 1fr and the page scrolls sideways */
+.shelf-item{min-width:0;display:flex;flex-direction:column;gap:13px;padding:clamp(14px,1.5vw,20px);
+  border:1px solid var(--line);border-radius:20px;background:var(--bg-2);
+  transition:border-color .35s var(--ease),background .35s var(--ease)}
+.shelf-item:hover{border-color:rgba(242,28,140,.42);background:var(--bg-3)}
+.shelf-top{display:flex;align-items:center;gap:13px}
+.shelf-item .ic{width:clamp(52px,5.2vw,66px);aspect-ratio:1;
+  transition:transform .5s var(--spring)}
+.shelf-item:hover .ic{transform:translateY(-3px) rotate(-3deg)}
+.shelf-name{min-width:0}
+.shelf-name h3{font-family:var(--display);font-weight:620;font-size:1.06rem;letter-spacing:-.01em;
+  display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.shelf-name h3 em{font-style:normal;font-size:.85rem;color:var(--ink-dim);font-family:var(--body);font-weight:500}
+.shelf-name p{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:4px}
+.shelf-blurb{font-size:.86rem;line-height:1.55;color:var(--ink-dim);flex:1}
+.shelf-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-top:12px;border-top:1px solid var(--line)}
+.shelf-get{font-family:var(--display);font-weight:600;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--magenta);display:inline-flex;align-items:center;gap:7px}
+.shelf-get svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  transition:transform .4s var(--spring)}
+.shelf-item:hover .shelf-get svg{transform:translateX(3px)}
+/* the shelf's own edge — one hairline, drawn once, never animated */
+.shelf-rule{height:1px;margin:26px 0 0;background:linear-gradient(90deg,var(--line),transparent)}
+
+/* ═══════════════════════════════════════════════════════════════
+   02 · THE STAGE — one phone, an icon rail, everything else is text
+   ═══════════════════════════════════════════════════════════════ */
+.stage{display:grid;grid-template-columns:78px minmax(240px,330px) minmax(260px,430px);justify-content:center;
+  gap:clamp(20px,3vw,48px);align-items:center;
+  border:1px solid var(--line);border-radius:28px;background:var(--bg-2);
+  padding:clamp(20px,2.6vw,36px)}
+@media(max-width:900px){.stage{grid-template-columns:1fr;gap:24px}}
+.rail{display:flex;flex-direction:column;gap:12px}
+@media(max-width:900px){.rail{flex-direction:row;overflow-x:auto;gap:10px;padding-bottom:6px;
+  scrollbar-width:none}.rail::-webkit-scrollbar{display:none}}
+.rail button{position:relative;padding:0;border-radius:19px;flex:none;
+  transition:transform .45s var(--spring)}
+.rail .ic{width:58px;aspect-ratio:1;opacity:.5;transition:opacity .35s var(--ease)}
+.rail button[aria-selected="true"] .ic{opacity:1}
+.rail button[aria-selected="true"]{transform:translateX(4px)}
+@media(max-width:900px){.rail button[aria-selected="true"]{transform:translateY(-3px)}}
+.rail button:hover .ic{opacity:.85}
+.rail button::before{content:'';position:absolute;left:-11px;top:50%;width:3px;height:0;margin-top:0;
+  border-radius:3px;background:var(--magenta);transition:height .4s var(--ease),margin-top .4s var(--ease)}
+.rail button[aria-selected="true"]::before{height:26px;margin-top:-13px}
+@media(max-width:900px){.rail button::before{left:50%;top:auto;bottom:-8px;width:0;height:3px;margin:0 0 0 0;
+    transition:width .4s var(--ease),margin-left .4s var(--ease)}
+  .rail button[aria-selected="true"]::before{width:24px;margin-left:-12px;height:3px;margin-top:0}}
+
+.phone-wrap{display:grid;place-items:center;min-height:clamp(380px,52vh,560px)}
+.phone{position:relative;width:clamp(196px,19vw,246px);aspect-ratio:9/19.3;border-radius:12.5% / 5.8%;
+  background:#080410;padding:8px;
+  box-shadow:0 0 0 1.5px rgba(242,240,247,.16),0 40px 80px -40px #000,
+    0 0 0 8px rgba(13,7,22,.9)}
+.phone .glass{position:relative;width:100%;height:100%;border-radius:10% / 4.8%;overflow:hidden;background:var(--bg-3)}
+.phone .glass img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .38s linear}
+.phone .glass img.on{opacity:1}
+.phone .notch{position:absolute;left:50%;top:9px;width:34%;height:16px;transform:translateX(-50%);
+  border-radius:0 0 11px 11px;background:#080410;z-index:3}
+/* the one app with no screenshot gets a real panel, not a hole */
+.noshot{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;padding:24px;text-align:center;background:
+    radial-gradient(120% 90% at 50% 0%,rgba(123,47,190,.5),transparent 70%),var(--bg-3)}
+.noshot.on{display:flex}
+.noshot .ic{width:72px;aspect-ratio:1}
+.noshot p{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);line-height:1.6}
+
+.stage-info{max-width:46ch}
+.stage-info h3{font-family:var(--display);font-weight:620;font-size:clamp(1.5rem,2.6vw,2rem);letter-spacing:-.015em}
+.stage-info .ar{font-size:1.05rem;color:var(--ink-dim);margin-top:2px}
+.stage-info .tag{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--magenta);margin-top:12px}
+.stage-info .blurb{color:var(--ink-dim);line-height:1.66;margin-top:14px;font-size:.95rem}
+.stage-info .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.stage-count{font-family:var(--display);font-weight:620;font-size:.72rem;letter-spacing:.2em;color:var(--ink-dim);
+  margin-top:24px;padding-top:16px;border-top:1px solid var(--line)}
+.stage-count b{color:var(--ink)}
+
+/* ═══════════════════════════════════════════════════════════════
+   03 · THE INDEX — a typographic ledger, split by platform
+   ═══════════════════════════════════════════════════════════════ */
+.ledger{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:clamp(24px,4vw,64px);align-items:start}
+@media(max-width:900px){.ledger{grid-template-columns:1fr}}
+.plat-head{display:flex;align-items:baseline;gap:12px;margin:0 0 6px;
+  font-family:var(--display);font-weight:620;font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-dim)}
+.plat-head b{color:var(--magenta);font-weight:620}
+.plat-head span{flex:1;height:1px;background:var(--line)}
+.row{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:16px;width:100%;
+  padding:16px 4px;border-bottom:1px solid var(--line);
+  transition:padding-left .4s var(--ease),background .3s var(--ease)}
+.row:hover,.row.on{padding-left:14px;background:linear-gradient(90deg,rgba(242,28,140,.09),transparent 60%)}
+.row .ic{width:38px;aspect-ratio:1;border-radius:26%}
+.row .n{min-width:0}
+.row .n h3{font-family:var(--display);font-weight:620;font-size:clamp(1.15rem,2.4vw,1.6rem);letter-spacing:-.015em;
+  line-height:1.1;transition:color .3s var(--ease)}
+.row:hover .n h3,.row.on .n h3{color:#fff}
+.row .n p{font-size:.8rem;color:var(--ink-dim);margin-top:5px;line-height:1.45;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.row .r{display:flex;align-items:center;gap:10px}
+.row .r .k{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);white-space:nowrap}
+@media(max-width:560px){.row .r .k{display:none}}
+.plat-block+.plat-block{margin-top:40px}
+
+.peek{position:sticky;top:24px;border:1px solid var(--line);border-radius:22px;background:var(--bg-2);
+  padding:18px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:900px){.peek{position:static;flex-direction:row;align-items:center}}
+.peek-screen{position:relative;width:100%;aspect-ratio:9/17;border-radius:14px;overflow:hidden;background:var(--bg-3);
+  border:1px solid var(--line)}
+@media(max-width:900px){.peek-screen{width:110px;flex:none;aspect-ratio:9/16}}
+.peek-screen img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 0;
+  opacity:0;transition:opacity .3s linear}
+.peek-screen img.on{opacity:1}
+.peek-empty{position:absolute;inset:0;display:grid;place-items:center;padding:18px;text-align:center;
+  font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);opacity:0;transition:opacity .3s linear}
+.peek-empty.on{opacity:1}
+.peek-txt h4{font-family:var(--display);font-weight:620;font-size:1.1rem;letter-spacing:-.01em}
+.peek-txt p{font-size:.82rem;color:var(--ink-dim);line-height:1.55;margin-top:7px}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<header class="lab-head">
+  <h1>Seven products. Three ways to show them.</h1>
+  <p>The apps section today spends a whole phone card on every product and never once shows an app's icon — the single most recognisable thing each one owns. All three of these lead with the icon, and all three are built to cost the GPU nothing: no canvas, no blur, no idle loops, transform and opacity only. Each section states exactly how many things are moving at any one moment.</p>
+</header>
+<nav class="jump">
+  <a href="#c1">01 The shelf</a><a href="#c2">02 The stage</a><a href="#c3">03 The index</a>
+</nav>
+
+<section class="concept" id="c1">
+  <div class="c-head"><span class="c-num">01</span><h2>The shelf</h2></div>
+  <p class="c-note">The App Store treatment: <b>the icon is the hero</b>, one line of what it is, one line of what it does, and the store it lives on. All seven products fit in a single screen on desktop, so the section reads as <em>a catalogue of things we have shipped</em> rather than a gallery of screenshots — which is the actual claim being made. It is honest about the set too: the icon is a first-class asset for every product, including TrueSize AR, which has no screenshot at all. What it gives up is the screenshots themselves — nobody sees a real interface here, so the "these are not mockups" line has to move elsewhere or go.</p>
+  <p class="cost">Animation cost: <b>zero at rest</b>. Nothing moves until a pointer lands on a card, and then exactly one card responds — a 3px lift and a rotate on its icon. No images beyond the one 5&nbsp;KB KwaKwa icon; the other six icons are CSS gradients.</p>
+  <div class="shelf" id="shelf"></div>
+  <div class="shelf-rule"></div>
+</section>
+
+<section class="concept" id="c2">
+  <div class="c-head"><span class="c-num">02</span><h2>The stage</h2></div>
+  <p class="c-note">One phone, centre stage, and <b>a rail of icons that switches what is on it</b>. Instead of seven phones competing on the page, there is a single device and the visitor drives it — which makes the screenshots bigger and far more legible than the current grid can ever be, and it gives the icons a real job as navigation rather than decoration. Depth over breadth: it is the strongest way to actually <em>look</em> at a product, and the weakest at conveying "we have shipped seven of these", because six of them are 58px squares at any given moment. TrueSize AR, which has no capture, gets a proper stated panel rather than an empty frame.</p>
+  <p class="cost">Animation cost: <b>one element at a time</b>. Switching runs a single 380ms opacity crossfade between two stacked <code>&lt;img&gt;</code> tags — no layout, no repaint of the page. All seven screenshots are already in the DOM and decoded, so switching costs nothing after the first load. At rest, nothing is animating.</p>
+  <div class="stage">
+    <div class="rail" id="rail" role="tablist" aria-label="Choose an app"></div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <span class="notch"></span>
+        <div class="glass" id="glass"></div>
+      </div>
+    </div>
+    <div class="stage-info" id="stageInfo"></div>
+  </div>
+</section>
+
+<section class="concept" id="c3">
+  <div class="c-head"><span class="c-num">03</span><h2>The index</h2></div>
+  <p class="c-note">The one that treats the products as <b>a list of things, split by where they run</b> — six iOS apps in one block, the web app in its own. Names set large in Clash Display, a 38px icon in the margin, a one-line description, the store badge on the right; hovering or tapping a row loads it into the sticky preview at the side. It is the most scannable of the three and by far the shortest section on the page, so it works if the apps are a <em>credential</em> rather than the main event. Its weakness is the same as its strength: it is quiet, and a visitor skimming fast may read it as a footer list instead of seven real products.</p>
+  <p class="cost">Animation cost: <b>two properties, one row.</b> A hovered row shifts 10px of padding and its wash fades in; the preview swaps one image's opacity. Nothing loops, nothing moves at rest, and the preview is the only image over 40&nbsp;KB on screen at once.</p>
+  <div class="ledger">
+    <div id="ledger"></div>
+    <aside class="peek">
+      <div class="peek-screen" id="peekScreen"></div>
+      <div class="peek-txt" id="peekTxt"></div>
+    </aside>
+  </div>
+</section>
+
+<script>
+/* The real APPS array, copied verbatim from src/data/site.js.
+   Only KwaKwa carries a `logo` — every other icon is drawn from grad+glyph. */
+const APPS = [
+  { name:'Lahza', ar:'لحظة', tag:'iOS · Events', platforms:['ios'], store:'TestFlight',
+    shot:'/img/apps/lahza.webp', icon:'heart-frame', grad:['#f21c8c','#7b2fbe'],
+    glyph:'M12 21s-7-4.6-9.5-9A5.6 5.6 0 0 1 12 6.3 5.6 5.6 0 0 1 21.5 12C19 16.4 12 21 12 21Z',
+    blurb:'Wedding photo-sharing — guests scan a QR and every moment lands in one live album.' },
+  { name:'Evora Scan', tag:'iOS · LiDAR & AR', platforms:['ios'],
+    shot:'/img/apps/evora-scan.webp', icon:'scan-room', grad:['#59e6ff','#7b2fbe'],
+    glyph:'M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3M8 12h8M12 8v8',
+    blurb:'Point a phone at a room — get a 3D model, a floor plan and walk-in AR, in minutes.' },
+  { name:'Glowbar', tag:'iOS · Beauty', platforms:['ios'],
+    shot:'/img/apps/glowbar.webp', icon:'sparkle-face', grad:['#ffc740','#f21c8c'],
+    glyph:'M12 3l2.1 5.4L20 10.5l-5.9 2.1L12 18l-2.1-5.4L4 10.5l5.9-2.1L12 3Z',
+    blurb:'A luxury studio app for a face-pilates brand — rituals, bookings, glow tracking.' },
+  { name:'TAWSIYAT', tag:'Web · Ordering', platforms:['web'],
+    shot:'/img/apps/tawsiyat.webp', icon:'receipt', grad:['#2ee6a8','#59e6ff'],
+    glyph:'M4 6h16M4 12h16M4 18h10',
+    blurb:'Pickup-first food ordering for Amman — menus imported, orders claimed by code.' },
+  { name:'TrueSize AR', tag:'iOS · AR Commerce', platforms:['ios'],
+    icon:'cube-ar', grad:['#7b2fbe','#f21c8c'],
+    glyph:'M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3ZM12 12l8-4.5M12 12v9M12 12L4 7.5',
+    blurb:'Drop true-to-scale products into a customer’s room before they buy.' },
+  { name:'Morphic', tag:'iOS · AI Imaging', platforms:['ios'], store:'App Store',
+    shot:'/img/apps/morphic.webp', icon:'face-morph', grad:['#f21c8c','#ffc740'],
+    glyph:'M12 4a8 8 0 1 0 8 8M16 4h4v4M21 3l-6 6',
+    blurb:'On-device face morphing — studio-grade edits with zero photos leaving the phone.' },
+  { name:'KwaKwa', tag:'iOS · Couples', platforms:['ios'], store:'TestFlight',
+    shot:'/img/apps/kwakwa.webp', logo:'/img/apps/kwakwa-icon.webp',
+    icon:'duck', grad:['#ffc740','#ff9f5a'],
+    glyph:'M12 4a4 4 0 0 1 4 4v1h3l-2.4 2.4A7 7 0 0 1 5 12V8a4 4 0 0 1 4-4h3ZM10 8h.01',
+    blurb:'A private pond for two — chat, calls, a shared playlist, and an egg you raise into a duck together.' },
+];
+
+const el = h => { const t=document.createElement('template'); t.innerHTML=h.trim(); return t.content.firstElementChild; };
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const ARROW = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+
+// One icon renderer for all three concepts. Real file if there is one,
+// otherwise a gradient squircle carrying the app's own glyph path.
+const icon = (a, cls='') => a.logo
+  ? `<span class="ic ic--photo ${cls}"><img src="${a.logo}" alt="" loading="lazy" decoding="async"></span>`
+  : `<span class="ic ${cls}" style="--g1:${a.grad[0]};--g2:${a.grad[1]}">
+       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="${a.glyph}"/></svg></span>`;
+
+// Only two products have a public distribution channel. Rather than invent a
+// status for the other five, the badge falls back to the platform — a fact.
+const storeTag = a => a.store
+  ? `<span class="store" data-s="${a.store}"><i></i>${a.store}</span>`
+  : `<span class="store">${a.platforms[0] === 'web' ? 'Web app' : 'iOS'}</span>`;
+
+/* ═══ 01 · shelf ═══ */
+document.getElementById('shelf').append(...APPS.map(a => el(`
+  <article class="shelf-item">
+    <div class="shelf-top">
+      ${icon(a)}
+      <div class="shelf-name">
+        <h3>${esc(a.name)}${a.ar ? `<em>${a.ar}</em>` : ''}</h3>
+        <p>${esc(a.tag)}</p>
+      </div>
+    </div>
+    <p class="shelf-blurb">${esc(a.blurb)}</p>
+    <div class="shelf-foot">
+      ${storeTag(a)}
+      <span class="shelf-get">View${ARROW}</span>
+    </div>
+  </article>`)));
+
+/* ═══ 02 · stage ═══ */
+const rail = document.getElementById('rail');
+const glass = document.getElementById('glass');
+const stageInfo = document.getElementById('stageInfo');
+
+// every screenshot is stacked in the phone once, and only opacity changes
+APPS.forEach((a,i) => {
+  if (a.shot) glass.append(el(`<img data-i="${i}" src="${a.shot}" alt="${esc(a.name)} — real capture" loading="lazy" decoding="async">`));
+  else glass.append(el(`
+    <div class="noshot" data-i="${i}">
+      ${icon(a)}
+      <p>No public capture yet<br>— AR sessions don’t screenshot well</p>
+    </div>`));
+});
+
+rail.append(...APPS.map((a,i) => el(`
+  <button role="tab" aria-selected="${i===0}" data-i="${i}" aria-label="${esc(a.name)}">${icon(a)}</button>`)));
+
+function pick(i){
+  APPS.forEach((_,j) => {
+    rail.children[j].setAttribute('aria-selected', String(i===j));
+    glass.children[j].classList.toggle('on', i===j);
+  });
+  const a = APPS[i];
+  stageInfo.innerHTML = `
+    <h3>${esc(a.name)}</h3>
+    ${a.ar ? `<div class="ar">${a.ar}</div>` : ''}
+    <div class="tag">${esc(a.tag)}</div>
+    <p class="blurb">${esc(a.blurb)}</p>
+    <div class="meta">${storeTag(a)}${a.store ? `<span class="store">${a.platforms[0]==='web'?'Web app':'iOS'}</span>` : ''}</div>
+    <div class="stage-count"><b>0${i+1}</b> / 0${APPS.length} — LOOM-built products</div>`;
+}
+rail.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (b) pick(+b.dataset.i);
+});
+pick(0);
+
+/* ═══ 03 · index ═══ */
+const ledger = document.getElementById('ledger');
+const peekScreen = document.getElementById('peekScreen');
+const peekTxt = document.getElementById('peekTxt');
+
+const GROUPS = [
+  { key:'ios', label:'iOS', apps: APPS.filter(a => a.platforms[0] === 'ios') },
+  { key:'web', label:'Web', apps: APPS.filter(a => a.platforms[0] === 'web') },
+];
+GROUPS.forEach(g => {
+  const block = el(`<div class="plat-block">
+    <p class="plat-head"><b>${g.label}</b><span></span>${String(g.apps.length).padStart(2,'0')} products</p>
+  </div>`);
+  g.apps.forEach(a => {
+    const idx = APPS.indexOf(a);
+    block.append(el(`
+      <button class="row" data-i="${idx}">
+        ${icon(a)}
+        <span class="n">
+          <h3>${esc(a.name)}${a.ar ? ` <span style="font-size:.62em;color:var(--ink-dim)">${a.ar}</span>` : ''}</h3>
+          <p>${esc(a.blurb)}</p>
+        </span>
+        <span class="r"><span class="k">${esc(a.tag.split('·')[1].trim())}</span>${storeTag(a)}</span>
+      </button>`));
+  });
+  ledger.append(block);
+});
+
+// the preview holds one img per app, pre-stacked; hover flips opacity only
+APPS.forEach((a,i) => {
+  if (a.shot) peekScreen.append(el(`<img data-i="${i}" src="${a.shot}" alt="" loading="lazy" decoding="async">`));
+  else peekScreen.append(el(`<div class="peek-empty" data-i="${i}">No public capture yet</div>`));
+});
+function peek(i){
+  APPS.forEach((_,j) => peekScreen.children[j].classList.toggle('on', i===j));
+  ledger.querySelectorAll('.row').forEach(r => r.classList.toggle('on', +r.dataset.i === i));
+  const a = APPS[i];
+  peekTxt.innerHTML = `<h4>${esc(a.name)}</h4><p>${esc(a.blurb)}</p>`;
+}
+ledger.addEventListener('pointerover', e => {
+  const r = e.target.closest('.row'); if (r) peek(+r.dataset.i);
+});
+ledger.addEventListener('click', e => {
+  const r = e.target.closest('.row'); if (r) peek(+r.dataset.i);
+});
+ledger.addEventListener('focusin', e => {
+  const r = e.target.closest('.row'); if (r) peek(+r.dataset.i);
+});
+peek(0);
+</script>
+</body>
+</html>

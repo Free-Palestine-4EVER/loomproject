@@ -1,0 +1,19 @@
+
+languagesystem DFLT dflt;
+languagesystem latn dflt;
+feature kern {
+  pos A V -70; pos V A -70; pos A W -55; pos W A -55;
+  pos A Y -75; pos Y A -75; pos A T -80; pos T A -80;
+  pos L T -85; pos L V -80; pos L W -70; pos L Y -85;
+  pos T O -35; pos T C -35; pos T G -35;
+  pos P A -55; pos F A -55; pos V O -25; pos W O -20;
+  pos Y O -30; pos O V -25; pos O W -20; pos O Y -30; pos O X -20;
+  pos R V -20; pos R Y -25; pos K O -25; pos K C -25;
+  pos T period -110; pos T comma -110;
+  pos V period -80; pos V comma -80;
+  pos W period -65; pos W comma -65;
+  pos Y period -95; pos Y comma -95;
+  pos F period -80; pos F comma -80;
+  pos P period -80; pos P comma -80;
+  pos L quotesingle -70; pos L quotedbl -70;
+} kern;

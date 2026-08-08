@@ -8,3 +8,8 @@ _button-alpha-preview.png
 _tmp_*.mjs
 scripts/_verify_*.mjs
 client-site-shots/
+
+# generated proofs/previews — regenerable by type/*.py and the ig-grid script,
+# and 25MB+ of them was timing the push out (HTTP 408)
+ig-grid/
+type/out/*.png

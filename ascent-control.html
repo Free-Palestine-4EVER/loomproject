@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ascent idea 03 — THE CONTROL ROOM</title>
+<style>
+  @font-face { font-family:'Bloom'; src:url('/fonts/loom-bloom/LOOMBloom-Regular.woff2') format('woff2'); font-display:swap }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d0716;color:#f2f0f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+       background-image:radial-gradient(70% 50% at 10% 0%,rgba(242,28,140,.12),transparent 60%),radial-gradient(60% 50% at 90% 100%,rgba(89,230,255,.08),transparent 60%)}
+  .page{max-width:1320px;margin:0 auto;padding:clamp(70px,9vw,120px) clamp(20px,5vw,64px)}
+  .kick{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#857c9e;display:flex;gap:10px;align-items:center}
+  .kick b{color:#f21c8c;font-weight:400}
+  h1{font-family:'Bloom',sans-serif;font-weight:400;font-size:clamp(40px,7vw,104px);line-height:.92;margin:16px 0 12px}
+  .lede{max-width:60ch;color:#a89fc0;font-size:16px;line-height:1.6}
+  .board{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin:clamp(28px,4vw,48px) 0}
+  .mod{border:1px solid rgba(242,240,247,.1);border-radius:16px;background:rgba(255,255,255,.02);padding:20px;cursor:pointer;
+       transition:border-color .3s,background .3s,transform .3s;position:relative;overflow:hidden}
+  .mod:hover{transform:translateY(-3px)}
+  .mod.on{border-color:rgba(242,28,140,.55);background:rgba(242,28,140,.07)}
+  .mod .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .mod h3{font-size:13px;letter-spacing:.16em;text-transform:uppercase;font-weight:500}
+  .led{width:9px;height:9px;border-radius:50%;background:#2a2038;box-shadow:0 0 0 0 rgba(242,28,140,.6);transition:background .3s}
+  .mod.on .led{background:#f21c8c;animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(242,28,140,.5)}70%{box-shadow:0 0 0 10px rgba(242,28,140,0)}100%{box-shadow:0 0 0 0 rgba(242,28,140,0)}}
+  .val{font-family:'Bloom',sans-serif;font-size:44px;line-height:1;margin:14px 0 2px}
+  .unit{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#857c9e}
+  .spark{width:100%;height:38px;margin-top:14px;display:block}
+  .blurb{margin-top:10px;font-size:13px;line-height:1.5;color:#857c9e}
+  .out{border:1px solid rgba(242,240,247,.12);border-radius:18px;background:rgba(0,0,0,.28);padding:clamp(20px,3vw,32px);
+       display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end}
+  .out .big{font-family:'Bloom',sans-serif;font-size:clamp(34px,4.4vw,58px);line-height:1}
+  .out .lbl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#857c9e;margin-top:6px}
+  .crew{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(242,240,247,.16);border-radius:99px;padding:6px 12px;color:#a89fc0}
+  .cta{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+  .btn{border:1px solid rgba(242,240,247,.22);border-radius:99px;padding:14px 26px;background:transparent;color:#f2f0f7;font:inherit;font-size:14px;cursor:pointer}
+  .btn--fill{background:#f21c8c;border-color:#f21c8c}
+  .back{position:fixed;left:16px;top:16px;z-index:5;font-size:12px;color:#a89fc0;text-decoration:none;border:1px solid rgba(242,240,247,.2);padding:8px 14px;border-radius:99px;background:rgba(13,7,22,.7)}
+  .note{position:fixed;right:16px;bottom:16px;z-index:5;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b5372}
+</style>
+</head>
+<body>
+<a class="back" href="/">← back to site</a>
+<div class="note">idea 03 · control room — click the modules</div>
+
+<div class="page">
+  <p class="kick"><b>◆</b> The Ascent — idea 03</p>
+  <h1>SWITCH ON<br>WHAT YOU NEED</h1>
+  <p class="lede">Six territories, six live modules. Turn them on and the board builds your scope, your timeline and the crew that would run it — then hands the whole thing to the brief, already filled in.</p>
+
+  <div class="board" id="board"></div>
+
+  <div class="out">
+    <div><div class="big" id="oScope">0</div><div class="lbl">territories live</div></div>
+    <div><div class="big" id="oWeeks">0</div><div class="lbl">weeks to first ship</div></div>
+    <div><div class="big" id="oOut">0</div><div class="lbl">assets / month</div></div>
+    <div style="grid-column:1/-1">
+      <div class="lbl">crew this would put on it</div>
+      <div class="crew" id="oCrew"></div>
+    </div>
+    <div class="cta">
+      <button class="btn btn--fill" onclick="alert('In the real build this opens the contact wizard with every switch pre-filled.')">Send this as my brief →</button>
+      <button class="btn" id="all">Turn everything on</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MODS = [
+  { id:'branding', name:'Branding',   v:'1', unit:'identity system', blurb:'Strategy, name, mark, the full kit.', weeks:4, out:0, crew:['Strategist','Designer'] },
+  { id:'social',   name:'Social',     v:'120', unit:'posts / month', blurb:'Content the feed cannot scroll past.', weeks:2, out:120, crew:['Editor','Concierge'] },
+  { id:'ai',       name:'AI Systems', v:'24/7', unit:'agents running', blurb:'Agents that answer, book and sell alone.', weeks:3, out:0, crew:['Engineer','Ledger'] },
+  { id:'web',      name:'Web & Apps', v:'1', unit:'product', blurb:'Products people finish setting up.', weeks:6, out:0, crew:['Engineer','Designer'] },
+  { id:'3d',       name:'3D & AR',    v:'40', unit:'renders / month', blurb:'Worlds and objects you step inside.', weeks:5, out:40, crew:['3D artist'] },
+  { id:'camp',     name:'Campaigns',  v:'4', unit:'launches / year', blurb:'Launches engineered to hit like an event.', weeks:3, out:30, crew:['Strategist','Editor'] },
+]
+const on = new Set(['branding','social'])
+const board = document.getElementById('board')
+
+function spark(seed){
+  let s=seed, r=()=> (s=(s*16807)%2147483647)/2147483647
+  const pts=Array.from({length:26},(_,i)=>[i/25*100, 34-(6+r()*26)])
+  return '<svg class="spark" viewBox="0 0 100 38" preserveAspectRatio="none">'+
+    '<polyline fill="none" stroke="currentColor" stroke-width="1.4" opacity=".8" points="'+pts.map(p=>p.join(',')).join(' ')+'"/></svg>'
+}
+
+board.innerHTML = MODS.map((m,i)=>`
+  <div class="mod ${on.has(m.id)?'on':''}" data-id="${m.id}">
+    <div class="top"><h3>${m.name}</h3><span class="led"></span></div>
+    <div class="val">${m.v}</div>
+    <div class="unit">${m.unit}</div>
+    <div style="color:${['#d6247e','#9b55c9','#5cc0e8','#e0a82f','#d6247e','#9b55c9'][i]}">${spark(i*97+13)}</div>
+    <p class="blurb">${m.blurb}</p>
+  </div>`).join('')
+
+function render(){
+  const live = MODS.filter(m=>on.has(m.id))
+  document.getElementById('oScope').textContent = live.length
+  document.getElementById('oWeeks').textContent = live.length ? Math.max(...live.map(m=>m.weeks)) : 0
+  document.getElementById('oOut').textContent = live.reduce((a,m)=>a+m.out,0)
+  const crew=[...new Set(live.flatMap(m=>m.crew))]
+  document.getElementById('oCrew').innerHTML = crew.length
+    ? crew.map(c=>'<span class="chip">'+c+'</span>').join('')
+    : '<span class="chip">nobody yet — switch something on</span>'
+  ;[...board.children].forEach(el=>el.classList.toggle('on', on.has(el.dataset.id)))
+}
+board.addEventListener('click', e=>{
+  const el=e.target.closest('.mod'); if(!el) return
+  on.has(el.dataset.id) ? on.delete(el.dataset.id) : on.add(el.dataset.id)
+  render()
+})
+document.getElementById('all').addEventListener('click',()=>{
+  MODS.forEach(m=>on.add(m.id)); render()
+})
+render()
+</script>
+</body>
+</html>

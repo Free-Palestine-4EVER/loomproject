@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LOOM — cloth lab</title>
+<link rel="preload" href="/fonts/ClashDisplay-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<style>
+@font-face{font-family:'Clash Display';src:url('/fonts/ClashDisplay-Variable.woff2') format('woff2');font-weight:200 700;font-display:swap}
+@font-face{font-family:'Satoshi';src:url('/fonts/Satoshi-Variable.woff2') format('woff2');font-weight:300 900;font-display:swap}
+:root{
+  --bg:#0d0716;--ink:#f2f0f7;--ink-dim:#a89fc0;--magenta:#f21c8c;--line:rgba(242,240,247,.1);
+  --yarn-pink:#d6247e;--yarn-violet:#9b55c9;--yarn-blue:#5cc0e8;--yarn-gold:#e0a82f;--yarn-cream:#efe7da;
+  --display:'Clash Display','Avenir Next',sans-serif;--body:'Satoshi','Helvetica Neue',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);--pad:clamp(20px,5vw,72px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+h1{font-family:var(--display);font-weight:620;font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:-.02em}
+.head{padding:clamp(40px,7vh,80px) var(--pad) 10px;max-width:800px}
+.head p{color:var(--ink-dim);margin-top:12px;line-height:1.6}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:26px;padding:34px var(--pad) 80px;align-items:start}
+.opt h2{font-family:var(--display);font-weight:620;font-size:1.05rem;margin-bottom:5px}
+.opt h2 span{color:var(--magenta);font-size:.75rem;letter-spacing:.18em;display:block;margin-bottom:5px}
+.opt p{color:var(--ink-dim);font-size:.85rem;line-height:1.5;margin-bottom:16px;min-height:4.5em}
+
+/* ── the tile, exactly as the site builds it ─────────────────── */
+.tile{position:relative;width:100%;aspect-ratio:4/5;border-radius:22px;overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(242,240,247,.07),0 16px 40px -22px rgba(0,0,0,.8)}
+.tile>img{width:100%;height:100%;object-fit:cover}
+.rail{position:absolute;top:0;left:0;right:0;height:5px;z-index:3;
+  background:repeating-linear-gradient(90deg,var(--yarn-pink) 0 7px,var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,var(--yarn-gold) 21px 28px)}
+.tile::after{content:'';position:absolute;inset:auto 0 0 0;height:46%;z-index:2;pointer-events:none;
+  background:linear-gradient(to top,rgba(24,12,34,.52),rgba(24,12,34,0) 78%)}
+
+.strip{position:absolute;left:14px;right:14px;bottom:14px;z-index:3;display:flex;align-items:center;
+  min-height:56px;padding:10px 46px 10px 18px;border-radius:14px;background-color:var(--yarn-cream);
+  color:#33243d;font-family:var(--display);font-weight:580;font-size:1.05rem;letter-spacing:-.005em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 6px rgba(51,36,61,.16),
+    0 10px 22px -12px rgba(0,0,0,.7)}
+.btn{position:absolute;right:-10px;bottom:-12px;width:58px;height:58px;
+  background:url('/img/wool/buttons/wool-button-256.webp') center/contain no-repeat;
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.55))}
+
+/* A — what is on the site right now */
+.a .strip{background-image:url('/img/wool/tex/tape-cream.webp');background-size:cover;background-position:center}
+
+/* B — tiled at its own gauge, seamless */
+.b .strip{background-image:url('/img/wool/tex/tape-tile.webp');background-size:auto 100%;background-repeat:repeat-x}
+
+/* C — tiled, and half again finer */
+.c .strip{background-image:url('/img/wool/tex/tape-tile.webp');background-size:auto 190%;background-repeat:repeat-x;background-position:center}
+
+/* D — full-bleed band: the tape runs off both edges like real label tape */
+.d .strip{left:0;right:0;bottom:16px;border-radius:0;padding:12px 52px 12px 20px;
+  background-image:url('/img/wool/tex/tape-tile.webp');background-size:auto 100%;background-repeat:repeat-x;
+  box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 -1px 0 rgba(51,36,61,.2) inset,0 10px 20px -12px rgba(0,0,0,.8)}
+.d .btn{right:14px;bottom:-14px}
+
+/* E — tape, but warmed down and set INTO the tile rather than onto it */
+.e .strip{background-image:linear-gradient(rgba(60,40,25,.14),rgba(60,40,25,.14)),url('/img/wool/tex/tape-tile.webp');
+  background-size:auto 100%,auto 100%;background-repeat:repeat-x,repeat-x;
+  box-shadow:inset 0 2px 5px rgba(51,36,61,.4),inset 0 -1px 0 rgba(255,255,255,.5),
+    0 1px 0 rgba(255,255,255,.08)}
+
+/* F — no cloth at all: the original cream felt, for reference */
+.f .strip{background-image:url('/img/wool/tex/felt-cream.webp');background-size:180px;border-radius:999px}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>The strip, six ways.</h1>
+  <p>Same tile, same photo, same wool button. Only the cloth treatment changes. F is the felt pill the site had before the tape, for reference.</p>
+</div>
+<div class="row" id="row"></div>
+<script>
+const OPTS = [
+  ['a','A','Cover — what is live now','The tape scaled to fill the strip. Simple, but a 400px strip blows the weave up to roughly 4x its real gauge, so it reads as a photo of cloth rather than as cloth.'],
+  ['b','B','Tiled at true gauge','Seamless tile repeating horizontally at the weave\'s own scale. The threads read as threads. The seam is cross-faded in the asset so the repeat is invisible.'],
+  ['c','C','Tiled, finer','Same tile pushed smaller again. The four dyed threads compress into a tight band — closest to a real woven label tape.'],
+  ['d','D','Full-bleed band','The tape runs off both edges of the tile instead of floating as a rounded chip. Cloth that is cut off reads as cloth; a floating rounded rectangle reads as UI with a texture on it.'],
+  ['e','E','Set in, not on','Tiled tape, warmed down a touch and given a real inset shadow so the strip sits INTO the tile. Stops the cream from glowing brighter than the photograph above it.'],
+  ['f','F','The old felt pill','No tape at all — the cream felt the site used before. Here so you can see what the tape is actually buying.'],
+]
+row.innerHTML = OPTS.map(([k,letter,title,note]) => `
+  <div class="opt ${k}">
+    <h2><span>${letter}</span>${title}</h2>
+    <p>${note}</p>
+    <div class="tile">
+      <img src="/img/needs/brand-identity.webp" alt="">
+      <span class="rail"></span>
+      <span class="strip">Brand identity<i class="btn"></i></span>
+    </div>
+  </div>`).join('')
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+LOOM — PINK LEAVES FOR THE TREE SECTION
+Three Higgsfield prompts. All THREE must match the tree already on the
+page: public/img/tree/bloom-tree.webp — glossy stylised 3D, soft
+sub-surface glow, blush-to-magenta pink, jewel-like highlights.
+
+Where they go:  src/components/Banners.jsx → TreeBreak()
+                src/components/banners.css → .tb-petals / .tb-stage
+
+Right now `.tb-petals` is seven bare CSS <span>s falling on their own
+durations. These three assets replace them and add two layers the
+section does not have yet.
+
+HARD RULE FOR ALL THREE
+-----------------------
+TRANSPARENT BACKGROUND. No backdrop, no surface, no cast shadow onto
+anything. Each asset is composited over a dark plum page (#0D0716) and
+anything opaque behind it shows up as a grey box on the first render.
+Ask for a transparent PNG; if the model refuses, take pure flat black
+(NOT white — a white halo on a dark page is unfixable) and cut it.
+
+Model: Nano Banana 2 Pro (or Seedream 4) · 2K
+
+
+═══════════════════════════════════════════════════════════════════
+LEAF 1 — THE FALLING PETALS           aspect 1:1        2K
+replaces: the 7 spans in .tb-petals
+═══════════════════════════════════════════════════════════════════
+
+PROMPT
+------
+A neat grid of nine separate cherry blossom petals arranged in three rows
+of three on a fully transparent background, each petal isolated with
+clear empty space around it, none of them touching or overlapping. A
+sprite sheet of individual petals, evenly spaced, evenly lit.
+
+Every petal is a different one: each caught at a different angle of fall
+— one flat and face-on, one curled along its length, one twisting so it
+shows its paler underside, one seen almost edge-on, one with a slight
+cupping bowl to it. All are the classic notched cherry-blossom shape with
+a small split at the wide end and a narrow base.
+
+They are stylised 3D, not photographic: a soft glossy surface with gentle
+sub-surface glow so light passes through the thin petal, deep magenta
+pink (#F21C8C) blushing out to pale rose (#FFC2E0) toward the notched
+edge, faint pearlescent sheen along the raised centre vein, and a small
+crisp specular highlight on each. Delicate veining is just visible
+running from base to tip. Edges are clean and slightly translucent.
+
+Lit softly from the upper left, warm key, cool rim, the same light the
+whole scene sits in. Each petal has only its own self-shading — no cast
+shadows, nothing beneath them.
+
+Ultra detailed, crisp edges, high-end stylised 3D render, isolated
+cutouts on transparent background, 2K.
+
+NEGATIVE / AVOID
+----------------
+background, backdrop, surface, table, sky, ground, white background,
+black background, coloured background, gradient, cast shadow, drop
+shadow, petals touching, petals overlapping, cluster, bouquet, pile,
+branch, stem, twig, leaves, foliage, whole flower, five-petal blossom,
+hands, vase, water, text, watermark, blurry, motion blur, out of focus,
+flat vector, cartoon, line art, watercolour, painterly, photographic
+real cherry blossom, brown edges, wilted, torn, red tone, orange tone,
+purple tone, washed out
+
+HOW TO USE IT
+-------------
+Slice the 3×3 into nine 1:1 PNGs → public/img/tree/petal-1..9.webp
+Then in banners.css give each .tb-petals span its own
+`background-image` by --i, and bump the span count in Banners.jsx from
+7 to 9. Keep the existing per-span duration/delay — that is what stops
+the fall reading as a loop, and it costs nothing extra.
+
+
+═══════════════════════════════════════════════════════════════════
+LEAF 2 — THE BLOSSOM CLUMP            aspect 1:1        2K
+new layer: canopy volume, parallaxed behind/over the tree
+═══════════════════════════════════════════════════════════════════
+
+PROMPT
+------
+A single rounded cluster of cherry blossom foliage floating alone on a
+fully transparent background — one puffy clump of packed pink blossoms
+and small leaves, roughly spherical but irregular and organic, like one
+handful torn from the canopy of a blossom tree. No branch, no trunk, no
+stem visible: just the mass of flowers.
+
+The clump is built from dozens of small five-petal blossoms in varying
+sizes packed tightly together, with a few tiny buds and slim leaves
+tucked between them. Depth is real: blossoms at the front are crisp and
+bright, blossoms deeper into the mass fall away into soft rose shadow, so
+the clump reads as a volume rather than a flat disc. The silhouette is
+soft and slightly ragged with a few individual blossoms breaking free at
+the edges.
+
+Stylised 3D with a jewel-like quality: glossy petals with sub-surface
+scattering so light glows through the thinner ones, bright blush pink
+(#FFB8D9) on the lit tops, deep magenta (#D6247E) in the recesses, small
+sharp specular highlights scattered across the surface, and a faint inner
+luminance in the deepest parts as though the flowers hold a little light.
+
+Lit from the upper left with a warm soft key and a cool rim along the
+upper edge. Self-shadowing only — nothing beneath it, no cast shadow.
+
+Ultra detailed, high-end stylised 3D render, clean crisp cutout on
+transparent background, 2K.
+
+NEGATIVE / AVOID
+----------------
+background, backdrop, sky, ground, surface, white background, black
+background, gradient, cast shadow, drop shadow, trunk, branch, bough,
+stem, roots, whole tree, pot, island, landscape, grass, butterflies,
+birds, hands, text, watermark, perfect sphere, hedge, topiary, ball
+shape too regular, flat, 2D, vector, cartoon, painterly, photographic
+real tree, green foliage, brown leaves, autumn colours, wilted, red
+tone, orange tone, purple tone, washed out, blurry, low detail
+
+HOW TO USE IT
+-------------
+Two or three copies at different scales and opacities inside .tb-stage,
+one behind .tb-tree and one in front, each on its own slow transform
+drift. That is what gives the section depth without a particle system —
+same reason the comment in Banners.jsx gives for keeping this to
+transforms and opacity only.
+
+
+═══════════════════════════════════════════════════════════════════
+LEAF 3 — THE FOREGROUND SPRIG         aspect 16:9       2K
+new layer: framing branch at the top corners of the section
+═══════════════════════════════════════════════════════════════════
+
+PROMPT
+------
+A single slender blossoming branch entering from the left edge and
+reaching across the frame, floating on a fully transparent background.
+The branch is cut off cleanly at the left edge as though it continues out
+of frame, and tapers to a fine tip about three quarters of the way
+across. Nothing else in the image.
+
+The branch itself is a smooth stylised bough in warm rosewood brown with
+a soft sheen and gentle knots, thicker where it enters and thinning
+naturally along its length, with two or three small side twigs. Along it
+sit clusters of open cherry blossoms and a few closed buds — the flowers
+face different directions, some toward the viewer, some turned away, and
+a handful of loose petals sit caught on the wood.
+
+Stylised 3D matching a glossy jewel-like blossom tree: petals in bright
+blush pink (#FFB8D9) deepening to magenta (#D6247E) at the centres,
+sub-surface glow through the thin petals, small crisp specular
+highlights, tiny pale gold stamens at each flower's heart.
+
+Lit from the upper left with a warm key and a cool rim light along the
+top of the branch. Self-shadowing only — no cast shadow, nothing behind
+or beneath it.
+
+Ultra detailed, crisp silhouette, high-end stylised 3D render, isolated
+cutout on transparent background, 2K.
+
+NEGATIVE / AVOID
+----------------
+background, backdrop, sky, clouds, ground, surface, white background,
+black background, gradient, cast shadow, drop shadow, whole tree, trunk,
+roots, island, landscape, second branch, frame, border, vignette, hands,
+birds, butterflies, text, watermark, branch centred in frame, branch
+floating with both ends visible, green leaves, autumn colours, bare
+branch, dead wood, wilted flowers, photographic real cherry blossom,
+flat, 2D, vector, cartoon, painterly, blurry, low detail, red tone,
+orange tone, purple tone
+
+HOW TO USE IT
+-------------
+One copy top-left, one mirrored with scaleX(-1) top-right, both large,
+both cropped by .tb-stage's bounds. Give them a very slow, very small
+rotate (about 1.5 degrees over ~14s) from a transform-origin out at the
+cut edge, so they sway like real branches. Sits above the tree in z, so
+petals falling past them read as depth.
+
+
+═══════════════════════════════════════════════════════════════════
+NOTES FOR ALL THREE
+═══════════════════════════════════════════════════════════════════
+· Generate 3–4 of each and pick for the LIGHT DIRECTION first, detail
+  second. Every asset here has to agree with bloom-tree.webp, which is
+  lit from the upper left. One right-lit clump ruins the composition.
+· Save as .webp, and version the filename whenever the bytes change —
+  the caches will happily serve the old ones otherwise.
+· The section is already on a page carrying two WebGL layers and it
+  measured ~6x faster with them off. Keep these as <img> plus transform
+  and opacity. Do not turn this into a canvas particle system.
+· Whatever you add, run it past prefers-reduced-motion — TreeBreak()
+  already drops the petals entirely for reduced-motion users, and the
+  new layers must do the same. Chrome's Battery Saver forces that query
+  on, so it is a large slice of ordinary laptop visitors.

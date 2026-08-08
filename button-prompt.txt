@@ -1,0 +1,89 @@
+LOOM — THE WOOL BUTTON
+Higgsfield · aspect 1:1 · 2K · Nano Banana 2 Pro (or Seedream 4)
+TRANSPARENT BACKGROUND — cutout PNG, no background at all.
+
+Used as the CTA on the service cards, ~64px, hanging off the
+bottom-right corner of the label strip.
+Pink #F21C8C · cream #EFE7DA
+
+
+═══════════════════════════════════════════════════════════════
+PROMPT  (copy everything between the lines)
+═══════════════════════════════════════════════════════════════
+
+Extreme macro overhead shot of one single button made entirely of hot
+pink wool yarn (#F21C8C), floating alone on a fully transparent
+background with no scene, no surface and no backdrop of any kind. Shot
+from directly above at 90 degrees, perfectly circular in frame, no
+perspective distortion, precisely centred, filling about 80 percent of
+the frame.
+
+The button is not plastic — it is a crocheted and wound yarn button.
+Real fibre from edge to edge: a dense spiral of fine pink wool yarn
+coiled tightly from the outer rim inward, every individual ply and twist
+of the strand clearly resolved, thousands of tiny fuzzy fibre ends
+catching the light and standing up off the surface in a soft halo. The
+wool is deeply saturated hot magenta pink, with lighter blush pink where
+the light hits the top of each strand and deep rose shadow in the
+valleys between coils. A slight dome to the whole button, softly
+stuffed, so the centre sits proud of the rim.
+
+Four small holes are worked through the middle in a square, their edges
+bound with neat buttonhole stitching, and cream wool yarn (#EFE7DA) is
+threaded through them in a raised crossed X, the cream strand visibly
+fuzzy and twisted, its cut ends soft and frayed.
+
+Lit by a large soft overhead diffuser with one gentle key from the upper
+left, so the fibre halo rims with light. A whisper of self-shadow
+between the coils gives the wool depth — no cast shadow onto anything,
+because there is nothing beneath it.
+
+Photoreal macro fibre photography, tack sharp, ultra detailed, every
+fibre visible, everything in focus, isolated cutout on transparent
+background, 2K.
+
+═══════════════════════════════════════════════════════════════
+
+
+NEGATIVE / AVOID
+----------------
+background, backdrop, surface, table, floor, wall, fabric behind,
+white background, coloured background, gradient background, cast shadow,
+drop shadow, scene, props, hands, needle, pins, scissors, shirt,
+garment, plastic, resin, glossy plastic, smooth surface, ceramic, metal,
+wood, flat vector, illustration, cartoon, 3D render look, CGI plastic
+sheen, multiple buttons, text, numbers, logo, watermark, blurry, out of
+focus, low detail, matted fibres, pale pink, washed out, red tone,
+orange tone, purple tone, off-centre, cropped, tilted, angled view,
+perspective
+
+
+NOTES
+-----
+· Ask for a TRANSPARENT PNG. If the model insists on a background, take
+  the cleanest one and run remove_background — and ask for flat PURE
+  WHITE, never black. A fuzzy fibre halo cut off a dark backdrop leaves
+  a dark fringe you cannot clean up.
+
+· Generate 4 and pick for LIGHT DIRECTION first, detail second. The
+  card is lit from the upper left; a right-lit button reads as pasted
+  on no matter how good the fibre is.
+
+· Keep it at 80 percent of frame, not 95 — the fibre halo needs
+  headroom or the fuzz clips at the edges.
+
+· VARIANT — the thread carries the CTA and you drop the SVG arrow
+  entirely. Replace the cream-thread paragraph with:
+
+    Cream wool yarn is stitched across the face into a small arrow
+    pointing right, the raised stitches forming a clean chevron.
+
+· If you keep an SVG arrow on top instead, ask for the crossed X
+  low-contrast so the arrow stays readable over the fibre.
+
+
+WHERE IT GOES
+-------------
+card-lab.html → concept 04 "Yarn ball" → the .ball element.
+Right now .ball is a CSS gradient stack. Once the PNG is in, it becomes
+an <img> and the whole background block goes away.

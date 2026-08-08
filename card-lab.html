@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LOOM — button lab · 5 strip styles</title>
+<link rel="preload" href="/fonts/ClashDisplay-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/Satoshi-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<style>
+@font-face{font-family:'Clash Display';src:url('/fonts/ClashDisplay-Variable.woff2') format('woff2');font-weight:200 700;font-display:swap}
+@font-face{font-family:'Satoshi';src:url('/fonts/Satoshi-Variable.woff2') format('woff2');font-weight:300 900;font-display:swap}
+
+:root{
+  --bg:#0d0716; --bg-2:#120a1f; --bg-3:#1a1029;
+  --ink:#f2f0f7; --ink-dim:#a89fc0;
+  --magenta:#f21c8c; --magenta-deep:#b3126a; --violet:#7b2fbe; --gold:#ffc740;
+  --line:rgba(242,240,247,.1);
+  --yarn-pink:#d6247e; --yarn-violet:#9b55c9; --yarn-blue:#5cc0e8; --yarn-gold:#e0a82f; --yarn-cream:#efe7da;
+  --display:'Clash Display','Avenir Next',sans-serif;
+  --body:'Satoshi','Helvetica Neue',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --spring:linear(0,.0088 1.1%,.0346 2.3%,.1442 4.9%,.7688 14.2%,.9202 16.7%,1.0139 19.3%,1.0498 21.9%,1.0546 24.7%,1.0338 28.2%,.9994 32.6%,.9895 37.3%,.9994 44.2%,1.0026 55.3%,1);
+  --pad:clamp(20px,5vw,96px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+
+.lab-head{padding:clamp(56px,9vh,110px) var(--pad) 22px;max-width:880px}
+.lab-head h1{font-family:var(--display);font-weight:620;font-size:clamp(2.1rem,5.6vw,3.7rem);line-height:.98;letter-spacing:-.02em}
+.lab-head p{color:var(--ink-dim);margin-top:15px;max-width:58ch;line-height:1.6}
+.jump{display:flex;gap:8px;flex-wrap:wrap;padding:0 var(--pad) 8px}
+.jump a{font-family:var(--display);font-weight:560;font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:9px 15px;transition:.3s var(--ease)}
+.jump a:hover{color:#fff;border-color:var(--magenta)}
+
+.concept{padding:clamp(48px,7vh,86px) var(--pad) clamp(56px,8vh,100px);border-top:1px solid var(--line)}
+.c-head{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+.c-num{font-family:var(--display);font-weight:620;font-size:.78rem;letter-spacing:.2em;color:var(--magenta)}
+.c-head h2{font-family:var(--display);font-weight:620;font-size:clamp(1.5rem,3.2vw,2.3rem);letter-spacing:-.01em}
+.c-note{color:var(--ink-dim);max-width:64ch;line-height:1.65;margin-bottom:34px;font-size:.96rem}
+.c-note b{color:var(--ink);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(14px,1.6vw,26px)}
+@media(max-width:1080px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+
+/* ═══════════ THE CARD — unchanged from the live site ═══════════
+   photo, four-yarn rail, rounded tile, gentle lift. Only the strip
+   inside it changes between the five sections below. */
+.tile{position:relative;display:block;width:100%;aspect-ratio:4/5;border-radius:20px;overflow:hidden;
+  background:var(--bg-3);isolation:isolate;
+  transition:transform .55s var(--ease),box-shadow .55s var(--ease);
+  box-shadow:0 18px 40px -26px #000}
+.tile:hover{transform:translateY(-5px);box-shadow:0 30px 56px -28px rgba(0,0,0,.9)}
+.tile>img{width:100%;height:100%;object-fit:cover}
+.rail{position:absolute;inset:0 0 auto 0;height:6px;z-index:6;
+  background:repeating-linear-gradient(90deg,
+    var(--yarn-pink) 0 14px,var(--yarn-violet) 14px 28px,
+    var(--yarn-blue) 28px 42px,var(--yarn-gold) 42px 56px)}
+
+/* ═══════════════════════════════════════════════════════════════
+   01 · WOVEN TAPE — the strip is a real length of woven ribbon
+   ═══════════════════════════════════════════════════════════════ */
+.s-woven{position:absolute;left:13px;right:13px;bottom:13px;z-index:8;
+  display:flex;align-items:center;gap:12px;padding:12px 12px 12px 18px;border-radius:13px;
+  background:
+    /* the weft: horizontal threads running the length of the tape. Four of
+       them are dyed — one per yarn — the rest are the cream's own tooth.
+       Horizontal, never vertical: a dense vertical rule set reads as a
+       barcode, not as cloth. */
+    linear-gradient(180deg,transparent 0 21%,rgba(214,36,126,.16) 21% 23%,transparent 23% 38%,
+      rgba(155,85,201,.14) 38% 40%,transparent 40% 60%,
+      rgba(92,192,232,.14) 60% 62%,transparent 62% 77%,
+      rgba(224,168,47,.16) 77% 79%,transparent 79%),
+    repeating-linear-gradient(180deg,rgba(23,13,36,.05) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#f6f0e6,#e4d8c6);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.85) inset,     /* the raised top thread */
+    0 -1px 0 rgba(23,13,36,.14) inset,
+    0 10px 22px -12px rgba(0,0,0,.75)}
+/* the selvedge — the finished edge every woven tape has */
+.s-woven::before,.s-woven::after{content:'';position:absolute;left:9px;right:9px;height:2px;
+  background:repeating-linear-gradient(90deg,var(--dye) 0 4px,transparent 4px 8px);opacity:.55}
+.s-woven::before{top:5px}.s-woven::after{bottom:5px}
+.s-woven .t{flex:1;min-width:0;font-family:var(--display);font-weight:620;font-size:1.05rem;
+  letter-spacing:-.015em;color:#170d24;position:relative}
+/* the knot — a wound yarn ball, not a flat disc */
+/* a wound ball is CROSS-wound: strands laid over each other at opposing
+   angles. A repeating-conic makes rays from the centre and reads as a
+   spiral target instead — never use one for yarn. */
+.knot{position:relative;width:42px;height:42px;flex:none;border-radius:50%;
+  background:
+    repeating-linear-gradient(62deg,rgba(255,255,255,.16) 0 1.5px,transparent 1.5px 5px),
+    repeating-linear-gradient(62deg,rgba(0,0,0,.22) 0 2px,transparent 2px 5px),
+    repeating-linear-gradient(-48deg,rgba(0,0,0,.15) 0 2px,transparent 2px 6px),
+    radial-gradient(circle at 33% 28%,#ff6bb4,var(--magenta) 46%,var(--magenta-deep) 100%);
+  box-shadow:0 3px 9px -2px rgba(178,18,106,.85),0 -2px 5px rgba(255,255,255,.28) inset;
+  display:grid;place-items:center}
+.knot svg{width:16px;height:16px;stroke:#fff;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 1px 1px rgba(120,10,70,.6))}
+/* the loose tail, curling up off the knot into the photograph */
+.s-woven .tail{position:absolute;right:16px;bottom:100%;width:64px;height:46px;pointer-events:none}
+.s-woven .tail path{fill:none;stroke:var(--magenta);stroke-width:2.2;stroke-linecap:round;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
+
+/* ═══════════════════════════════════════════════════════════════
+   02 · SPOOL TAB — the label is a wooden spool laid on its side
+   ═══════════════════════════════════════════════════════════════ */
+/* edge to edge: a spool is flange–barrel–flange, so both ends must be flush
+   with the card or the right cap reads as a pill stuck onto the barrel */
+.s-spool{position:absolute;left:0;right:0;bottom:16px;z-index:8;
+  display:flex;align-items:stretch;height:58px;
+  filter:drop-shadow(0 10px 20px rgba(0,0,0,.6))}
+/* left flange — the spool's end cap, wound rings and all */
+.s-spool .cap{width:52px;flex:none;border-radius:0 6px 6px 0;position:relative;
+  background:
+    repeating-radial-gradient(circle at 22% 50%,rgba(23,13,36,.14) 0 2px,transparent 2px 5px),
+    linear-gradient(150deg,#d9c39e,#a8834e 62%,#8a663a);
+  box-shadow:0 2px 0 rgba(255,255,255,.4) inset,0 -3px 6px rgba(0,0,0,.3) inset}
+/* the barrel — cream, with the yarn actually wound around it */
+.s-spool .barrel{flex:1;min-width:0;display:flex;align-items:center;padding:0 18px;
+  background:
+    repeating-linear-gradient(74deg,rgba(23,13,36,.055) 0 5px,transparent 5px 11px),
+    linear-gradient(180deg,#f6f0e6,#e6dbca);
+  box-shadow:0 2px 0 rgba(255,255,255,.8) inset,0 -4px 9px -3px rgba(23,13,36,.3) inset}
+.s-spool .t{flex:1;min-width:0;font-family:var(--display);font-weight:620;font-size:1.05rem;
+  letter-spacing:-.015em;color:#170d24}
+/* right flange doubles as the CTA — a dyed end cap with a chevron */
+.s-spool .go{width:56px;flex:none;border-radius:6px 0 0 6px;display:grid;place-items:center;
+  background:
+    repeating-radial-gradient(circle at 78% 50%,rgba(255,255,255,.13) 0 2px,transparent 2px 6px),
+    linear-gradient(150deg,#ff5aa8,var(--magenta) 55%,var(--magenta-deep));
+  box-shadow:0 2px 0 rgba(255,255,255,.35) inset,0 -3px 8px rgba(120,10,70,.5) inset;
+  transition:transform .45s var(--spring)}
+/* the flange is flush with the card edge, so it nudges its chevron, not itself */
+.tile:hover .s-spool .go svg{transform:translateX(3px)}
+.s-spool .go svg{transition:transform .45s var(--spring);width:18px;height:18px;stroke:#fff;stroke-width:2.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+/* the thread coming off the spool, running up the card */
+.s-spool .feed{position:absolute;left:34px;bottom:100%;width:3px;height:74px;border-radius:3px;
+  background:linear-gradient(to top,var(--dye),transparent);opacity:.85}
+
+/* ═══════════════════════════════════════════════════════════════
+   03 · CROSS-STITCH PLATE — dark glass, hand-embroidered border
+   ═══════════════════════════════════════════════════════════════ */
+.s-stitch{position:absolute;left:13px;right:13px;bottom:13px;z-index:8;
+  display:flex;align-items:center;gap:13px;padding:15px 13px 15px 19px;border-radius:15px;
+  background:rgba(13,7,22,.5);backdrop-filter:blur(18px) saturate(1.4);
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border:1px solid rgba(242,240,247,.19);
+  box-shadow:0 12px 30px -16px #000,0 1px 0 rgba(255,255,255,.14) inset}
+/* the cross-stitch: two 45° dash runs crossing = a row of X's */
+.s-stitch::before{content:'';position:absolute;left:14px;right:14px;top:6px;height:7px;
+  background:
+    repeating-linear-gradient(45deg,var(--dye) 0 1.6px,transparent 1.6px 6px),
+    repeating-linear-gradient(-45deg,var(--dye) 0 1.6px,transparent 1.6px 6px);
+  opacity:.9}
+.s-stitch .meta{position:absolute;left:19px;top:-24px;font-family:var(--display);font-weight:620;
+  font-size:.68rem;letter-spacing:.22em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.9)}
+.s-stitch .t{flex:1;min-width:0;font-family:var(--display);font-weight:620;font-size:1.06rem;
+  letter-spacing:-.015em;color:#fff;padding-top:4px}
+/* the CTA is a hooped button — an embroidery ring around the disc */
+.hoop{position:relative;width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:50%;
+  background:var(--magenta);box-shadow:0 0 0 1.5px rgba(255,255,255,.28),0 0 0 5px rgba(242,28,140,.2),
+    0 6px 14px -6px var(--magenta);transition:transform .45s var(--spring)}
+.tile:hover .hoop{transform:rotate(45deg)}
+.hoop svg{width:16px;height:16px;stroke:#fff;stroke-width:2.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* ═══════════════════════════════════════════════════════════════
+   04 · YARN BALL — the CTA breaks the strip and sits on the edge
+   ═══════════════════════════════════════════════════════════════ */
+.s-ball{position:absolute;left:13px;right:13px;bottom:13px;z-index:8;
+  display:flex;align-items:center;padding:14px 66px 14px 19px;border-radius:14px;
+  background:linear-gradient(180deg,#f7f1e7,#e6dbca);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 -2px 0 rgba(23,13,36,.12) inset,
+    0 12px 26px -14px rgba(0,0,0,.8)}
+/* the dye chip: this card's yarn, declared like a swatch book */
+.s-ball .chip{position:absolute;left:0;top:11px;bottom:11px;width:5px;border-radius:0 4px 4px 0;background:var(--dye)}
+.s-ball .t{font-family:var(--display);font-weight:620;font-size:1.06rem;letter-spacing:-.015em;color:#170d24;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the ball itself — knitted, lit, and it overhangs the strip's corner */
+.ball{position:absolute;right:-6px;bottom:-8px;width:64px;height:64px;border-radius:50%;
+  display:grid;place-items:center;
+  background:
+    /* three passes of winding, each laid at its own angle, plus the raised
+       highlight side of each strand. No conic — see .knot. */
+    repeating-linear-gradient(56deg,rgba(255,255,255,.17) 0 2px,transparent 2px 7px),
+    repeating-linear-gradient(56deg,rgba(0,0,0,.2) 0 3px,transparent 3px 7px),
+    repeating-linear-gradient(-42deg,rgba(0,0,0,.16) 0 3px,transparent 3px 8px),
+    repeating-linear-gradient(4deg,rgba(0,0,0,.1) 0 2px,transparent 2px 9px),
+    radial-gradient(circle at 32% 26%,#ff74b9,var(--magenta) 44%,#9c0f5c 100%);
+  box-shadow:0 10px 20px -6px rgba(0,0,0,.75),0 -3px 7px rgba(255,255,255,.26) inset;
+  transition:transform .6s var(--spring)}
+.tile:hover .ball{transform:rotate(-16deg) scale(1.06)}
+.ball svg{width:20px;height:20px;stroke:#fff;stroke-width:2.7;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 1px 2px rgba(90,5,50,.75))}
+/* the strand it trails behind itself along the strip */
+.s-ball .strand{position:absolute;right:52px;bottom:14px;width:96px;height:26px;pointer-events:none}
+.s-ball .strand path{fill:none;stroke:var(--magenta);stroke-width:2;stroke-linecap:round;opacity:.7}
+
+/* ═══════════════════════════════════════════════════════════════
+   05 · SWATCH TAG — a punched fabric-sample tag, hung on the card
+   ═══════════════════════════════════════════════════════════════ */
+.s-tag{position:absolute;left:13px;right:13px;bottom:13px;z-index:8;
+  display:flex;align-items:center;gap:14px;padding:13px 14px 13px 40px;
+  border-radius:12px;background:linear-gradient(180deg,#f7f1e7,#e8ddcc);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 12px 26px -14px rgba(0,0,0,.8);
+  /* the perforated tear-off edge along the top */
+  -webkit-mask-image:radial-gradient(6px 6px at 12px 0,transparent 5.4px,#000 5.6px);
+  -webkit-mask-size:24px 100%;-webkit-mask-repeat:repeat-x;
+  mask-image:radial-gradient(6px 6px at 12px 0,transparent 5.4px,#000 5.6px);
+  mask-size:24px 100%;mask-repeat:repeat-x}
+/* the punched hanging hole, with its metal eyelet */
+.s-tag .hole{position:absolute;left:15px;top:50%;width:13px;height:13px;margin-top:-6.5px;border-radius:50%;
+  background:rgba(13,7,22,.9);box-shadow:0 0 0 2px rgba(23,13,36,.22),0 1px 0 rgba(255,255,255,.7)}
+.s-tag .col{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.s-tag .k{font-family:var(--display);font-weight:620;font-size:.6rem;letter-spacing:.2em;color:#8a7c68;
+  display:flex;align-items:center;gap:6px}
+.s-tag .k i{width:8px;height:8px;border-radius:2px;background:var(--dye);flex:none;
+  box-shadow:0 0 0 1px rgba(23,13,36,.25)}
+.s-tag .t{font-family:var(--display);font-weight:620;font-size:1.05rem;letter-spacing:-.015em;color:#170d24;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* squircle CTA, stamped rather than stuck on */
+.stamp{width:44px;height:44px;flex:none;border-radius:14px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#ff5aa8,var(--magenta) 58%,var(--magenta-deep));
+  box-shadow:0 2px 0 rgba(255,255,255,.32) inset,0 -3px 7px rgba(120,10,70,.55) inset,
+    0 8px 16px -8px var(--magenta);transition:transform .45s var(--spring)}
+.tile:hover .stamp{transform:translateX(3px)}
+.stamp svg{width:18px;height:18px;stroke:#fff;stroke-width:2.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* ═══════════════════════════════════════════════════════════════
+   06 · TWENTY BUTTONS — the cross-stitch plate, twenty CTAs
+
+   The plate, the label and the card never change. Only the object on
+   the right does, and each of the twenty is a DIFFERENT THING from the
+   trade — not one disc with twenty effects on it. Every one animates on
+   its own with no cursor near it.
+   ═══════════════════════════════════════════════════════════════ */
+.grid--btns{grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:18px}
+@media(max-width:520px){.grid--btns{grid-template-columns:repeat(2,1fr)}}
+.bcell{min-width:0}
+.bcell .cap{display:flex;align-items:baseline;gap:7px;margin-bottom:8px}
+.bcell .cap b{font-family:var(--display);font-weight:620;font-size:.78rem;color:var(--magenta);
+  letter-spacing:.1em}
+.bcell .cap span{font-family:var(--display);font-weight:600;font-size:.86rem;color:var(--ink)}
+.bcell .cap i{font-style:normal;color:var(--ink-faint);font-size:.72rem;margin-left:auto}
+
+.p-plate{position:absolute;left:11px;right:11px;bottom:11px;z-index:8;
+  display:flex;align-items:center;gap:11px;padding:13px 11px 13px 15px;border-radius:14px;
+  background:rgba(13,7,22,.52);backdrop-filter:blur(16px) saturate(1.4);
+  -webkit-backdrop-filter:blur(16px) saturate(1.4);
+  border:1px solid rgba(242,240,247,.18);box-shadow:0 10px 26px -14px #000}
+.p-plate::before{content:'';position:absolute;left:12px;right:12px;top:5px;height:6px;
+  background:repeating-linear-gradient(45deg,var(--dye) 0 1.4px,transparent 1.4px 5.4px),
+    repeating-linear-gradient(-45deg,var(--dye) 0 1.4px,transparent 1.4px 5.4px);opacity:.9}
+.p-plate .t{flex:1;min-width:0;font-family:var(--display);font-weight:620;font-size:.95rem;
+  color:#fff;letter-spacing:-.015em;padding-top:3px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+
+/* the shared slot. 56px — below ~50 every one of these collapses into
+   "a coloured dot" and the whole comparison stops being a comparison. */
+.b{position:relative;width:56px;height:56px;flex:none;display:grid;place-items:center}
+/* z-index 2 is load-bearing: .disc carries z-index 1, so an SVG left on
+   `auto` paints UNDERNEATH it however late it comes in the DOM — which
+   silently hid the coil, the needle, the hook and the pin behind a
+   plain pink circle. */
+.b svg:not(.ar){position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:2}
+.b .ar{position:relative;z-index:9;width:15px;height:15px;stroke:#fff;stroke-width:2.9;fill:none;
+  stroke-linecap:round;stroke-linejoin:round;inset:auto;filter:drop-shadow(0 1px 3px rgba(60,3,34,.9))}
+/* the magenta ground most of them sit on */
+.b .disc{position:absolute;inset:0;border-radius:50%;z-index:1;
+  background:radial-gradient(circle at 34% 28%,#ff6bb4,var(--magenta) 50%,var(--magenta-deep));
+  box-shadow:0 7px 16px -7px var(--magenta),inset 0 -4px 9px rgba(120,10,70,.5)}
+
+@keyframes b-spin{to{transform:rotate(360deg)}}
+@keyframes b-spinback{to{transform:rotate(-360deg)}}
+@keyframes b-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+@keyframes b-draw{0%{stroke-dashoffset:100}65%{stroke-dashoffset:0}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes b-scrollx{to{background-position-x:18px}}
+@keyframes b-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3.5px)}}
+
+/* 01 coil — a true Archimedean spiral, turning */
+.n1 .coil path{fill:none;stroke:var(--yarn-cream);stroke-width:2.5;stroke-linecap:round;opacity:.6}
+.n1 .coil{animation:b-spin 14s linear infinite}
+
+/* 02 four-yarn ripple */
+.n2 .disc{inset:10px}
+.n2 i{position:absolute;inset:10px;border-radius:50%;z-index:0;border:2.4px solid;
+  animation:ripple 3.2s cubic-bezier(.2,.6,.3,1) infinite}
+.n2 i:nth-child(1){border-color:var(--yarn-pink)}
+.n2 i:nth-child(2){border-color:var(--yarn-violet);animation-delay:.8s}
+.n2 i:nth-child(3){border-color:var(--yarn-blue);animation-delay:1.6s}
+.n2 i:nth-child(4){border-color:var(--yarn-gold);animation-delay:2.4s}
+@keyframes ripple{0%{transform:scale(1);opacity:.95}100%{transform:scale(2.4);opacity:0}}
+
+/* 03 spool end-on — thread paying out */
+.n3 .spool{position:absolute;inset:5px 0;border-radius:8px;z-index:1;overflow:hidden;
+  background:linear-gradient(180deg,#d9c39e 0 13%,#a8834e 13% 19%,var(--magenta) 19% 81%,#a8834e 81% 87%,#d9c39e 87%);
+  box-shadow:0 6px 14px -7px #000,inset 0 2px 0 rgba(255,255,255,.32)}
+.n3 .spool::before{content:'';position:absolute;inset:19% 0;
+  background:repeating-linear-gradient(72deg,rgba(255,255,255,.26) 0 3px,transparent 3px 9px,
+    rgba(0,0,0,.22) 9px 12px,transparent 12px 18px);
+  background-size:18px 100%;animation:b-scrollx 1.9s linear infinite}
+
+/* 04 stitched patch */
+.n4 .patch{position:absolute;inset:3px;border-radius:18px;z-index:1;
+  background:linear-gradient(155deg,#ff5aa8,var(--magenta) 55%,var(--magenta-deep));
+  box-shadow:0 6px 14px -7px var(--magenta),inset 0 2px 0 rgba(255,255,255,.28)}
+.n4 .patch::before{content:'';position:absolute;inset:5px;border-radius:13px;
+  border:2px dashed rgba(255,255,255,.85);animation:b-spin 3.6s linear infinite}
+
+/* 05 the real wool button, breathing */
+.n5 .wool{position:absolute;inset:-4px;z-index:2;
+  background:url('/img/wool/buttons/wool-button-256.webp') center/contain no-repeat;
+  filter:drop-shadow(0 5px 11px rgba(0,0,0,.6));animation:b-breathe 3.8s ease-in-out infinite}
+.n5 .glow{position:absolute;inset:2px;border-radius:50%;z-index:1;background:var(--magenta);
+  filter:blur(10px);animation:swell 3.8s ease-in-out infinite}
+.n5 .ar{display:none}
+@keyframes swell{0%,100%{transform:scale(.9);opacity:.3}50%{transform:scale(1.22);opacity:.65}}
+
+/* 06 pom-pom — a radial fuzz burst that jiggles */
+.n6 .pom{animation:jiggle 4.4s ease-in-out infinite;transform-origin:50% 50%}
+.n6 .pom line{stroke:var(--yarn-pink);stroke-width:3.4;stroke-linecap:round}
+.n6 .core{position:absolute;inset:16px;border-radius:50%;z-index:3;background:var(--magenta);
+  box-shadow:0 0 10px 3px rgba(242,28,140,.5)}
+@keyframes jiggle{0%,100%{transform:rotate(0) scale(1)}30%{transform:rotate(9deg) scale(1.06)}
+  60%{transform:rotate(-7deg) scale(.97)}}
+
+/* 07 braid — three strands plaiting, scrolling upward */
+.n7 .braid{position:absolute;inset:2px;border-radius:13px;z-index:1;overflow:hidden;
+  background:var(--magenta-deep);box-shadow:0 6px 14px -7px #000}
+.n7 .braid::before{content:'';position:absolute;inset:-40% 0;
+  background:
+    repeating-linear-gradient(58deg,var(--yarn-cream) 0 4px,transparent 4px 13px),
+    repeating-linear-gradient(-58deg,#ff6bb4 0 4px,transparent 4px 13px),
+    repeating-linear-gradient(90deg,var(--yarn-pink) 0 4px,transparent 4px 13px);
+  background-size:100% 26px;animation:plait 2.4s linear infinite}
+@keyframes plait{to{background-position-y:26px}}
+
+/* 08 skein — a twisted hank, swaying */
+.n8 .skein{animation:sway 5s ease-in-out infinite;transform-origin:50% 8%}
+.n8 .skein path{fill:none;stroke:var(--magenta);stroke-width:7;stroke-linecap:round}
+.n8 .skein path.hi{stroke:#ff8ec8;stroke-width:2.4;opacity:.75}
+@keyframes sway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+
+/* 09 thread cone — tapered, winding scroll */
+.n9 .cone{position:absolute;inset:2px 8px;z-index:1;overflow:hidden;
+  clip-path:polygon(30% 0,70% 0,100% 100%,0 100%);background:var(--magenta-deep)}
+.n9 .cone::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(80deg,rgba(255,255,255,.3) 0 2.5px,transparent 2.5px 8px,
+    rgba(0,0,0,.25) 8px 10px,transparent 10px 16px);
+  background-size:16px 100%;animation:b-scrollx 2.2s linear infinite}
+.n9 .cone::after{content:'';position:absolute;inset:auto 0 0 0;height:16%;background:#d9c39e}
+
+/* 10 four-hole button, cross-stitch redrawing */
+.n10 .disc{inset:2px}
+.n10 .xs path{fill:none;stroke:var(--yarn-cream);stroke-width:4;stroke-linecap:round;
+  stroke-dasharray:100;stroke-dashoffset:100;animation:b-draw 3.4s ease-in-out infinite}
+.n10 .xs path:nth-child(2){animation-delay:.5s}
+.n10 .hole{fill:rgba(60,3,34,.65)}
+.n10 .ar{display:none}
+
+/* 11 needle and thread — the needle stitches, the thread trails */
+.n11 .needle{animation:stitch 3.2s ease-in-out infinite}
+.n11 .needle path.n{stroke:#e8e4ee;stroke-width:3.2;stroke-linecap:round;fill:none}
+.n11 .needle ellipse{fill:none;stroke:#e8e4ee;stroke-width:2}
+.n11 .needle path.th{stroke:var(--magenta);stroke-width:2.4;fill:none;stroke-linecap:round;
+  stroke-dasharray:5 5;animation:pull 1.6s linear infinite}
+@keyframes stitch{0%,100%{transform:translate(-4px,4px) rotate(-8deg)}
+  50%{transform:translate(4px,-4px) rotate(-8deg)}}
+@keyframes pull{to{stroke-dashoffset:-20}}
+
+/* 12 crochet hook — dips and lifts */
+.n12 .hook{animation:dip 3.4s ease-in-out infinite;transform-origin:50% 50%}
+.n12 .hook path{fill:none;stroke:var(--yarn-gold);stroke-width:4;stroke-linecap:round}
+.n12 .hook path.loop{stroke:var(--magenta);stroke-width:3}
+@keyframes dip{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg) translateY(3px)}}
+
+/* 13 weave swatch — warp and weft crossing */
+.n13 .weave{position:absolute;inset:3px;border-radius:9px;z-index:1;overflow:hidden;
+  background:var(--yarn-cream);box-shadow:0 6px 14px -7px #000}
+.n13 .weave::before,.n13 .weave::after{content:'';position:absolute;inset:0}
+.n13 .weave::before{background:repeating-linear-gradient(90deg,var(--magenta) 0 4px,transparent 4px 9px);
+  animation:weftx 3s linear infinite}
+.n13 .weave::after{background:repeating-linear-gradient(0deg,var(--yarn-violet) 0 4px,transparent 4px 9px);
+  opacity:.75;animation:wefty 3.7s linear infinite}
+@keyframes weftx{to{background-position-x:9px}}
+@keyframes wefty{to{background-position-y:9px}}
+
+/* 14 knit arrow — the arrow itself is made of V stitches, no disc */
+.n14 .knar path{fill:none;stroke:var(--magenta);stroke-width:3.4;stroke-linecap:round;
+  stroke-linejoin:round}
+.n14 .knar path.v{stroke:var(--yarn-pink);stroke-width:2.6;opacity:.85;
+  animation:b-breathe 2.8s ease-in-out infinite;transform-origin:50% 50%}
+.n14 .ar{display:none}
+
+/* 15 bobbin ring — a wound donut, spinning */
+.n15 .ring{animation:b-spinback 8s linear infinite}
+.n15 .ring circle{fill:none;stroke:var(--magenta);stroke-width:11}
+.n15 .ring circle.w{stroke:var(--yarn-cream);stroke-width:11;stroke-dasharray:3 7;opacity:.55}
+.n15 .hub{position:absolute;inset:20px;border-radius:50%;z-index:3;background:#d9c39e;
+  box-shadow:inset 0 -2px 4px rgba(0,0,0,.3)}
+.n15 .ar{display:none}
+
+/* 16 tape measure — ticks scrolling past */
+.n16 .tape{position:absolute;inset:12px 0;border-radius:5px;z-index:1;overflow:hidden;
+  background:linear-gradient(180deg,#f6e9c8,#e2cf9f);box-shadow:0 6px 14px -7px #000}
+.n16 .tape::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#2b1b3f 0 1.6px,transparent 1.6px 8px);
+  background-size:8px 100%;animation:b-scrollx 2.6s linear infinite;
+  -webkit-mask-image:linear-gradient(180deg,#000 0 45%,transparent 45%);
+  mask-image:linear-gradient(180deg,#000 0 45%,transparent 45%)}
+
+/* 17 safety pin — opens a hair and closes */
+.n17 .pin{animation:snap 4s ease-in-out infinite;transform-origin:22% 78%}
+.n17 .pin path{fill:none;stroke:#dcd6e6;stroke-width:3.2;stroke-linecap:round}
+.n17 .pin path.hot{stroke:var(--magenta)}
+@keyframes snap{0%,72%,100%{transform:rotate(0)}84%{transform:rotate(-13deg)}}
+
+/* 18 zip pull — the tab swings */
+.n18 .zip{position:absolute;inset:2px;z-index:1;overflow:hidden;border-radius:9px;
+  background:linear-gradient(180deg,#3a2b4f,#241633)}
+.n18 .zip::before{content:'';position:absolute;inset:0 0 0 0;
+  background:repeating-linear-gradient(0deg,#b9b0c9 0 3px,transparent 3px 7px);
+  width:44%;left:0;opacity:.75}
+.n18 .zip::after{content:'';position:absolute;inset:0;left:56%;
+  background:repeating-linear-gradient(0deg,#b9b0c9 0 3px,transparent 3px 7px);opacity:.75}
+.n18 .tab{position:absolute;left:50%;top:46%;width:15px;height:24px;margin-left:-7.5px;z-index:3;
+  border-radius:4px 4px 8px 8px;background:linear-gradient(180deg,#ff6bb4,var(--magenta-deep));
+  transform-origin:50% 0;animation:swing 3.6s ease-in-out infinite}
+@keyframes swing{0%,100%{transform:rotate(-11deg)}50%{transform:rotate(11deg)}}
+
+/* 19 thimble — a dimpled dome with a light sweep */
+.n19 .thimble{position:absolute;inset:6px 11px;z-index:1;border-radius:22px 22px 5px 5px;
+  background:radial-gradient(circle at 34% 24%,#ffa3d2,var(--magenta) 55%,var(--magenta-deep));
+  background-image:radial-gradient(circle at 34% 24%,#ffa3d2,var(--magenta) 55%,var(--magenta-deep)),
+    radial-gradient(circle,rgba(0,0,0,.3) 1px,transparent 1.6px);
+  background-size:100% 100%,7px 7px;box-shadow:0 6px 14px -7px #000}
+.n19 .sheen{position:absolute;inset:6px 11px;border-radius:22px 22px 5px 5px;z-index:2;overflow:hidden}
+.n19 .sheen::before{content:'';position:absolute;top:-20%;bottom:-20%;width:34%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);
+  transform:skewX(-18deg);animation:sweep 3.8s ease-in-out infinite}
+@keyframes sweep{0%{left:-45%}55%,100%{left:115%}}
+
+/* 20 yarn ball with a tail that whips */
+.n20 .ball{position:absolute;inset:6px 14px 6px 2px;border-radius:50%;z-index:2;
+  background:
+    repeating-linear-gradient(56deg,rgba(255,255,255,.16) 0 2px,transparent 2px 6px),
+    repeating-linear-gradient(-44deg,rgba(0,0,0,.18) 0 2.5px,transparent 2.5px 7px),
+    radial-gradient(circle at 32% 26%,#ff74b9,var(--magenta) 46%,#9c0f5c);
+  box-shadow:0 6px 13px -6px #000;animation:roll 5s ease-in-out infinite}
+.n20 .tail path{fill:none;stroke:var(--magenta);stroke-width:2.6;stroke-linecap:round;
+  animation:whip 2.6s ease-in-out infinite;transform-origin:30% 50%}
+.n20 .ar{display:none}
+@keyframes roll{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+@keyframes whip{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(7deg)}}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;
+    animation-iteration-count:1!important}
+}
+</style>
+</head>
+<body>
+
+<header class="lab-head">
+  <h1>Same tile. Five strips.</h1>
+  <p>The card, the photograph and the four-yarn rail are exactly what the site ships today — nothing about them moves. Only the label strip and its button change, and every one of the five is built to land <em>standing still</em>: the detail is in the material, not in a hover. Hover only nudges.</p>
+</header>
+<nav class="jump">
+  <a href="#c1">01 Woven tape</a><a href="#c2">02 Spool tab</a><a href="#c3">03 Cross-stitch</a>
+  <a href="#c4">04 Yarn ball</a><a href="#c5">05 Swatch tag</a>
+</nav>
+
+<section class="concept" id="c1">
+  <div class="c-head"><span class="c-num">01</span><h2>Woven tape</h2></div>
+  <p class="c-note">The flat cream pill becomes <b>an actual length of woven ribbon</b> — four yarn threads run through the weft, a warp tooth runs the other way, and both selvedge edges are stitched in the card's own dye. The button is a <b>wound ball of magenta yarn</b> with a lit top-left and a loose tail curling up into the photograph. Nothing here needs a cursor to be seen.</p>
+  <div class="grid" id="g1"></div>
+</section>
+
+<section class="concept" id="c2">
+  <div class="c-head"><span class="c-num">02</span><h2>Spool tab</h2></div>
+  <p class="c-note">The strip is <b>a spool lying on its side</b>: a turned wooden end cap on the left, a cream barrel with the yarn visibly wound around it, and the right flange dyed magenta as the CTA. It runs off the left edge of the card the way the tag on a real bolt of fabric does, and a single thread <b>feeds up out of it into the image</b>. The loudest of the five.</p>
+  <div class="grid" id="g2"></div>
+</section>
+
+<section class="concept" id="c3">
+  <div class="c-head"><span class="c-num">03</span><h2>Cross-stitch plate</h2></div>
+  <p class="c-note">The quietest, and the closest to what you have. Dark glass instead of cream, so the photograph keeps going underneath it — and along the top edge <b>a row of hand cross-stitches in the card's dye</b>, made from two crossing dash runs. A small caps line rides above the plate. The button sits in an <b>embroidery hoop</b> — a hairline ring plus a soft dye halo.</p>
+  <div class="grid" id="g3"></div>
+</section>
+
+<section class="concept" id="c4">
+  <div class="c-head"><span class="c-num">04</span><h2>Yarn ball</h2></div>
+  <p class="c-note">The one that reads from across the room. The button <b>breaks out of the strip entirely</b> — a 64px knitted ball hanging off the bottom-right corner, cross-wound in three directions with a real specular highlight, trailing a strand back along the tape. On the left, the strip is capped with <b>a chip of this card's yarn</b>, so the grid doubles as a colour chart.</p>
+  <div class="grid" id="g4"></div>
+</section>
+
+<section class="concept" id="c5">
+  <div class="c-head"><span class="c-num">05</span><h2>Swatch tag</h2></div>
+  <p class="c-note">The most editorial. The strip is <b>a fabric-sample tag</b> — punched hanging hole with an eyelet on the left, a perforated tear-off edge running along the whole top, a dye chip beside a small-caps category line, and the service name under it. The CTA is a <b>stamped squircle</b> with a bevel rather than a flat circle. Gives every tile two lines of information instead of one.</p>
+  <div class="grid" id="g5"></div>
+</section>
+
+<section class="concept" id="c6">
+  <div class="c-head"><span class="c-num">06</span><h2>Twenty buttons</h2></div>
+  <p class="c-note">The cross-stitch plate from 03, twenty times. <b>The card, the plate and the label never change</b> — only the object on the right does, and no two are the same thing: a coil, a spool, a pom-pom, a braid, a skein, a thimble, a zip pull, a tape measure. Every one animates on its own with no cursor near it. All twenty are transform, opacity or background-position only.</p>
+  <div class="grid grid--btns" id="g6"></div>
+</section>
+
+<script>
+const NEEDS = [
+  { name:'Brand identity', photo:'brand-identity', dye:'var(--yarn-pink)',   kind:'IDENTITY' },
+  { name:'Website',        photo:'website',        dye:'var(--yarn-violet)', kind:'DIGITAL'  },
+  { name:'Mobile app',     photo:'mobile-app',     dye:'var(--yarn-blue)',   kind:'PRODUCT'  },
+  { name:'Social content', photo:'social-content', dye:'var(--yarn-gold)',   kind:'CONTENT'  },
+];
+const src = n => `/img/needs/${n}.webp`;
+const ARROW = `<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+const el = h => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
+
+// every section is the SAME tile — only `strip` differs
+const tile = (n, strip) => el(`
+  <button class="tile" style="--dye:${n.dye}" aria-label="Start a brief — ${n.name}">
+    <img src="${src(n.photo)}" alt="" loading="lazy" decoding="async">
+    <span class="rail"></span>
+    ${strip}
+  </button>`);
+
+/* 01 · woven tape */
+g1.append(...NEEDS.map(n => tile(n, `
+  <span class="s-woven">
+    <svg class="tail" viewBox="0 0 64 46" aria-hidden="true">
+      <path d="M52 46 C52 30 40 30 34 22 C28 14 34 6 44 8"/>
+    </svg>
+    <span class="t">${n.name}</span>
+    <span class="knot">${ARROW}</span>
+  </span>`)));
+
+/* 02 · spool tab */
+g2.append(...NEEDS.map(n => tile(n, `
+  <span class="s-spool">
+    <i class="feed"></i>
+    <span class="cap"></span>
+    <span class="barrel"><span class="t">${n.name}</span></span>
+    <span class="go">${ARROW}</span>
+  </span>`)));
+
+/* 03 · cross-stitch plate */
+g3.append(...NEEDS.map((n,i) => tile(n, `
+  <span class="s-stitch">
+    <span class="meta">SERVICE ${String(i+1).padStart(2,'0')}</span>
+    <span class="t">${n.name}</span>
+    <span class="hoop">${ARROW}</span>
+  </span>`)));
+
+/* 04 · yarn ball */
+g4.append(...NEEDS.map(n => tile(n, `
+  <span class="s-ball">
+    <i class="chip"></i>
+    <span class="t">${n.name}</span>
+    <svg class="strand" viewBox="0 0 96 26" aria-hidden="true">
+      <path d="M96 20 C78 26 70 8 54 12 C42 15 40 24 26 21"/>
+    </svg>
+    <span class="ball">${ARROW}</span>
+  </span>`)));
+
+/* 05 · swatch tag */
+g5.append(...NEEDS.map(n => tile(n, `
+  <span class="s-tag">
+    <i class="hole"></i>
+    <span class="col">
+      <span class="k"><i></i>${n.kind}</span>
+      <span class="t">${n.name}</span>
+    </span>
+    <span class="stamp">${ARROW}</span>
+  </span>`)));
+
+/* ═══════════════ 06 · twenty buttons ═══════════════ */
+
+// A true Archimedean spiral — r grows linearly with the angle. A
+// repeating-conic-gradient cannot do this: it makes RAYS from the
+// centre, which is why the earlier "coil" read as a dartboard.
+function spiralPath(turns = 3.4, r0 = 3.5, r1 = 24, cx = 28, cy = 28) {
+  const steps = Math.round(turns * 60), pts = []
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps, a = t * turns * Math.PI * 2 - Math.PI / 2
+    const r = r0 + (r1 - r0) * t
+    pts.push(`${(cx + Math.cos(a) * r).toFixed(2)},${(cy + Math.sin(a) * r).toFixed(2)}`)
+  }
+  return 'M' + pts.join('L')
+}
+// the pom-pom's fibres: one line per spoke, all from the centre out
+const pomLines = (n = 22, r0 = 9, r1 = 26) =>
+  Array.from({ length: n }, (_, i) => {
+    const a = (i / n) * Math.PI * 2
+    const r = r1 - (i % 3) * 3.5      // ragged, so it is fluff and not a sun
+    return `<line x1="${(28 + Math.cos(a) * r0).toFixed(1)}" y1="${(28 + Math.sin(a) * r0).toFixed(1)}"
+      x2="${(28 + Math.cos(a) * r).toFixed(1)}" y2="${(28 + Math.sin(a) * r).toFixed(1)}"/>`
+  }).join('')
+
+const SVG = (cls, inner) => `<svg class="${cls}" viewBox="0 0 56 56" aria-hidden="true">${inner}</svg>`
+const AR = '<svg class="ar" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+
+const BTNS = [
+  ['n1','Coil','a wound spiral, turning',
+    `<span class="disc"></span>${SVG('coil', `<path d="${spiralPath()}"/>`)}${AR}`],
+  ['n2','Four-yarn ripple','one ring per brand yarn',
+    `<i></i><i></i><i></i><i></i><span class="disc"></span>${AR}`],
+  ['n3','Spool','end-on, thread paying out', `<span class="spool"></span>${AR}`],
+  ['n4','Stitched patch','squircle, dashes marching', `<span class="patch"></span>${AR}`],
+  ['n5','Wool button','the real photograph, breathing',
+    `<span class="glow"></span><span class="wool"></span>${AR}`],
+  ['n6','Pom-pom','fluff that jiggles',
+    `${SVG('pom', pomLines())}<span class="core"></span>${AR}`],
+  ['n7','Braid','three strands plaiting', `<span class="braid"></span>${AR}`],
+  ['n8','Skein','a twisted hank, swaying',
+    `${SVG('skein', `<path d="M28 6 C15 14 15 40 28 50 C41 40 41 14 28 6"/>
+       <path class="hi" d="M22 16 C18 24 18 34 22 42"/>`)}${AR}`],
+  ['n9','Thread cone','tapered, winding on', `<span class="cone"></span>${AR}`],
+  ['n10','Four-hole button','the cross-stitch redraws',
+    `<span class="disc"></span>${SVG('xs', `
+       <circle class="hole" cx="21" cy="21" r="3"/><circle class="hole" cx="35" cy="21" r="3"/>
+       <circle class="hole" cx="21" cy="35" r="3"/><circle class="hole" cx="35" cy="35" r="3"/>
+       <path d="M21 21 L35 35" pathLength="100"/><path d="M35 21 L21 35" pathLength="100"/>`)}${AR}`],
+  ['n11','Needle and thread','it stitches, the thread pulls',
+    `<span class="disc"></span>${SVG('needle', `
+       <ellipse cx="19" cy="19" rx="3.4" ry="5" transform="rotate(45 19 19)"/>
+       <path class="n" d="M22 22 L40 40"/>
+       <path class="th" d="M16 16 C8 22 10 34 18 38"/>`)}${AR}`],
+  ['n12','Crochet hook','dips and lifts',
+    `<span class="disc"></span>${SVG('hook', `
+       <path d="M36 12 L20 40"/><path d="M20 40 c-4 6 5 9 7 3"/>
+       <path class="loop" d="M30 24 c-7 2 -7 10 0 12"/>`)}${AR}`],
+  ['n13','Weave swatch','warp and weft crossing', `<span class="weave"></span>${AR}`],
+  ['n14','Knit arrow','the arrow IS the stitches',
+    `${SVG('knar', `<path d="M10 28 H42 M32 18 l10 10 -10 10"/>
+       <path class="v" d="M12 36 l4 5 4 -5 M22 36 l4 5 4 -5"/>`)}`],
+  ['n15','Bobbin ring','a wound donut, spinning',
+    `${SVG('ring', `<circle cx="28" cy="28" r="18"/><circle class="w" cx="28" cy="28" r="18"/>`)}
+     <span class="hub"></span>`],
+  ['n16','Tape measure','ticks scrolling past', `<span class="tape"></span>${AR}`],
+  ['n17','Safety pin','opens a hair and closes',
+    `<span class="disc"></span>${SVG('pin', `
+       <path d="M17 40 C10 30 20 12 34 16" /><path class="hot" d="M34 16 C42 19 40 30 30 34"/>
+       <path d="M14 40 a4 4 0 1 0 7 0"/>`)}${AR}`],
+  ['n18','Zip pull','the tab swings', `<span class="zip"></span><span class="tab"></span>${AR}`],
+  ['n19','Thimble','dimpled, with a light sweep',
+    `<span class="thimble"></span><span class="sheen"></span>${AR}`],
+  ['n20','Ball and tail','it rolls, the tail whips',
+    `${SVG('tail', `<path d="M44 30 C52 24 50 44 40 44"/>`)}<span class="ball"></span>${AR}`],
+]
+
+g6.append(...BTNS.map(([id, name, note, body], i) => {
+  const need = NEEDS[i % NEEDS.length]
+  return el(`
+    <div class="bcell">
+      <div class="cap"><b>${String(i + 1).padStart(2, '0')}</b><span>${name}</span><i>${note}</i></div>
+      <button class="tile" style="--dye:${need.dye}" aria-label="Start a brief — ${need.name}">
+        <img src="${src(need.photo)}" alt="" loading="lazy" decoding="async">
+        <span class="rail"></span>
+        <span class="p-plate">
+          <span class="t">${need.name}</span>
+          <span class="b ${id}">${body}</span>
+        </span>
+      </button>
+    </div>`)
+}))
+</script>
+</body>
+</html>

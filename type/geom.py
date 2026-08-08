@@ -142,3 +142,92 @@ def xform(path, sx=1.0, sy=1.0, rot=0.0, dx=0.0, dy=0.0):
         elif verb == 5:    # closePath
             pen.closePath()
     return out
+
+
+def bar(p0, p1, w, ext=None):
+    """A square-capped stroke: the rectangle only, no end circles. `ext` is how
+    far it runs past each endpoint (w/2 by default, so it covers exactly the
+    same ground a round-capped stroke would)."""
+    (x0, y0), (x1, y1) = p0, p1
+    dx, dy = x1 - x0, y1 - y0
+    ln = math.hypot(dx, dy)
+    e = w / 2.0 if ext is None else ext
+    if ln < 1e-6:
+        return rect(x0 - w / 2, y0 - w / 2, x0 + w / 2, y0 + w / 2)
+    ux, uy = dx / ln, dy / ln
+    nx, ny = -uy * w / 2, ux * w / 2
+    ax, ay = x0 - ux * e, y0 - uy * e
+    bx, by = x1 + ux * e, y1 + uy * e
+    return poly([(ax + nx, ay + ny), (bx + nx, by + ny),
+                 (bx - nx, by - ny), (ax - nx, ay - ny)])
+
+
+def polystroke(points, w, miter=4.0):
+    """A stroke along a polyline with MITERED joins — the corner is filled to a
+    point, the way a knife-cut letter behaves, instead of two bars overlapping
+    and leaving a wedge of white on the inside of every acute angle."""
+    n = len(points)
+    if n < 2:
+        return rect(points[0][0] - w / 2, points[0][1] - w / 2,
+                    points[0][0] + w / 2, points[0][1] + w / 2)
+
+    def unit(a, b):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        ln = math.hypot(dx, dy) or 1.0
+        return dx / ln, dy / ln
+
+    left, right = [], []
+    for i, p in enumerate(points):
+        if i == 0:
+            d1 = d2 = unit(points[0], points[1])
+        elif i == n - 1:
+            d1 = d2 = unit(points[-2], points[-1])
+        else:
+            d1 = unit(points[i - 1], p)
+            d2 = unit(p, points[i + 1])
+        n1 = (-d1[1], d1[0])
+        n2 = (-d2[1], d2[0])
+        mx, my = n1[0] + n2[0], n1[1] + n2[1]
+        ml = math.hypot(mx, my)
+        if ml < 1e-6:            # a full reversal — fall back to one side
+            mx, my, ml = n1[0], n1[1], 1.0
+        mx, my = mx / ml, my / ml
+        cos_half = max(mx * n1[0] + my * n1[1], 1e-3)
+        k = min(1.0 / cos_half, miter) * w / 2
+        left.append((p[0] + mx * k, p[1] + my * k))
+        right.append((p[0] - mx * k, p[1] - my * k))
+    return poly(left + right[::-1])
+
+
+def rrect(x0, y0, x1, y1, r, corners=(1, 1, 1, 1)):
+    """Rounded rectangle. `corners` is (top-left, top-right, bottom-right,
+    bottom-left) — a 0 leaves that corner square. This is the skeleton the whole
+    round half of the face is built on: straight sides, one corner radius."""
+    w, h = x1 - x0, y1 - y0
+    r = max(0.0, min(r, w / 2, h / 2))
+    tl, tr, br, bl = [r if c else 0.0 for c in corners]
+    p = Path()
+    pen = p.getPen()
+    pen.moveTo((x0 + bl, y0))
+    pen.lineTo((x1 - br, y0))
+    if br:
+        pen.curveTo((x1 - br + br * K, y0), (x1, y0 + br - br * K), (x1, y0 + br))
+    pen.lineTo((x1, y1 - tr))
+    if tr:
+        pen.curveTo((x1, y1 - tr + tr * K), (x1 - tr + tr * K, y1), (x1 - tr, y1))
+    pen.lineTo((x0 + tl, y1))
+    if tl:
+        pen.curveTo((x0 + tl - tl * K, y1), (x0, y1 - tl + tl * K), (x0, y1 - tl))
+    pen.lineTo((x0, y0 + bl))
+    if bl:
+        pen.curveTo((x0, y0 + bl - bl * K), (x0 + bl - bl * K, y0), (x0 + bl, y0))
+    pen.closePath()
+    return p
+
+
+def rring(x0, y0, x1, y1, w, r, corners=(1, 1, 1, 1), ri=None):
+    """A rounded-rectangle ring of stroke width w."""
+    if ri is None:
+        ri = max(r - w * 0.62, 24)
+    return DIFF(rrect(x0, y0, x1, y1, r, corners),
+                rrect(x0 + w, y0 + w, x1 - w, y1 - w, ri, corners))

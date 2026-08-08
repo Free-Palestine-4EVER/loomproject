@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ascent idea 01 — THE WARP</title>
+<style>
+  @font-face { font-family:'Bloom'; src:url('/fonts/loom-bloom/LOOMBloom-Regular.woff2') format('woff2'); font-display:swap }
+  @font-face { font-family:'BloomRose'; src:url('/fonts/loom-bloom/LOOMBloomRose-Regular.woff2') format('woff2'); font-display:swap }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d0716;color:#f2f0f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+  .wrap{height:520vh}
+  .pin{position:sticky;top:0;height:100vh;overflow:hidden}
+  canvas{position:absolute;inset:0;width:100%;height:100%}
+  .hud{position:absolute;inset:0;pointer-events:none;padding:clamp(24px,4vw,56px);display:flex;flex-direction:column;justify-content:space-between}
+  .kick{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#857c9e}
+  .kick b{color:#f21c8c;font-weight:400}
+  h1{font-family:'Bloom',sans-serif;font-weight:400;font-size:clamp(40px,7vw,110px);line-height:.9;max-width:14ch}
+  .lede{max-width:46ch;color:#a89fc0;font-size:15px;line-height:1.6;margin-top:14px}
+  .terr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center}
+  .terr .n{font-family:'BloomRose',sans-serif;font-size:clamp(34px,6vw,86px);color:#fff;transition:opacity .35s}
+  .terr .b{font-size:13px;color:#a89fc0;margin-top:6px}
+  .rail{display:flex;gap:8px;align-items:center;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#857c9e}
+  .rail i{width:26px;height:2px;background:#2a2038;display:block;border-radius:2px}
+  .rail i.on{background:#f21c8c}
+  .back{position:fixed;left:16px;top:16px;z-index:5;font-size:12px;color:#a89fc0;text-decoration:none;border:1px solid rgba(242,240,247,.2);padding:8px 14px;border-radius:99px;background:rgba(13,7,22,.7)}
+  .note{position:fixed;right:16px;bottom:16px;z-index:5;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b5372}
+</style>
+</head>
+<body>
+<a class="back" href="/">← back to site</a>
+<div class="note">idea 01 · the warp — scroll · drag the shuttle</div>
+
+<div class="wrap">
+  <div class="pin">
+    <canvas id="c"></canvas>
+    <div class="hud">
+      <div>
+        <p class="kick"><b>◆</b> The Ascent — idea 01</p>
+        <h1 id="title">WE WEAVE BRANDS</h1>
+        <p class="lede">Six territories, six passes of the shuttle. The cloth you are watching build is the section — and by the end it is your brand, not ours.</p>
+      </div>
+      <div class="rail" id="rail"></div>
+    </div>
+    <div class="terr"><div class="n" id="tn"></div><div class="b" id="tb"></div></div>
+  </div>
+</div>
+
+<script>
+const TERR = [
+  ['BRANDING','Identity systems built to be unmistakable.'],
+  ['SOCIAL','Content the feed cannot scroll past.'],
+  ['AI SYSTEMS','Agents that answer, book and sell on their own.'],
+  ['WEB & APPS','Products people actually finish setting up.'],
+  ['3D & AR','Worlds and objects you can step inside.'],
+  ['CAMPAIGNS','Launches engineered to hit like an event.'],
+]
+const YARN = ['#d6247e','#9b55c9','#5cc0e8','#e0a82f']
+const c = document.getElementById('c'), ctx = c.getContext('2d')
+let W=0,H=0,dpr=Math.min(devicePixelRatio||1,2)
+function size(){W=c.clientWidth;H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
+addEventListener('resize',size);size()
+
+const WARPS = 46
+let p = 0, shuttleX = 0, dragging = false, throwV = 0
+
+function progress(){
+  const wrap=document.querySelector('.wrap'), r=wrap.getBoundingClientRect()
+  const total=wrap.offsetHeight-innerHeight
+  return Math.min(1,Math.max(0,(-r.top)/total))
+}
+
+function draw(){
+  p = progress()
+  ctx.clearRect(0,0,W,H)
+  const top=H*0.08, bot=H*0.92, span=bot-top
+  const left=W*0.08, right=W*0.92, wspan=right-left
+
+  // warp — the vertical threads, always there
+  for(let i=0;i<WARPS;i++){
+    const t=i/(WARPS-1), x=left+t*wspan
+    ctx.strokeStyle='rgba(242,240,247,'+(0.05+0.05*Math.sin(t*9))+')'
+    ctx.lineWidth=2
+    ctx.beginPath()
+    ctx.moveTo(x,top)
+    for(let y=top;y<=bot;y+=18){
+      const sway=Math.sin((y*0.01)+(t*6)+p*4)*3
+      ctx.lineTo(x+sway,y)
+    }
+    ctx.stroke()
+  }
+
+  // weft — one pass per territory, laid down as you scroll
+  const passes = p*TERR.length
+  for(let k=0;k<TERR.length;k++){
+    const local = Math.min(1,Math.max(0,passes-k))
+    if(local<=0) continue
+    const y = top+span*(0.16+k*0.135)
+    const dir = k%2===0 ? 1 : -1
+    const x0 = dir>0?left:right, x1 = dir>0?right:left
+    const xEnd = x0+(x1-x0)*local
+    ctx.strokeStyle=YARN[k%YARN.length]
+    ctx.lineWidth=Math.max(8,H*0.016)
+    ctx.lineCap='round'
+    ctx.beginPath()
+    ctx.moveTo(x0,y)
+    const steps=60
+    for(let s=1;s<=steps;s++){
+      const t=s/steps, x=x0+(xEnd-x0)*t
+      // the thread dips over and under the warp — that is what makes it read as cloth
+      const over=Math.sin(t*WARPS*Math.PI*0.5)*(H*0.006)
+      ctx.lineTo(x,y+over)
+    }
+    ctx.stroke()
+
+    // the shuttle sits at the head of the live pass
+    if(local<1){
+      const sy=y
+      ctx.save()
+      ctx.translate(xEnd,sy)
+      ctx.fillStyle='#efe7da'
+      ctx.beginPath()
+      ctx.ellipse(0,0,Math.max(22,W*0.018),Math.max(9,H*0.011),0,0,Math.PI*2)
+      ctx.fill()
+      ctx.fillStyle=YARN[k%YARN.length]
+      ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.fill()
+      ctx.restore()
+      shuttleX=xEnd
+    }
+  }
+
+  // the cloth thickens: a soft glow behind the woven area
+  const g=ctx.createLinearGradient(0,top,0,bot)
+  g.addColorStop(0,'rgba(242,28,140,'+(0.05*p)+')')
+  g.addColorStop(1,'rgba(89,230,255,'+(0.05*p)+')')
+  ctx.fillStyle=g
+  ctx.fillRect(left,top,wspan,span*Math.min(1,p*1.2))
+
+  // labels
+  const idx=Math.min(TERR.length-1,Math.floor(passes))
+  const t=TERR[idx]
+  document.getElementById('tn').textContent = p>0.02 ? t[0] : ''
+  document.getElementById('tb').textContent = p>0.02 ? t[1] : ''
+  document.getElementById('title').textContent = p>0.9 ? 'NOW YOUR BRAND' : 'WE WEAVE BRANDS'
+
+  const rail=document.getElementById('rail')
+  if(!rail.dataset.built){
+    rail.innerHTML=TERR.map(()=>'<i></i>').join('')+'<span style="margin-left:10px">six territories</span>'
+    rail.dataset.built='1'
+  }
+  ;[...rail.querySelectorAll('i')].forEach((el,i)=>el.classList.toggle('on', i<=idx && p>0.02))
+
+  requestAnimationFrame(draw)
+}
+draw()
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LOOM — button lab · 5 CTAs</title>
+<link rel="preload" href="/fonts/ClashDisplay-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<style>
+@font-face{font-family:'Clash Display';src:url('/fonts/ClashDisplay-Variable.woff2') format('woff2');font-weight:200 700;font-display:swap}
+@font-face{font-family:'Satoshi';src:url('/fonts/Satoshi-Variable.woff2') format('woff2');font-weight:300 900;font-display:swap}
+:root{
+  --bg:#0d0716;--ink:#f2f0f7;--ink-dim:#a89fc0;
+  --magenta:#f21c8c;--magenta-deep:#b3126a;
+  --yarn-pink:#d6247e;--yarn-violet:#9b55c9;--yarn-blue:#5cc0e8;--yarn-gold:#e0a82f;--yarn-cream:#efe7da;
+  --display:'Clash Display','Avenir Next',sans-serif;--body:'Satoshi','Helvetica Neue',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);--pad:clamp(20px,5vw,72px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+.head{padding:clamp(44px,7vh,86px) var(--pad) 8px;max-width:830px}
+.head h1{font-family:var(--display);font-weight:620;font-size:clamp(1.9rem,4.4vw,3rem);letter-spacing:-.02em}
+.head p{color:var(--ink-dim);margin-top:13px;line-height:1.6}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px;padding:34px var(--pad) 90px;align-items:start}
+.opt h2{font-family:var(--display);font-weight:620;font-size:1.05rem;margin-bottom:4px}
+.opt h2 span{color:var(--magenta);font-size:.72rem;letter-spacing:.18em;display:block;margin-bottom:5px}
+.opt p{color:var(--ink-dim);font-size:.85rem;line-height:1.5;margin-bottom:16px;min-height:5.4em}
+
+/* ═══ THE CARD — identical in all five ═══════════════════════════ */
+.tile{position:relative;display:block;width:100%;aspect-ratio:4/5;border-radius:22px;overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(242,240,247,.07),0 16px 40px -22px rgba(0,0,0,.8);
+  transition:transform .5s var(--ease)}
+.tile:hover{transform:translateY(-5px)}
+.tile>img{width:100%;height:100%;object-fit:cover}
+.rail{position:absolute;top:0;left:0;right:0;height:5px;z-index:5;
+  background:repeating-linear-gradient(90deg,var(--yarn-pink) 0 7px,var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,var(--yarn-gold) 21px 28px)}
+.tile::after{content:'';position:absolute;inset:auto 0 0 0;height:46%;z-index:2;pointer-events:none;
+  background:linear-gradient(to top,rgba(24,12,34,.52),rgba(24,12,34,0) 78%)}
+.plate{position:absolute;left:13px;right:13px;bottom:13px;z-index:4;
+  display:flex;align-items:center;gap:13px;padding:16px 13px 16px 19px;border-radius:15px;
+  background:rgba(13,7,22,.5);backdrop-filter:blur(18px) saturate(1.4);
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border:1px solid rgba(242,240,247,.19);
+  box-shadow:0 12px 30px -16px #000,0 1px 0 rgba(255,255,255,.14) inset}
+.plate::before{content:'';position:absolute;left:14px;right:14px;top:6px;height:7px;
+  background:repeating-linear-gradient(45deg,var(--dye) 0 1.6px,transparent 1.6px 6px),
+    repeating-linear-gradient(-45deg,var(--dye) 0 1.6px,transparent 1.6px 6px);opacity:.9}
+.meta{position:absolute;left:19px;top:-24px;font-family:var(--display);font-weight:620;
+  font-size:.68rem;letter-spacing:.22em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.9)}
+.t{flex:1;min-width:0;font-family:var(--display);font-weight:620;font-size:1.06rem;
+  letter-spacing:-.015em;color:#fff;padding-top:4px}
+
+/* the CTA slot. Bigger than before — at 46px every treatment collapsed
+   into "a pink dot" and all five read the same from a metre away. */
+.cta{position:relative;width:60px;height:60px;flex:none;display:grid;place-items:center}
+.cta > svg.arrow{width:17px;height:17px;stroke:#fff;stroke-width:2.8;fill:none;stroke-linecap:round;
+  stroke-linejoin:round;position:relative;z-index:6;filter:drop-shadow(0 1px 3px rgba(60,3,34,.9))}
+
+/* ─── 1 · THE COIL ────────────────────────────────────────────
+   A real Archimedean spiral of cream yarn, drawn as one stroked
+   path and turning. Not a repeating-conic faking it — a conic makes
+   RAYS from the centre, which is why the last pass read as a target. */
+.b1 .disc{position:absolute;inset:0;border-radius:50%;z-index:1;
+  background:radial-gradient(circle at 34% 28%,#ff6bb4,var(--magenta) 50%,var(--magenta-deep));
+  box-shadow:0 8px 18px -7px var(--magenta),inset 0 -4px 9px rgba(120,10,70,.55)}
+.b1 .coil{position:absolute;inset:0;z-index:2;animation:spin 14s linear infinite}
+.b1 .coil path{fill:none;stroke:var(--yarn-cream);stroke-width:2.6;stroke-linecap:round;opacity:.62}
+
+/* ─── 2 · THE FOUR-YARN RIPPLE ────────────────────────────────
+   Four rings, one per yarn, firing out in sequence. The card's whole
+   palette in one object instead of another magenta dot. */
+.b2 .disc{position:absolute;inset:12px;border-radius:50%;z-index:3;
+  background:radial-gradient(circle at 34% 28%,#ff6bb4,var(--magenta) 50%,var(--magenta-deep));
+  box-shadow:0 6px 14px -6px var(--magenta)}
+.b2 i{position:absolute;inset:12px;border-radius:50%;z-index:1;border:2.5px solid;
+  animation:ripple 3.2s cubic-bezier(.2,.6,.3,1) infinite}
+.b2 i:nth-child(1){border-color:var(--yarn-pink);animation-delay:0s}
+.b2 i:nth-child(2){border-color:var(--yarn-violet);animation-delay:.8s}
+.b2 i:nth-child(3){border-color:var(--yarn-blue);animation-delay:1.6s}
+.b2 i:nth-child(4){border-color:var(--yarn-gold);animation-delay:2.4s}
+@keyframes ripple{0%{transform:scale(1);opacity:.95}100%{transform:scale(2.5);opacity:0}}
+
+/* ─── 3 · THE SPOOL ───────────────────────────────────────────
+   Not a circle at all. A spool seen end-on: two flanges, a barrel of
+   wound thread between them, turning as if it is paying out. */
+.b3 .cta{width:64px}
+.b3 .spool{position:absolute;inset:6px 0;border-radius:9px;z-index:1;overflow:hidden;
+  background:linear-gradient(180deg,#d9c39e 0 14%,#a8834e 14% 20%,var(--magenta) 20% 80%,#a8834e 80% 86%,#d9c39e 86%);
+  box-shadow:0 7px 16px -7px #000,inset 0 2px 0 rgba(255,255,255,.35)}
+/* the wound thread — diagonal bands scrolling round the barrel */
+.b3 .spool::before{content:'';position:absolute;inset:20% 0;
+  background:repeating-linear-gradient(72deg,rgba(255,255,255,.26) 0 3px,transparent 3px 9px,
+    rgba(0,0,0,.22) 9px 12px,transparent 12px 18px);
+  background-size:18px 100%;animation:pay 1.9s linear infinite}
+@keyframes pay{to{background-position:18px 0}}
+
+/* ─── 4 · THE STITCHED PATCH ──────────────────────────────────
+   A squircle of felt with a dashed blanket-stitch border that travels
+   round it, the way a needle works an edge. Square, so it cannot be
+   confused with the other four at a glance. */
+.b4 .patch{position:absolute;inset:4px;border-radius:19px;z-index:1;
+  background:linear-gradient(155deg,#ff5aa8,var(--magenta) 55%,var(--magenta-deep));
+  box-shadow:0 7px 16px -7px var(--magenta),inset 0 2px 0 rgba(255,255,255,.3)}
+.b4 .patch::before{content:'';position:absolute;inset:5px;border-radius:14px;
+  border:2px dashed rgba(255,255,255,.85);
+  /* dashes MARCH round the edge — dashoffset on a border is not
+     animatable, so the whole ring rotates a hair instead */
+  animation:march 3.4s linear infinite}
+@keyframes march{to{transform:rotate(360deg)}}
+
+/* ─── 5 · THE REAL BUTTON, BREATHING ──────────────────────────
+   The photographed wool button, scaling gently with a dye glow that
+   swells under it. The only one made of an actual material. */
+.b5 .cta{width:66px;height:66px}
+.b5 .wool{position:absolute;inset:0;z-index:2;
+  background:url('/img/wool/buttons/wool-button-256.webp') center/contain no-repeat;
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.6));
+  animation:breathe 3.8s ease-in-out infinite}
+.b5 .glow{position:absolute;inset:0;border-radius:50%;z-index:1;background:var(--magenta);
+  filter:blur(11px);opacity:.5;animation:swell 3.8s ease-in-out infinite}
+.b5 .arrow{display:none}
+@keyframes breathe{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.09) rotate(6deg)}}
+@keyframes swell{0%,100%{transform:scale(.9);opacity:.35}50%{transform:scale(1.25);opacity:.7}}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* every animation is transform, opacity or a background-position — no
+   layout, nothing on the card itself. Eight of these share one screen. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>Five buttons, five different objects.</h1>
+  <p>Same card, same plate, same label — the left side never changes. Only the CTA does, and this time they are not five animations on one pink disc: a coil, a ripple, a spool, a patch and the real wool button. All animate on their own, no cursor required.</p>
+</div>
+<div class="row" id="row"></div>
+<script>
+const NEEDS = [
+  { name:'Brand identity', photo:'brand-identity', dye:'var(--yarn-pink)' },
+  { name:'Website',        photo:'website',        dye:'var(--yarn-violet)' },
+  { name:'Mobile app',     photo:'mobile-app',     dye:'var(--yarn-blue)' },
+  { name:'Social content', photo:'social-content', dye:'var(--yarn-gold)' },
+]
+const ARROW = '<svg class="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+
+// A true Archimedean spiral: r grows linearly with the angle. Sampled
+// densely enough (6° a step) that the polyline reads as a smooth coil.
+function spiral(turns = 3.6, r0 = 4, r1 = 26) {
+  const steps = turns * 60, pts = []
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps, a = t * turns * Math.PI * 2 - Math.PI / 2
+    const r = r0 + (r1 - r0) * t
+    pts.push(`${(30 + Math.cos(a) * r).toFixed(2)},${(30 + Math.sin(a) * r).toFixed(2)}`)
+  }
+  return 'M' + pts.join('L')
+}
+
+const CTA = {
+  b1: `<span class="disc"></span>
+       <svg class="coil" viewBox="0 0 60 60" aria-hidden="true"><path d="${spiral()}"/></svg>${ARROW}`,
+  b2: `<i></i><i></i><i></i><i></i><span class="disc"></span>${ARROW}`,
+  b3: `<span class="spool"></span>${ARROW}`,
+  b4: `<span class="patch"></span>${ARROW}`,
+  b5: `<span class="glow"></span><span class="wool"></span>${ARROW}`,
+}
+
+const OPTS = [
+  ['b1','1','The coil','A real Archimedean spiral of cream yarn wound from the centre out, turning once every 14 seconds. Slow enough that it never reads as a loading spinner — the trap with anything circular that moves.'],
+  ['b2','2','Four-yarn ripple','Four rings, one in each of the brand yarns, firing outward in sequence on a 3.2s cycle. Puts the whole palette in the CTA instead of yet another magenta dot.'],
+  ['b3','3','The spool','Not a circle at all — a spool seen end-on, wooden flanges top and bottom, thread wound round the barrel and scrolling as if it is paying out. The one that cannot be mistaken for a generic UI button.'],
+  ['b4','4','Stitched patch','A magenta squircle with a blanket-stitch border travelling round it, like a needle working an edge. Square, so it reads as a made object rather than an icon chip.'],
+  ['b5','5','The real button, breathing','Your photographed wool button, swelling gently with a dye glow blooming underneath. The only one made of actual material rather than CSS.'],
+]
+
+row.innerHTML = OPTS.map(([k,n,title,note],i) => {
+  const need = NEEDS[i % NEEDS.length]
+  return `
+  <div class="opt ${k}">
+    <h2><span>OPTION ${n}</span>${title}</h2>
+    <p>${note}</p>
+    <button class="tile" style="--dye:${need.dye}" aria-label="Start a brief — ${need.name}">
+      <img src="/img/needs/${need.photo}.webp" alt="">
+      <span class="rail"></span>
+      <span class="plate">
+        <span class="meta">SERVICE 0${i+1}</span>
+        <span class="t">${need.name}</span>
+        <span class="cta">${CTA[k]}</span>
+      </span>
+    </button>
+  </div>`
+}).join('')
+</script>
+</body>
+</html>

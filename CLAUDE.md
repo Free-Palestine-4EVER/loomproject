@@ -143,6 +143,61 @@ rect is the whole viewport and useless for measuring overlap — use the bbox.
 near-camera depths only land on waypoints already out past ~|0.55| on x. Big
 *and* central is the combination that makes the duck fire constantly.
 
+## The typeface — LOOM Bloom
+
+The studio has its own display family, drawn from scratch: **LOOM Bloom**, a
+condensed brutal grotesque (flat terminals, mitred joins), in **five cuts** —
+`Regular` plus four planted ones that share its metrics exactly: `Rose`,
+`Daisy`, `Tulip`, `Ivy`. Each planted cut subtracts a different species
+(`glyphs.ornament(kind, fam)`), and `build.py`'s `CUTS` list is the whole
+family definition.
+It is given away on **`/type`** (`src/components/Typeface.jsx`), and `/type` is
+the reason `App.jsx` carries a `PAGES` route table at all.
+
+```bash
+python3 -m pip install skia-pathops brotli   # once
+cd type && python3 build.py                  # all five cuts -> type/out/
+cp type/out/LOOMBloom*.{otf,ttf,woff2} public/fonts/loom-bloom/
+cd public/fonts/loom-bloom && zip -j LOOM-Bloom.zip LOOMBloom*.* LICENCE.txt README.txt
+```
+
+`type/geom.py` has the primitives — square-capped `bar`, ellipse, arc cut from an
+annulus, and `polystroke`, which strokes a polyline with MITRED joins (that is
+what makes A/M/W/K/Z corner properly instead of leaving white wedges); `type/glyphs.py` builds every glyph as a **boolean union** of them,
+so overlapping strokes fuse and terminals stay perfectly round. `type/floral.py`
+*subtracts* the motif — anything hanging past a stem simply vanishes, which is
+why no anchor has to be checked against the outline. `type/preview.py` and
+`zoom.py` render contact sheets to SVG for eyeballing (`qlmanage -t` turns them
+into PNGs); `type/out/proof.html` is the same check through the real font.
+
+**Two rules decide whether a glyph comes out or not.**
+
+1. *A ring box shorter than `2*W + 60` has no counter left.* That is what killed
+   J, ?, & and % on the first pass — they now carry a lighter local stroke
+   (`W * 0.58`–`0.8`) or a taller box. B/P/R state their counter box outright
+   via `_bowl_r` rather than letting `rring` use one width all round, because the
+   middle rail is lighter than the outer two.
+2. *Acute joins need `polystroke`, not overlapping bars.* Two `bar()`s meeting at
+   an apex leave a white wedge on the inside. A/M/N/V/W/K/Y/Z/1/4/7 are one
+   mitred polyline each, run past the glyph box and trimmed by `TRIM`.
+
+If you edit any of them, re-render the sheet with `preview.py` and look at it.
+
+Two components carry it into the site: `TypeShowcase.jsx` is the `#typeface`
+section on the long page (a cycling word that changes cut every 2.1s, gated
+behind an IntersectionObserver so the heavy planted fonts are only fetched near
+the viewport), and `PosterMachine.jsx` on `/type` renders a real 1600×2000
+poster to a canvas from the live font and downloads it as a PNG. Both are in the
+`Typeface` nav entry's orbit — `LINKS` in `Chrome.jsx` carries `/type`.
+
+**`background-clip: text` needs an auto-height box.** The cycling word vanished
+until its absolutely-positioned lines used `left/top/width` instead of
+`inset: 0` — a forced height clips the background box the text is cut from.
+
+If you change the font files, update the sizes quoted in `Typeface.jsx`
+(`FILES`, `ZIP_SIZE`) and the counts in `FACTS` — they are
+hardcoded, not measured.
+
 ## Assets
 
 `scripts/*.mjs` is the asset pipeline (`build-assets.mjs`, `make-butterfly.mjs`,

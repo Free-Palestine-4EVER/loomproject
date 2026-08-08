@@ -496,13 +496,19 @@ html.cursor-hot .cursor-ring {
 
 /* ——— marquee ——— */
 /* The second thing after the hero, so it has to carry weight rather than act
-   as a rule between two sections. It gets real height, its own lit ground, and
+   as a rule between two sections. It gets big type, its own lit ground, and
    a four-yarn hairline top and bottom — the same stripe .kicker::after and
    .blk-rail already run, so the wall belongs to the system rather than
    inventing a decoration. */
 .marquee {
   position: relative;
-  padding: clamp(30px, 5vh, 58px) 0;
+  /* The band hugs the caps. The type is NOT smaller — what went was the empty
+     air around it. Measured at 1440: the names paint 36px of ink and used to
+     float inside a 161px box; they now sit in a 60px one with 11px clear
+     above and 13px below, so the 3px yarn hairlines still read as edges
+     rather than as an underline. Shrink this further and they start to
+     crowd the caps. */
+  padding: clamp(5px, 0.75vh, 8px) 0;
   overflow: hidden;
   background:
     radial-gradient(120% 160% at 50% 50%, rgba(242, 28, 140, 0.10), rgba(18, 10, 31, 0) 62%),
@@ -553,6 +559,26 @@ html.cursor-hot .cursor-ring {
      1.05rem it was reading as a caption strip. Fluid so it stays large on a
      wide monitor without overflowing a phone. */
   font-size: clamp(1.5rem, 2.9vw, 2.9rem);
+  /* Deliberately below 1. This string is uppercase Clash Display and every
+     glyph in it — client names plus the * separators — sits between the
+     baseline and the cap line, so the descent half of a normal line box is
+     pure dead space. 0.86 collapses that box to roughly cap height and lets
+     the section shrink to the type instead of the type's metrics. The glyphs
+     overflow their own line box by ~6px a side and are caught by .marquee's
+     padding, not clipped.
+
+     The one thing that IS below the baseline is nothing — but one thing rises
+     ABOVE the cap line: the caron on ŠAH MAT BURGER, which reaches 0.86em
+     where plain caps stop at 0.67em. That matters more than it looks, because
+     the sheen below is `background-clip: text` and a background only paints
+     inside the element's own box: any ink poking out of the box is clipped to
+     a transparent fill and the glyph simply DISAPPEARS. At line-height 0.86
+     the box top sits 0.753em over the baseline, so the Š lost its caron and
+     read as a plain S. padding-block gives the box that 0.11em back — at the
+     top only, since with no descenders the bottom needs none, which is what
+     keeps the band short. */
+  line-height: 0.86;
+  padding-block: 0.16em 0;
   letter-spacing: 0.10em; color: #fff;
   text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 44px; white-space: nowrap;
@@ -591,7 +617,9 @@ html.cursor-hot .cursor-ring {
   .marquee-track { animation: none; flex-wrap: wrap; width: auto; padding: 0 var(--pad); gap: 18px; }
   /* Freeze the sheen mid-gradient rather than dropping to flat white — the
      wall keeps its pink without anything moving. */
-  .marquee span { gap: 18px; animation: none; background-position: -130% 0; }
+  /* the wrapped layout stacks rows, so give the line box its descent back —
+     0.86 is only correct for the single-line moving band */
+  .marquee span { gap: 18px; animation: none; background-position: -130% 0; line-height: 1.15; }
 }
 
 /* ——— manifesto ——— */
@@ -1391,3 +1419,27 @@ html.cursor-hot .cursor-ring {
   }
   .wmodal-panel.is-sheet .wmodal-scroll { touch-action: pan-y; overscroll-behavior: contain; }
 }
+
+/* ═══ WHITE HEADER ═══
+   Must stay after the .nav / .nav-links rules above: same specificity, so
+   source order decides. The bar goes white, which means every mark on it has
+   to flip too — a white bar with the old --ink-dim links is ~1.9:1 and
+   unreadable. Ink is #241733 (12.9:1 on white); the dim state is #5b4a70
+   (5.6:1) so the resting nav is still legible, not decorative. */
+.nav {
+  background: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.72) 70%, rgba(255,255,255,0) 100%);
+  border-bottom: 1px solid rgba(36, 23, 51, 0.08);
+}
+.nav--scrolled {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom-color: rgba(36, 23, 51, 0.12);
+}
+.nav-links a { color: #5b4a70; }
+.nav-links a:hover,
+.nav-links a.is-current span { color: #241733; }
+/* the roll-up copy underneath each link keeps the magenta — it is the one
+   brand accent on the bar and it passes on white (4.7:1) */
+.nav-links a span::after { color: var(--magenta); }
+/* SCRAMBLE_GLYPHS runs on the visible span, so it inherits the ink above.
+   The scroll-progress hairline is the only element that was already light. */
+.nav .burger span { background: #241733; }

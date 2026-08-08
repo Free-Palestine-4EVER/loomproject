@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LOOM — deck lab · 16 cards, 16 stories</title>
+<link rel="preload" href="/fonts/ClashDisplay-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<style>
+@font-face{font-family:'Clash Display';src:url('/fonts/ClashDisplay-Variable.woff2') format('woff2');font-weight:200 700;font-display:swap}
+@font-face{font-family:'Satoshi';src:url('/fonts/Satoshi-Variable.woff2') format('woff2');font-weight:300 900;font-display:swap}
+:root{
+  --bg:#0d0716;--bg-2:#120a1f;--bg-3:#1a1029;
+  --ink:#f2f0f7;--ink-dim:#a89fc0;--ink-faint:#857c9e;
+  --magenta:#f21c8c;--magenta-deep:#b3126a;--violet:#7b2fbe;--gold:#ffc740;
+  --yarn-pink:#d6247e;--yarn-violet:#9b55c9;--yarn-blue:#5cc0e8;--yarn-gold:#e0a82f;--yarn-cream:#efe7da;
+  --line:rgba(242,240,247,.1);
+  --display:'Clash Display','Avenir Next',sans-serif;--body:'Satoshi','Helvetica Neue',sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --spring:linear(0,.0088 1.1%,.0346 2.3%,.1442 4.9%,.7688 14.2%,.9202 16.7%,1.0139 19.3%,1.0498 21.9%,1.0546 24.7%,1.0338 28.2%,.9994 32.6%,.9895 37.3%,.9994 44.2%,1.0026 55.3%,1);
+  --pad:clamp(20px,5vw,72px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left;font-family:inherit}
+
+.head{padding:clamp(48px,8vh,100px) var(--pad) 12px;max-width:860px}
+.head h1{font-family:var(--display);font-weight:620;font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-.025em;line-height:1}
+.head p{color:var(--ink-dim);margin-top:15px;line-height:1.65}
+.deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
+  gap:clamp(30px,3.4vw,54px);padding:44px var(--pad) 120px;align-items:start}
+.slot .cap{display:flex;align-items:baseline;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+.slot .cap b{font-family:var(--display);font-weight:620;font-size:.74rem;color:var(--magenta);letter-spacing:.16em}
+.slot .cap strong{font-family:var(--display);font-weight:620;font-size:1rem;letter-spacing:-.01em}
+.slot .cap span{color:var(--ink-faint);font-size:.79rem;flex:1 1 100%;line-height:1.45}
+.card{display:block;width:100%;position:relative;transition:transform .6s var(--spring)}
+.card:hover{transform:translateY(-6px)}
+
+/* ══ 01 INDEX — a magazine contents entry ═══════════════════════ */
+.d1{background:var(--yarn-cream);border-radius:4px;overflow:hidden;
+  box-shadow:0 20px 44px -24px #000}
+.d1 .ph{aspect-ratio:3/2;overflow:hidden}
+.d1 .ph img{width:100%;height:100%;object-fit:cover;transition:transform 1s var(--ease)}
+.d1:hover .ph img{transform:scale(1.05)}
+.d1 .body{padding:20px 22px 24px;color:#1c1026;position:relative}
+.d1 .no{font-family:var(--display);font-weight:620;font-size:2.9rem;line-height:.8;color:var(--magenta);
+  letter-spacing:-.04em}
+.d1 .rule{height:1px;background:#1c1026;opacity:.22;margin:14px 0 12px}
+.d1 h3{font-family:var(--display);font-weight:620;font-size:1.5rem;letter-spacing:-.025em;line-height:1.02}
+.d1 .kk{font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:#7a6a55;margin-top:9px}
+
+/* ══ 02 SWATCH CHIP — a yarn colour card ════════════════════════ */
+.d2{border-radius:3px;overflow:hidden;box-shadow:0 20px 44px -24px #000;background:var(--dye)}
+.d2 .field{aspect-ratio:4/3;position:relative;background:var(--dye)}
+.d2 .field img{position:absolute;right:14px;bottom:14px;width:44%;aspect-ratio:1;object-fit:cover;
+  border:5px solid var(--yarn-cream);box-shadow:0 10px 22px -10px rgba(0,0,0,.6);
+  transition:transform .6s var(--spring)}
+.d2:hover .field img{transform:rotate(-3deg) scale(1.04)}
+.d2 .field b{position:absolute;left:16px;top:14px;font-family:var(--mono);font-size:.68rem;
+  letter-spacing:.14em;color:rgba(255,255,255,.9)}
+.d2 .bar{background:var(--yarn-cream);color:#1c1026;padding:14px 16px;display:flex;
+  justify-content:space-between;align-items:flex-end;gap:10px}
+.d2 .bar h3{font-family:var(--display);font-weight:620;font-size:1.12rem;letter-spacing:-.02em}
+.d2 .bar em{font-style:normal;font-family:var(--mono);font-size:.66rem;color:#7a6a55;display:block;margin-top:3px}
+.d2 .bar i{font-style:normal;font-family:var(--mono);font-size:.7rem;color:#1c1026;opacity:.65}
+
+/* ══ 03 CARE LABEL — the tag inside a garment ═══════════════════ */
+.d3{background:#f4efe6;border-radius:2px;padding:20px 18px;color:#211531;
+  box-shadow:0 20px 44px -24px #000;font-family:var(--mono);position:relative;
+  background-image:repeating-linear-gradient(0deg,rgba(33,21,49,.045) 0 1px,transparent 1px 4px)}
+/* the sewn edge, top and bottom */
+.d3::before,.d3::after{content:'';position:absolute;left:0;right:0;height:9px;
+  background:repeating-linear-gradient(90deg,var(--dye) 0 5px,transparent 5px 10px)}
+.d3::before{top:0}.d3::after{bottom:0}
+.d3 .stack{text-align:center;padding:10px 0 2px}
+.d3 .stack em{font-style:normal;display:block;font-size:.62rem;letter-spacing:.3em;color:#6d5f4d;
+  margin-bottom:14px}
+.d3 h3{font-family:var(--display);font-weight:620;font-size:1.45rem;letter-spacing:-.02em;
+  margin-bottom:14px;text-transform:uppercase}
+.d3 .sym{display:flex;justify-content:center;gap:11px;margin-bottom:16px}
+.d3 .sym i{width:24px;height:24px;border:1.6px solid #211531;opacity:.7;font-style:normal;
+  display:grid;place-items:center;font-size:.6rem}
+.d3 .sym i:nth-child(1){border-radius:0 0 40% 40%}
+.d3 .sym i:nth-child(2){border-radius:50%}
+.d3 .sym i:nth-child(3){clip-path:polygon(0 0,100% 0,50% 100%)}
+.d3 .ph{width:100%;aspect-ratio:16/7;object-fit:cover;filter:grayscale(1) contrast(1.1);
+  transition:filter .6s}
+.d3:hover .ph{filter:none}
+.d3 .fine{font-size:.56rem;letter-spacing:.18em;color:#6d5f4d;text-align:center;margin-top:12px}
+
+/* ══ 04 POLAROID — an instant photo, taped down ═════════════════ */
+.d4{background:#fbf9f4;padding:13px 13px 0;border-radius:3px;transform:rotate(-1.8deg);
+  box-shadow:0 22px 44px -22px rgba(0,0,0,.9);transition:transform .6s var(--spring)}
+.d4:hover{transform:rotate(0) translateY(-6px)}
+.d4 .ph{aspect-ratio:1;overflow:hidden;background:#111}
+.d4 .ph img{width:100%;height:100%;object-fit:cover}
+.d4 .hand{padding:16px 6px 20px;text-align:center}
+.d4 .hand h3{font-family:var(--display);font-weight:560;font-size:1.2rem;color:#241634;
+  letter-spacing:-.01em}
+.d4 .hand em{font-style:normal;display:block;font-size:.64rem;letter-spacing:.2em;color:#8d7f6d;margin-top:6px}
+/* the tape holding it to the wall */
+.d4 .tape{position:absolute;top:-13px;left:50%;width:76px;height:26px;margin-left:-38px;
+  background:rgba(239,231,218,.72);transform:rotate(-3deg);
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 4px,#000 calc(100% - 4px),transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0,#000 4px,#000 calc(100% - 4px),transparent 100%)}
+
+/* ══ 05 TICKET — a stub, torn off ═══════════════════════════════ */
+.d5{background:var(--yarn-cream);border-radius:6px;overflow:hidden;display:flex;
+  box-shadow:0 20px 44px -24px #000;color:#1c1026;min-height:220px}
+.d5 .stub{width:62px;flex:none;background:var(--dye);position:relative;display:grid;place-items:center}
+.d5 .stub span{font-family:var(--display);font-weight:620;font-size:1.5rem;color:#fff;
+  writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.1em}
+/* the perforation */
+.d5 .stub::after{content:'';position:absolute;right:-1px;top:0;bottom:0;width:2px;
+  background:radial-gradient(circle,var(--yarn-cream) 1.6px,transparent 1.8px) 0 0/2px 9px repeat-y}
+.d5 .main{flex:1;min-width:0;position:relative;display:flex;flex-direction:column}
+.d5 .main img{width:100%;height:112px;object-fit:cover}
+.d5 .main .txt{padding:14px 16px 16px;flex:1;display:flex;flex-direction:column}
+.d5 .main h3{font-family:var(--display);font-weight:620;font-size:1.25rem;letter-spacing:-.02em}
+.d5 .main em{font-style:normal;font-family:var(--mono);font-size:.63rem;letter-spacing:.16em;
+  color:#7a6a55;margin-top:5px}
+/* the barcode */
+.d5 .code{margin-top:auto;height:24px;
+  background:repeating-linear-gradient(90deg,#1c1026 0 2px,transparent 2px 4px,#1c1026 4px 5px,transparent 5px 9px);
+  opacity:.8}
+
+/* ══ 06 APERTURE — felt with a hole cut in it ═══════════════════ */
+.d6{aspect-ratio:4/5;border-radius:18px;overflow:hidden;position:relative;background:#241634;
+  box-shadow:0 20px 44px -24px #000}
+.d6 img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transition:transform 1.1s var(--ease)}
+.d6:hover img{transform:scale(1.09)}
+/* the felt sheet with a circular die-cut. One element, one mask. */
+.d6 .felt{position:absolute;inset:0;z-index:2;
+  background:#efe7da url('/img/wool/tex/felt-cream.webp') center/170px;
+  -webkit-mask-image:radial-gradient(circle 104px at 50% 42%,transparent 99%,#000 100%);
+  mask-image:radial-gradient(circle 104px at 50% 42%,transparent 99%,#000 100%)}
+.d6 .lip{position:absolute;left:50%;top:42%;width:208px;height:208px;margin:-104px 0 0 -104px;
+  border-radius:50%;z-index:3;pointer-events:none;
+  box-shadow:inset 0 5px 12px rgba(28,16,38,.55),0 0 0 1px rgba(28,16,38,.14)}
+.d6 .cap2{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:20px 22px 24px;color:#1c1026;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.d6 .cap2 h3{font-family:var(--display);font-weight:620;font-size:1.3rem;letter-spacing:-.02em}
+.d6 .cap2 em{font-style:normal;display:block;font-size:.62rem;letter-spacing:.22em;color:#7a6a55;margin-top:4px}
+.d6 .cap2 i{width:38px;height:38px;flex:none;border-radius:50%;background:var(--magenta);
+  display:grid;place-items:center}
+
+/* ══ 07 PATTERN CHART — a knitting chart, with a window ═════════ */
+.d7{aspect-ratio:4/5;border-radius:8px;overflow:hidden;position:relative;
+  background:#f4efe6;box-shadow:0 20px 44px -24px #000;color:#1c1026;padding:16px}
+/* the chart grid, drawn not imaged */
+.d7::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(28,16,38,.14) 1px,transparent 1px) 0 0/17px 17px,
+    linear-gradient(0deg,rgba(28,16,38,.14) 1px,transparent 1px) 0 0/17px 17px}
+/* filled squares = the motif being knitted */
+.d7 .cells{position:absolute;inset:16px;z-index:1;display:grid;
+  grid-template-columns:repeat(10,1fr);grid-auto-rows:17px;gap:0}
+.d7 .cells i{background:var(--dye);opacity:.85}
+.d7 .win{position:relative;z-index:2;margin-top:96px;aspect-ratio:16/10;overflow:hidden;
+  border:5px solid #fff;box-shadow:0 12px 26px -12px rgba(0,0,0,.6)}
+.d7 .win img{width:100%;height:100%;object-fit:cover}
+.d7 .foot{position:relative;z-index:2;margin-top:13px;display:flex;justify-content:space-between;
+  align-items:baseline;gap:10px}
+.d7 .foot h3{font-family:var(--display);font-weight:620;font-size:1.16rem;letter-spacing:-.02em}
+.d7 .foot em{font-style:normal;font-family:var(--mono);font-size:.62rem;color:#7a6a55}
+
+/* ══ 08 BOLT END — cloth with a folded-back corner ══════════════ */
+.d8{aspect-ratio:1;border-radius:6px;overflow:hidden;position:relative;background:#241634;
+  box-shadow:0 20px 44px -24px #000}
+.d8 img{width:100%;height:100%;object-fit:cover}
+/* the fold: a triangle of the cream underside, lifting at the corner */
+.d8 .fold{position:absolute;right:0;top:0;width:0;height:0;z-index:3;
+  border-style:solid;border-width:0 92px 92px 0;
+  border-color:transparent var(--yarn-cream) transparent transparent;
+  filter:drop-shadow(-5px 6px 9px rgba(0,0,0,.5));
+  transition:border-width .55s var(--spring)}
+.d8:hover .fold{border-width:0 124px 124px 0}
+.d8 .cap2{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:22px;
+  background:linear-gradient(to top,rgba(13,7,22,.88),transparent)}
+.d8 .cap2 h3{font-family:var(--display);font-weight:620;font-size:1.34rem;letter-spacing:-.02em;color:#fff}
+.d8 .cap2 em{font-style:normal;display:block;font-size:.64rem;letter-spacing:.2em;
+  color:rgba(255,255,255,.62);margin-top:5px}
+
+/* ══ 09 STICKER — die-cut, with a peeling corner ════════════════ */
+.d9{aspect-ratio:1;position:relative;filter:drop-shadow(0 16px 26px rgba(0,0,0,.7))}
+.d9 .die{position:absolute;inset:0;border-radius:26px;overflow:hidden;background:#fff;padding:7px}
+.d9 .die .in{position:relative;height:100%;border-radius:20px;overflow:hidden}
+.d9 .die img{width:100%;height:100%;object-fit:cover}
+/* the peel: a triangle of white curling up off the bottom-right */
+.d9 .peel{position:absolute;right:0;bottom:0;width:70px;height:70px;z-index:4;
+  background:linear-gradient(315deg,#fff 0 62%,#d8d2c6 100%);
+  clip-path:polygon(100% 0,100% 100%,0 100%);
+  border-radius:0 0 22px 0;transform-origin:100% 100%;
+  transform:rotate(0) scale(1);transition:transform .6s var(--spring);
+  box-shadow:-6px -6px 14px rgba(0,0,0,.35)}
+.d9:hover .peel{transform:rotate(-9deg) scale(1.18)}
+.d9 .lab{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:20px 78px 20px 22px;
+  background:linear-gradient(to top,rgba(13,7,22,.9),transparent)}
+.d9 .lab h3{font-family:var(--display);font-weight:620;font-size:1.3rem;color:#fff;letter-spacing:-.02em}
+
+/* ══ 10 HANG TAG — it hangs, and it swings ══════════════════════ */
+.d10{padding-top:52px}
+.d10 .string{position:absolute;left:50%;top:0;width:2px;height:56px;background:var(--yarn-cream);
+  opacity:.65;z-index:0}
+.d10 .swing{transform-origin:50% -52px;animation:hang 6s ease-in-out infinite}
+.d10 .body{position:relative;background:var(--yarn-cream);border-radius:10px;padding:18px;
+  color:#1c1026;box-shadow:0 20px 40px -22px #000}
+.d10 .hole{position:absolute;left:50%;top:12px;width:15px;height:15px;margin-left:-7.5px;
+  border-radius:50%;background:var(--bg);box-shadow:0 0 0 2px rgba(28,16,38,.2)}
+.d10 img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;margin-top:22px}
+.d10 h3{font-family:var(--display);font-weight:620;font-size:1.22rem;letter-spacing:-.02em;margin-top:14px}
+.d10 em{font-style:normal;display:block;font-family:var(--mono);font-size:.62rem;color:#7a6a55;margin-top:5px}
+@keyframes hang{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
+
+/* ══ 11 WARP — cloth stretched on a loom ════════════════════════ */
+.d11{aspect-ratio:4/5;position:relative;background:#1a1029;border-radius:6px;overflow:hidden;
+  box-shadow:0 20px 44px -24px #000;padding:0 22px}
+/* the warp threads, running the full height behind and in front */
+/* The FRONT warp is deliberately sparse and half-transparent. At the
+   back layer's density it veils the photograph completely and the card
+   stops being a service tile — you are meant to read cloth through the
+   threads, not a barcode over it. */
+.d11 .warp{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(90deg,
+    rgba(239,231,218,.85) 0 2px,transparent 2px 30px)}
+.d11 .warp.back{z-index:0;opacity:.35;
+  background:repeating-linear-gradient(90deg,
+    rgba(239,231,218,.9) 0 2px,transparent 2px 15px)}
+.d11 .cloth{position:relative;z-index:2;height:100%;overflow:hidden}
+.d11 .cloth img{width:100%;height:100%;object-fit:cover}
+/* the beater bar pressing the weft down */
+.d11 .beat{position:absolute;left:0;right:0;top:38%;height:7px;z-index:4;
+  background:linear-gradient(180deg,#d9c39e,#8a663a);box-shadow:0 4px 10px rgba(0,0,0,.6);
+  animation:beat 4.4s ease-in-out infinite}
+@keyframes beat{0%,100%{top:34%}50%{top:56%}}
+.d11 .cap2{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:20px 22px;
+  background:linear-gradient(to top,rgba(13,7,22,.94),transparent)}
+.d11 .cap2 h3{font-family:var(--display);font-weight:620;font-size:1.3rem;color:#fff;letter-spacing:-.02em}
+
+/* ══ 12 SPEC SHEET — the technical opposite of wool ═════════════ */
+.d12{background:#0a0512;border:1px solid rgba(242,240,247,.16);border-radius:5px;padding:18px;
+  font-family:var(--mono);box-shadow:0 20px 44px -24px #000}
+.d12 .top{display:flex;justify-content:space-between;font-size:.62rem;letter-spacing:.14em;
+  color:var(--ink-faint);border-bottom:1px solid var(--line);padding-bottom:11px}
+.d12 h3{font-family:var(--display);font-weight:620;font-size:1.45rem;letter-spacing:-.025em;
+  margin:15px 0 4px;color:#fff}
+.d12 img{width:100%;aspect-ratio:16/6;object-fit:cover;margin:13px 0;filter:saturate(.75) contrast(1.1)}
+.d12 .rows{display:grid;gap:7px;font-size:.66rem}
+.d12 .rows div{display:flex;justify-content:space-between;gap:10px;color:var(--ink-dim)}
+.d12 .rows b{color:#fff;font-weight:500}
+/* a dye level meter that fills and holds */
+.d12 .meter{margin-top:13px;height:5px;background:rgba(242,240,247,.1);overflow:hidden}
+.d12 .meter i{display:block;height:100%;background:var(--dye);width:0;
+  animation:fill 4.6s cubic-bezier(.2,.7,.2,1) infinite}
+@keyframes fill{0%{width:0}45%,85%{width:78%}100%{width:78%;opacity:.3}}
+
+/* ══ 13 ZINE — type over the photo, loud and raw ════════════════ */
+.d13{aspect-ratio:4/5;position:relative;overflow:hidden;border-radius:3px;background:#000;
+  box-shadow:0 20px 44px -24px #000}
+.d13 img{width:100%;height:100%;object-fit:cover;filter:contrast(1.25) saturate(1.15)}
+/* halftone */
+.d13 .dots{position:absolute;inset:0;z-index:2;mix-blend-mode:multiply;opacity:.5;
+  background:radial-gradient(circle,#1c1026 1.1px,transparent 1.4px) 0 0/5px 5px}
+.d13 .big{position:absolute;left:-4px;right:-4px;bottom:52px;z-index:3;
+  font-family:var(--display);font-weight:620;font-size:clamp(2.6rem,5.6vw,3.6rem);line-height:.84;
+  letter-spacing:-.045em;color:#fff;text-transform:uppercase;
+  text-shadow:3px 3px 0 var(--magenta),-2px -2px 0 var(--dye);padding:0 14px}
+.d13 .strip2{position:absolute;left:0;right:0;bottom:0;z-index:4;background:var(--magenta);
+  color:#fff;font-family:var(--mono);font-size:.62rem;letter-spacing:.24em;padding:9px 14px;
+  display:flex;justify-content:space-between}
+
+/* ══ 14 ENVELOPE — kraft, closed with the real wool button ══════ */
+.d14{aspect-ratio:5/4;position:relative;border-radius:5px;overflow:hidden;
+  background:linear-gradient(160deg,#e4d3b4,#cbb289);box-shadow:0 20px 44px -24px #000;
+  background-image:repeating-linear-gradient(0deg,rgba(120,90,50,.05) 0 1px,transparent 1px 3px),
+    linear-gradient(160deg,#e4d3b4,#cbb289)}
+/* the flap */
+.d14 .flap{position:absolute;left:0;right:0;top:0;height:52%;z-index:2;
+  background:linear-gradient(170deg,#eaddc2,#d6bf98);
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  box-shadow:0 8px 14px -8px rgba(0,0,0,.5);transform-origin:50% 0;
+  transition:transform .7s var(--spring)}
+.d14:hover .flap{transform:rotateX(38deg)}
+/* the contents peeking out */
+.d14 img{position:absolute;left:12%;right:12%;top:16%;width:76%;aspect-ratio:4/3;object-fit:cover;
+  z-index:1;border-radius:3px;box-shadow:0 8px 18px -8px rgba(0,0,0,.5)}
+.d14 .btn{position:absolute;left:50%;top:52%;width:46px;height:46px;margin:-23px 0 0 -23px;z-index:4;
+  background:url('/img/wool/buttons/wool-button-256.webp') center/contain no-repeat;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+/* the string wound round the button */
+.d14 .wind{position:absolute;left:50%;top:52%;width:150px;height:150px;margin:-75px 0 0 -75px;z-index:3}
+.d14 .wind circle{fill:none;stroke:rgba(90,62,30,.6);stroke-width:1.6;stroke-dasharray:5 6}
+.d14 .cap2{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:14px 18px;color:#3b2a12}
+.d14 .cap2 h3{font-family:var(--display);font-weight:620;font-size:1.24rem;letter-spacing:-.02em}
+
+/* ══ 15 STACK — three cards, the top one is the photo ═══════════ */
+.d15{aspect-ratio:4/5;position:relative}
+.d15 .sheet{position:absolute;inset:0;border-radius:16px;background:var(--yarn-cream);
+  box-shadow:0 14px 30px -18px #000;transition:transform .6s var(--spring)}
+.d15 .sheet.s3{transform:rotate(-6deg) translateY(10px);background:var(--dye)}
+.d15 .sheet.s2{transform:rotate(3deg) translateY(5px)}
+.d15:hover .sheet.s3{transform:rotate(-11deg) translateY(16px)}
+.d15:hover .sheet.s2{transform:rotate(6deg) translateY(8px)}
+.d15 .top{position:absolute;inset:0;border-radius:16px;overflow:hidden;background:#241634;
+  box-shadow:0 20px 40px -20px #000}
+.d15 .top img{width:100%;height:100%;object-fit:cover}
+.d15 .cap2{position:absolute;left:0;right:0;bottom:0;padding:20px;
+  background:linear-gradient(to top,rgba(13,7,22,.9),transparent)}
+.d15 .cap2 h3{font-family:var(--display);font-weight:620;font-size:1.3rem;color:#fff;letter-spacing:-.02em}
+.d15 .cap2 em{font-style:normal;display:block;font-size:.62rem;letter-spacing:.2em;
+  color:rgba(255,255,255,.6);margin-top:4px}
+
+/* ══ 16 SHELF — the card stands on a wooden rail ════════════════ */
+.d16{position:relative;padding-bottom:26px}
+.d16 .stand{aspect-ratio:1;border-radius:6px 6px 0 0;overflow:hidden;position:relative;
+  background:#241634;box-shadow:0 -6px 26px -12px #000;transform-origin:50% 100%;
+  transform:rotate(-1.2deg);transition:transform .6s var(--spring)}
+.d16:hover .stand{transform:rotate(1.2deg)}
+.d16 .stand img{width:100%;height:100%;object-fit:cover}
+.d16 .stand .lab{position:absolute;left:0;right:0;bottom:0;padding:18px 18px 20px;
+  background:linear-gradient(to top,rgba(13,7,22,.92),transparent)}
+.d16 .stand h3{font-family:var(--display);font-weight:620;font-size:1.26rem;color:#fff;letter-spacing:-.02em}
+/* the rail it stands on */
+.d16 .rail2{position:absolute;left:-10px;right:-10px;bottom:0;height:26px;border-radius:4px;
+  background:linear-gradient(180deg,#d9c39e,#a8834e 55%,#8a663a);
+  box-shadow:0 10px 20px -10px #000,inset 0 2px 0 rgba(255,255,255,.35)}
+/* a spool resting on the rail beside it */
+.d16 .spool2{position:absolute;right:12px;bottom:22px;width:34px;height:44px;z-index:2;
+  border-radius:4px;background:linear-gradient(180deg,#d9c39e 0 16%,var(--dye) 16% 84%,#d9c39e 84%);
+  box-shadow:0 6px 12px -6px #000;animation:tip 5.5s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes tip{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+
+/* ════════════════════════════════════════════════════════════════
+   DECK TWO — twenty more in the family of the four that landed.
+
+   Zine, Stack, Hang tag and Sticker are all the same idea: a PHYSICAL
+   PRINTED OBJECT you could pick up. Paper with an edge, ink with a
+   press, something that peels, hangs, curls or stacks. None of them is
+   a UI surface with a texture on it. Everything below stays in that
+   lane — if you cannot say what it would feel like between your
+   fingers, it does not belong here.
+   ════════════════════════════════════════════════════════════════ */
+.deck2 .card:hover{transform:translateY(-6px)}
+.paper{background:#f7f3ea;color:#1c1026}
+.ttl{font-family:var(--display);font-weight:620;letter-spacing:-.022em}
+.sub{font-style:normal;display:block;font-family:var(--mono);font-size:.6rem;
+  letter-spacing:.18em;color:#8a7a63;margin-top:5px}
+
+/* ══ 01 PEEL — the print curling off the page ═══════════════════ */
+.e1{aspect-ratio:4/5;position:relative;filter:drop-shadow(0 18px 30px rgba(0,0,0,.7))}
+.e1 .sheet{position:absolute;inset:0;overflow:hidden;background:#241634;border-radius:3px}
+.e1 .sheet img{width:100%;height:100%;object-fit:cover}
+/* the lifted corner: a wedge of paper back, rotating up off the sheet */
+.e1 .curl{position:absolute;left:0;bottom:0;width:96px;height:96px;z-index:4;
+  background:linear-gradient(45deg,#fdfbf6 0 58%,#cfc7b6 100%);
+  clip-path:polygon(0 0,0 100%,100% 100%);transform-origin:0 100%;
+  transform:rotate(0);transition:transform .65s var(--spring);
+  box-shadow:7px -7px 16px rgba(0,0,0,.45)}
+.e1:hover .curl{transform:rotate(10deg) scale(1.22)}
+.e1 .lab{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:20px 20px 22px 106px;
+  background:linear-gradient(to top,rgba(13,7,22,.92),transparent)}
+.e1 .lab h3{font-size:1.24rem;color:#fff}
+
+/* ══ 02 PUSH PIN — pinned to the wall, hanging off one point ════ */
+.e2{padding-top:16px}
+.e2 .swing2{transform-origin:50% 14px;animation:pinsway 7s ease-in-out infinite}
+.e2 .sheet{position:relative;background:#fdfbf6;padding:11px 11px 0;border-radius:2px;
+  box-shadow:0 20px 38px -20px rgba(0,0,0,.9)}
+.e2 .sheet img{width:100%;aspect-ratio:1;object-fit:cover}
+.e2 .foot2{padding:13px 4px 16px}
+.e2 .foot2 h3{font-size:1.1rem}
+.e2 .pin{position:absolute;left:50%;top:-9px;width:22px;height:22px;margin-left:-11px;z-index:5;
+  border-radius:50%;background:radial-gradient(circle at 34% 28%,#ff8ec8,var(--magenta) 55%,#8e0c53);
+  box-shadow:0 5px 9px rgba(0,0,0,.55),inset 0 -2px 4px rgba(0,0,0,.35)}
+@keyframes pinsway{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+
+/* ══ 03 TORN EDGE — ripped from a bigger sheet ══════════════════ */
+.e3{position:relative}
+.e3 .sheet{background:#f7f3ea;padding:14px 14px 20px;color:#1c1026;
+  box-shadow:0 20px 40px -22px #000;
+  /* the tear: a fine zigzag eating the bottom edge */
+  -webkit-mask-image:linear-gradient(#000,#000),
+    conic-gradient(from -45deg at 50% 0,#000 90deg,transparent 90deg);
+  -webkit-mask-size:100% calc(100% - 11px),13px 11px;
+  -webkit-mask-position:0 0,0 100%;
+  -webkit-mask-repeat:no-repeat,repeat-x;
+  mask-image:linear-gradient(#000,#000),
+    conic-gradient(from -45deg at 50% 0,#000 90deg,transparent 90deg);
+  mask-size:100% calc(100% - 11px),13px 11px;
+  mask-position:0 0,0 100%;
+  mask-repeat:no-repeat,repeat-x}
+.e3 img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.e3 h3{font-size:1.24rem;margin-top:14px}
+
+/* ══ 04 STICKER SHEET — four dies on a backing, with cut lines ══ */
+.e4{background:#efe9db;border-radius:5px;padding:13px;box-shadow:0 20px 42px -24px #000;
+  background-image:repeating-linear-gradient(0deg,rgba(28,16,38,.05) 0 1px,transparent 1px 5px)}
+.e4 .sheet2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.e4 .die2{position:relative;border-radius:14px;overflow:hidden;background:#fff;padding:4px;
+  aspect-ratio:1;transition:transform .5s var(--spring)}
+.e4 .die2:nth-child(2){transform:rotate(2.5deg)}
+.e4 .die2:nth-child(3){transform:rotate(-2deg)}
+.e4:hover .die2:nth-child(1){transform:rotate(-3deg) scale(1.05)}
+.e4:hover .die2:nth-child(4){transform:rotate(3deg) scale(1.05)}
+.e4 .die2 img{width:100%;height:100%;object-fit:cover;border-radius:11px}
+.e4 .strip3{display:flex;justify-content:space-between;align-items:baseline;margin-top:13px;
+  color:#1c1026;padding:0 3px}
+.e4 .strip3 h3{font-size:1.06rem}
+
+/* ══ 05 FOLDED POSTER — creased into eighths ════════════════════ */
+.e5{aspect-ratio:3/4;position:relative;overflow:hidden;border-radius:2px;background:#241634;
+  box-shadow:0 20px 42px -24px #000}
+.e5 img{width:100%;height:100%;object-fit:cover}
+/* the creases: highlight on one side of the fold, shadow on the other */
+.e5 .creases{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:
+    linear-gradient(90deg,transparent calc(50% - 1px),rgba(255,255,255,.28) 50%,rgba(0,0,0,.3) calc(50% + 1px),transparent calc(50% + 2px)),
+    linear-gradient(0deg,transparent calc(25% - 1px),rgba(255,255,255,.2) 25%,rgba(0,0,0,.26) calc(25% + 1px),transparent calc(25% + 2px)),
+    linear-gradient(0deg,transparent calc(50% - 1px),rgba(255,255,255,.24) 50%,rgba(0,0,0,.3) calc(50% + 1px),transparent calc(50% + 2px)),
+    linear-gradient(0deg,transparent calc(75% - 1px),rgba(255,255,255,.2) 75%,rgba(0,0,0,.26) calc(75% + 1px),transparent calc(75% + 2px))}
+.e5 .lab{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:20px;
+  background:linear-gradient(to top,rgba(13,7,22,.9),transparent)}
+.e5 .lab h3{font-size:1.3rem;color:#fff}
+
+/* ══ 06 PAPER CLIP — a print clipped to a card ══════════════════ */
+.e6{background:#f7f3ea;padding:16px 14px 18px;border-radius:3px;color:#1c1026;position:relative;
+  box-shadow:0 20px 40px -22px #000}
+.e6 img{width:100%;aspect-ratio:4/3;object-fit:cover;transform:rotate(-1.2deg);
+  box-shadow:0 8px 16px -8px rgba(0,0,0,.5);transition:transform .55s var(--spring)}
+.e6:hover img{transform:rotate(1deg)}
+.e6 h3{font-size:1.2rem;margin-top:16px}
+/* the clip: two nested rounded rects, no fill */
+.e6 .clip{position:absolute;left:22px;top:-13px;width:26px;height:56px;z-index:4}
+.e6 .clip path{fill:none;stroke:#b9b0c9;stroke-width:2.6;stroke-linecap:round}
+
+/* ══ 07 WASHI CORNERS — taped at all four ═══════════════════════ */
+.e7{position:relative;padding:9px}
+.e7 .sheet{position:relative;overflow:hidden;background:#241634;border-radius:2px;
+  box-shadow:0 18px 36px -20px #000}
+.e7 .sheet img{width:100%;aspect-ratio:1;object-fit:cover}
+.e7 .lab{position:absolute;left:0;right:0;bottom:0;padding:18px;
+  background:linear-gradient(to top,rgba(13,7,22,.9),transparent)}
+.e7 .lab h3{font-size:1.2rem;color:#fff}
+.e7 i{position:absolute;width:62px;height:22px;z-index:5;
+  background:var(--dye);opacity:.72;
+  background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.3) 0 3px,transparent 3px 7px);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 4px,#000 calc(100% - 4px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 4px,#000 calc(100% - 4px),transparent)}
+.e7 i:nth-child(1){left:-14px;top:14px;transform:rotate(-45deg)}
+.e7 i:nth-child(2){right:-14px;top:14px;transform:rotate(45deg)}
+.e7 i:nth-child(3){left:-14px;bottom:14px;transform:rotate(45deg)}
+.e7 i:nth-child(4){right:-14px;bottom:14px;transform:rotate(-45deg)}
+
+/* ══ 08 PHOTO CORNERS — mounted in an album ═════════════════════ */
+.e8{background:#241634;padding:20px 18px 22px;border-radius:3px;position:relative;
+  box-shadow:0 20px 42px -24px #000;
+  background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 6px)}
+.e8 .mount{position:relative}
+.e8 .mount img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.e8 .mount b{position:absolute;width:26px;height:26px;background:#0d0716;z-index:3}
+.e8 .mount b:nth-child(2){left:0;top:0;clip-path:polygon(0 0,100% 0,0 100%)}
+.e8 .mount b:nth-child(3){right:0;top:0;clip-path:polygon(0 0,100% 0,100% 100%)}
+.e8 .mount b:nth-child(4){left:0;bottom:0;clip-path:polygon(0 0,0 100%,100% 100%)}
+.e8 .mount b:nth-child(5){right:0;bottom:0;clip-path:polygon(100% 0,100% 100%,0 100%)}
+.e8 h3{font-size:1.18rem;color:#fff;margin-top:16px}
+.e8 .sub{color:var(--ink-faint)}
+
+/* ══ 09 BOOKMARK — tall, narrow, with a ribbon tail ═════════════ */
+.e9{width:74%;margin:0 auto;position:relative;padding-bottom:34px}
+.e9 .body2{background:#f7f3ea;color:#1c1026;padding:12px 12px 18px;border-radius:2px;
+  box-shadow:0 20px 40px -22px #000}
+.e9 img{width:100%;aspect-ratio:2/3;object-fit:cover}
+.e9 h3{font-size:1.02rem;margin-top:13px;line-height:1.15}
+/* the ribbon, notched at the end, swaying */
+.e9 .ribbon2{position:absolute;left:50%;bottom:0;width:22px;height:52px;margin-left:-11px;z-index:-1;
+  background:var(--dye);clip-path:polygon(0 0,100% 0,100% 100%,50% 74%,0 100%);
+  transform-origin:50% 0;animation:pinsway 5.5s ease-in-out infinite}
+
+/* ══ 10 LUGGAGE TAG — a strap loop, and it swings ═══════════════ */
+.e10{padding-top:44px;position:relative}
+.e10 .loop{position:absolute;left:50%;top:0;width:38px;height:52px;margin-left:-19px;z-index:0}
+.e10 .loop path{fill:none;stroke:#8a663a;stroke-width:5;stroke-linecap:round}
+.e10 .swing2{transform-origin:50% -40px;animation:pinsway 6.5s ease-in-out infinite}
+.e10 .body2{background:#e8dcc4;border-radius:6px 6px 16px 16px;padding:15px;color:#3b2a12;
+  box-shadow:0 20px 40px -22px #000;border:2px solid #c8b391}
+.e10 .hole2{width:16px;height:16px;border-radius:50%;background:var(--bg);margin:0 auto 12px;
+  box-shadow:0 0 0 3px #c8b391}
+.e10 img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:3px}
+.e10 h3{font-size:1.16rem;margin-top:13px}
+
+/* ══ 11 PRICE TAG — punched, on a plastic barb ══════════════════ */
+.e11{position:relative;padding-top:20px}
+.e11 .body2{background:#fdfbf6;color:#1c1026;padding:16px 16px 18px;position:relative;
+  box-shadow:0 20px 40px -22px #000;transform:rotate(-2deg);
+  transition:transform .6s var(--spring);
+  /* the punched corner */
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%,0 42px,26px 0)}
+.e11:hover .body2{transform:rotate(1deg)}
+.e11 img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.e11 h3{font-size:1.18rem;margin-top:14px}
+.e11 .barb{position:absolute;left:6px;top:6px;width:44px;height:44px;z-index:4}
+.e11 .barb path{fill:none;stroke:#b9b0c9;stroke-width:3;stroke-linecap:round}
+
+/* ══ 12 FANNED PRINTS — a pile you could pick up ════════════════ */
+.e12{aspect-ratio:1;position:relative}
+.e12 .pr{position:absolute;inset:0;border-radius:3px;overflow:hidden;background:#fdfbf6;padding:8px;
+  box-shadow:0 14px 28px -16px rgba(0,0,0,.9);transition:transform .6s var(--spring)}
+.e12 .pr img{width:100%;height:100%;object-fit:cover}
+.e12 .pr:nth-child(1){transform:rotate(-9deg)}
+.e12 .pr:nth-child(2){transform:rotate(-3.5deg)}
+.e12 .pr:nth-child(3){transform:rotate(2deg)}
+.e12:hover .pr:nth-child(1){transform:rotate(-17deg) translate(-9px,4px)}
+.e12:hover .pr:nth-child(2){transform:rotate(-7deg) translate(-3px,1px)}
+.e12:hover .pr:nth-child(3){transform:rotate(5deg)}
+.e12 .lab{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:20px;
+  background:linear-gradient(to top,rgba(13,7,22,.92),transparent);border-radius:0 0 3px 3px}
+.e12 .lab h3{font-size:1.24rem;color:#fff}
+
+/* ══ 13 FILM STRIP — sprocket holes down both edges ═════════════ */
+.e13{background:#140d1f;border-radius:3px;padding:20px 0;position:relative;
+  box-shadow:0 20px 42px -24px #000}
+/* the sprockets, punched top and bottom */
+.e13::before,.e13::after{content:'';position:absolute;left:0;right:0;height:20px;
+  background:radial-gradient(#0d0716 4.4px,transparent 4.6px) 0 50%/17px 20px repeat-x}
+.e13::before{top:0}.e13::after{bottom:0}
+.e13 .frames{display:flex;gap:3px;padding:0 3px}
+.e13 .frames img{width:100%;aspect-ratio:3/4;object-fit:cover;filter:saturate(1.05)}
+.e13 .frames span{flex:1;min-width:0;position:relative}
+.e13 .frames span:nth-child(2){flex:1.6}
+.e13 .lab{position:absolute;left:12px;bottom:26px;z-index:3;
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--dye)}
+.e13 h3{position:absolute;left:12px;right:12px;bottom:38px;z-index:3;font-size:1.2rem;color:#fff;
+  text-shadow:0 2px 10px #000}
+
+/* ══ 14 POSTCARD BACK — stamp, postmark, divider ════════════════ */
+.e14{background:#f7f3ea;color:#1c1026;padding:16px;border-radius:2px;position:relative;
+  box-shadow:0 20px 40px -22px #000;aspect-ratio:7/5;display:flex;gap:14px}
+.e14 .left{flex:1;min-width:0;display:flex;flex-direction:column}
+.e14 .left img{width:100%;flex:1;object-fit:cover;min-height:0}
+.e14 .left h3{font-size:1.06rem;margin-top:11px}
+.e14 .divide{width:1px;background:rgba(28,16,38,.22)}
+.e14 .right{width:38%;display:flex;flex-direction:column}
+.e14 .stamp2{aspect-ratio:4/5;background:var(--dye);position:relative;
+  /* the perforated stamp edge */
+  -webkit-mask-image:radial-gradient(circle 3.2px,transparent 96%,#000 100%);
+  -webkit-mask-size:9px 9px;mask-image:radial-gradient(circle 3.2px,transparent 96%,#000 100%);
+  mask-size:9px 9px}
+.e14 .postmark{margin-top:12px;height:52px;border:2px solid rgba(28,16,38,.4);border-radius:50%;
+  display:grid;place-items:center;font-family:var(--mono);font-size:.5rem;letter-spacing:.14em;
+  color:rgba(28,16,38,.55);transform:rotate(-11deg)}
+.e14 .lines{margin-top:auto;display:grid;gap:9px}
+.e14 .lines i{height:1px;background:rgba(28,16,38,.22)}
+
+/* ══ 15 SEALED — a felt seal pressed over the flap ══════════════ */
+.e15{aspect-ratio:4/5;position:relative;overflow:hidden;border-radius:3px;background:#241634;
+  box-shadow:0 20px 42px -24px #000}
+.e15 img{width:100%;height:100%;object-fit:cover}
+.e15 .band{position:absolute;left:0;right:0;bottom:64px;height:44px;z-index:2;
+  background:var(--yarn-cream);opacity:.95;display:flex;align-items:center;padding-left:20px}
+.e15 .band h3{font-size:1.16rem;color:#1c1026}
+.e15 .seal{position:absolute;right:20px;bottom:44px;width:78px;height:78px;z-index:4;border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,#ff6bb4,var(--magenta) 52%,#8e0c53);
+  box-shadow:0 8px 18px -8px rgba(0,0,0,.8),inset 0 -4px 10px rgba(90,5,50,.7);
+  display:grid;place-items:center;font-family:var(--display);font-weight:620;font-size:.72rem;
+  letter-spacing:.16em;color:rgba(255,255,255,.92);
+  animation:press 6s ease-in-out infinite}
+@keyframes press{0%,88%,100%{transform:scale(1) rotate(-8deg)}94%{transform:scale(.93) rotate(-8deg)}}
+
+/* ══ 16 STAPLED — a flyer with a stapled corner and a curl ══════ */
+.e16{position:relative}
+.e16 .sheet{background:#fdfbf6;color:#1c1026;padding:11px 11px 16px;
+  box-shadow:0 20px 40px -22px #000;transform-origin:24px 24px;
+  transform:rotate(-1.4deg);transition:transform .6s var(--spring)}
+.e16:hover .sheet{transform:rotate(2.4deg)}
+.e16 img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.e16 h3{font-size:1.18rem;margin-top:13px;padding-left:3px}
+.e16 .staple{position:absolute;left:15px;top:15px;width:26px;height:9px;z-index:5;
+  background:#b9b0c9;border-radius:2px;transform:rotate(-45deg);
+  box-shadow:0 2px 4px rgba(0,0,0,.5)}
+
+/* ══ 17 STICKY NOTE — the bottom edge lifts off the wall ════════ */
+.e17{aspect-ratio:1;position:relative;background:var(--dye);padding:14px;
+  box-shadow:0 2px 5px rgba(0,0,0,.4);
+  /* only the TOP is stuck down, so the shadow pools at the bottom */
+  filter:drop-shadow(0 16px 16px rgba(0,0,0,.55))}
+.e17::after{content:'';position:absolute;left:0;right:0;bottom:0;height:34%;
+  background:linear-gradient(to top,rgba(0,0,0,.22),transparent);pointer-events:none}
+.e17 img{width:100%;aspect-ratio:1;object-fit:cover;
+  box-shadow:0 6px 12px -6px rgba(0,0,0,.5)}
+.e17 h3{font-size:1.14rem;margin-top:13px;color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,.3);position:relative;z-index:2}
+
+/* ══ 18 CLIPPING — cut out of a newspaper ═══════════════════════ */
+.e18{background:#efe9db;color:#1c1026;padding:16px 15px 20px;position:relative;
+  box-shadow:0 20px 40px -22px #000;transform:rotate(-1deg);
+  transition:transform .6s var(--spring)}
+.e18:hover{transform:rotate(.8deg) translateY(-6px)}
+.e18 .rulez{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.55rem;
+  letter-spacing:.2em;color:#8a7a63;border-bottom:2px solid #1c1026;padding-bottom:7px}
+.e18 h3{font-size:1.34rem;margin:12px 0 11px;line-height:1.02}
+.e18 img{width:100%;aspect-ratio:16/9;object-fit:cover;filter:grayscale(1) contrast(1.35)}
+/* the halftone that makes it printed rather than photographed */
+.e18 .ht{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.35;
+  background:radial-gradient(circle,#1c1026 .9px,transparent 1.2px) 0 0/4px 4px}
+.e18 .cols{margin-top:12px;column-count:2;column-gap:13px}
+.e18 .cols i{display:block;height:1px;background:rgba(28,16,38,.3);margin-bottom:7px}
+
+/* ══ 19 PENNANT — felt, hanging off a cord, swaying ═════════════ */
+.e19{padding-top:26px;position:relative}
+.e19 .cord{position:absolute;left:0;right:0;top:14px;height:2px;background:#8a663a;z-index:0}
+.e19 .flag{position:relative;transform-origin:50% 0;animation:pinsway 5.8s ease-in-out infinite}
+.e19 .tri{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--dye);
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  filter:drop-shadow(0 14px 22px rgba(0,0,0,.7))}
+.e19 .tri img{width:100%;height:72%;object-fit:cover;opacity:.9}
+.e19 h3{position:absolute;left:0;right:0;top:74%;text-align:center;font-size:1.08rem;color:#fff;
+  z-index:2;padding:0 20px}
+.e19 .rings{position:absolute;left:0;right:0;top:-6px;display:flex;justify-content:space-around;
+  padding:0 18%;z-index:3}
+.e19 .rings i{width:9px;height:9px;border-radius:50%;border:2px solid #d9c39e;background:var(--bg)}
+
+/* ══ 20 SEW-ON PATCH — a merrowed embroidered edge ══════════════ */
+.e20{aspect-ratio:1;position:relative;padding:9px;border-radius:22px;
+  /* the merrow: a dense whipped border, drawn as a repeating gradient
+     rather than 40 elements */
+  background:repeating-conic-gradient(from 0deg,var(--dye) 0deg 3deg,#fff5 3deg 6deg);
+  box-shadow:0 18px 36px -20px #000}
+.e20 .in2{position:relative;height:100%;border-radius:15px;overflow:hidden;background:#241634}
+.e20 .in2 img{width:100%;height:100%;object-fit:cover}
+/* the stitched fill lines that make it embroidery and not a photo */
+.e20 .in2::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.4;
+  background:repeating-linear-gradient(74deg,rgba(255,255,255,.22) 0 1.4px,transparent 1.4px 4px)}
+.e20 .lab{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:18px;
+  background:linear-gradient(to top,rgba(13,7,22,.92),transparent)}
+.e20 .lab h3{font-size:1.16rem;color:#fff}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>Sixteen cards. Sixteen different objects.</h1>
+  <p>Not one card with sixteen buttons on it. Each of these is a different thing from the world the brand already lives in — a contents page, a yarn swatch, a care label, a ticket stub, a bolt of cloth, a hang tag, a loom. Same four services, same photographs, nothing else shared.</p>
+</div>
+<div class="deck" id="deck"></div>
+
+<div class="head" style="border-top:1px solid var(--line);padding-top:clamp(56px,8vh,100px)">
+  <h1>Twenty more, in that lane.</h1>
+  <p>Zine, Stack, Hang tag and Sticker are all one idea: <strong>a printed object you could pick up</strong> — paper with a real edge, ink off a press, something that peels, hangs, curls or stacks. Never a UI surface with a texture on it. Everything below stays there. If you cannot say what it would feel like between your fingers, it is not in this set.</p>
+</div>
+<div class="deck deck2" id="deck2"></div>
+
+<script>
+const NEEDS = [
+  { name:'Brand identity', photo:'brand-identity', dye:'#d6247e', kind:'IDENTITY', code:'LM-01', hex:'#D6247E' },
+  { name:'Website',        photo:'website',        dye:'#9b55c9', kind:'DIGITAL',  code:'LM-02', hex:'#9B55C9' },
+  { name:'Mobile app',     photo:'mobile-app',     dye:'#5cc0e8', kind:'PRODUCT',  code:'LM-03', hex:'#5CC0E8' },
+  { name:'Social content', photo:'social-content', dye:'#e0a82f', kind:'CONTENT',  code:'LM-04', hex:'#E0A82F' },
+]
+const src = p => `/img/needs/${p}.webp`
+const el = h => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild }
+const ARROW = '<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#fff;stroke-width:2.8;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+const img = n => `<img src="${src(n.photo)}" alt="" loading="lazy" decoding="async">`
+
+const CARDS = [
+  ['d1','Index','a magazine contents entry', n => `
+    <div class="ph">${img(n)}</div>
+    <div class="body">
+      <div class="no">01</div><div class="rule"></div>
+      <h3>${n.name}</h3><div class="kk">${n.kind} — LOOM STUDIO</div>
+    </div>`],
+
+  ['d2','Swatch chip','a yarn colour card', n => `
+    <div class="field"><b>${n.code}</b>${img(n)}</div>
+    <div class="bar"><div><h3>${n.name}</h3><em>100% WOOL · ${n.kind}</em></div><i>${n.hex}</i></div>`],
+
+  ['d3','Care label','the tag inside a garment', n => `
+    <div class="stack">
+      <em>LOOM · MADE IN AMMAN</em>
+      <h3>${n.name}</h3>
+      <div class="sym"><i></i><i></i><i></i></div>
+      <img class="ph" src="${src(n.photo)}" alt="" loading="lazy">
+      <div class="fine">DO NOT RUSH · HANDLE WITH CARE · ${n.code}</div>
+    </div>`],
+
+  ['d4','Polaroid','an instant photo, taped down', n => `
+    <span class="tape"></span>
+    <div class="ph">${img(n)}</div>
+    <div class="hand"><h3>${n.name}</h3><em>LOOM · ${n.kind}</em></div>`],
+
+  ['d5','Ticket','a stub, torn off', n => `
+    <div class="stub"><span>${n.code}</span></div>
+    <div class="main">${img(n)}
+      <div class="txt"><h3>${n.name}</h3><em>ADMIT ONE · ${n.kind}</em><div class="code"></div></div>
+    </div>`],
+
+  ['d6','Aperture','felt with a hole cut in it', n => `
+    ${img(n)}<span class="felt"></span><span class="lip"></span>
+    <div class="cap2"><div><h3>${n.name}</h3><em>${n.kind}</em></div><i>${ARROW}</i></div>`],
+
+  ['d7','Pattern chart','a knitting chart with a window', n => `
+    <div class="cells">${Array.from({length:60},(_,k)=>
+      [3,4,5,13,14,15,16,23,26,33,36,43,44,45,46,53,54].includes(k)?'<i></i>':'<span></span>').join('')}</div>
+    <div class="win">${img(n)}</div>
+    <div class="foot"><h3>${n.name}</h3><em>ROW 01 / ${n.code}</em></div>`],
+
+  ['d8','Bolt end','cloth with a folded-back corner', n => `
+    ${img(n)}<span class="fold"></span>
+    <div class="cap2"><h3>${n.name}</h3><em>${n.kind} · CUT TO LENGTH</em></div>`],
+
+  ['d9','Sticker','die-cut, with a peeling corner', n => `
+    <div class="die"><div class="in">${img(n)}
+      <div class="lab"><h3>${n.name}</h3></div></div></div>
+    <span class="peel"></span>`],
+
+  ['d10','Hang tag','it hangs, and it swings', n => `
+    <span class="string"></span>
+    <div class="swing"><div class="body">
+      <span class="hole"></span>${img(n)}
+      <h3>${n.name}</h3><em>${n.code} · ${n.kind}</em>
+    </div></div>`],
+
+  ['d11','Warp','cloth stretched on a loom', n => `
+    <span class="warp back"></span>
+    <div class="cloth">${img(n)}</div>
+    <span class="warp"></span><span class="beat"></span>
+    <div class="cap2"><h3>${n.name}</h3></div>`],
+
+  ['d12','Spec sheet','the technical opposite of wool', n => `
+    <div class="top"><span>${n.code}</span><span>LOOM/SERVICES</span></div>
+    <h3>${n.name}</h3>
+    ${img(n)}
+    <div class="rows">
+      <div><span>discipline</span><b>${n.kind.toLowerCase()}</b></div>
+      <div><span>dye</span><b>${n.hex}</b></div>
+      <div><span>lead time</span><b>2–6 weeks</b></div>
+    </div>
+    <div class="meter"><i></i></div>`],
+
+  ['d13','Zine','type over the photo, loud and raw', n => `
+    ${img(n)}<span class="dots"></span>
+    <div class="big">${n.name}</div>
+    <div class="strip2"><span>${n.code}</span><span>LOOM</span></div>`],
+
+  ['d14','Envelope','closed with the real wool button', n => `
+    ${img(n)}
+    <svg class="wind" viewBox="0 0 150 150"><circle cx="75" cy="75" r="46"/><circle cx="75" cy="75" r="60"/></svg>
+    <span class="flap"></span><span class="btn"></span>
+    <div class="cap2"><h3>${n.name}</h3></div>`],
+
+  ['d15','Stack','three cards, the top one is the photo', n => `
+    <span class="sheet s3"></span><span class="sheet s2"></span>
+    <div class="top">${img(n)}
+      <div class="cap2"><h3>${n.name}</h3><em>${n.kind} · 3 DELIVERABLES</em></div></div>`],
+
+  ['d16','Shelf','the card stands on a wooden rail', n => `
+    <div class="stand">${img(n)}<div class="lab"><h3>${n.name}</h3></div></div>
+    <span class="spool2"></span><span class="rail2"></span>`],
+]
+
+const mount = (target, list) => target.append(...list.map(([id, name, note, build], i) => {
+  const n = NEEDS[i % NEEDS.length]
+  return el(`
+    <div class="slot">
+      <div class="cap"><b>${String(i+1).padStart(2,'0')}</b><strong>${name}</strong><span>${note}</span></div>
+      <button class="card ${id}" style="--dye:${n.dye}" aria-label="Start a brief — ${n.name}">
+        ${build(n)}
+      </button>
+    </div>`)
+}))
+
+mount(deck, CARDS)
+
+/* ═══════════ DECK TWO — twenty printed objects ═══════════ */
+
+// the other three photos, for the cards that show more than one print
+const others = n => NEEDS.filter(x => x !== n)
+
+const CARDS2 = [
+  ['e1','Peel','the print curling off the page', n => `
+    <div class="sheet">${img(n)}</div><span class="curl"></span>
+    <div class="lab"><h3 class="ttl">${n.name}</h3></div>`],
+
+  ['e2','Push pin','pinned to the wall, hanging off one point', n => `
+    <div class="swing2">
+      <div class="sheet"><span class="pin"></span>${img(n)}
+        <div class="foot2"><h3 class="ttl">${n.name}</h3><em class="sub">${n.kind}</em></div>
+      </div>
+    </div>`],
+
+  ['e3','Torn edge','ripped out of a bigger sheet', n => `
+    <div class="sheet">${img(n)}<h3 class="ttl">${n.name}</h3>
+      <em class="sub">${n.code} · TORN, NOT CUT</em></div>`],
+
+  ['e4','Sticker sheet','four dies on a backing', n => `
+    <div class="sheet2">
+      <span class="die2">${img(n)}</span>
+      ${others(n).map(o => `<span class="die2">${img(o)}</span>`).join('')}
+    </div>
+    <div class="strip3"><h3 class="ttl">${n.name}</h3><em class="sub">4 UP · ${n.code}</em></div>`],
+
+  ['e5','Folded poster','creased into eighths', n => `
+    ${img(n)}<span class="creases"></span>
+    <div class="lab"><h3 class="ttl">${n.name}</h3></div>`],
+
+  ['e6','Paper clip','a print clipped to a card', n => `
+    <svg class="clip" viewBox="0 0 26 56"><path d="M13 52 V12 a7 7 0 0 1 14 0 V44 a11 11 0 0 1 -22 0 V10"/></svg>
+    ${img(n)}<h3 class="ttl">${n.name}</h3><em class="sub">${n.kind} · ${n.code}</em>`],
+
+  ['e7','Washi corners','taped at all four', n => `
+    <i></i><i></i><i></i><i></i>
+    <div class="sheet">${img(n)}<div class="lab"><h3 class="ttl">${n.name}</h3></div></div>`],
+
+  ['e8','Photo corners','mounted in an album', n => `
+    <div class="mount">${img(n)}<b></b><b></b><b></b><b></b></div>
+    <h3 class="ttl">${n.name}</h3><em class="sub">PLATE ${n.code}</em>`],
+
+  ['e9','Bookmark','tall and narrow, with a ribbon', n => `
+    <span class="ribbon2"></span>
+    <div class="body2">${img(n)}<h3 class="ttl">${n.name}</h3><em class="sub">${n.code}</em></div>`],
+
+  ['e10','Luggage tag','a strap loop, and it swings', n => `
+    <svg class="loop" viewBox="0 0 38 52"><path d="M19 50 V22 M19 22 a9 9 0 1 1 0 -18 a9 9 0 1 1 0 18"/></svg>
+    <div class="swing2"><div class="body2">
+      <div class="hole2"></div>${img(n)}
+      <h3 class="ttl">${n.name}</h3><em class="sub">${n.kind}</em>
+    </div></div>`],
+
+  ['e11','Price tag','punched, on a plastic barb', n => `
+    <svg class="barb" viewBox="0 0 44 44"><path d="M8 36 L30 14 M30 14 a6 6 0 1 0 8 -8"/></svg>
+    <div class="body2">${img(n)}<h3 class="ttl">${n.name}</h3>
+      <em class="sub">${n.code} · ON REQUEST</em></div>`],
+
+  ['e12','Fanned prints','a pile you could pick up', n => `
+    ${others(n).slice(0, 2).map(o => `<div class="pr">${img(o)}</div>`).join('')}
+    <div class="pr">${img(n)}</div>
+    <div class="lab"><h3 class="ttl">${n.name}</h3></div>`],
+
+  ['e13','Film strip','sprocket holes down both edges', n => `
+    <div class="frames">
+      <span>${img(others(n)[0])}</span>
+      <span>${img(n)}</span>
+      <span>${img(others(n)[1])}</span>
+    </div>
+    <h3 class="ttl">${n.name}</h3><div class="lab">${n.code} · FRAME 02</div>`],
+
+  ['e14','Postcard back','stamp, postmark, divider', n => `
+    <div class="left">${img(n)}<h3 class="ttl">${n.name}</h3></div>
+    <div class="divide"></div>
+    <div class="right">
+      <div class="stamp2"></div>
+      <div class="postmark">AMMAN<br>LOOM</div>
+      <div class="lines"><i></i><i></i><i></i></div>
+    </div>`],
+
+  ['e15','Sealed','a seal pressed over the band', n => `
+    ${img(n)}
+    <div class="band"><h3 class="ttl">${n.name}</h3></div>
+    <div class="seal">LOOM</div>`],
+
+  ['e16','Stapled','a flyer, stapled and curling', n => `
+    <span class="staple"></span>
+    <div class="sheet">${img(n)}<h3 class="ttl">${n.name}</h3></div>`],
+
+  ['e17','Sticky note','the bottom edge lifts off the wall', n => `
+    ${img(n)}<h3 class="ttl">${n.name}</h3>`],
+
+  ['e18','Clipping','cut out of a newspaper', n => `
+    <div class="rulez"><span>LOOM DAILY</span><span>${n.code}</span></div>
+    <h3 class="ttl">${n.name}</h3>
+    ${img(n)}
+    <div class="cols"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <span class="ht"></span>`],
+
+  ['e19','Pennant','felt, hanging off a cord', n => `
+    <span class="cord"></span>
+    <div class="flag">
+      <div class="rings"><i></i><i></i></div>
+      <div class="tri">${img(n)}<h3 class="ttl">${n.name}</h3></div>
+    </div>`],
+
+  ['e20','Sew-on patch','a merrowed embroidered edge', n => `
+    <div class="in2">${img(n)}</div>
+    <div class="lab"><h3 class="ttl">${n.name}</h3></div>`],
+]
+
+mount(deck2, CARDS2)
+</script>
+</body>
+</html>

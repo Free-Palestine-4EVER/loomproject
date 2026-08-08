@@ -1,0 +1,141 @@
+/* #typeface — three screens of scroll pinned to one viewport. */
+
+.ts {
+  position: relative;
+  height: 340vh;                 /* the scroll budget for the whole act */
+  background:
+    radial-gradient(80% 60% at 15% 10%, rgba(242, 28, 140, 0.14), transparent 60%),
+    radial-gradient(70% 60% at 85% 90%, rgba(123, 47, 190, 0.18), transparent 62%);
+}
+
+.ts-sticky {
+  /* everything inside is absolutely placed: the word must sit dead centre of the
+     viewport for the whole pin, and act three must not reserve space before it
+     arrives */
+  position: sticky; top: 0;
+  height: 100vh; height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ts-petals { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
+
+/* drifting alphabet bands */
+.ts-bands {
+  position: absolute; inset: 0; z-index: -1;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 14vh 0; pointer-events: none;
+}
+.ts-band {
+  font-family: 'LOOM Bloom', var(--display), sans-serif;
+  font-size: clamp(60px, 9vw, 150px);
+  line-height: 1; white-space: nowrap;
+  color: rgba(242, 240, 247, 0.045);
+  will-change: transform;
+}
+.ts-band--low { color: rgba(242, 28, 140, 0.07); }
+
+.ts-kicker {
+  position: absolute; left: var(--pad); top: clamp(74px, 10vh, 116px);
+  display: flex; align-items: center; gap: 12px;
+  font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0;
+}
+.ts-kicker span { color: var(--magenta); }
+
+/* ——————————————————————————————— the word */
+.ts-word {
+  position: absolute; left: 0; right: 0; top: 46%;
+  transform-origin: 50% 50%;
+  display: grid; place-items: center;
+  will-change: transform;
+}
+.ts-layer {
+  grid-area: 1 / 1;
+  font-size: clamp(84px, 20vw, 300px);
+  line-height: 0.86;
+  letter-spacing: 0.004em;
+  white-space: nowrap;
+  will-change: opacity, transform;
+}
+.ts-layer--plain {
+  display: flex;
+  background: linear-gradient(94deg, #fff 0%, #f4e8ff 46%, var(--magenta) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.ts-ltr { display: inline-block; will-change: transform, opacity; }
+.ts-layer--cut {
+  background: linear-gradient(94deg, var(--magenta) 0%, var(--violet) 52%, var(--cyan) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ——————————————————————————————— the cut rail */
+.ts-rail {
+  position: absolute; right: var(--pad); top: 50%;
+  transform: translateY(-50%);
+  display: grid; gap: 12px;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.ts-rail-item { display: flex; align-items: center; gap: 10px; transition: color 400ms var(--ease); }
+.ts-rail-item i {
+  width: 22px; height: 1px; background: currentColor; opacity: 0.5;
+  transition: width 500ms var(--ease), background 400ms var(--ease), opacity 400ms var(--ease);
+}
+.ts-rail-item.is-live { color: var(--magenta); }
+.ts-rail-item.is-live i { width: 46px; opacity: 1; }
+
+/* ——————————————————————————————— act three */
+.ts-copy {
+  position: absolute; left: 0; right: 0; bottom: clamp(30px, 5vh, 64px);
+  display: grid; gap: clamp(12px, 1.8vh, 20px);
+  max-width: 1320px; width: 100%;
+  margin: 0 auto; padding: 0 var(--pad);
+  will-change: opacity, transform;
+}
+.ts-h2 {
+  font-family: var(--display);
+  font-size: clamp(24px, 3.1vw, 44px);
+  font-weight: 600; letter-spacing: -0.02em; line-height: 1.02;
+  max-width: 22ch;
+}
+.ts-lede {
+  max-width: 60ch; color: var(--ink-dim);
+  font-size: clamp(14px, 1.3vw, 17px); line-height: 1.6;
+}
+.ts-lede em { color: var(--ink); font-style: normal; }
+
+.ts-stats { display: flex; gap: clamp(20px, 3vw, 44px); }
+.ts-stat { display: flex; flex-direction: column; gap: 3px; }
+.ts-stat-n { font-size: clamp(28px, 3.4vw, 46px); line-height: 1; color: var(--ink); }
+.ts-stat-l { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+
+.ts-cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.ts-btn {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 14px 26px; border-radius: 999px;
+  border: 1px solid rgba(242, 240, 247, 0.22);
+  background: transparent; color: var(--ink);
+  font: inherit; font-size: 14px; text-decoration: none; cursor: pointer;
+  transition: border-color 300ms var(--ease), background 300ms var(--ease), color 300ms var(--ease);
+}
+.ts-btn:hover { border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); color: #fff; }
+.ts-btn--fill { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+.ts-btn--fill:hover { background: var(--magenta-deep); border-color: var(--magenta-deep); }
+.ts-btn span { transition: transform 300ms var(--ease); }
+.ts-btn:hover span { transform: translateX(4px); }
+
+@media (max-width: 900px) {
+  .ts { height: 300vh; }
+  .ts-rail { display: none; }
+  .ts-copy { gap: 12px; }
+}
+
+/* Reduced motion keeps the section, drops the pinning: no scrubbed sequence,
+   just the word and the copy in one static screen. */
+@media (prefers-reduced-motion: reduce) {
+  .ts { height: auto; }
+  .ts-sticky { position: static; height: auto; padding-block: clamp(60px, 10vh, 120px); gap: 32px; }
+  .ts-bands { display: none; }
+}

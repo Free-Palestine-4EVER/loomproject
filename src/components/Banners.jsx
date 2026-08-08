@@ -14,7 +14,7 @@
 // ————————————————————————————————————————————————————————
 import { Fragment } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { BRAND, WIZARD, SERVICES, PROCESS, APPS, TOOLS } from '../data/site.js'
+import { BRAND, WIZARD, SERVICES } from '../data/site.js'
 import { EASE, SplitWords, Reveal, Magnetic } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
 import { WoolButton, WoolIcon } from './Wool.jsx'
@@ -168,32 +168,46 @@ function TreeBreak() {
 
 /* ═══════════════════ 2 · THE OFFER ═══════════════════ */
 
+/* The fork, rebuilt for the pink sky.
+   The two knitted panels that used to live here were cut for a near-black page:
+   deep violet and blue wool, a photographed art band, a dark scrim and a drifting
+   aura. Every one of those choices is a value decision made against a black
+   ground, and on a pale cherry sky they read as two heavy boxes dropped on a
+   watercolour. They are gone — material, art bands and all.
+   What replaces them is a WISH TAG: the paper card people tie to a blossom tree.
+   It is the one object that belongs on this ground both materially (paper is
+   light, so it sits on the sky instead of punching a hole in it) and
+   narratively (you hang a wish on a cherry tree, and this section asks the
+   visitor which wish is theirs). Each tag hangs from a cord that runs up out of
+   the frame, so the pair reads as suspended from one shared line — the eye
+   grades two hanging objects against their hanger, not against each other.
+   Content and function are unchanged: same two choices, same wizard, same
+   secondary links. `care` and `proof` are gone from the data with the panels
+   that carried them — a fork that has to explain its own process has lost. */
 const OFFER = [
   {
     id: 'studio',
-    dye: 'violet',          // chosen AFTER the magenta CTA
-    mark: 'user',           // cut for one client
-    photo: 'have-business',
     eyebrow: 'Already trading',
     title: 'I have a business already.',
-    body: `It runs — it just doesn’t land. We rebuild the brand, the site and the campaign around what already sells, on one frame, with ${SERVICES.length} disciplines pulling together.`,
-    care: PROCESS.map((p) => p.title).join('  →  '),
-    proof: SERVICES.map((s) => s.title).join(' · '),
+    // Two lines that FIT two lines. The tag clamps the body at two, and the
+    // long version was landing as a sentence cut mid-word with an ellipsis —
+    // which reads as a bug, not as brevity. The full argument (one frame,
+    // every discipline) belongs to the wizard this card opens.
+    body: `It runs — it just doesn’t land. We rebuild it around what already sells.`,
+    cta: 'Book a call',
+    note: 'I have a business already',
     link: { href: '#work', label: 'See the work' },
   },
   {
     id: 'lab',
-    dye: 'blue',            // chosen AFTER the gold CTA
-    mark: 'copy',           // off the shelf — the same thing again
-    photo: 'have-idea',
     eyebrow: 'Starting out',
     title: 'I have a business idea.',
-    body: `Nothing exists yet — that is the easiest place to start. Name, identity, website, first campaign, and the AI that runs it, in the order that gets you selling fastest.`,
-    care: 'Name  →  Identity  →  Website  →  Launch',
-    proof: `${APPS.length + TOOLS.length} products we built for ourselves first — apps in stores, tools in the lab.`,
-    // the pill already goes to #lab — a secondary link to the same anchor is
-    // two controls doing one job, so this one carries the other half of the
-    // claim ("apps in stores, tools in the lab")
+    body: `Nothing exists yet — the easiest place to start. Name, site, launch.`,
+    cta: 'Start from zero',
+    note: 'I have a business idea',
+    // the CTA already opens the wizard, so the secondary link carries the other
+    // half of the claim ("apps in stores, tools in the lab") instead of
+    // duplicating it
     link: { href: '#apps', label: 'See the apps' },
   },
 ]
@@ -205,71 +219,49 @@ export function OfferPair() {
     // Marquee and Stats use. It answers the work above it rather than starting
     // a subject, so it takes the short lead-in clamp.
     <section className="offer" id="offer" aria-label="Already trading, or starting from an idea">
+      {/* The sky.
+          An <img> rather than a CSS background-image for two reasons: it carries
+          its own intrinsic width/height so the box is settled before the bytes
+          arrive (a background-image decoding late would repaint, and with
+          `position: absolute` here it cannot reflow the row at all), and srcSet
+          lets a 390px phone take the 4KB 1100px cut instead of the 14KB one.
+          `object-fit: cover` + the mask that fades both edges live in the CSS. */}
+      <img
+        className="offer-sky"
+        src="/img/tree/bloom-sky.webp"
+        srcSet="/img/tree/bloom-sky-sm.webp 1100w, /img/tree/bloom-sky.webp 2200w"
+        sizes="100vw"
+        alt=""
+        width={2200}
+        height={1228}
+        loading="lazy"
+        decoding="async"
+        aria-hidden="true"
+      />
       <div className="offer-row">
-        {/* panel · TREE · panel — the tree is the third grid child, not a
-            section of its own, so the three float together as one composition
-            and stay in that order when the row stacks on a phone. */}
+        {/* tag · TREE · tag — the tree is the middle grid child, not a section
+            of its own, so the three float as one composition and stay in that
+            order when the row stacks on a phone. */}
         {OFFER.map((o, i) => (
           <Fragment key={o.id}>
-          <Reveal delay={i * 0.08} y={28} className="offer-cell">
-            <article className={`offer-panel blk blk--${o.dye}`} data-cursor>
-              <i className="blk-rail" aria-hidden="true" />
-              {/* one flat gradient rect value-flattens the knit under the type.
-                  Never a blur — a blurred layer per panel is what got the
-                  previous version reverted. */}
-              {/* the drifting field the cut-out crew stands in — see
-                  .offer-aura in banners.css for why this is CSS, not a canvas */}
-              <i className="offer-aura" aria-hidden="true" />
-              <i className="offer-scrim" aria-hidden="true" />
-              {/* the reserved band: art lives in its OWN row of the panel's
-                  flex column, never absolutely stacked over `.offer-face`
-                  below it — see the CSS comment on `.offer-media` for why. */}
-              <div className="offer-media" aria-hidden="true">
-                <span className="offer-stamp">
-                  <WoolIcon name={o.mark} />
-                </span>
-                {o.photo && (
-                  <img
-                    className="offer-photo"
-                    /* PNG, not webp: these are alpha cut-outs and the whole
-                       point is that there is no rectangle. */
-                    src={`/img/needs/${o.photo}.png`}
-                    alt=""
-                    width={1264}
-                    height={848}
-                    loading="lazy"
-                    decoding="async"
-                    aria-hidden="true"
-                    onLoad={(e) => e.currentTarget.closest('.offer-panel')?.classList.add('has-photo')}
-                    onError={(e) => { e.currentTarget.style.display = 'none' }}
-                  />
-                )}
-              </div>
-              <div className="offer-face">
-                <p className="offer-eyebrow">{o.eyebrow}</p>
-                <h3 className="offer-h">{o.title}</h3>
-                <p className="offer-body">{o.body}</p>
-                <p className="offer-care">{o.care}</p>
-                <p className="offer-proof">{o.proof}</p>
-                <div className="offer-ctas">
-                  {o.id === 'studio' ? (
-                    <Magnetic>
-                      {/* photographed knit, and its photograph is magenta —
-                          which is why this half is cut from violet */}
-                      <WoolButton
-                        label="Book a call"
-                        onClick={() => open({ note: 'I have a business already' })}
-                      />
-                    </Magnetic>
-                  ) : (
-                    <Magnetic>
-                      {/* never photographed, so a real yarn pill, spun gold
-                          to carry against the blue knit behind it */}
-                      <WoolButton label="Start from zero" yarn="gold" onClick={() => open({ note: 'I have a business idea' })} />
-                    </Magnetic>
-                  )}
-                  <a className="offer-link" href={o.link.href}>{o.link.label} →</a>
-                </div>
+          <Reveal delay={i * 0.08} y={26} className="offer-cell">
+            <article className="wish" data-cursor>
+              {/* the cord and the eyelet it hangs from. Two leaf elements, no
+                  children, purely decorative — the cord runs off the top of the
+                  tag and is clipped by the section, which is what sells "this
+                  is tied to a branch somewhere above". */}
+              <i className="wish-cord" aria-hidden="true" />
+              <i className="wish-eye" aria-hidden="true" />
+              <p className="wish-eyebrow">{o.eyebrow}</p>
+              <h3 className="wish-h">{o.title}</h3>
+              <p className="wish-body">{o.body}</p>
+              <div className="wish-foot">
+                <Magnetic>
+                  <button type="button" className="wish-cta" onClick={() => open({ note: o.note })}>
+                    {o.cta}
+                  </button>
+                </Magnetic>
+                <a className="wish-link" href={o.link.href}>{o.link.label} →</a>
               </div>
             </article>
           </Reveal>

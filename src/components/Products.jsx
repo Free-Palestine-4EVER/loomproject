@@ -1,34 +1,43 @@
-// LOOM-built software: Apps showcase (phone frames) + 3D Lab (tool cards)
-import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
+// LOOM-built software, in two sections:
+//
+//   <AppsShowcase />  "THE STAGE" — one phone centre stage, an icon rail of
+//                     real tabs switching what is on it.
+//   <ToolsLab />      "THE SUITE" — the six in-house tools presented as one
+//                     piece of software with six modules.
+//
+// Both replace the previous designs (a seven-phone grid and a six-card lab
+// wall) for one measured reason: cost. Between them those two carried 23
+// `infinite` CSS animations — six looping phone UIs from AppScreens.jsx and
+// six looping tool previews from LabPreviews.jsx — plus seven device mockups,
+// seven parallax listeners and a scroll-driven background. src/lib/
+// viewportBudget.js existed largely to park them off-screen.
+//
+// Neither of these sections has a single unconditional loop. Nothing animates
+// at rest; the only animation that repeats at all is the scan line inside the
+// SPLAT LAB pane, and it only exists while that module is the selected one.
+// AppScreens.jsx and LabPreviews.jsx (and their two stylesheets, and
+// products-touch.css) are no longer imported anywhere — that is where the
+// 23 loops went. products-showcase.css is still imported: it owns the .dl-*
+// download-chip system, which both sections still use.
+//
+// NOTE for src/lib/viewportBudget.js: its animation budget keys off
+// `.app-card, .lab-card`, neither of which is rendered any more. That pass is
+// now inert by construction rather than broken — there is nothing left to
+// park. Its IMAGE budget still does real work here (the stage stacks seven
+// screenshots in one phone) and is untouched.
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useReducedMotion } from 'motion/react'
 import { APPS, TOOLS } from '../data/site.js'
 import { SplitWords, Reveal } from '../lib/motion.jsx'
-import { AppScreen } from './AppScreens.jsx'
-import { LabPreview } from './LabPreviews.jsx'
 import { LiveBadge } from './Rich.jsx'
-import './products-showcase.css'
-import './products-touch.css'
-import './heads-v7.css'
-
-// True on coarse pointers (touch) — cards use this to swap hover-only
-// interactions for scroll/tap equivalents, and never attach the extra
-// listeners at all on fine-pointer desktops.
-function useCoarsePointer() {
-  const [coarse, setCoarse] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia('(pointer: coarse)')
-    const update = () => setCoarse(mq.matches)
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
-  return coarse
-}
+import './products-showcase.css'   // .dl-row / .dl-btn / .platform-mark
+import './products-stage.css'      // both new sections
+import './heads-v7.css'            // .apps-status
 
 // Minimal platform/store marks, drawn in the house 1.5px stroke style.
 // Each icon is a small array of primitives rather than one fused path —
-// that's what lets the stroke-draw animate per-part and lets hover nudge
-// one piece (a leaf, a tile, a plane) instead of the glyph as a dead block.
+// that's what lets hover nudge one piece (a leaf, a tile, a plane) instead
+// of the glyph as a dead block.
 const PLATFORM_PARTS = {
   ios: [
     { tag: 'path', cls: 'pm-leaf', transform: 'translate(3.5 -1.5) scale(0.92)',
@@ -63,9 +72,7 @@ const PLATFORM_PARTS = {
   testflight: [
     { tag: 'path', cls: 'pm-plane', d: 'M4 12.5 20 4l-4.2 16-4.6-6.2L4 12.5ZM11.2 13.8 20 4' },
   ],
-  // A drawn nod to the Play triangle, not a trace of the trademarked mark —
-  // the two seam-lines from the back corners toward the tip are what read
-  // as "Google Play" at a glance without reproducing the actual logo.
+  // A drawn nod to the Play triangle, not a trace of the trademarked mark.
   googleplay: [
     { tag: 'path', cls: 'pm-triangle', d: 'M6 3.6 20 12 6 20.4Z' },
     { tag: 'path', cls: 'pm-seam', d: 'M6 3.6 15 12M6 20.4 15 12' },
@@ -75,8 +82,7 @@ const PLATFORM_PARTS = {
 // ————————————————————————————————————————————————————————————
 // DOWNLOAD LINKS. An href of '#' is a placeholder and renders as a dead
 // (but focusable) button; anything else renders as a real anchor that opens
-// in a new tab — see DownloadButton. KwaKwa's TestFlight link is the first
-// real one; the rest are still awaiting URLs.
+// in a new tab — see DownloadButton.
 // TODO(client): real store URLs for the remaining apps. Nothing else needs
 // to change: the key is the platform id (must match a PLATFORM_PARTS entry
 // above + a DL_META entry below), the value is the URL.
@@ -93,8 +99,7 @@ const PLATFORM_PARTS = {
 // KwaKwa's public TestFlight invite. Kept in its own named const because it
 // is the first link here that will be REAL: set it to the
 // https://testflight.apple.com/join/… URL and the chip promotes itself from a
-// dead button to a live anchor (with a pulsing dot) with no other edit. The
-// live path is verified — anchor, target=_blank, rel=noopener, real navigation.
+// dead button to a live anchor (with a pulsing dot) with no other edit.
 const KWAKWA_TESTFLIGHT = '#'
 
 const DOWNLOADS = {
@@ -107,7 +112,7 @@ const DOWNLOADS = {
   Morphic: { appstore: '#' },
 }
 
-// Same mock-link contract, for the 3D Lab / software row.
+// Same mock-link contract, for the 3D Lab / software suite.
 // Picked per tool's actual runtime, not a uniform "all four buttons" grid:
 //  - KUN, ORBIT, ATELIER, TESSERA run today as browser tools (localhost
 //    servers) — a Windows/macOS installer for these doesn't exist yet.
@@ -115,7 +120,7 @@ const DOWNLOADS = {
 //    tool by nature, so it gets a mac link and nothing else.
 //  - 2D→3D STUDIO is the one tool that is genuinely packaged as desktop
 //    software today (the Evora Studio installer: a signed-off .dmg and a
-//    licensed .exe) — the only card that earns both buttons.
+//    licensed .exe) — the only module that earns both buttons.
 const TOOL_DOWNLOADS = {
   KUN: { web: '#' },
   ORBIT: { web: '#' },
@@ -186,17 +191,10 @@ function DownloadButton({ id, href }) {
 }
 
 // Fully drawn the instant it mounts — a persistent control glyph, not a
-// one-time cinematic reveal. An earlier version gated this on its own
-// `useInView` (draw-in on scroll, independent of and lagging behind the
-// card's own Reveal entrance by up to ~1s). That's what made the icon read
-// as permanently missing: a fast/anchor-jump scroll can carry an element
-// straight from "not yet visible" to "already scrolled past" in one frame,
-// which an IntersectionObserver with `once: true` can miss entirely — and
-// even on an ordinary scroll, screenshotting the instant the card itself
-// looks settled could still catch the icon mid-delay, still at opacity 0.
-// A button's icon has to just be there; the CSS hover/active/focus-visible
-// nudges below (leaf tilt, plane lift, tile fan) still give it life on
-// interaction, with zero dependency on scroll timing.
+// one-time cinematic reveal. (An earlier version gated this on its own
+// `useInView`, which is what once made the icon read as permanently missing:
+// a fast/anchor-jump scroll can carry an element from "not yet visible" to
+// "already scrolled past" in one frame.)
 function PlatformMark({ id }) {
   const parts = PLATFORM_PARTS[id]
   if (!parts) return null
@@ -212,113 +210,128 @@ function PlatformMark({ id }) {
   )
 }
 
-// APPS' `tag` field is always "Platform · Category" (e.g. "iOS · Events") —
-// split once here rather than touching data/site.js, so the card can show a
-// coloured platform eyebrow above the name and a discipline pill below it,
-// the same role/owns split the Crew cards use, without inventing new copy.
-function splitTag(tag) {
-  const parts = (tag || '').split(' · ')
-  return parts.length === 2 ? { platform: parts[0], category: parts[1] } : { platform: '', category: tag || '' }
+/* The product icon. Only KwaKwa ships a real icon file; every other app's is
+   drawn from the two fields site.js already carries — `grad` (the colour
+   pair) and `glyph` (a 24×24 stroke path). A gradient squircle costs no
+   network request and no filter, so a rail of seven of them is free. */
+function ProductIcon({ app, className = '' }) {
+  if (app.logo) {
+    return (
+      <span className={`pi pi--photo ${className}`}>
+        <img src={app.logo} alt="" aria-hidden="true" loading="lazy" decoding="async" width="58" height="58" />
+      </span>
+    )
+  }
+  return (
+    <span className={`pi ${className}`} style={{ '--g1': app.grad[0], '--g2': app.grad[1] }}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d={app.glyph} /></svg>
+    </span>
+  )
 }
 
-function PhoneCard({ app, i }) {
-  const [c1, c2] = app.grad
-  const { platform, category } = splitTag(app.tag)
-  const cardRef = useRef(null)
-  const shotRef = useRef(null)
-  const coarse = useCoarsePointer()
-  const reduced = useReducedMotion()
+/* Only two products have a public distribution channel. Rather than invent a
+   status for the other five, the badge falls back to the platform — which is
+   a fact rather than a claim. */
+function StoreTag({ app }) {
+  if (app.store) return <span className="pstore" data-s={app.store}><i />{app.store}</span>
+  return <span className="pstore">{app.platforms[0] === 'web' ? 'Web app' : 'iOS'}</span>
+}
 
-  // Touch: no hover, so pan the screenshot's object-position from the
-  // card's own journey through the viewport (0-100% across the card's transit).
+const two = (n) => String(n + 1).padStart(2, '0')
+const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+/* Shared tab keyboard behaviour for both sections' rails.
+
+   Both rails are real WAI-ARIA tabs, not click-only divs: one tab stop for
+   the whole list (roving tabindex), arrows move selection AND focus, Home/End
+   jump to the ends. Both arrow axes are accepted deliberately — each rail is
+   vertical on desktop and horizontal on a phone, so hard-coding one axis
+   would leave half the layouts unoperable. */
+function useTabList(count, index, setIndex) {
+  const refs = useRef([])
+  const onKeyDown = useCallback((e) => {
+    let next = null
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = (index + 1) % count
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = (index - 1 + count) % count
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = count - 1
+    if (next === null) return
+    e.preventDefault()
+    setIndex(next)
+    refs.current[next]?.focus()
+  }, [count, index, setIndex])
+  return { refs, onKeyDown }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// #apps · THE STAGE
+// One phone centre stage, an icon rail of real tabs switching what is on it.
+// Each app may carry several captures (`shots`); the phone cycles them on a
+// 2-second beat so a product shows more than one screen without the reader
+// having to do anything.
+// ═══════════════════════════════════════════════════════════════
+
+const SHOT_MS = 2000
+
+/* The captures for one app, stacked and crossfaded.
+   All of an app's shots are in the DOM at once and only `opacity` changes, so
+   a beat never causes a layout pass or a decode stall. The timer is a single
+   interval that exists ONLY while the app has more than one capture and the
+   reader hasn't asked for reduced motion — the six single-shot products cost
+   nothing at all. */
+function ShotCycle({ app, on, reduced }) {
+  const shots = useMemo(() => (app.shots?.length ? app.shots : app.shot ? [app.shot] : []), [app])
+  const [k, setK] = useState(0)
+
   useEffect(() => {
-    if (!coarse || reduced || !app.shot) return
-    const card = cardRef.current
-    const shot = shotRef.current
-    if (!card || !shot) return
-    let raf = null
-    const update = () => {
-      raf = null
-      const r = card.getBoundingClientRect()
-      const vh = window.innerHeight || document.documentElement.clientHeight
-      const total = r.height + vh
-      const traveled = vh - r.top
-      const progress = Math.min(1, Math.max(0, traveled / total))
-      shot.style.setProperty('--pan', `${progress * 100}%`)
-    }
-    const onScroll = () => { if (raf == null) raf = requestAnimationFrame(update) }
-    update()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [coarse, reduced, app.shot])
+    setK(0)
+    if (reduced || !on || shots.length < 2) return undefined
+    const id = setInterval(() => setK((v) => (v + 1) % shots.length), SHOT_MS)
+    return () => clearInterval(id)
+  }, [shots, on, reduced])
 
-  // Tight per-row stagger (<=~35ms/item) so a row of three settles almost
-  // as one gesture rather than a visible cascade the eye has to wait out.
-  const rowDelay = (i % 3) * 0.035
+  if (!shots.length) {
+    /* the one app with no capture gets a stated panel rather than an empty
+       frame — TrueSize AR is an AR session, and a still would misrepresent it */
+    return (
+      <div className={`stg-noshot ${on ? 'is-on' : ''}`} aria-hidden={on ? undefined : true}>
+        <ProductIcon app={app} />
+        <p>No public capture yet<br />— AR sessions don’t screenshot well</p>
+      </div>
+    )
+  }
 
-  // The ambient card glow reads --g1/--g2 from the cell rather than from a
-  // per-position CSS rule, so the colours cannot drift out of step with APPS
-  // if the list is ever reordered.
   return (
-    <Reveal delay={rowDelay} className="app-cell" style={{ '--g1': c1, '--g2': c2 }}>
-      <article className="app-card" data-cursor ref={cardRef}>
-        <div className="app-phone" style={{ '--g1': c1, '--g2': c2 }}>
-          <div className="app-screen">
-            {app.shot
-              ? <img ref={shotRef} className="app-shot" src={app.shot} alt={`${app.name} — real app screenshot`} loading="lazy" />
-              : <AppScreen slug={app.screen} />}
-            <i className="app-sheen" aria-hidden="true" />
-          </div>
-          {/* the real device: a stock iPhone 14 Pro mockup keyed to alpha, with
-              its display punched out so the live UI shows through from behind
-              and the Dynamic Island still sits on top of it */}
-          <img className="app-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
-          {app.shot
-            ? <span className="app-real" aria-hidden="true">REAL BUILD</span>
-            : <span className="app-concept" aria-hidden="true">IN THE LAB</span>}
-          <div className="app-glow" aria-hidden="true" />
-        </div>
-        <div className="app-meta">
-          {platform && <span className="app-eyebrow">{platform}</span>}
-          {/* Apps that ship a real icon get it shown as the squircle the
-              user actually taps on their home screen, sitting inline with
-              the name. Apps without one fall back to the name alone rather
-              than to a placeholder tile. */}
-          <h3 className={app.logo ? 'has-mark' : undefined}>
-            {app.logo && (
-              <img className="app-mark" src={app.logo} alt=""
-                aria-hidden="true" loading="lazy" decoding="async" width="34" height="34" />
-            )}
-            <span>{app.name}</span>
-          </h3>
-          {category && <span className="app-pill">{category}</span>}
-          <p>{app.blurb}</p>
-          {/* Real store links are pending — see the DOWNLOADS map at the top
-              of this file. Every button below is a working, focusable control
-              that goes nowhere on purpose until the client supplies real URLs. */}
-          {Object.keys(DOWNLOADS[app.name] || {}).length > 0 && (
-            <>
-              <i className="app-meta-divider" aria-hidden="true" />
-              <div className="dl-row" role="group" aria-label={`${app.name} — downloads`}>
-                {Object.entries(DOWNLOADS[app.name]).map(([id, href]) => (
-                  <DownloadButton key={id} id={id} href={href} />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-        <i className="app-thread" aria-hidden="true" />
-      </article>
-    </Reveal>
+    <>
+      {shots.map((src, n) => (
+        <img
+          key={src}
+          className={on && n === k ? 'is-on' : undefined}
+          src={src}
+          alt={n === 0 ? `${app.name} — real app screenshot` : ''}
+          aria-hidden={on && n === k ? undefined : true}
+          loading="lazy"
+          decoding="async"
+        />
+      ))}
+      {/* the beat, made visible: one pip per capture, so the reader knows the
+          screen is going to change before it does */}
+      {shots.length > 1 && on && (
+        <span className="stg-pips" aria-hidden="true">
+          {shots.map((s, n) => <i key={s} data-on={n === k} />)}
+        </span>
+      )}
+    </>
   )
 }
 
 export function AppsShowcase() {
+  const reduced = useReducedMotion()
+  const [i, setI] = useState(0)
+  const { refs, onKeyDown } = useTabList(APPS.length, i, setI)
+  const app = APPS[i]
+  const dl = DOWNLOADS[app.name] || {}
+
   return (
     <section className="apps" id="apps">
       <div className="section-head">
@@ -326,12 +339,12 @@ export function AppsShowcase() {
         <SplitWords as="h2" className="h2" text="We don’t just market software. We ship it." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
-            {/* Six of the seven carry a REAL BUILD badge and are genuine captures —
+            {/* Six of the seven carry a REAL BUILD chip and are genuine captures —
                 from the simulator, from a LiDAR device, from a real iPhone, and
                 from the running web app. The claim names them rather than
                 implying everything came out of the simulator. */}
-            These phones are not mockups. Every screen wearing a{' '}
-            <strong>REAL BUILD</strong> badge was captured from the running app —
+            Seven products, one phone. Pick an icon — every screen wearing a{' '}
+            <strong>REAL BUILD</strong> chip was captured from the running app,
             in the simulator, on-device, or in the browser.
           </p>
         </Reveal>
@@ -343,138 +356,422 @@ export function AppsShowcase() {
           </div>
         </Reveal>
       </div>
-      <div className="apps-grid apps-grid--woven">
-        {APPS.map((a, i) => <PhoneCard key={a.name} app={a} i={i} />)}
+
+      <div className="stg">
+        <div className="stg-rail" role="tablist" aria-label="Choose an app" onKeyDown={onKeyDown}>
+          {APPS.map((a, n) => (
+            <button
+              key={a.name}
+              type="button"
+              role="tab"
+              id={`stg-tab-${n}`}
+              ref={(el) => { refs.current[n] = el }}
+              aria-selected={n === i}
+              aria-controls="stg-panel"
+              tabIndex={n === i ? 0 : -1}
+              onClick={() => setI(n)}
+              data-cursor
+            >
+              {/* the accessible name of the tab — the icon itself is decorative */}
+              <span className="p-sr-only">{a.name}</span>
+              <ProductIcon app={a} />
+            </button>
+          ))}
+        </div>
+
+        <div className="stg-panel" role="tabpanel" id="stg-panel" aria-labelledby={`stg-tab-${i}`}>
+          <div className="stg-phone-wrap">
+            {/* the real device: the same stock iPhone 14 Pro mockup keyed to
+                alpha the old cards used, with its display punched out so the
+                screenshot shows through and the Dynamic Island still sits on
+                top of it. One device on the page now, not seven. */}
+            <div className="stg-phone">
+              <div className="stg-glass">
+                {APPS.map((a, n) => (
+                  <ShotCycle key={a.name} app={a} on={n === i} reduced={reduced} />
+                ))}
+              </div>
+              <img className="stg-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+            </div>
+          </div>
+
+          <div className="stg-info">
+            <div className="stg-id">
+              <ProductIcon app={app} className="stg-icon" />
+              <div>
+                <h3>{app.name}</h3>
+                {/* no dir="rtl": the Arabic name is a single word inside an LTR
+                    paragraph, and forcing RTL right-aligns it to the far edge of
+                    the info column, half a screen from the Latin name above it */}
+                {app.ar && <div className="stg-ar" lang="ar">{app.ar}</div>}
+              </div>
+            </div>
+            <div className="stg-tag">{app.tag}</div>
+            <p className="stg-blurb">{app.blurb}</p>
+            <div className="stg-meta">
+              <StoreTag app={app} />
+              {app.store && <span className="pstore">{app.platforms[0] === 'web' ? 'Web app' : 'iOS'}</span>}
+              <span className="pstore pstore--real">{app.shot ? 'Real build' : 'In the lab'}</span>
+            </div>
+            {/* Real store links are pending — see the DOWNLOADS map at the top
+                of this file. Every button below is a working, focusable control
+                that goes nowhere on purpose until the client supplies real URLs. */}
+            {Object.keys(dl).length > 0 && (
+              <div className="dl-row" role="group" aria-label={`${app.name} — downloads`}>
+                {Object.entries(dl).map(([id, href]) => (
+                  <DownloadButton key={id} id={id} href={href} />
+                ))}
+              </div>
+            )}
+            <div className="stg-count"><b>{two(i)}</b> / {two(APPS.length - 1)} — LOOM-built products</div>
+          </div>
+        </div>
       </div>
     </section>
   )
 }
 
-// One accent per tool, hand-picked so no two neighbours in the 3-col grid
-// share a colour — the chrome bar's status dot and hover glow key off it.
-const TOOL_ACCENT = {
-  KUN: 'var(--cyan)',
-  ORBIT: 'var(--violet)',
-  ATELIER: 'var(--magenta)',
-  'SPLAT LAB': 'var(--gold)',
-  '2D→3D STUDIO': 'var(--cyan)',
-  TESSERA: 'var(--violet)',
-}
-// The two light-UI captures (cream terminal, washed studio render) need a
-// stronger contrast wash than the dark-UI tools to sit level with them.
-const TOOL_TONE = { KUN: 'light', ATELIER: 'light' }
-// Composition varies shot to shot — this keeps the part that actually reads
-// (the model, the canvas, the headline) inside frame instead of a blind crop.
-const TOOL_FOCUS = {
-  KUN: '55% 32%',
-  ORBIT: '50% 42%',
-  ATELIER: '50% 48%',
-  '2D→3D STUDIO': '38% 42%',
-  TESSERA: '32% 40%',
-}
+// ═══════════════════════════════════════════════════════════════
+// #lab · THE DECK
+//
+// The six in-house tools on one turntable. The section is `--steps` viewports
+// tall with a sticky 100vh stage inside it, so ordinary scrolling (wheel,
+// trackpad, spacebar, keyboard, Lenis) advances the carousel — nothing is
+// hijacked and nothing listens for `wheel`. The only input is scroll
+// POSITION, which means the browser's own scrollbar, a deep link and a rail
+// click all drive it identically.
+//
+// Each tool is drawn as its own application window in CSS rather than pasted
+// into a device photograph: a photo cannot be rotated in 3D without its chrome
+// and its screen shearing apart, which is the whole trick here.
+//
+// LATER — rendered mockups. Any tool may carry an optional `mock` field (a
+// render with its own environment baked in). When one is present the deck
+// drops the CSS window for that tool and shows the render full-bleed instead.
+// That is the only edit needed: add `mock: '/img/lab/x-mock.webp'` in site.js.
+// ═══════════════════════════════════════════════════════════════
 
-function LabCard({ t, i }) {
-  const coarse = useCoarsePointer()
-  const [xray, setXray] = useState(false)
-  const tappable = coarse && !!t.shot
+/* smootherstep — the dwell curve. Raw scroll progress is linear, which makes
+   every card drift through centre at constant speed and never *arrive*.
+   Easing each unit segment by 6t⁵−15t⁴+10t³ makes the deck sit still on a
+   tool for most of its segment and cross to the next one quickly. */
+const smoother = (f) => f * f * f * (f * (f * 6 - 15) + 10)
 
-  const onTap = () => {
-    if (!tappable) return
-    setXray((v) => !v)
-  }
-  const onKeyDown = (e) => {
-    if (!tappable) return
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap() }
-  }
+/* The console line. It types, because output typing out reads as a machine
+   answering rather than as a paragraph of marketing — but it is a plain
+   setInterval over a string with one caret element, it stops the moment the
+   line is finished, and it does not run at all under reduced motion. */
+function Console({ tool, reduced }) {
+  const [typed, setTyped] = useState(tool.blurb)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (reduced) { setTyped(tool.blurb); setBusy(false); return }
+    const text = tool.blurb
+    let n = 0
+    setTyped('')
+    setBusy(true)
+    const id = setInterval(() => {
+      n += 1
+      setTyped(text.slice(0, n))
+      if (n >= text.length) { clearInterval(id); setBusy(false) }
+    }, 14)
+    return () => { clearInterval(id); setBusy(false) }
+  }, [tool, reduced])
 
   return (
-    <Reveal delay={(i % 3) * 0.035}>
-      <article
-        className={`lab-card ${xray ? 'is-xray' : ''}`}
+    <div className="sui-console">
+      <p className="row">
+        <span className="p">loom</span> <span className="c">~/lab</span> $ open{' '}
+        <span className="out">{slug(tool.name)} — {tool.kicker.toLowerCase()}</span>
+      </p>
+      {/* The typing line is decorative to assistive tech — announcing it
+          would fire once per character. The whole sentence is exposed once,
+          in one node, instead. */}
+      <p className="row out" aria-hidden="true">
+        {typed}
+        {busy && <span className="sui-caret" aria-hidden="true" />}
+      </p>
+      <p className="p-sr-only">{tool.blurb}</p>
+    </div>
+  )
+}
+
+/* One tool's seat on the turntable. Everything positional is written by the
+   scroll driver straight onto the node (transform / opacity / z-index /
+   --dim), never through React state — six nodes × one transform each per
+   frame, no re-render. */
+function DeckWindow({ tool, n, onPick, active, refCb }) {
+  return (
+    <div className="dk-slot" ref={refCb} data-n={n} aria-hidden={active ? undefined : true}>
+      <button
+        type="button"
+        className="dk-card"
+        onClick={() => onPick(n)}
+        tabIndex={-1}
+        aria-label={`Show ${tool.name}`}
         data-cursor
-        style={{ '--tool-accent': TOOL_ACCENT[t.name] || 'var(--cyan)' }}
       >
-        {/* The tool preview now runs on a real machine: a stock MacBook Pro
-            mockup keyed to alpha (scripts/make-device-frames.mjs) sitting
-            behind the preview, which is pinned to the display's exact rect. */}
-        <div className="lab-mac">
-        <img className="lab-mac-frame" src="/img/devices/macbook-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
-        <div
-          className={`lab-preview-wrap ${t.shot ? 'has-shot' : ''} ${tappable ? 'is-tappable' : ''}`}
-          data-tone={TOOL_TONE[t.name] || 'dark'}
-          role={tappable ? 'button' : undefined}
-          tabIndex={tappable ? 0 : undefined}
-          aria-pressed={tappable ? xray : undefined}
-          aria-label={tappable ? `${t.name} — toggle real screenshot` : undefined}
-          onClick={onTap}
-          onKeyDown={onKeyDown}
-        >
-          <span className="lab-chrome" aria-hidden="true">
-            <span className="lab-chrome-dots"><i /><i /><i /></span>
-            <span className="lab-chrome-name">{t.name.toLowerCase()}</span>
-            <span className="lab-chrome-status" />
-          </span>
-          <LabPreview name={t.name} />
-          {t.shot ? (
-            <>
-              <img
-                className="lab-shot"
-                src={t.shot}
-                alt={`${t.name} — real tool screenshot`}
-                loading="lazy"
-                style={{ objectPosition: TOOL_FOCUS[t.name] || '50% 40%' }}
-              />
-              <span className="lab-veil" aria-hidden="true" />
-              <span className="lab-real" aria-hidden="true">REAL TOOL</span>
-            </>
+        <span className="dk-body">
+          {tool.mock ? (
+            <img className="dk-mock" src={tool.mock} alt={`${tool.name} — product mockup`} loading="lazy" decoding="async" />
           ) : (
-            <span className="lab-live-badge" aria-hidden="true">LIVE RENDER</span>
+            <>
+              <span className="dk-chrome" aria-hidden="true">
+                <i /><i /><i />
+                <em>{slug(tool.name)}.tool</em>
+              </span>
+              <span className="dk-screen">
+                {tool.shot ? (
+                  <img src={tool.shot} alt={`${tool.name} — real tool screenshot`} loading="lazy" decoding="async" />
+                ) : (
+                  /* SPLAT LAB has no still, and one would be a lie: its output
+                     is a live splat, not a frame. The pane says so, in the
+                     language of the tool. */
+                  <span className="dk-cloud">
+                    <em>
+                      no still on file
+                      <b>output is a live splat — 1.2 M gaussians</b>
+                      <b>captured · trained · streamed</b>
+                    </em>
+                  </span>
+                )}
+              </span>
+            </>
           )}
-          <span className="lab-floor" aria-hidden="true" />
-        </div>
-        </div>
-        <p className="lab-kicker">{t.kicker}</p>
-        <header>
-          <h3>{t.name}</h3>
-          <span className="lab-tag">{t.tag}</span>
-        </header>
-        <p className="lab-blurb">{t.blurb}</p>
-        {Object.keys(TOOL_DOWNLOADS[t.name] || {}).length > 0 && (
-          <>
-            <i className="lab-meta-divider" aria-hidden="true" />
-            <div className="dl-row dl-row--lab" role="group" aria-label={`${t.name} — downloads`}>
-              {Object.entries(TOOL_DOWNLOADS[t.name]).map(([id, href]) => (
-                <DownloadButton key={id} id={id} href={href} />
-              ))}
-            </div>
-          </>
-        )}
-        <i className="lab-thread" aria-hidden="true" />
-      </article>
-    </Reveal>
+          {/* the light that sells the tilt: one sheen sweep across the glass,
+              and one flat scrim that deepens with distance from centre */}
+          <span className="dk-sheen" aria-hidden="true" />
+          <span className="dk-scrim" aria-hidden="true" />
+        </span>
+      </button>
+    </div>
   )
 }
 
 export function ToolsLab() {
-  const ref = useRef(null)
   const reduced = useReducedMotion()
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-4%', '4%'])
+  const [i, setI] = useState(0)
+  const { refs, onKeyDown } = useTabList(TOOLS.length, i, setI)
+  const wrapRef = useRef(null)
+  const slots = useRef([])
+  const N = TOOLS.length
+  const tool = TOOLS[i]
+  const dl = useMemo(() => TOOL_DOWNLOADS[tool.name] || {}, [tool])
+
+  /* Write one transform per card for a fractional index `p`. Called from the
+     scroll driver, and once directly whenever the reduced-motion fallback
+     changes tab. */
+  const place = useCallback((p) => {
+    for (let n = 0; n < N; n++) {
+      const el = slots.current[n]
+      if (!el) continue
+      const d = n - p
+      const a = Math.abs(d)
+      const s = Math.sign(d)
+      // the fan compresses as it recedes (1 − e^-a), so six wide windows still
+      // fit in one viewport instead of marching off the sides in a straight line
+      const x = s * (1 - Math.exp(-a * 0.82)) * 74
+      const ry = -s * Math.min(a, 2.4) * 30
+      const z = -Math.min(a, 3) * 240
+      const sc = Math.max(0.6, 1 - a * 0.105)
+      const lift = Math.min(a, 3) * 16
+      const gone = a > 3.05
+      el.style.transform = `translate3d(${x}%, ${lift}px, ${z}px) rotateY(${ry}deg) scale(${sc})`
+      el.style.opacity = gone ? '0' : String(Math.max(0, 1 - Math.max(0, a - 2.2) * 1.2))
+      el.style.visibility = gone ? 'hidden' : 'visible'
+      el.style.zIndex = String(200 - Math.round(a * 20))
+      el.style.setProperty('--dim', String(Math.min(0.72, a * 0.34)))
+    }
+  }, [N])
+
+  // ——— the scroll driver ———
+  useEffect(() => {
+    if (reduced) { place(i); return undefined }
+    const wrap = wrapRef.current
+    if (!wrap) return undefined
+    let raf = 0
+    const paint = () => {
+      raf = 0
+      const total = wrap.offsetHeight - window.innerHeight
+      if (total <= 0) { place(i); return }
+      const y = Math.min(Math.max(-wrap.getBoundingClientRect().top, 0), total)
+      const raw = (y / total) * (N - 1)
+      const seg = Math.min(Math.floor(raw), N - 2)
+      const p = seg + smoother(raw - seg)
+      place(p)
+      const near = Math.round(p)
+      setI((v) => (v === near ? v : near))
+    }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(paint) }
+    paint()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      if (raf) cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+    // `i` is read only as a fallback value inside paint; re-subscribing on
+    // every index change would tear down the listener six times per pass.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduced, N, place])
+
+  /* The motes are the one looping decoration in this section, so they are
+     mounted on the compositor only while the deck is actually on screen —
+     `.is-live` is the whole gate, and it is never added under reduced motion. */
+  useEffect(() => {
+    const wrap = wrapRef.current
+    if (!wrap || reduced) return undefined
+    const io = new IntersectionObserver(
+      ([e]) => wrap.classList.toggle('is-live', e.isIntersecting),
+      { rootMargin: '10% 0px' },
+    )
+    io.observe(wrap)
+    return () => io.disconnect()
+  }, [reduced])
+
+  /* Rail clicks and side-card clicks scroll the page to that tool's slice of
+     the pin rather than setting state — otherwise the copy would say one thing
+     and the next scroll event would immediately snap it back. Lenis owns
+     window.scrollTo on this site, so it is asked directly when it exists. */
+  const goTo = useCallback((n) => {
+    if (reduced) { setI(n); place(n); return }
+    const wrap = wrapRef.current
+    if (!wrap) return
+    const total = wrap.offsetHeight - window.innerHeight
+    if (total <= 0) { setI(n); return }
+    // document-absolute, not offsetTop: the deck's offsetParent is not the
+    // body once any ancestor becomes positioned, and offsetTop would then be
+    // measured from the wrong origin
+    const top = wrap.getBoundingClientRect().top + window.scrollY
+    const y = top + (n / (N - 1)) * total
+    if (window.__lenis) window.__lenis.scrollTo(y)
+    else window.scrollTo({ top: y, behavior: 'smooth' })
+  }, [reduced, N, place])
+
   return (
-    <section className="lab" id="lab" ref={ref}>
-      <motion.div className="lab-bg" style={{ y }} aria-hidden="true" />
+    <section className="lab" id="lab">
+      {/* static wash. It used to be a scroll-driven parallax layer; the
+          parallax cost a scroll subscription and a transform on a very large
+          element for an effect nobody could name. */}
+      <div className="lab-bg" aria-hidden="true" />
       <div className="section-head">
         <p className="kicker kicker--light"><span>03</span> The 3D Lab</p>
         <SplitWords as="h2" className="h2 h2--light" text="We built our own tools. Then we built yours." />
         <Reveal delay={0.15}>
           <p className="lede lede--light" style={{ marginTop: 22 }}>
-            Six machines engineered in-house — scanners, editors, generators. What you see is
-            the software actually running; hover or tap any card to x-ray into how it thinks.
+            Six machines engineered in-house — scanners, editors, generators — and not a
+            shelf of experiments: one toolchain with six modules. <strong>Just scroll</strong>;
+            every window on the deck is the software actually running.
           </p>
         </Reveal>
       </div>
-      <div className="lab-grid">
-        {TOOLS.map((t, i) => <LabCard key={t.name} t={t} i={i} />)}
+
+      {/* the tall element. Its height IS the carousel's timeline; the sticky
+          child is what the reader actually sees. */}
+      <div
+        className={`dk${reduced ? ' dk--flat' : ''}`}
+        ref={wrapRef}
+        style={{ '--steps': N - 1 }}
+      >
+        <div className="dk-pin">
+          {/* the wash behind the deck, tinted by the tool currently centre
+              stage — a colour transition, not a repaint of anything */}
+          <div
+            className="dk-aura"
+            aria-hidden="true"
+            style={{ '--g1': tool.grad?.[0] || '#7b2fbe', '--g2': tool.grad?.[1] || '#59e6ff' }}
+          />
+          {/* Scatter is computed here rather than in CSS: the obvious CSS
+              version needs `mod()`, which is Chrome 125+/Safari 18 only, and
+              would stack all fourteen motes in one corner everywhere else. */}
+          <div className="dk-motes" aria-hidden="true">
+            {Array.from({ length: 14 }, (_, k) => (
+              <i key={k} style={{ '--k': k, left: `${4 + ((k * 37) % 92)}%`, top: `${8 + ((k * 53) % 78)}%` }} />
+            ))}
+          </div>
+
+          <div className="dk-stage">
+            <div className="dk-track">
+              {TOOLS.map((t, n) => (
+                <DeckWindow
+                  key={t.name}
+                  tool={t}
+                  n={n}
+                  active={n === i}
+                  onPick={goTo}
+                  refCb={(el) => { slots.current[n] = el }}
+                />
+              ))}
+            </div>
+            {/* the floor the reflection falls onto */}
+            <div className="dk-floor" aria-hidden="true" />
+          </div>
+
+          {/* ——— the copy. Keyed on the tool so it re-mounts and replays its
+              own entrance every time the deck lands on a new module. ——— */}
+          <div className="dk-info" key={tool.name}>
+            <div className="dk-id">
+              <span className="dk-n" aria-hidden="true">{two(i)}</span>
+              <div className="dk-id-t">
+                <h3>{tool.name}</h3>
+                <span className="dk-tag">{tool.kicker}</span>
+              </div>
+            </div>
+            <Console tool={tool} reduced={reduced} />
+            <div className="dk-meta">
+              <span className="pill">{tool.tag}</span>
+              <span className="dk-note">built in-house · not for sale</span>
+            </div>
+            {/* Real download links are pending — see TOOL_DOWNLOADS above.
+                Filed as a command so the chrome stays honest. */}
+            {Object.keys(dl).length > 0 && (
+              <div className="sui-get">
+                <span className="sui-get-lbl" aria-hidden="true">$ get</span>
+                <div className="dl-row dl-row--lab" role="group" aria-label={`${tool.name} — downloads`}>
+                  {Object.entries(dl).map(([id, href]) => (
+                    <DownloadButton key={id} id={id} href={href} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ——— the rail. Still a real WAI-ARIA tablist: it is the keyboard
+              and screen-reader route through the deck, and the only reason the
+              carousel is operable without a mouse wheel. ——— */}
+          <div className="dk-rail" role="tablist" aria-label="LOOM in-house tools" onKeyDown={onKeyDown}>
+            {TOOLS.map((t, n) => (
+              <button
+                key={t.name}
+                type="button"
+                role="tab"
+                id={`dk-tab-${n}`}
+                ref={(el) => { refs.current[n] = el }}
+                className="dk-mod"
+                aria-selected={n === i}
+                aria-controls="dk-info"
+                tabIndex={n === i ? 0 : -1}
+                onClick={() => goTo(n)}
+                data-cursor
+              >
+                <span className="n" aria-hidden="true">{two(n)}</span>
+                <span className="t">{t.name}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="dk-count">
+            module <b>{two(i)}</b> / {two(N - 1)} — engineered in-house
+            <i aria-hidden="true" style={{ '--w': `${(i / (N - 1)) * 100}%` }} />
+          </div>
+        </div>
+      </div>
+      {/* the tablist's panel: one live region carrying whatever the deck has
+          landed on, so arrow-keying the rail announces the module */}
+      <div id="dk-info" className="p-sr-only" role="tabpanel" aria-labelledby={`dk-tab-${i}`} aria-live="polite">
+        {tool.name} — {tool.kicker}. {tool.blurb}
       </div>
     </section>
   )

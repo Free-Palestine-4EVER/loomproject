@@ -5,14 +5,49 @@
    ———————————————————————————————————————————————————————— */
 
 /* ——— Manifesto: ink-through headline ——— */
-.manifesto-ink { display: inline; }
-.ink-word { display: inline-block; }
+/* block, not inline: the h2 holds inline-block words that each take a 3D
+   transform, and an inline parent can't establish a proper containing box for
+   them (it also silently swallows the margin-bottom styles.css sets on it,
+   which is why the rule below now owns the whole gap). */
+.manifesto-ink { display: block; margin-bottom: 0; }
+.ink-word {
+  display: inline-block;
+  /* pivots up off its own baseline rather than through its middle, so a word
+     rotating in reads as landing on the line instead of spinning in place */
+  transform-origin: 50% 88%;
+  will-change: transform, opacity;
+}
+
+/* The rule is a track (unlit hairline) + a gradient fill that wipes across it +
+   a spark head that rides the leading edge. Everything moves on transform and
+   opacity only — no background-position, no filter. */
 .manifesto-ink-rule {
-  display: block;
-  width: 92px; height: 2px; margin: 22px 0 0;
+  position: relative; display: block;
+  width: clamp(120px, 20vw, 210px); height: 3px;
+  margin: 30px 0 0;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.09);
+}
+.manifesto-ink-fill {
+  position: absolute; inset: 0;
   transform-origin: left center;
-  background: linear-gradient(90deg, var(--magenta), var(--violet), var(--cyan));
-  border-radius: 2px;
+  background: linear-gradient(90deg, var(--violet), var(--magenta), var(--cyan));
+  border-radius: inherit;
+}
+/* Full-width so its own 0 → -100% x range maps exactly onto the rule's length;
+   the visible dot is the ::after pinned to its right edge. */
+.manifesto-ink-head {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.manifesto-ink-head::after {
+  content: '';
+  position: absolute; top: 50%; left: 100%;
+  width: 13px; height: 13px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--magenta) 42%, rgba(242, 28, 140, 0) 72%);
+  box-shadow: 0 0 14px 2px rgba(242, 28, 140, 0.55);
 }
 
 /* ——— Process: the line ——— */
@@ -82,6 +117,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .manifesto-ink-rule { transform: none !important; }
+  /* Reduced motion lands the whole thing in its resolved state: white words,
+     no transforms, a fully drawn rule, no spark. InkWord's `reduced` branch
+     already renders plain white spans; these rules cover the case where the
+     media query flips after mount, before React re-renders. */
+  .ink-word { transform: none !important; opacity: 1 !important; color: #fff !important; }
+  .manifesto-ink-fill { transform: none !important; }
+  .manifesto-ink-head { display: none; }
+  .manifesto-media { transform: none !important; opacity: 1 !important; }
   .studios-arc-pulse { display: none; }
 }
