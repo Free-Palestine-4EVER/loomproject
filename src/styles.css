@@ -975,7 +975,14 @@ html.cursor-hot .cursor-ring {
 
 /* ——— 3D lab ——— */
 .lab {
-  position: relative; overflow: hidden;
+  /* `overflow-x: clip`, NOT `overflow: hidden`. `hidden` makes this section a
+     scroll container, and a scroll container is the sticky positioning context
+     of everything inside it — which silently kills the deck's pin
+     (`.dk-pin` never sticks, so the whole carousel scrolls past as one dead
+     block). `clip` still contains the `.lab-bg` bleed without creating one.
+     products-stage.css repeats this rule; it is stated here too because this
+     is the declaration that used to be `hidden`. */
+  position: relative; overflow-x: clip;
   margin-top: clamp(30px, 5vh, 60px);
   background: linear-gradient(180deg, var(--bg) 0%, #150b26 20%, #1b0e2f 55%, var(--bg) 100%);
   border-block: 1px solid var(--line);
@@ -1419,27 +1426,3 @@ html.cursor-hot .cursor-ring {
   }
   .wmodal-panel.is-sheet .wmodal-scroll { touch-action: pan-y; overscroll-behavior: contain; }
 }
-
-/* ═══ WHITE HEADER ═══
-   Must stay after the .nav / .nav-links rules above: same specificity, so
-   source order decides. The bar goes white, which means every mark on it has
-   to flip too — a white bar with the old --ink-dim links is ~1.9:1 and
-   unreadable. Ink is #241733 (12.9:1 on white); the dim state is #5b4a70
-   (5.6:1) so the resting nav is still legible, not decorative. */
-.nav {
-  background: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.72) 70%, rgba(255,255,255,0) 100%);
-  border-bottom: 1px solid rgba(36, 23, 51, 0.08);
-}
-.nav--scrolled {
-  background: rgba(255, 255, 255, 0.9);
-  border-bottom-color: rgba(36, 23, 51, 0.12);
-}
-.nav-links a { color: #5b4a70; }
-.nav-links a:hover,
-.nav-links a.is-current span { color: #241733; }
-/* the roll-up copy underneath each link keeps the magenta — it is the one
-   brand accent on the bar and it passes on white (4.7:1) */
-.nav-links a span::after { color: var(--magenta); }
-/* SCRAMBLE_GLYPHS runs on the visible span, so it inherits the ink above.
-   The scroll-progress hairline is the only element that was already light. */
-.nav .burger span { background: #241733; }
