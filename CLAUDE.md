@@ -27,13 +27,13 @@ unreachable from Jordan — do not propose it.**
 
 ## Shape of the app
 
-`src/App.jsx` is the whole router: one pathname check (`/consultancy` vs.
-everything else), no router dependency. The long page mounts ~17 sections in a
-fixed order; `/consultancy` mounts the dedicated page plus `Contact`.
+`src/App.jsx` is the whole router: one pathname check against a small `PAGES`
+table (`/type`, `/blip`), no router dependency. The long page mounts ~18
+sections in a fixed order; a sub-page route renders that page instead.
 
 | What | Where |
 |---|---|
-| All copy/content (brand, services, 16 cases, stats) | `src/data/site.js` (+ `crew.js`, `agents.js`, `machine.js`) |
+| All copy/content (brand, services, 16 cases, stats) | `src/data/site.js` (+ `offers.js`; `crew.js` / `agents.js` are unmounted) |
 | Sections of the long page | `src/components/Sections.jsx` |
 | Nav / loader / cursor / progress / footer | `src/components/Chrome.jsx` |
 | Contact wizard (4 steps → WhatsApp/email) | `src/components/ContactWizard.jsx` + `lib/wizard.jsx` |
@@ -223,27 +223,26 @@ If you change the font files, update the sizes quoted in `Typeface.jsx`
 (`FILES`, `ZIP_SIZE`) and the counts in `FACTS` — they are
 hardcoded, not measured.
 
-## The Ascent — the loom climb
+## Removed sections — Crew and the Ascent
 
-`#ascent` is no longer the orthographic globe. `AscentLoom.jsx` pins 560vh into
-one viewport and flies the visitor **up the inside of a loom**: warp threads
-receding in perspective, six weft rings (one per territory) passing with a
-shuttle running each, an altimeter counting to 84,000 m in LOOM Bloom, and the
-sky stepping through five altitude bands. Near the top the shaft funnels in and
-the threads close overhead.
+Both are **gone from the page and deleted from the tree** (Aug 2026). `Crew.jsx`
+/ `crew.css`, `AscentLoom.jsx` / `ascentloom.css` and `Moon.jsx` / `moon.css`
+(the Ascent's earlier orthographic globe) no longer exist; `#crew`, `#agents`
+and `#ascent` no longer resolve, and neither does the nav tab. `TheMachine` took
+Crew's slot on the page and its tab, and the `01`–`07` kicker sequence was
+renumbered to stay contiguous. `git show 89c6f27^:src/components/AscentLoom.jsx`
+is the way back if the climb is ever wanted again.
 
-The 3D is `src/three/LoomShaft.js` — code-split, and **skipped entirely on
-reduced-motion and on coarse pointers** (iOS gets one WebGL context, and the
-companion butterfly already owns it). Under it sits a CSS shaft + gradient that
-carries the section on its own, so no-WebGL machines still get the copy and CTA.
+`src/three/LoomShaft.js` (the climb's WebGL layer) and `src/components/Agents.jsx`
++ `src/data/crew.js` / `agents.js` + `public/img/crew` are still in the tree but
+**mounted by nothing** — the mascot cast is brand material with its own asset
+pipeline (`scripts/shrink-decoded.mjs` still walks `img/crew`), so it was left
+alone rather than half-deleted. Do not assume anything in that list is live.
 
-**`vertexColors: true` on a geometry with no colour attribute renders black.**
-That is what made the warp threads black on the first pass — `setColorAt` needs
-`instanceColor` (which it allocates itself) and the material left at plain
-white, not `vertexColors`. Flag `instanceColor.needsUpdate` too.
-
-`Moon.jsx` (the old globe) is still in the tree, unmounted, if it is ever wanted
-back — swap the import in `App.jsx`.
+One lesson worth keeping from LoomShaft: **`vertexColors: true` on a geometry
+with no colour attribute renders black.** `setColorAt` needs `instanceColor`
+(which it allocates itself) and the material left at plain white, not
+`vertexColors`. Flag `instanceColor.needsUpdate` too.
 
 ## Assets
 

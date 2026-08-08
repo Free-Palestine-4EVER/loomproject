@@ -6,7 +6,8 @@
 // The illustrative "month grid" is decoration, not data — 24 cells standing
 // for one month's output (20 posts + 4 reels), captioned as illustrative so
 // it never reads as a real client's calendar.
-import { useReducedMotion } from 'motion/react'
+import { useRef } from 'react'
+import { useInView, useReducedMotion } from 'motion/react'
 import { THE_MACHINE } from '../data/offers.js'
 import { SplitWords, Reveal, CountUp, Magnetic } from '../lib/motion.jsx'
 import { ThreadDivider } from './Rich.jsx'
@@ -15,12 +16,29 @@ import { useWizard } from '../lib/wizard.jsx'
 
 import './machine-offer.css'
 
-// Evenly interleaves the 4 reel cells across the 24-cell grid instead of
-// clumping them at the end — reads as a scheduled month, not a leftover pile.
+const COLS = 6
+
+// Spreads the reels across the month instead of clumping them.
+//
+// The previous version stepped `round(total / reels)` cells at a time, which
+// for 24 cells / 4 reels is exactly 6 — the column count — so every reel
+// landed in column 6 and the "schedule" rendered as a solid stripe down the
+// right edge. Place one reel per row band instead, and walk the column with a
+// golden-ratio step so no two share one. Distinct rows means no two reels can
+// collide, so the count always comes out exact.
 function buildMonthCells(posts, reels) {
   const total = posts + reels
-  const step = reels > 0 ? Math.round(total / reels) : total
-  return Array.from({ length: total }, (_, i) => ((i + 1) % step === 0 ? 'reel' : 'post'))
+  const rows = Math.ceil(total / COLS)
+  const cells = Array.from({ length: total }, () => 'post')
+  if (reels <= 0) return cells
+  const band = rows / reels
+  for (let r = 0; r < reels; r++) {
+    const row = Math.min(rows - 1, Math.floor(r * band + band / 2))
+    const col = (Math.round(r * COLS * 0.618) + 4) % COLS
+    const idx = Math.min(total - 1, row * COLS + col)
+    cells[idx] = 'reel'
+  }
+  return cells
 }
 
 export function TheMachine() {
@@ -29,9 +47,18 @@ export function TheMachine() {
   const m = THE_MACHINE
   const cells = buildMonthCells(m.monthGrid.posts, m.monthGrid.reels)
 
+  // The cells' pop-in is a CSS animation with a per-cell delay, and a CSS
+  // animation starts the moment the element is parsed — mounted at the top of
+  // a long page, the whole stagger had already finished by the time anyone
+  // scrolled here. Gate it on the grid actually being in view.
+  const gridRef = useRef(null)
+  const gridIn = useInView(gridRef, { once: true, margin: '-12% 0px' })
+
   return (
     <section className="mo" id="the-machine" style={{ '--mo-tint': 'var(--cyan)' }}>
       <ThreadDivider />
+      {/* the warp the month is woven on — one painted gradient, no elements */}
+      <span className="mo-warp" aria-hidden="true" />
       <div className="section-head">
         <p className="kicker">
           <span>—</span> The Machine
@@ -57,12 +84,19 @@ export function TheMachine() {
             ))}
           </ul>
 
+          {/* The price is the section's strongest single claim and it used to be
+              its quietest element — a flat bar of body text. It is a plate now:
+              the numeral in the display face at headline weight, the hedge
+              ("from", and the note) kept deliberately small but never dropped. */}
           <div className="mo-price">
-            <span className="mo-price-label">From</span>
-            <span className="mo-price-value">
-              <CountUp value={m.priceFromJod} /> JOD<span className="mo-price-unit">/month</span>
-            </span>
-            <span className="mo-price-note">{m.priceNote}</span>
+            <span className="mo-price-tag">From</span>
+            <p className="mo-price-value">
+              <CountUp value={m.priceFromJod} />
+              <span className="mo-price-cur">JOD</span>
+              <span className="mo-price-unit">/month</span>
+            </p>
+            <p className="mo-price-note">{m.priceNote}</p>
+            <span className="mo-price-ar" lang="ar" aria-hidden="true">{m.nameAr}</span>
           </div>
 
           <div className="mo-cta-row">
@@ -77,19 +111,47 @@ export function TheMachine() {
         </Reveal>
 
         <Reveal delay={0.1} className="mo-right">
-          <div className="mo-grid-viz" data-cursor aria-hidden="true">
-            {cells.map((kind, i) => (
-              <i
-                key={i}
-                className={`mo-cell mo-cell--${kind}`}
-                style={reduced ? undefined : { '--d': `${i * 0.025}s` }}
-              />
-            ))}
-          </div>
-          <p className="mo-grid-caption">
-            One illustrative month — {m.monthGrid.posts} posts, {m.monthGrid.reels} reels.
-            Shape only, not a real client's calendar.
-          </p>
+          <figure className="mo-month">
+            <div className="mo-month-top">
+              <span className="mo-month-label">One month</span>
+              <span className="mo-legend">
+                <i className="mo-key mo-key--post" aria-hidden="true" /> post
+                <i className="mo-key mo-key--reel" aria-hidden="true" /> reel
+              </span>
+            </div>
+
+            <div
+              ref={gridRef}
+              className={`mo-grid-viz${gridIn ? ' is-in' : ''}`}
+              data-cursor
+              aria-hidden="true"
+            >
+              {cells.map((kind, i) => (
+                <i
+                  key={i}
+                  className={`mo-cell mo-cell--${kind}`}
+                  style={reduced ? undefined : { '--d': `${i * 0.022}s` }}
+                />
+              ))}
+            </div>
+
+            <div className="mo-month-foot" aria-hidden="true">
+              <span className="mo-tally">
+                <b>{m.monthGrid.posts}</b> posts
+              </span>
+              <span className="mo-tally mo-tally--reel">
+                <b>{m.monthGrid.reels}</b> reels
+              </span>
+              <span className="mo-tally mo-tally--sum">
+                <b>{m.monthGrid.posts + m.monthGrid.reels}</b> pieces
+              </span>
+            </div>
+
+            <figcaption className="mo-grid-caption">
+              One illustrative month — {m.monthGrid.posts} posts, {m.monthGrid.reels} reels.
+              Shape only, not a real client's calendar.
+            </figcaption>
+          </figure>
         </Reveal>
       </div>
 

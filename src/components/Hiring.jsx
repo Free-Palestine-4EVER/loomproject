@@ -1,22 +1,20 @@
 // WE ARE HIRING — the ninth chair.
 //
-// Sits directly under Crew on purpose. Crew has just introduced the roster as
-// ARCHETYPES ("The Weaver", "The Director", …) and sold every one of them as
-// something a client can rent. This section is the same roster with the people
-// taken out of it: four identical card stages, lit, with a felted `user`
-// medallion standing in the spotlight instead of a mascot. The rhyme is the
-// whole idea — the reader has just scrolled past four occupied stages, so four
-// empty ones need no explanation.
+// Four identical card stages, lit, with a felted `user` medallion standing in
+// the spotlight instead of a person: the light is on, the thread is hanging,
+// nobody is on the mark. It used to sit directly under Crew and lean on that
+// rhyme ("four occupied stages, now four empty ones"); Crew is gone from the
+// page, so the section carries the idea on its own and the copy no longer
+// points upward at a roster that is not there.
 //
-// Roles are invented for this studio's actual disciplines (AI/automation,
-// branding, social, web & app, campaigns, AR/CGI) and named in crew.js's voice.
-// Nothing here claims a salary, a headcount, a benefit or a funding fact — the
-// only company facts used are BRAND's two cities and its real contact routes.
+// Roles are the studio's actual disciplines (motion, generative, web & app,
+// 3D/AR). Nothing here claims a salary, a headcount, a benefit or a funding
+// fact — the only company facts used are BRAND's two cities, its real contact
+// routes, and the number of cards in ROLES.
 //
-// COST: zero animations at rest. Crew's mascots each run an infinite float;
-// this section deliberately runs nothing — entry reveals are one-shot (Reveal /
-// SplitWords) and every other move is a hover/focus transition. The page already
-// carries two WebGL layers.
+// COST: zero animations at rest — no @keyframes in hiring.css at all. Entry is
+// one-shot (Reveal / SplitWords) and every other move is a hover/focus
+// transition. The page already carries two WebGL layers.
 import { WoolButton, WoolIcon } from './Wool.jsx'
 import { SplitWords, Reveal, Magnetic } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
@@ -80,11 +78,13 @@ function RoleCard({ r, i, onApply }) {
       <article className="hire-card" style={{ '--accent': r.accent }}>
         <span className="hire-open">Open</span>
 
-        {/* The empty stage. Same geometry as a crew card's, with the felted
-            `user` medallion where the mascot stands — a placeholder, not a
-            portrait. Decorative: the role is named in the heading below. */}
+        {/* The empty stage: a lit mark with the felted `user` medallion on it
+            instead of a person, the role's number ghosted behind as the
+            backdrop, and the warp thread still hanging with nothing tied on.
+            Decorative — the role is named in the heading below. */}
         <div className="hire-stage" aria-hidden="true">
           <span className="hire-glow" />
+          <span className="hire-ghost">{r.n}</span>
           <span className="hire-warp" />
           <span className="hire-ring">
             <WoolIcon name="user" size="lg" />
@@ -125,42 +125,60 @@ export function Hiring() {
       <span className="hire-rail" aria-hidden="true" />
 
       <div className="hire-head">
-        <div className="hire-head-copy">
+        {/* The shout runs the full width of the felt patch. It used to share a
+            1.5fr/0.9fr row with the three instructions, which left the headline
+            marooned in an ocean of empty felt and squeezed the steps into a
+            column too narrow for their own lines. Full-width statement, then
+            two even columns under it. */}
+        <div className="hire-head-top">
           <p className="kicker"><span>—</span> Careers</p>
           {/* The client's own words, set in the studio's own display face.
               A real <h2>: SplitWords keeps the aria-label intact. */}
           <SplitWords as="h2" className="h2 hire-shout" text="WE ARE HIRING" />
-          <Reveal delay={0.15}>
-            <p className="lede hire-lede">
-              Four chairs, and we are fussy. The crew above is who shows up
-              today — these four are who is missing. Both studios read what
-              comes in, so say which city you can get to, and show us something
-              you made rather than something you managed.
-            </p>
-          </Reveal>
+          {/* Counted off ROLES, not typed — the number cannot drift from the
+              grid below it. Cities come from BRAND. */}
+          <p className="hire-count">
+            <b>{String(ROLES.length).padStart(2, '0')}</b>
+            <span>open roles</span>
+            <i aria-hidden="true" />
+            <span>{BRAND.cities[0]} &amp; {BRAND.cities[1]}</span>
+          </p>
         </div>
 
-        {/* The right rail. It carries the three instructions whether or not the
-            still ever lands — the panel is a finished two-column object either
-            way, and the image simply takes the top of the rail when it exists. */}
-        <Reveal delay={0.2} className="hire-head-art">
-          {HERO && (
-            <img
-              className="hire-hero"
-              src={HERO}
-              alt="An empty stool in the LOOM studio, a bare spool beside it and one loose thread still running up to the loom."
-              width={1200}
-              height={1500}
-              loading="lazy"
-              decoding="async"
-            />
-          )}
-          <ol className="hire-how">
-            <li><b>Pick a chair.</b> Or don’t — the open thread at the bottom counts.</li>
-            <li><b>Send the work.</b> A link beats a CV, and three links beat a paragraph.</li>
-            <li><b>Name the studio.</b> {BRAND.cities[0]} or {BRAND.cities[1]}, whichever you can get to.</li>
-          </ol>
-        </Reveal>
+        <div className="hire-head-cols">
+          <div className="hire-head-copy">
+            <Reveal delay={0.15}>
+              <p className="lede hire-lede">
+                Four chairs, and we are fussy. These are the four we are missing.
+                Both studios read what comes in, so say which city you can get
+                to, and show us something you made rather than something you
+                managed.
+              </p>
+            </Reveal>
+          </div>
+
+          {/* The right rail. It carries the three instructions whether or not the
+              still ever lands — the panel is a finished two-column object either
+              way, and the image simply takes the top of the rail when it exists. */}
+          <Reveal delay={0.2} className="hire-head-art">
+            {HERO && (
+              <img
+                className="hire-hero"
+                src={HERO}
+                alt="An empty stool in the LOOM studio, a bare spool beside it and one loose thread still running up to the loom."
+                width={1200}
+                height={1500}
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+            <ol className="hire-how">
+              <li><b>Pick a chair.</b> Or don’t — the open thread at the bottom counts.</li>
+              <li><b>Send the work.</b> A link beats a CV, and three links beat a paragraph.</li>
+              <li><b>Name the studio.</b> {BRAND.cities[0]} or {BRAND.cities[1]}, whichever you can get to.</li>
+            </ol>
+          </Reveal>
+        </div>
       </div>
 
       <div className="hire-grid">

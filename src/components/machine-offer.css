@@ -2,9 +2,15 @@
    Product pitch for LOOM's content subscription. Same section grammar as
    Solutions/Process: ThreadDivider, .section-head (kicker/h2/lede) from
    styles.css, then this section's own two-column panel + a native-Arabic
-   passage. `mo-` prefix throughout, scoped to this file only. */
+   passage. `mo-` prefix throughout, scoped to this file only.
+
+   MOTION BUDGET: one entry stagger on the month cells, gated on the grid
+   entering the viewport (TheMachine.jsx adds .is-in — a bare CSS animation
+   fires at parse time, and mounted this far down a long page it was always
+   over before anyone arrived). Nothing runs at rest; every other move is a
+   hover/focus transition. */
 .mo {
-  padding-bottom: clamp(40px, 6vh, 72px);
+  padding-bottom: clamp(48px, 7vh, 84px);
   position: relative;
   isolation: isolate;
 }
@@ -15,6 +21,26 @@
   height: min(56vh, 600px);
   background: radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, var(--mo-tint, var(--cyan)) 9%, transparent), transparent 72%);
   pointer-events: none;
+}
+
+/* The warp the month is woven on: vertical threads behind the panel, faded out
+   top and bottom by a mask so they never end on a hard line. One painted
+   element, no children, no animation. */
+.mo-warp {
+  position: absolute; z-index: -1;
+  inset: clamp(150px, 22vh, 260px) 0 clamp(20px, 4vh, 60px) 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--mo-tint, var(--cyan)) 16%, transparent) 0 1px,
+    transparent 1px 34px
+  );
+  /* one mask only — two layers plus mask-composite is the kind of thing that
+     silently renders as "no mask at all" somewhere, and the fallback there is
+     a hard-edged block of stripes across the section */
+  -webkit-mask-image: radial-gradient(72% 62% at 50% 46%, #000 18%, transparent 78%);
+  mask-image: radial-gradient(72% 62% at 50% 46%, #000 18%, transparent 78%);
 }
 
 /* the Arabic name rides right beside the English one in the kicker — same
@@ -35,30 +61,39 @@
   margin: 0 auto;
   padding: 0 var(--pad);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
   gap: clamp(28px, 4vw, 56px);
-  align-items: start;
+  /* stretch, not start: the two columns used to end at wildly different
+     heights and the section closed on a lake of dead space under the CTA */
+  align-items: stretch;
 }
 .mo-left, .mo-right { min-width: 0; }
+.mo-left { display: flex; flex-direction: column; }
+.mo-right { display: flex; }
 
 .mo-bullets {
   list-style: none;
-  display: flex; flex-direction: column; gap: 13px;
+  display: flex; flex-direction: column; gap: 4px;
   margin-bottom: clamp(20px, 3vh, 28px);
 }
 .mo-bullets li {
   display: grid;
-  grid-template-columns: 16px 1fr;
-  column-gap: 10px; row-gap: 2px;
+  grid-template-columns: 18px 1fr;
+  column-gap: 12px; row-gap: 2px;
+  padding: 9px 12px 9px 10px;
+  margin-left: -10px;
+  border-radius: calc(var(--radius) * 0.45);
+  transition: background-color 0.35s var(--ease);
 }
+.mo-bullets li:hover { background: color-mix(in srgb, var(--mo-tint, var(--cyan)) 7%, transparent); }
 .mo-stitch { width: 12px; height: 12px; margin-top: 5px; position: relative; }
 .mo-stitch::before, .mo-stitch::after {
-  content: ''; position: absolute; top: 55%; left: 45%; height: 1.4px;
+  content: ''; position: absolute; top: 55%; left: 45%; height: 1.6px;
   background: var(--mo-tint, var(--cyan)); border-radius: 1px; transform-origin: left center;
 }
 .mo-stitch::before { width: 5px; transform: translate(-100%, -50%) rotate(45deg); }
 .mo-stitch::after { width: 9px; transform: translate(-3px, -50%) rotate(-50deg); }
-.mo-bullet-en { grid-column: 2; color: var(--ink); font-size: 0.98rem; line-height: 1.4; }
+.mo-bullet-en { grid-column: 2; color: var(--ink); font-size: 1.02rem; font-weight: 560; line-height: 1.35; }
 /* no dir="rtl"/text-align:right here on purpose — Products.jsx already
    recorded why: forcing RTL right-aligns a short phrase to the far edge of a
    wide column, half a screen from the Latin line it belongs under. The
@@ -72,57 +107,179 @@
   font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
 }
 
-/* the price — always "from", never quoted as a fixed fact. See offers.js. */
+/* ── the price plate ──────────────────────────────────────────
+   Always "from", never quoted as a fixed fact (see offers.js). The hedge is
+   small but it is never dropped: the tag above the numeral and the note
+   under the hairline are both part of the claim. */
 .mo-price {
-  display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 10px;
-  padding: 15px 18px;
-  border: 1px solid var(--line); border-radius: calc(var(--radius) * 0.6);
-  background: var(--bg-3);
+  position: relative;
+  overflow: hidden;
+  padding: clamp(18px, 2.4vw, 24px) clamp(20px, 2.6vw, 26px) clamp(16px, 2vw, 20px);
+  border: 1px solid color-mix(in srgb, var(--mo-tint, var(--cyan)) 26%, var(--line));
+  border-radius: calc(var(--radius) * 0.8);
+  background:
+    radial-gradient(120% 130% at 0% 0%, color-mix(in srgb, var(--mo-tint, var(--cyan)) 12%, transparent), transparent 62%),
+    var(--bg-3);
   margin-bottom: clamp(18px, 2.6vh, 24px);
 }
-.mo-price-label {
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--ink-faint);
+/* the accent edge — a woven selvedge down the leading side */
+.mo-price::before {
+  content: '';
+  position: absolute; inset: 0 auto 0 0; width: 3px;
+  background: repeating-linear-gradient(
+    180deg,
+    var(--mo-tint, var(--cyan)) 0 7px,
+    color-mix(in srgb, var(--mo-tint, var(--cyan)) 30%, transparent) 7px 14px
+  );
 }
-.mo-price-value { font-family: var(--display); font-weight: 600; font-size: 1.5rem; color: #fff; }
-.mo-price-unit { font-size: 0.88rem; font-weight: 500; color: var(--ink-dim); margin-left: 3px; }
-.mo-price-note { flex-basis: 100%; font-size: 0.78rem; color: var(--ink-faint); }
+.mo-price-tag {
+  display: inline-block;
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--mo-tint, var(--cyan)) 78%, #fff);
+}
+.mo-price-value {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-top: 4px;
+  font-family: var(--display);
+  font-weight: 640;
+  font-size: clamp(2.6rem, 5.4vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.mo-price-cur { font-size: 0.42em; font-weight: 700; letter-spacing: 0.04em; color: var(--ink); }
+.mo-price-unit { font-size: 0.3em; font-weight: 600; letter-spacing: 0.02em; color: var(--ink-faint); }
+.mo-price-note {
+  margin-top: 12px; padding-top: 11px;
+  border-top: 1px solid var(--line);
+  font-size: 0.8rem; line-height: 1.5; color: var(--ink-faint);
+  max-width: 40ch;
+}
+/* the Arabic name as a watermark in the corner of the plate — decorative, and
+   the real one is already in the kicker, so this is aria-hidden in the JSX */
+.mo-price-ar {
+  position: absolute; right: 14px; top: 8px;
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+  font-size: 2.4rem; line-height: 1;
+  color: color-mix(in srgb, var(--mo-tint, var(--cyan)) 12%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
 
+.mo-cta-row { margin-top: auto; padding-top: 4px; }
 .mo-cta { width: fit-content; }
 
-/* the month grid — decoration standing for "20 posts + 4 reels", never real
-   client data. Cells pop in on a stagger (JS sets --d per cell); the whole
-   thing is aria-hidden and a plain caption carries the meaning for a screen
-   reader / with animation off. */
+/* ── the month card ───────────────────────────────────────────
+   Decoration standing for "20 posts + 4 reels", never real client data. The
+   grid is aria-hidden and the caption carries the meaning for a screen reader
+   and with animation off. */
+.mo-month {
+  display: flex; flex-direction: column;
+  width: 100%;
+  padding: clamp(16px, 2vw, 22px);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 0.9);
+  background:
+    radial-gradient(100% 70% at 50% 0%, color-mix(in srgb, var(--mo-tint, var(--cyan)) 8%, transparent), transparent 70%),
+    var(--bg-3);
+  box-shadow: inset 0 1px 0 rgba(242, 240, 247, 0.05), 0 24px 60px -34px rgba(0, 0, 0, 0.9);
+}
+.mo-month-top {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px 14px;
+  padding-bottom: 13px; margin-bottom: 15px;
+  border-bottom: 1px solid var(--line);
+}
+.mo-month-label {
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.mo-legend {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.72rem; color: var(--ink-faint);
+}
+.mo-key { width: 10px; height: 10px; }
+.mo-key--post { border-radius: 3px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
+.mo-key--reel { border-radius: 50%; background: var(--mo-tint, var(--cyan)); margin-left: 8px; }
+
 .mo-grid-viz {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  padding: 18px;
-  border: 1px solid var(--line); border-radius: calc(var(--radius) * 0.7);
-  background: var(--bg-3);
+  gap: clamp(7px, 0.9vw, 11px);
 }
 .mo-cell {
+  position: relative;
   aspect-ratio: 1;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 5px;
+  background-color: color-mix(in srgb, var(--ink) 11%, transparent);
+  /* the woven grain — the cells are cloth, not swatches */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.05) 0 1px,
+    transparent 1px 4px
+  );
   opacity: 0;
+  transition: background-color 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.mo-grid-viz.is-in .mo-cell {
   animation: mo-cell-in 0.5s var(--ease) forwards;
   animation-delay: var(--d, 0s);
 }
 .mo-cell--reel {
-  background: var(--mo-tint, var(--cyan));
+  background-color: var(--mo-tint, var(--cyan));
+  background-image: none;
   border-radius: 50%;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--mo-tint, var(--cyan)) 40%, transparent);
+  transition: box-shadow 0.45s var(--ease), transform 0.4s var(--ease);
+}
+/* the play mark — a reel is a film, so say so */
+.mo-cell--reel::after {
+  content: '';
+  position: absolute; inset: 0; margin: auto;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 5px 0 5px 8px;
+  border-color: transparent transparent transparent rgba(8, 4, 14, 0.72);
+  transform: translateX(1px);
+}
+/* one ripple of light across the month on hover — the delay is the same
+   per-cell stagger the entry uses, so it reads as the loom running */
+.mo-grid-viz:hover .mo-cell {
+  transition-delay: var(--d, 0s);
+  background-color: color-mix(in srgb, var(--ink) 20%, transparent);
+  transform: translateY(-2px);
+}
+.mo-grid-viz:hover .mo-cell--reel {
+  background-color: var(--mo-tint, var(--cyan));
+  box-shadow: 0 0 18px -2px color-mix(in srgb, var(--mo-tint, var(--cyan)) 65%, transparent);
 }
 @keyframes mo-cell-in {
   from { opacity: 0; transform: scale(0.5); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* the tally — the two numbers the grid is standing for, said in words too */
+.mo-month-foot {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 22px;
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.mo-tally {
+  font-size: 0.78rem; letter-spacing: 0.02em; color: var(--ink-faint);
+  display: inline-flex; align-items: baseline; gap: 6px;
+}
+.mo-tally b {
+  font-family: var(--display); font-weight: 680; font-size: 1.32rem; line-height: 1;
+  color: var(--ink);
+}
+.mo-tally--reel b { color: var(--mo-tint, var(--cyan)); }
+.mo-tally--sum { margin-left: auto; }
+.mo-tally--sum b { color: #fff; }
+
 .mo-grid-caption {
   margin-top: 12px;
-  font-size: 0.8rem; line-height: 1.5;
+  font-size: 0.76rem; line-height: 1.5;
   color: var(--ink-faint);
-  text-align: center;
 }
 
 /* the native-Arabic pitch — its own passage, not a translated caption. Right-
@@ -130,7 +287,7 @@
    right-aligned RTL paragraph across the whole measure. */
 .mo-arabic-wrap {
   max-width: 1120px;
-  margin: clamp(30px, 4.5vh, 44px) auto 0;
+  margin: clamp(26px, 3.6vh, 38px) auto 0;
   padding: 0 var(--pad);
 }
 .mo-arabic {
@@ -146,15 +303,20 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mo-cell { animation: none !important; opacity: 1; }
+  .mo-cell { animation: none !important; opacity: 1; transition: none; }
+  .mo-grid-viz:hover .mo-cell { transform: none; transition-delay: 0s; }
+  .mo-bullets li { transition: none; }
 }
 
 @media (max-width: 880px) {
   .mo-panel { grid-template-columns: 1fr; }
+  .mo-cta-row { margin-top: 0; }
 }
 
 @media (max-width: 640px) {
-  .mo-grid-viz { padding: 14px; gap: 6px; }
-  .mo-price-value { font-size: 1.3rem; }
+  .mo-month { padding: 14px; }
+  .mo-price-value { font-size: clamp(2.1rem, 12vw, 2.6rem); }
+  .mo-price-ar { font-size: 1.9rem; }
+  .mo-tally--sum { margin-left: 0; }
   .mo-arabic { max-width: 100%; font-size: 1rem; line-height: 1.85; }
 }

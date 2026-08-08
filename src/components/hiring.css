@@ -9,7 +9,7 @@
    places where a global class is restyled (.h2 on the shout, .lede) are written
    as `.hire .hire-*` — 0,2,0 — so they win outright regardless of order.
 
-   MATERIAL: the section borrows Crew's card silhouette and banners.css's
+   MATERIAL: the section borrows the studio's card silhouette and banners.css's
    colour-block recipe (flat paint-in colour + the real photographed texture,
    no filter, no blur) rather than inventing a new one. The four accents are the
    four yarns, in the same order the rail runs them.
@@ -23,9 +23,9 @@
   isolation: isolate;
   overflow: hidden;
   padding-bottom: clamp(60px, 9vh, 110px);
-  /* Crew above ends on --bg and Solutions below opens on it, so this section
-     lifts in the middle and returns — the same envelope Crew uses, one step
-     shallower so the two do not read as one long panel. */
+  /* The Machine above ends on --bg and Solutions below opens on it, so this
+     section lifts in the middle and returns rather than butting two flat
+     panels together. */
   background: linear-gradient(180deg, var(--bg) 0%, #14091f 45%, #150a22 62%, var(--bg) 100%);
   border-block: 1px solid var(--line);
 }
@@ -55,14 +55,10 @@
 .hire .hire-head {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(24px, 3vw, 48px);
-  align-items: center;
   max-width: 1560px;
   margin-inline: auto;
   margin-top: clamp(60px, 9vh, 110px);
-  padding: clamp(30px, 4vw, 58px) clamp(24px, 3.4vw, 56px);
+  padding: clamp(30px, 4vw, 58px) clamp(24px, 3.4vw, 56px) clamp(30px, 3.4vw, 48px);
   border-radius: calc(var(--radius) * 1.4);
   border: 2px dashed rgba(242, 240, 247, 0.16);
   background-color: var(--bg-2);
@@ -74,13 +70,64 @@
 .hire .hire-head { width: calc(100% - 2 * var(--pad)); }
 .hire .hire-head-copy { min-width: 0; }
 
+/* the shout owns a full-width band; the lede and the steps share the row under
+   it. See the note in Hiring.jsx for what this replaced. */
+.hire .hire-head-top { min-width: 0; }
+.hire .hire-head-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(24px, 3vw, 56px);
+  margin-top: clamp(22px, 3vw, 38px);
+  padding-top: clamp(20px, 2.6vw, 32px);
+  border-top: 1px solid rgba(242, 240, 247, 0.1);
+}
+
+/* the count — read off ROLES.length in the JSX, so it cannot drift from the
+   grid it is describing */
+.hire .hire-count {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: clamp(14px, 1.8vw, 20px);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.hire .hire-count b {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 780;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--magenta);
+}
+/* the separator between the count and the cities — the four-yarn stripe again,
+   in miniature */
+.hire .hire-count i {
+  width: 34px;
+  height: 3px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 5px,
+    var(--yarn-violet) 5px 10px,
+    var(--yarn-blue) 10px 15px,
+    var(--yarn-gold) 15px 20px
+  );
+}
+
 /* 0,2,0 — beats styles.css's .h2 and the .sw rules outright. The studio's own
    display face, which is caps-only by design and is exactly what this line is. */
 .hire .hire-shout {
   font-family: 'LOOM Bloom', var(--display);
   font-weight: 400;
-  font-size: clamp(2.6rem, 9vw, 7.2rem);
-  line-height: 0.92;
+  /* it has the whole width of the patch now, so it can be the statement it is
+     meant to be instead of two lines against a half-empty column */
+  font-size: clamp(2.6rem, 11.5vw, 9.5rem);
+  line-height: 0.9;
   letter-spacing: 0.005em;
   color: #fff;
   text-transform: uppercase;
@@ -142,9 +189,8 @@
 .hire .hire-how li:first-child::before { top: 4px; }
 
 @media (min-width: 1000px) {
-  .hire .hire-head { grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.9fr); }
-  /* the rail is graded against the copy block, so it starts at the lede */
-  .hire .hire-head-art { align-self: center; }
+  .hire .hire-head-cols { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+  .hire .hire-head-art { align-self: start; }
 }
 
 /* ═══ THE FOUR EMPTY STAGES ══════════════════════════════════ */
@@ -205,25 +251,61 @@
 }
 
 /* ── the empty stage ─────────────────────────────────────────
-   Crew's card gives its mascot a lit stage with a coloured ground shadow.
-   This is that stage with nobody on it: the light is still on, the thread is
-   still hanging, and the only thing standing in the spot is a felted `user`
-   medallion — a placeholder, at placeholder weight. */
+   A lit stage with nobody on it: the spotlight is still on, the warp thread is
+   still hanging, the role's number is ghosted on the backdrop, and the only
+   thing standing on the mark is a felted `user` medallion — a placeholder, at
+   placeholder weight. */
 .hire .hire-stage {
   position: relative;
-  height: clamp(150px, 15vw, 200px);
+  overflow: hidden;
+  height: clamp(160px, 16vw, 210px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   padding: 0 clamp(14px, 2vw, 24px);
 }
+/* the spotlight: a cone from the top edge, not a soft blob. Two layers — the
+   hard-edged beam, and the wash it throws on the floor. */
 .hire .hire-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(64% 52% at 50% 2%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 72%);
-  opacity: 0.55;
+  background:
+    conic-gradient(from 168deg at 50% -14%,
+      transparent 0deg,
+      color-mix(in srgb, var(--accent) 20%, transparent) 10deg,
+      color-mix(in srgb, var(--accent) 26%, transparent) 12deg,
+      color-mix(in srgb, var(--accent) 20%, transparent) 14deg,
+      transparent 24deg),
+    radial-gradient(58% 42% at 50% 96%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 74%);
+  opacity: 0.62;
   transition: opacity 0.5s var(--ease);
   pointer-events: none;
+}
+
+/* the role's number, ghosted behind the mark — weight in the empty half of the
+   card, and it costs one text node.
+
+   OUTLINED, not filled: LOOM Bloom is a condensed slab, and at this size a
+   filled numeral reads as two grey blocks parked behind the medallion rather
+   than as a number. A hairline outline keeps the shape and stays scenery. */
+.hire .hire-ghost {
+  position: absolute;
+  right: clamp(8px, 1.4vw, 16px);
+  bottom: clamp(4px, 0.8vw, 10px);
+  font-family: 'LOOM Bloom', var(--display);
+  font-weight: 400;
+  font-size: clamp(3.4rem, 5.4vw, 4.6rem);
+  line-height: 0.78;
+  letter-spacing: 0.01em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent) 34%, transparent);
+  pointer-events: none;
+  user-select: none;
+  transition: -webkit-text-stroke-color 0.5s var(--ease);
+}
+.hire .hire-card:hover .hire-ghost,
+.hire .hire-card:focus-within .hire-ghost {
+  -webkit-text-stroke-color: color-mix(in srgb, var(--accent) 62%, transparent);
 }
 .hire .hire-card:hover .hire-glow,
 .hire .hire-card:focus-within .hire-glow { opacity: 1; }
@@ -234,8 +316,9 @@
   top: 0;
   left: 50%;
   width: 2px;
-  height: 44%;
+  height: 40%;
   margin-left: -1px;
+  z-index: 1;
   border-radius: 2px;
   background: repeating-linear-gradient(
     180deg,
@@ -256,29 +339,36 @@
   z-index: 1;
   display: grid;
   place-items: center;
-  width: clamp(84px, 8.4vw, 106px);
+  width: clamp(94px, 9.4vw, 118px);
   aspect-ratio: 1;
-  margin-bottom: clamp(16px, 2vw, 26px);
+  margin-bottom: clamp(18px, 2.2vw, 28px);
   border-radius: 50%;
-  border: 2px dashed color-mix(in srgb, var(--accent) 55%, transparent);
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%);
-  transition: transform 0.55s var(--ease);
+  border: 2px dashed color-mix(in srgb, var(--accent) 62%, transparent);
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 15%, transparent), transparent 70%),
+    rgba(9, 4, 16, 0.55);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 6%, transparent);
+  transition: transform 0.55s var(--ease), box-shadow 0.55s var(--ease);
+}
+.hire .hire-card:hover .hire-ring,
+.hire .hire-card:focus-within .hire-ring {
+  box-shadow: 0 0 0 12px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .hire .hire-card:hover .hire-ring,
 .hire .hire-card:focus-within .hire-ring { transform: rotate(-6deg) scale(1.05); }
 /* --wool-icon is a custom property, so it beats wool.css's own width/height
    declarations regardless of source order (same mechanism .cnt-medal uses) */
 .hire .hire-ring .wool-icon {
-  --wool-icon: clamp(40px, 4vw, 52px);
-  opacity: 0.42;
+  --wool-icon: clamp(44px, 4.4vw, 58px);
+  opacity: 0.5;
   transition: opacity 0.5s var(--ease);
 }
 .hire .hire-card:hover .hire-ring .wool-icon,
 .hire .hire-card:focus-within .hire-ring .wool-icon { opacity: 0.68; }
 
-/* the ground the missing person would be standing on. Crew blurs its shadow;
-   this is a radial gradient instead — a leaf element either way, but a gradient
-   costs nothing to composite and the shape wanted is soft, not sharp. */
+/* the ground the missing person would be standing on — a radial gradient, not
+   a blurred shadow: a leaf element either way, but a gradient costs nothing to
+   composite and the shape wanted is soft, not sharp. */
 .hire .hire-ground {
   position: absolute;
   bottom: clamp(10px, 1.4vw, 18px);

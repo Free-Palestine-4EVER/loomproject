@@ -105,7 +105,10 @@ function threadTrail() {
 
 /** Section headings get a scroll-linked accent — nav marks the active section. */
 function activeSectionNav() {
-  const ids = ['work', 'crew', 'solutions', 'apps', 'lab', 'ascent', 'contact']
+  // Mirrors the hash entries in LINKS (Chrome.jsx) — 'crew' and 'ascent' were
+  // still listed here after both sections left the page, so two of the seven
+  // observers watched nothing.
+  const ids = ['work', 'the-machine', 'solutions', 'apps', 'lab', 'own-apps', 'contact']
   const links = new Map()
   document.querySelectorAll('.nav-links a').forEach((a) => {
     const id = a.getAttribute('href')?.replace('#', '')
