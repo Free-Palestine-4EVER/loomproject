@@ -1742,35 +1742,61 @@ html.cursor-hot .cursor-ring {
     repeating-linear-gradient(90deg, rgba(96, 40, 76, 0.28) 0 6px, transparent 6px 11px);
 }
 
+/* ── STACKED: the tree stops being a backdrop ────────────────
+   The desktop layout works because the tree has a COLUMN of its own — an empty
+   middle track that nothing is ever set over. Stacked, that column is gone, and
+   the first two attempts here both tried to keep the tree absolutely positioned
+   behind the copy: at 0.5 the contact rows sat on the lit crystals in the
+   island, and dropping it to 0.38 bought the contrast by making the tree faint,
+   which is losing the argument rather than winning it.
+
+   So the tree leaves the background entirely. Below 900px it becomes a real
+   flow item between the copy and the hem — full width, FULL OPACITY, its own
+   band, with nothing over it and nothing under it. Same composition logic as
+   desktop: the copy gets its space, the tree gets its space, they never share.
+   `order` does the placing so the DOM stays as it is (sky, tree, copy, hem) and
+   only the visual sequence changes. */
 @media (max-width: 900px) {
-  /* the trunk no longer has a column to stand in — the copy stacks and the
-     tree drops behind it, so the ink needs the extra weight of a scrim */
   /* the seam is a proportion of a much taller, narrower box here — the desktop
      clamp would put ~150px of empty pink above the mark before anything is
      read. Shortened, and the top padding with it. */
-  .footer--bloom { --seam: clamp(50px, 7vh, 90px); min-height: 0; padding-bottom: 30px; }
-  .footer--bloom .footer-grid { grid-template-columns: 1fr; gap: 30px; }
+  .footer--bloom { --seam: clamp(50px, 7vh, 90px); min-height: 0; padding-bottom: 26px; }
+  .footer--bloom .footer-grid { grid-template-columns: 1fr; gap: 30px; order: 1; }
   .footer--bloom .foot-brand { grid-column: 1; }
   .footer--bloom .footer-contact { grid-column: 1; justify-self: start; text-align: left; }
   .footer--bloom .footer-contact a,
   .footer--bloom .footer-contact span { flex-direction: row; }
-  /* Stacked, the tree has no column of its own — it drops BEHIND the copy, and
-     half opacity is the only thing that keeps ink readable over the canopy.
-     Still anchored above the base bar rather than bled off the bottom: the hem
-     is the last edge of the document, and a cutout running past it reads as a
-     crop, not as a bleed. */
-  .footer--bloom .foot-bloom { width: min(520px, 96vw); opacity: 0.5; bottom: 44px; }
+
+  .footer--bloom .foot-bloom {
+    position: relative;
+    order: 2;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    /* Capped and centred through the tablet range. A percentage bleed is a
+       PHONE move (see the 600px block below) and does not survive being scaled
+       up: at 820px the same 122% made the tree 911px wide and 845 tall, which
+       is not a closing image, it is a wallpaper the copy is sitting on. */
+    width: min(560px, 100%);
+    margin: clamp(30px, 6vh, 54px) auto 0;
+    opacity: 1;
+  }
+  .footer--bloom .footer-base { order: 3; margin-top: clamp(20px, 3vh, 30px); }
 }
 @media (max-width: 767px) {
   /* four lanes, not seven — the canopy is much narrower here and the extra
      petals bunch into a column instead of reading as a drift */
   .footer--bloom .foot-petals span:nth-child(n + 5) { display: none; }
-  /* a phone canopy is nearly viewport-wide, so the contact rows land ON the
-     lit island rather than beside it, and the crystals in its base are the
-     brightest pixels in the footer. Dropped from the 0.5 the tablet stack
-     uses — the tree still reads, and no line of ink has to survive a highlight
-     it was not designed against. */
-  .footer--bloom .foot-bloom { opacity: 0.38; }
+}
+@media (max-width: 600px) {
+  /* THE PHONE BLEED. The cutout carries transparent margins on every side, so
+     at exactly 100% the blossom only spans ~85% of the screen and the tree
+     reads small on the one device where it has the entire band to itself.
+     122% with a -11% inline margin runs the PNG's empty corners off both edges
+     and puts the BLOSSOM at the screen edges, which is the measurement that
+     matters. Nothing is cropped but air, and `.footer--bloom` clips X so this
+     cannot open a scrollbar. */
+  .footer--bloom .foot-bloom { width: 122%; margin-inline: -11%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .footer--bloom .foot-tree,
