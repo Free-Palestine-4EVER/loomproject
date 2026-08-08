@@ -13,3 +13,6 @@ client-site-shots/
 # and 25MB+ of them was timing the push out (HTTP 408)
 ig-grid/
 type/out/*.png
+
+# the garden field cache — 21 MB of regenerable boolean-op output
+type/out/fields/

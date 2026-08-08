@@ -108,26 +108,60 @@ def to_ttglyph(path, glyph_set):
 
 
 def _draw(path, pen):
+    """Replay a skia path into a charstring pen, as CUBICS ONLY.
+
+    The line-work in the planted cuts is Skia STROKE output, and Skia strokes
+    round joins as conics, which garden.stroke_of turns into QUADS. A CFF
+    charstring has no quadratic operator, so every quad has to be widened to its
+    exact cubic equivalent here — an earlier version of this function simply had
+    no branch for verb 2 and dropped those segments on the floor, which corrupts
+    the outline silently and looks like a drawing bug three steps downstream.
+    """
     open_ = False
+    cur = (0.0, 0.0)
     for verb, pts in path:
         if verb == 0:
             if open_:
                 pen.closePath()
             pen.moveTo(pts[0])
+            cur = pts[0]
             open_ = True
         elif verb == 1:
             pen.lineTo(pts[0])
+            cur = pts[0]
+        elif verb == 2:
+            # a quadratic is exactly the cubic with its controls at 2/3 of the way
+            # from each endpoint toward the quad's single control point
+            q, end = pts[0], pts[1]
+            pen.curveTo((cur[0] + 2.0 / 3.0 * (q[0] - cur[0]), cur[1] + 2.0 / 3.0 * (q[1] - cur[1])),
+                        (end[0] + 2.0 / 3.0 * (q[0] - end[0]), end[1] + 2.0 / 3.0 * (q[1] - end[1])),
+                        end)
+            cur = end
         elif verb == 4:
             pen.curveTo(pts[0], pts[1], pts[2])
+            cur = pts[2]
         elif verb == 5:
             pen.closePath()
             open_ = False
+        else:
+            raise ValueError(f'_draw cannot replay verb {verb} — a conic reached '
+                             'the charstring; convertConicsToQuads was skipped')
     if open_:
         pen.closePath()
 
 
+_COLLECTED = {}
+
+
 def collect(fam):
-    """glyph name -> (path or None, advance). `fam` is None for the plain cut."""
+    """glyph name -> (path or None, advance). `fam` is None for the plain cut.
+
+    Memoised per cut: every cut is written three times (OTF, TTF, WOFF2) and
+    decorating a planted cut is minutes of boolean ops, so without this the
+    garden is grown three times over for identical output.
+    """
+    if fam in _COLLECTED:
+        return _COLLECTED[fam]
     base = G.build_glyphs()
     out = {'.notdef': (None, 600), 'space': (None, 300)}
     for name, (path, adv) in base.items():
@@ -138,6 +172,7 @@ def collect(fam):
         art = svgart.motif(fam or 'floral', kind, 620.0)
         src = art if art is not None else xform(G.ornament(kind, fam or 'floral'), sx=1.35, sy=1.35)
         out[name] = (xform(src, dx=380, dy=G.CAP * 0.50), 760)
+    _COLLECTED[fam] = out
     return out
 
 

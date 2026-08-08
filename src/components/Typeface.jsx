@@ -9,24 +9,24 @@ import { PosterMachine } from './PosterMachine.jsx'
 import './typeface.css'
 
 const DIR = '/fonts/loom-bloom'
-const ZIP_SIZE = '1.05 MB'
+const ZIP_SIZE = '3.2 MB'
 
 // One plain cut and four planted ones. Every cut shares the Regular's metrics
 // exactly, so a line of text lines up character for character across all five.
 const CUTS = [
   { id: 'regular', label: 'Regular', family: 'LOOM Bloom', ps: 'LOOMBloom', species: 'no ornament — the face itself' },
-  { id: 'rose', label: 'Rose', family: 'LOOM Bloom Rose', ps: 'LOOMBloomRose', species: 'roses, leaves and a curling vine' },
-  { id: 'daisy', label: 'Daisy', family: 'LOOM Bloom Daisy', ps: 'LOOMBloomDaisy', species: 'twelve-petal daisies and sprigs' },
-  { id: 'tulip', label: 'Tulip', family: 'LOOM Bloom Tulip', ps: 'LOOMBloomTulip', species: 'tulips on their necks, long leaves' },
-  { id: 'ivy', label: 'Ivy', family: 'LOOM Bloom Ivy', ps: 'LOOMBloomIvy', species: 'trailing ivy — tendrils, no bloom' },
+  { id: 'rose', label: 'Rose', family: 'LOOM Bloom Rose', ps: 'LOOMBloomRose', species: 'a millefleur of spiral roses, leaves and five-dot blossoms' },
+  { id: 'daisy', label: 'Daisy', family: 'LOOM Bloom Daisy', ps: 'LOOMBloomDaisy', species: 'packed open daisies, big enough to overhang the letter' },
+  { id: 'tulip', label: 'Tulip', family: 'LOOM Bloom Tulip', ps: 'LOOMBloomTulip', species: 'three-lobed tulip cups on a stub of stem, leaves between' },
+  { id: 'ivy', label: 'Ivy', family: 'LOOM Bloom Ivy', ps: 'LOOMBloomIvy', species: 'a Morris vine — scrolling stems, leaves, no bloom' },
 ]
 
 const SIZES = {
-  LOOMBloom: ['25 KB', '27 KB', '11 KB'],
-  LOOMBloomRose: ['1.2 MB', '1.1 MB', '68 KB'],
-  LOOMBloomDaisy: ['277 KB', '281 KB', '27 KB'],
-  LOOMBloomTulip: ['501 KB', '475 KB', '35 KB'],
-  LOOMBloomIvy: ['260 KB', '243 KB', '24 KB'],
+  LOOMBloom: ['13 KB', '15 KB', '6 KB'],
+  LOOMBloomRose: ['831 KB', '808 KB', '256 KB'],
+  LOOMBloomDaisy: ['365 KB', '347 KB', '108 KB'],
+  LOOMBloomTulip: ['375 KB', '359 KB', '117 KB'],
+  LOOMBloomIvy: ['765 KB', '745 KB', '246 KB'],
 }
 
 const FORMATS = [
@@ -99,8 +99,8 @@ const ANATOMY = [
 
 const FACTS = [
   ['5', 'cuts — one plain, four planted'],
-  ['93', 'glyphs per cut'],
-  ['156', 'characters mapped'],
+  ['98', 'glyphs per cut'],
+  ['161', 'characters mapped'],
   ['31', 'accented letters — Č Ć Ž Š Đ included'],
   ['178', 'stem, at a 700 cap'],
   ['168', 'one corner radius'],
@@ -278,10 +278,12 @@ export function Typeface() {
           <Reveal><p className="tf-tag tf-tag--light">Four gardens, one skeleton</p></Reveal>
           <Reveal delay={0.05}>
             <p className="tf-poster-copy tf-poster-copy--lead">
-              The motif is <em>subtracted</em> from the letter, never added — so a
-              petal that hangs past a stem disappears into the page instead of
-              leaving a blob behind. Every planted cut keeps the Regular's metrics
-              exactly, so the same line sets identically in all five.
+              What gets subtracted from the letter is the flower's <em>outline</em>,
+              not its body — so the field can run edge to edge and the letter still
+              keeps most of its ink. A band of solid ink round the silhouette is
+              left uncut, which is what holds the shape together at any size. Every
+              planted cut keeps the Regular's metrics exactly, so the same line sets
+              identically in all five.
             </p>
           </Reveal>
           <div className="tf-species">
