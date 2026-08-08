@@ -63,12 +63,9 @@ export function ScrollProgress() {
 // which pushStates and swaps the page.
 const LINKS = [
   { href: '#work', label: 'Work' },
-  /* One entry, not two. The crew and the rentable agents used to be separate
-     sections; they are now a single roster where each character IS the thing
-     you rent, so 'Agents' and 'Crew' would scroll to the same place. `#agents`
-     still resolves (Crew.jsx keeps it as an anchor on the grid) so old links
-     and any shared URL keep working — it just no longer earns its own tab. */
-  { href: '#crew', label: 'Crew' },
+  /* The Machine took the Crew slot on the page, so it takes the tab too —
+     Crew and Ascent are gone, and #crew/#ascent no longer resolve. */
+  { href: '#the-machine', label: 'Machine' },
   { href: '#solutions', label: 'Solutions' },
   { href: '#apps', label: 'Apps' },
   { href: '#lab', label: '3D Lab' },
@@ -77,7 +74,6 @@ const LINKS = [
      route handler, which pushStates and swaps in the dedicated page. */
   { href: '/blip', label: 'blip.net' },
   { href: '/type', label: 'Typeface' },
-  { href: '#ascent', label: 'Ascent' },
   { href: '#contact', label: 'Contact' },
 ]
 

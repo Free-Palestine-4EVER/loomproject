@@ -469,7 +469,7 @@ export function Process() {
     <section className="process">
       <ThreadDivider />
       <div className="section-head">
-        <p className="kicker"><span>07</span> Process</p>
+        <p className="kicker"><span>05</span> Process</p>
         <SplitWords as="h2" className="h2" text="One process. No templates. No shortcuts." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
@@ -635,7 +635,7 @@ export function Studios() {
   return (
     <section className="studios" id="studio">
       <div className="section-head">
-        <p className="kicker"><span>08</span> Studios</p>
+        <p className="kicker"><span>06</span> Studios</p>
         <SplitWords as="h2" className="h2" text="Two cities. One loom." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
@@ -697,7 +697,7 @@ export function Contact() {
 
   return (
     <section className="contact" id="contact">
-      <p className="kicker kicker--center"><span>09</span> Contact</p>
+      <p className="kicker kicker--center"><span>07</span> Contact</p>
       <h2 className="contact-h2">
         <SplitWords text="Ready to push" />
         <br />

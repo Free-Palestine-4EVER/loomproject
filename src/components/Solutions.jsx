@@ -171,7 +171,7 @@ export function Solutions() {
   return (
     <section className="solutions" id="solutions" style={{ '--sol-tint': sectionAccent }}>
       <div className="section-head">
-        <p className="kicker"><span>05</span> Solutions</p>
+        <p className="kicker"><span>04</span> Solutions</p>
         <SplitWords as="h2" className="h2" text="Thirty industries. One loom." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 10 }}>

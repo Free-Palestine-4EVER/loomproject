@@ -8,11 +8,7 @@ import { OwnApps } from './components/OwnApps.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { TheMachine } from './components/TheMachine.jsx'
 import { ByResult } from './components/ByResult.jsx'
-import { Crew } from './components/Crew.jsx'
 import { Hiring } from './components/Hiring.jsx'
-// Moon.jsx (the orthographic globe) is the previous Ascent — kept in the tree
-// for reference, but the section is now the loom climb in AscentLoom.jsx.
-import { AscentLoom } from './components/AscentLoom.jsx'
 import { Counter, OfferPair, Bolt } from './components/Banners.jsx'
 import { MobileChrome } from './components/MobileChrome.jsx'
 import { Flyer } from './components/Flyer.jsx'
@@ -243,22 +239,15 @@ export default function App() {
             is building for itself, honestly labelled as in-build since none
             of the five have shipped yet. */}
         <OwnApps />
-        <Crew />
-        {/* Straight off the crew: that section has just introduced the roster
-            as archetypes, so "and we want more of them" is the next beat. */}
+        {/* The Machine sits where Crew used to: straight off the products LOOM
+            builds for itself, the natural next beat is HOW it builds them. */}
+        <TheMachine />
         <Hiring />
         <Solutions />
-        {/* The two productised offerings, right where the pitch lands: Solutions
-            just told the visitor "the loom already knows your industry" — these
-            two sections are the concrete "here's exactly what you can buy"
-            follow-through, before the page moves on to the more emotional
-            Ascent. Deliberately NOT slotted into the 01-09 kicker sequence
-            (same reasoning as OfferPair/Work's "—" kicker in Banners.jsx /
-            Work.jsx): renumbering AscentLoom through Contact to make room
-            would touch five files this task doesn't own. */}
-        <TheMachine />
+        {/* The productised "here's exactly what you can buy" follow-through to
+            Solutions' "the loom already knows your industry". The Machine used
+            to sit here too; it now runs once, up in Crew's old slot. */}
         <ByResult />
-        <AscentLoom />
         <Process />
         <Stats />
         <Bolt />
