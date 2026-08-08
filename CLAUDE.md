@@ -198,6 +198,28 @@ If you change the font files, update the sizes quoted in `Typeface.jsx`
 (`FILES`, `ZIP_SIZE`) and the counts in `FACTS` — they are
 hardcoded, not measured.
 
+## The Ascent — the loom climb
+
+`#ascent` is no longer the orthographic globe. `AscentLoom.jsx` pins 560vh into
+one viewport and flies the visitor **up the inside of a loom**: warp threads
+receding in perspective, six weft rings (one per territory) passing with a
+shuttle running each, an altimeter counting to 84,000 m in LOOM Bloom, and the
+sky stepping through five altitude bands. Near the top the shaft funnels in and
+the threads close overhead.
+
+The 3D is `src/three/LoomShaft.js` — code-split, and **skipped entirely on
+reduced-motion and on coarse pointers** (iOS gets one WebGL context, and the
+companion butterfly already owns it). Under it sits a CSS shaft + gradient that
+carries the section on its own, so no-WebGL machines still get the copy and CTA.
+
+**`vertexColors: true` on a geometry with no colour attribute renders black.**
+That is what made the warp threads black on the first pass — `setColorAt` needs
+`instanceColor` (which it allocates itself) and the material left at plain
+white, not `vertexColors`. Flag `instanceColor.needsUpdate` too.
+
+`Moon.jsx` (the old globe) is still in the tree, unmounted, if it is ever wanted
+back — swap the import in `App.jsx`.
+
 ## Assets
 
 `scripts/*.mjs` is the asset pipeline (`build-assets.mjs`, `make-butterfly.mjs`,

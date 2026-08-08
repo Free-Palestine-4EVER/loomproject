@@ -273,14 +273,29 @@ function useTabList(count, index, setIndex) {
 
 const SHOT_MS = 2000
 
+/* Which images this app puts on the stage, and whether they bring their own
+   device with them.
+
+   An app with `mocks` ships RENDERED mockups — the phone is already inside the
+   image, at its own tilt, on a transparent background. Those replace the
+   stage's iPhone frame rather than sitting inside it: pasting a picture of a
+   tilted phone into the flat frame's screen cut-out would read as a phone
+   photographed on a phone. Everything else is a flat screen capture and goes
+   behind the frame's glass, as before. */
+const stageShots = (app) => {
+  if (app.mocks?.length) return { list: app.mocks, framed: false }
+  if (app.shots?.length) return { list: app.shots, framed: true }
+  return { list: app.shot ? [app.shot] : [], framed: true }
+}
+
 /* The captures for one app, stacked and crossfaded.
-   All of an app's shots are in the DOM at once and only `opacity` changes, so
+   All of an app's images are in the DOM at once and only `opacity` changes, so
    a beat never causes a layout pass or a decode stall. The timer is a single
-   interval that exists ONLY while the app has more than one capture and the
-   reader hasn't asked for reduced motion — the six single-shot products cost
+   interval that exists ONLY while the app has more than one image and the
+   reader hasn't asked for reduced motion — the single-capture products cost
    nothing at all. */
 function ShotCycle({ app, on, reduced }) {
-  const shots = useMemo(() => (app.shots?.length ? app.shots : app.shot ? [app.shot] : []), [app])
+  const shots = useMemo(() => stageShots(app).list, [app])
   const [k, setK] = useState(0)
 
   useEffect(() => {
@@ -380,19 +395,35 @@ export function AppsShowcase() {
         </div>
 
         <div className="stg-panel" role="tabpanel" id="stg-panel" aria-labelledby={`stg-tab-${i}`}>
+          {/* The device. Two modes, one slot:
+
+              framed — the stock iPhone 14 Pro mockup the site already ships
+                (keyed to alpha by scripts/make-device-frames.mjs) with its
+                display punched out, so a flat screen capture shows through and
+                the Dynamic Island still sits on top of it.
+
+              unframed — the app ships rendered mockups that already contain a
+                device (see `mocks` in site.js). The frame and the glass are not
+                rendered at all; the render is the device.
+
+              Only the SELECTED app's images are mounted, because the two modes
+              are different boxes — keeping all seven stacked would mean
+              stacking a framed phone and a free-standing render in the same
+              slot. The crossfade inside an app is unaffected: ShotCycle still
+              holds that app's captures together and only changes opacity. */}
           <div className="stg-phone-wrap">
-            {/* the real device: the same stock iPhone 14 Pro mockup keyed to
-                alpha the old cards used, with its display punched out so the
-                screenshot shows through and the Dynamic Island still sits on
-                top of it. One device on the page now, not seven. */}
-            <div className="stg-phone">
-              <div className="stg-glass">
-                {APPS.map((a, n) => (
-                  <ShotCycle key={a.name} app={a} on={n === i} reduced={reduced} />
-                ))}
+            {stageShots(app).framed ? (
+              <div className="stg-phone">
+                <div className="stg-glass">
+                  <ShotCycle key={app.name} app={app} on reduced={reduced} />
+                </div>
+                <img className="stg-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
               </div>
-              <img className="stg-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
-            </div>
+            ) : (
+              <div className="stg-mock">
+                <ShotCycle key={app.name} app={app} on reduced={reduced} />
+              </div>
+            )}
           </div>
 
           <div className="stg-info">
@@ -571,7 +602,7 @@ export function ToolsLab() {
       const s = Math.sign(d)
       // the fan compresses as it recedes (1 − e^-a), so six wide windows still
       // fit in one viewport instead of marching off the sides in a straight line
-      const x = s * (1 - Math.exp(-a * 0.82)) * 74
+      const x = s * (1 - Math.exp(-a * 0.82)) * 58
       const ry = -s * Math.min(a, 2.4) * 30
       const z = -Math.min(a, 3) * 240
       const sc = Math.max(0.6, 1 - a * 0.105)
@@ -708,6 +739,14 @@ export function ToolsLab() {
             {/* the floor the reflection falls onto */}
             <div className="dk-floor" aria-hidden="true" />
           </div>
+
+          {/* A coverflow is wider than the column it sits in — that is what
+              makes it read as depth. The veil is what stops the receding cards
+              from colliding with the rail and the copy: it fades the section's
+              own background back in over the left and right thirds, so a card
+              travelling out of frame dissolves into the page instead of
+              sliding under a headline. */}
+          <div className="dk-veil" aria-hidden="true" />
 
           {/* ——— the copy. Keyed on the tool so it re-mounts and replays its
               own entrance every time the deck lands on a new module. ——— */}

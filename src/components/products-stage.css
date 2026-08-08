@@ -1,29 +1,36 @@
 /* ————————————————————————————————————————————————————————————————
-   products-stage.css — the two LOOM-product sections, rebuilt.
+   products-stage.css — the two LOOM-product sections.
 
-   Owned by Products.jsx, and it owns BOTH new sections:
+   Owned by Products.jsx, and it owns BOTH sections:
 
-     #apps  "THE DECK" — seven devices on a scroll-driven 3D turntable; the
-            section pins for its own height and scroll position picks the app.
-     #lab   "THE SUITE" — the six in-house tools presented as one piece of
-            software with six modules.  (tools-lab-concepts.html #c1)
+     #apps  "THE STAGE" — one phone centre stage, an icon rail of real tabs
+            switching what is on it, and a 2-second beat cycling the captures
+            of whichever app is on the phone.
+     #lab   "THE DECK"  — the six in-house tools as application windows on a
+            scroll-driven 3D turntable; the section pins for its own height
+            and scroll POSITION picks the module.
 
    PERFORMANCE CONTRACT — this file is the reason both sections replaced the
    old ones, so it is stated here rather than in a commit message:
 
-     · NOTHING animates at rest. There is not one `infinite` animation in this
-       file that runs unconditionally: the only looping rule (`sui-scan`) is
-       gated on the SPLAT LAB pane actually being the selected module, and the
-       console caret only exists while the console is typing.
+     · Nothing loops unconditionally. The deck's motes are gated on the deck
+       being on screen (`.is-live`), the console caret only exists while the
+       console is typing, and the phone's shot cycle is a single interval that
+       is only created for an app that actually has more than one capture.
      · Only `transform`, `opacity` and colour are animated. No `filter: blur`
        on any element with children, no canvas, no backdrop-filter.
-     · The images are all in the DOM once and only crossfade — switching an
-       app or a module never changes layout, so no reflow, ever.
+     · The stage's images are all in the DOM once and only crossfade —
+       switching an app or a capture never changes layout, so no reflow, ever.
+     · The deck's six cards are positioned by ONE transform each, written
+       straight to the node from a rAF-throttled scroll listener. No React
+       re-render moves a card.
 
-   Class prefixes are `dk-` (apps deck) and `sui-` (tools suite), chosen so
+   Class prefixes are `stg-` (apps stage) and `dk-` (tools deck), chosen so
    nothing here can collide with the `.app-card` / `.lab-card` rules still
    sitting in styles.css from the previous design. `.dl-*` chips still come
-   from products-showcase.css, which Products.jsx still imports.
+   from products-showcase.css, which Products.jsx still imports; `.sui-console`
+   / `.sui-get` / `.sui-caret` survive from the old suite window because the
+   deck's info column still files its blurb as a terminal line.
    ———————————————————————————————————————————————————————————————— */
 
 .apps,
@@ -36,11 +43,11 @@
 /* ═══════════════════════════════════════════════════════════════
    THE ICON — shared by both sections' rails and lists.
 
-   Only KwaKwa ships a real icon file (public/img/apps/kwakwa-icon.webp).
-   Every other app's icon is drawn here from the two fields site.js already
-   carries: `grad` (the colour pair) and `glyph` (a 24×24 stroke path). Flat
-   gradient squircle, one inset highlight, one stroked glyph — no image
-   request, no filter, no pseudo-3D.
+   Five apps ship a real icon file (public/img/apps/*-icon.webp, exported from
+   each project's own AppIcon asset). The two that don't are drawn here from
+   the fields site.js already carries: `grad` (the colour pair) and `glyph`
+   (a 24×24 stroke path). Flat gradient squircle, one inset highlight, one
+   stroked glyph — no image request, no filter, no pseudo-3D.
    ═══════════════════════════════════════════════════════════════ */
 .pi {
   display: block; position: relative; flex: none;
@@ -88,30 +95,200 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   #apps · THE DECK
+   #apps · THE STAGE
+   rail (tabs) | phone (one device) | copy
+   ═══════════════════════════════════════════════════════════════ */
+.stg {
+  --spring: linear(0, .0088 1.1%, .0346 2.3%, .1442 4.9%, .7688 14.2%, .9202 16.7%, 1.0139 19.3%,
+    1.0498 21.9%, 1.0546 24.7%, 1.0338 28.2%, .9994 32.6%, .9895 37.3%, .9994 44.2%, 1.0026 55.3%, 1);
+  margin: clamp(26px, 4vh, 46px) var(--pad) 0;
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(18px, 3vw, 40px); align-items: center;
+  border: 1px solid var(--line); border-radius: 28px;
+  background: var(--bg-2);
+  padding: clamp(20px, 2.6vw, 36px);
+}
+.stg-panel {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(200px, 300px) minmax(240px, 460px);
+  justify-content: center; align-items: center;
+  gap: clamp(20px, 3vw, 48px);
+}
+
+/* ——— the rail: a real tablist, vertical on desktop ——— */
+.stg-rail { display: flex; flex-direction: column; gap: 12px; }
+.stg-rail button {
+  position: relative; padding: 0; border: 0; background: none; cursor: pointer;
+  border-radius: 19px; flex: none;
+  transition: transform 0.45s var(--spring);
+}
+.stg-rail .pi { width: clamp(46px, 4.2vw, 58px); aspect-ratio: 1; opacity: 0.5; transition: opacity 0.35s var(--ease); }
+.stg-rail button:hover .pi { opacity: 0.85; }
+.stg-rail button[aria-selected='true'] .pi { opacity: 1; }
+.stg-rail button[aria-selected='true'] { transform: translateX(4px); }
+.stg-rail button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+/* the selection mark — a magenta tick that grows out of the rail's edge */
+.stg-rail button::before {
+  content: ''; position: absolute; left: -11px; top: 50%;
+  width: 3px; height: 0; margin-top: 0; border-radius: 3px; background: var(--magenta);
+  transition: height 0.4s var(--ease), margin-top 0.4s var(--ease);
+}
+.stg-rail button[aria-selected='true']::before { height: 26px; margin-top: -13px; }
+
+/* ——— the device ———
+   The real iPhone 14 Pro mockup the site already ships
+   (public/img/devices/iphone-frame.png, keyed to alpha by
+   scripts/make-device-frames.mjs). Every number below is measured from that
+   PNG — 900 × 1813, display at 5.71% / 2.39% / 88.52% / 95.19% — the same
+   four numbers styles.css uses for .app-screen. One device on the page. */
+.stg-phone-wrap { display: grid; place-items: center; min-width: 0; }
+/* A VIEWPORT width, not `width:100%; max-width:…`. Below 1080px the panel
+   becomes a single centred column, which makes the phone's grid area
+   content-sized — and a percentage width against a content-sized area is
+   circular, so the device resolved to zero and vanished on a phone. A clamp
+   in vw is always definite. */
+.stg-phone {
+  position: relative; width: clamp(190px, 46vw, 264px);
+  aspect-ratio: 900 / 1813;
+  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.6)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+}
+.stg-glass {
+  position: absolute; z-index: 1; overflow: hidden;
+  left: 5.71%; top: 2.39%; width: 88.52%; height: 95.19%;
+  border-radius: 11.5% / 5.6%;
+  background: var(--bg-3);
+}
+.stg-glass img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 0;
+  opacity: 0; transition: opacity 0.38s linear;
+}
+.stg-glass img.is-on { opacity: 1; }
+.stg-frame {
+  position: absolute; inset: 0; z-index: 5;
+  width: 100%; height: 100%; object-fit: fill;
+  pointer-events: none; user-select: none;
+}
+/* ——— the unframed device ———
+   For an app whose images are rendered mockups (KwaKwa), the frame and the
+   glass above are not rendered at all — the render carries its own phone on a
+   transparent background. One fixed box, `object-fit: contain`, so three
+   cut-outs of slightly different widths cycle without nudging anything. The
+   shadow is a `filter` on the images rather than a box-shadow on the box: the
+   subject is a tilted phone, not a rectangle, and a box-shadow would draw the
+   silhouette of the padding instead of the phone. */
+.stg-mock {
+  /* a touch wider than the framed device: the render is a TILTED phone
+     inside a padded canvas, so the phone itself only spans ~85% of the box */
+  position: relative; width: clamp(220px, 54vw, 342px);
+  aspect-ratio: 460 / 790;
+}
+.stg-mock img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain;
+  opacity: 0; transition: opacity 0.5s var(--ease);
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.55)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
+}
+.stg-mock img.is-on { opacity: 1; }
+/* the pips ride under the device rather than inside a screen that isn't there */
+.stg-mock .stg-pips { bottom: -6px; }
+.stg-mock .stg-pips i { background: rgba(242, 240, 247, 0.26); }
+.stg-mock .stg-pips i[data-on='true'] { background: var(--gold); }
+
+/* the beat, made visible: one pip per capture of the app on the phone, so the
+   reader knows the screen is going to change before it does. Sits INSIDE the
+   glass, under the frame, on the home-indicator line. */
+.stg-pips {
+  position: absolute; z-index: 4; left: 0; right: 0; bottom: 2.2%;
+  display: flex; justify-content: center; gap: 6px; pointer-events: none;
+}
+.stg-pips i {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(10, 6, 18, 0.28);
+  transition: background 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.stg-pips i[data-on='true'] { background: rgba(10, 6, 18, 0.72); transform: scale(1.3); }
+/* the one app with no capture gets a stated panel, not a hole */
+.stg-noshot {
+  position: absolute; inset: 0; z-index: 2;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; padding: 22px; text-align: center;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(123, 47, 190, 0.5), transparent 70%), var(--bg-3);
+}
+.stg-noshot.is-on { display: flex; }
+.stg-noshot .pi { width: 66px; aspect-ratio: 1; }
+.stg-noshot p {
+  font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-dim); line-height: 1.7;
+}
+
+/* ——— the copy beside it ——— */
+.stg-info { min-width: 0; max-width: 46ch; }
+.stg-id { display: flex; align-items: center; gap: 14px; }
+.stg-icon { width: clamp(46px, 3.8vw, 58px); aspect-ratio: 1; }
+.stg-info h3 {
+  font-family: var(--display); font-weight: 620;
+  font-size: clamp(1.5rem, 2.6vw, 2rem); letter-spacing: -0.015em; line-height: 1.05;
+}
+.stg-info .stg-ar { font-size: 1.05rem; color: var(--ink-dim); margin-top: 3px; }
+.stg-info .stg-tag {
+  font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--magenta); margin-top: 12px;
+}
+.stg-info .stg-blurb { color: var(--ink-dim); line-height: 1.66; margin-top: 14px; font-size: 0.95rem; }
+.stg-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+.stg-info .dl-row { margin-top: 18px; }
+.stg-count {
+  font-family: var(--display); font-weight: 620;
+  font-size: 0.72rem; letter-spacing: 0.2em; color: var(--ink-dim);
+  margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line);
+}
+.stg-count b { color: var(--ink); font-weight: 620; }
+
+@media (max-width: 1080px) {
+  .stg { grid-template-columns: auto minmax(0, 1fr); }
+  .stg-panel { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+  .stg-info { max-width: 52ch; }
+  .stg-id { justify-content: center; }
+  .stg-meta, .stg-info .dl-row { justify-content: center; }
+}
+@media (max-width: 760px) {
+  .stg { grid-template-columns: minmax(0, 1fr); gap: 22px; border-radius: 22px; }
+  /* the rail lies down and scrolls sideways inside its own box — the page
+     itself never scrolls horizontally */
+  .stg-rail {
+    flex-direction: row; gap: 10px; overflow-x: auto; padding: 2px 2px 10px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .stg-rail::-webkit-scrollbar { display: none; }
+  .stg-rail button[aria-selected='true'] { transform: translateY(-3px); }
+  .stg-rail button::before {
+    left: 50%; top: auto; bottom: -7px; width: 0; height: 3px; margin: 0;
+    transition: width 0.4s var(--ease), margin-left 0.4s var(--ease);
+  }
+  .stg-rail button[aria-selected='true']::before { width: 24px; margin-left: -12px; height: 3px; margin-top: 0; }
+  .stg-phone { width: clamp(190px, 56vw, 224px); }
+  .stg-mock { width: clamp(220px, 66vw, 264px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   #lab · THE DECK
    A `--steps`-viewport-tall element with a sticky 100vh stage inside it.
    Scroll position IS the carousel index — there is no wheel handler, no
    scroll-jacking and no scroll-snap; the page scrolls normally the whole way
    through and the deck simply reads how far into itself the reader is.
-
-   PERFORMANCE — the contract this file opened with still holds:
-     · The seven phones are positioned by ONE transform each, written straight
-       to the node from a rAF-throttled scroll listener. No React re-render
-       moves a phone; no phone animates on a timeline.
-     · Nothing loops except the motes, and they are gated on `.dk` being on
-       screen (`.is-live`) AND off entirely under reduced motion.
-     · No `backdrop-filter`, no canvas. The only `filter` is the drop-shadow
-       on the centre phone, which has no children that inherit a raster.
    ═══════════════════════════════════════════════════════════════ */
 .dk {
   --spring: linear(0, .0088 1.1%, .0346 2.3%, .1442 4.9%, .7688 14.2%, .9202 16.7%, 1.0139 19.3%,
     1.0498 21.9%, 1.0546 24.7%, 1.0338 28.2%, .9994 32.6%, .9895 37.3%, .9994 44.2%, 1.0026 55.3%, 1);
-  /* one viewport to read the stage in, plus 0.9 of one per app to travel
-     through. `--steps` comes from JSX (APPS.length − 1) so adding a product
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* one viewport to read the stage in, plus 0.9 of one per module to travel
+     through. `--steps` comes from JSX (TOOLS.length − 1) so adding a tool
      lengthens the timeline automatically. */
   height: calc(100vh + var(--steps) * 90vh);
   margin-top: clamp(26px, 4vh, 46px);
-  position: relative;
+  position: relative; z-index: 1;
 }
 .dk-pin {
   position: sticky; top: 0;
@@ -125,14 +302,14 @@
   overflow: hidden;
 }
 
-/* ——— the wash. Two radial pools in the current app's own colours, sitting
+/* ——— the wash. Two radial pools in the current module's own colours, sitting
    behind everything, cross-fading their COLOUR (not their opacity) as the deck
-   lands on a new product. ——— */
+   lands on a new tool. ——— */
 .dk-aura {
   position: absolute; inset: -20% -10%; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(58% 46% at 50% 42%, color-mix(in oklab, var(--g1) 30%, transparent), transparent 72%),
-    radial-gradient(46% 40% at 26% 74%, color-mix(in oklab, var(--g2) 22%, transparent), transparent 70%),
+    radial-gradient(58% 46% at 50% 42%, color-mix(in oklab, var(--g1) 26%, transparent), transparent 72%),
+    radial-gradient(46% 40% at 26% 74%, color-mix(in oklab, var(--g2) 20%, transparent), transparent 70%),
     radial-gradient(70% 50% at 82% 20%, rgba(123, 47, 190, 0.16), transparent 72%);
   transition: background 0.9s var(--ease);
 }
@@ -143,24 +320,23 @@
   background: linear-gradient(90deg, transparent, rgba(242, 240, 247, 0.16) 30%, rgba(242, 240, 247, 0.16) 70%, transparent);
 }
 
-/* ——— the motes. Fireflies, deliberately few and deliberately slow. They are
-   the only looping thing in this section and they do not exist until the deck
-   is on screen. ——— */
+/* ——— the motes. Deliberately few and deliberately slow. They are the only
+   looping thing in this section and they do not exist until the deck is on
+   screen. Their scatter is written inline by JSX. ——— */
 .dk-motes { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .dk-motes i {
   position: absolute; width: 4px; height: 4px; border-radius: 50%;
-  background: var(--gold); opacity: 0;
-  /* left/top are written inline by JSX — see the note in Products.jsx */
-  box-shadow: 0 0 12px 2px rgba(255, 199, 64, 0.5);
+  background: var(--cyan); opacity: 0;
+  box-shadow: 0 0 12px 2px rgba(89, 230, 255, 0.45);
 }
 .dk.is-live .dk-motes i {
   animation: dk-mote calc(7s + var(--k) * 0.9s) ease-in-out calc(var(--k) * -1.3s) infinite;
 }
 @keyframes dk-mote {
   0%, 100% { opacity: 0; transform: translate3d(0, 0, 0); }
-  20% { opacity: 0.75; }
-  50% { opacity: 0.32; transform: translate3d(14px, -26px, 0); }
-  80% { opacity: 0.6; }
+  20% { opacity: 0.7; }
+  50% { opacity: 0.3; transform: translate3d(14px, -26px, 0); }
+  80% { opacity: 0.55; }
 }
 
 /* ═══════════ the turntable ═══════════ */
@@ -168,172 +344,188 @@
   grid-area: stage; position: relative; z-index: 2;
   min-width: 0; height: 100%;
   display: grid; place-items: center;
-  perspective: 1500px; perspective-origin: 50% 46%;
+  perspective: 1600px; perspective-origin: 50% 46%;
 }
 .dk-track {
   position: relative; transform-style: preserve-3d;
-  width: min(30vh, 260px); height: min(64vh, 560px);
+  width: min(34vw, 470px); aspect-ratio: 16 / 10;
 }
-/* one phone's seat on the turntable. Every property the driver writes —
-   transform, opacity, visibility, z-index, --dim — lives here, and the
-   transition is what makes a RAIL CLICK glide even though a scroll writes a
-   new transform every frame (a 0.06s transition is invisible under 60fps
-   writes but smooths a jump). */
+/* one module's seat on the turntable. Every property the driver writes —
+   transform, opacity, visibility, z-index, --dim — lives here. */
 .dk-slot {
   position: absolute; inset: 0;
   transform-style: preserve-3d;
   transition: opacity 0.4s var(--ease);
   will-change: transform;
 }
-.dk-phone {
+.dk-card {
   display: block; width: 100%; height: 100%;
   padding: 0; border: 0; background: none; cursor: pointer;
   transform-style: preserve-3d;
 }
-.dk-phone:focus-visible { outline: 2px solid var(--cyan); outline-offset: 8px; border-radius: 44px; }
+.dk-card:focus-visible { outline: 2px solid var(--cyan); outline-offset: 8px; border-radius: 16px; }
 
-/* ——— the device, drawn.
-   Titanium rail as a conic gradient (bright at the two lit edges, dark at the
-   two shadowed ones), a black bezel inset from it, then the screen. Three
-   layers, no images. The reflection is `-webkit-box-reflect`, which costs one
-   compositor mirror and no extra DOM — Firefox simply doesn't draw it. ——— */
+/* ——— the window, drawn.
+   A hairline bezel as a conic gradient (bright at the two lit edges, dark at
+   the two shadowed ones), a title bar, then the screen. Three layers, no
+   images. The reflection is `-webkit-box-reflect`, which costs one compositor
+   mirror and no extra DOM — Firefox simply doesn't draw it. ——— */
 .dk-body {
-  position: relative; display: block; width: 100%; height: 100%;
-  border-radius: 13.2% / 6.1%;
-  padding: 3px;
+  position: relative; display: flex; flex-direction: column;
+  width: 100%; height: 100%; overflow: hidden;
+  border-radius: 14px; padding: 1px;
   background:
     conic-gradient(from 210deg at 50% 50%,
-      #b9b2c6 0deg, #6d6579 42deg, #d8d3e2 96deg, #7a7286 150deg,
-      #cfc9da 200deg, #5f5869 262deg, #c6c0d2 314deg, #b9b2c6 360deg);
+      #6a6379 0deg, #37324a 42deg, #8e88a0 96deg, #443f58 150deg,
+      #837d96 200deg, #2f2b40 262deg, #7a7490 314deg, #6a6379 360deg);
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.6),
-    0 30px 60px -28px rgba(0, 0, 0, 0.95),
+    0 34px 70px -30px rgba(0, 0, 0, 0.95),
     0 8px 22px -12px rgba(0, 0, 0, 0.8);
-  -webkit-box-reflect: below 10px linear-gradient(transparent 62%, rgba(255, 255, 255, 0.14));
+  -webkit-box-reflect: below 10px linear-gradient(transparent 64%, rgba(255, 255, 255, 0.12));
+}
+.dk-chrome {
+  display: flex; align-items: center; gap: 6px; flex: none;
+  padding: 9px 12px; border-radius: 13px 13px 0 0;
+  background: linear-gradient(180deg, #150d24, #0f0819);
+  border-bottom: 1px solid var(--line);
+}
+.dk-chrome i { width: 8px; height: 8px; border-radius: 50%; background: #2a1c3d; flex: none; }
+.dk-chrome i:first-child { background: #3d1f33; }
+.dk-chrome em {
+  font-style: normal; font-family: var(--mono); font-size: 0.66rem;
+  letter-spacing: 0.06em; color: var(--ink-dim); margin-left: 8px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .dk-screen {
-  position: relative; display: block; width: 100%; height: 100%; overflow: hidden;
-  border-radius: 12.4% / 5.7%;
-  background: #0b0713;
-  box-shadow: 0 0 0 2px #08050e inset;
+  position: relative; display: block; flex: 1; min-height: 0; overflow: hidden;
+  border-radius: 0 0 13px 13px; background: #0b0713;
 }
 .dk-screen img {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; object-position: 50% 0;
 }
-.dk-mock {
-  display: block; width: 100%; height: 100%;
-  object-fit: cover; border-radius: inherit;
+.dk-mock { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 13px; }
+/* SPLAT LAB has no still, and one would be a lie: its output is a live splat,
+   not a frame. The pane says so, in the language of the tool. */
+.dk-cloud {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  text-align: center; padding: 24px;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(89, 230, 255, 0.14), transparent 55%),
+    radial-gradient(circle at 72% 62%, rgba(242, 28, 140, 0.12), transparent 55%),
+    radial-gradient(1.4px 1.4px at 6px 8px, rgba(89, 230, 255, 0.55) 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 20px 26px, rgba(242, 240, 247, 0.3) 50%, transparent 51%),
+    radial-gradient(1.6px 1.6px at 33px 12px, rgba(242, 28, 140, 0.4) 50%, transparent 51%),
+    #0a0513;
+  background-size: auto, auto, 40px 40px, 40px 40px, 40px 40px, auto;
 }
-/* the AR product with no honest still */
-.dk-noshot {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 16px; padding: 20px; text-align: center;
-  background: radial-gradient(120% 90% at 50% 0%, rgba(123, 47, 190, 0.5), transparent 70%), var(--bg-3);
+.dk-cloud em {
+  font-style: normal; font-family: var(--mono); font-size: 0.66rem;
+  letter-spacing: 0.16em; line-height: 2; color: var(--cyan);
+  text-transform: uppercase; text-shadow: 0 2px 14px #000;
 }
-.dk-noshot .pi { width: 58px; aspect-ratio: 1; }
-.dk-noshot em {
-  font-style: normal; font-size: 0.6rem; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--ink-dim); line-height: 1.75;
-}
-
-.dk-island {
-  position: absolute; left: 50%; top: 1.9%; transform: translateX(-50%);
-  width: 30%; height: 3.4%; border-radius: 999px; background: #050308;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-}
-/* the side hardware — the tell that makes a rectangle read as a phone the
-   moment it rotates */
-.dk-btn {
-  position: absolute; width: 2.2px; border-radius: 2px;
-  background: linear-gradient(180deg, #7d7688, #cfc9da 40%, #6d6579);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
-}
-.dk-btn--vol1 { left: -1.4px; top: 20%; height: 7.6%; }
-.dk-btn--vol2 { left: -1.4px; top: 29.5%; height: 7.6%; }
-.dk-btn--pwr { right: -1.4px; top: 24%; height: 11%; }
+.dk-cloud b { display: block; font-weight: inherit; color: var(--ink-dim); }
 
 /* the light. `dk-sheen` is a fixed diagonal glare on the glass; `dk-scrim`
    is the distance darkening the driver writes as `--dim`. */
 .dk-sheen {
-  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  position: absolute; inset: 0; border-radius: 14px; pointer-events: none;
   background: linear-gradient(122deg,
-    rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.06) 16%,
-    transparent 34%, transparent 70%, rgba(255, 255, 255, 0.09) 100%);
+    rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 16%,
+    transparent 34%, transparent 70%, rgba(255, 255, 255, 0.07) 100%);
   mix-blend-mode: screen;
 }
 .dk-scrim {
-  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  position: absolute; inset: 0; border-radius: 14px; pointer-events: none;
   background: #05030a; opacity: var(--dim, 0);
 }
 
 /* the floor pool the reflection lands in */
 .dk-floor {
   position: absolute; z-index: -1; left: 50%; bottom: 12%;
-  width: min(70vw, 640px); height: 22vh; transform: translateX(-50%);
-  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.07), transparent 72%);
+  width: min(70vw, 720px); height: 22vh; transform: translateX(-50%);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.06), transparent 72%);
   pointer-events: none;
+}
+
+/* the veil — see the note in Products.jsx. Sits above every card (the stage
+   is its own stacking context at z-index 2) and below the rail and the copy. */
+.dk-veil {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: linear-gradient(90deg,
+    var(--bg) 0%, color-mix(in oklab, var(--bg) 72%, transparent) 13%, transparent 27%,
+    transparent 58%, color-mix(in oklab, var(--bg) 78%, transparent) 74%, var(--bg) 88%);
 }
 
 /* ═══════════ the copy ═══════════ */
 .dk-info {
-  grid-area: info; position: relative; z-index: 3;
-  min-width: 0; max-width: 42ch;
+  grid-area: info; position: relative; z-index: 4;
+  min-width: 0; max-width: 44ch;
   animation: dk-in 0.55s var(--ease) both;
 }
 @keyframes dk-in {
   from { opacity: 0; transform: translate3d(0, 14px, 0); }
   to { opacity: 1; transform: none; }
 }
-.dk-id { display: flex; align-items: center; gap: 14px; }
-.dk-icon { width: clamp(48px, 4vw, 62px); aspect-ratio: 1; }
+.dk-id { display: flex; align-items: baseline; gap: 14px; }
+.dk-n { font-family: var(--mono); font-size: 0.8rem; color: var(--magenta); flex: none; }
 .dk-id-t { min-width: 0; }
 .dk-info h3 {
   font-family: var(--display); font-weight: 620;
   font-size: clamp(1.5rem, 2.8vw, 2.2rem); letter-spacing: -0.02em; line-height: 1.02;
 }
-.dk-ar { display: block; font-size: 1rem; color: var(--ink-dim); margin-top: 2px; }
 .dk-tag {
   display: block; margin-top: 7px;
-  font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--magenta);
+  font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cyan);
 }
-.dk-blurb { color: var(--ink-dim); line-height: 1.66; margin-top: 18px; font-size: 0.95rem; }
-.dk-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
-.dk-info .dl-row { margin-top: 18px; }
+.dk-info .sui-console { margin-top: 18px; border-left: 2px solid var(--line); }
+.dk-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+.dk-meta .pill {
+  color: #0d0716; background: var(--magenta); padding: 3px 9px; border-radius: 4px;
+  font-family: var(--mono); font-size: 0.63rem; font-weight: 600; letter-spacing: 0.06em;
+}
+.dk-note { font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.1em; color: #6d5f8a; }
+.dk-info .sui-get { margin-top: 16px; }
 
 /* ═══════════ the rail ═══════════ */
 .dk-rail {
-  grid-area: rail; position: relative; z-index: 3;
-  display: flex; flex-direction: column; gap: 12px;
+  grid-area: rail; position: relative; z-index: 4;
+  display: flex; flex-direction: column; gap: 2px;
 }
-.dk-rail button {
-  position: relative; padding: 0; border: 0; background: none; cursor: pointer;
-  border-radius: 19px; flex: none;
-  transition: transform 0.45s var(--spring);
+.dk-mod {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 9px 12px; border: 0; background: none; cursor: pointer; text-align: left;
+  border-left: 2px solid transparent; border-radius: 0 6px 6px 0;
+  transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
 }
-.dk-rail .pi { width: clamp(42px, 3.6vw, 54px); aspect-ratio: 1; opacity: 0.42; transition: opacity 0.35s var(--ease); }
-.dk-rail button:hover .pi { opacity: 0.85; }
-.dk-rail button[aria-selected='true'] .pi { opacity: 1; }
-.dk-rail button[aria-selected='true'] { transform: translateX(5px); }
-.dk-rail button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
-.dk-rail button::before {
-  content: ''; position: absolute; left: -11px; top: 50%;
-  width: 3px; height: 0; margin-top: 0; border-radius: 3px; background: var(--magenta);
-  transition: height 0.4s var(--ease), margin-top 0.4s var(--ease);
+.dk-mod .n { font-family: var(--mono); font-size: 0.62rem; color: #5c4d78; flex: none; }
+.dk-mod .t {
+  font-family: var(--display); font-weight: 600; font-size: 0.92rem; letter-spacing: -0.01em;
+  white-space: nowrap; color: var(--ink-dim); transition: color 0.3s var(--ease);
 }
-.dk-rail button[aria-selected='true']::before { height: 26px; margin-top: -13px; }
+.dk-mod:hover { background: rgba(242, 240, 247, 0.04); }
+.dk-mod:hover .t { color: var(--ink); }
+.dk-mod:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+.dk-mod[aria-selected='true'] { background: rgba(242, 28, 140, 0.1); border-left-color: var(--magenta); }
+.dk-mod[aria-selected='true'] .t { color: #fff; }
+.dk-mod[aria-selected='true'] .n { color: var(--magenta); }
 
 /* ═══════════ the counter + progress hairline ═══════════ */
 .dk-count {
-  position: absolute; z-index: 3; left: var(--pad); right: var(--pad); bottom: clamp(18px, 3vh, 34px);
+  position: absolute; z-index: 4; left: var(--pad); right: var(--pad); bottom: clamp(18px, 3vh, 34px);
   font-family: var(--display); font-weight: 620;
-  font-size: 0.7rem; letter-spacing: 0.2em; color: var(--ink-dim);
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim);
+  /* right-aligned: the bottom-left corner of the viewport is where the dev
+     Studio badge and the flight HUD live, and a left-aligned counter collides
+     with both */
+  text-align: right;
   padding-top: 14px; border-top: 1px solid var(--line);
 }
 .dk-count b { color: var(--ink); font-weight: 620; }
 .dk-count i {
   position: absolute; left: 0; top: -1px; height: 2px; width: var(--w, 0%);
-  background: linear-gradient(90deg, var(--magenta), var(--gold));
+  background: linear-gradient(90deg, var(--magenta), var(--cyan));
   transition: width 0.5s var(--ease);
 }
 
@@ -346,160 +538,42 @@
     gap: clamp(10px, 2vh, 24px);
     padding: clamp(50px, 8vh, 90px) var(--pad) clamp(70px, 10vh, 110px);
   }
-  .dk-track { width: min(26vh, 200px); height: min(52vh, 430px); }
+  .dk-track { width: min(74vw, 460px); }
+  /* stacked, the veil would wash out the copy sitting under the deck — it
+     only has a job when the rail and the copy flank the stage */
+  .dk-veil { display: none; }
   .dk-info { max-width: 46ch; }
-  .dk-id { justify-content: center; }
-  .dk-meta, .dk-info .dl-row { justify-content: center; }
-  .dk-rail { flex-direction: row; gap: 10px; }
-  .dk-rail .pi { width: clamp(34px, 8vw, 44px); }
-  .dk-rail button[aria-selected='true'] { transform: translateY(-4px); }
-  .dk-rail button::before {
-    left: 50%; top: auto; bottom: -7px; width: 0; height: 3px; margin: 0;
-    transition: width 0.4s var(--ease), margin-left 0.4s var(--ease);
+  .dk-id, .dk-meta, .dk-info .sui-get { justify-content: center; }
+  .dk-info .sui-console { border-left: 0; text-align: left; }
+  .dk-rail { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px; }
+  .dk-mod {
+    border-left: 0; border-bottom: 2px solid transparent; border-radius: 6px 6px 0 0;
+    padding: 8px 11px;
   }
-  .dk-rail button[aria-selected='true']::before { width: 22px; margin-left: -11px; height: 3px; margin-top: 0; }
-  .dk-pin::after { bottom: auto; top: 62%; }
+  .dk-mod[aria-selected='true'] { border-bottom-color: var(--magenta); }
+  .dk-pin::after { bottom: auto; top: 58%; }
 }
+/* A phone is the one viewport where the pin has to fit card + copy + console
+   + rail + counter into 100vh with nothing to spare, so everything below is
+   the same layout at a tighter setting rather than a different one. */
 @media (max-width: 620px) {
-  .dk-pin { min-height: 600px; }
-  .dk-track { width: min(23vh, 168px); height: min(46vh, 360px); }
-  .dk-blurb { font-size: 0.88rem; margin-top: 12px; }
-  .dk-count { letter-spacing: 0.14em; font-size: 0.62rem; }
+  .dk-pin { min-height: 600px; gap: 8px; padding: clamp(30px, 5vh, 60px) var(--pad) 56px; }
+  .dk-track { width: 84vw; }
+  .dk-info h3 { font-size: 1.45rem; }
+  .dk-info .sui-console { margin-top: 12px; min-height: 0; padding: 11px 13px; }
+  .dk-info .sui-console .row { font-size: 0.68rem; line-height: 1.6; }
+  .dk-meta, .dk-info .sui-get { margin-top: 11px; }
+  .dk-rail { gap: 2px; }
+  .dk-mod { padding: 6px 9px; gap: 7px; }
+  .dk-mod .t { font-size: 0.76rem; }
+  .dk-count { letter-spacing: 0.1em; font-size: 0.56rem; padding-top: 10px; bottom: 14px; }
 }
 
-/* ═══════════ reduced motion ═══════════
-   The pin is the animation here, so it is removed outright rather than
-   damped: the section collapses to its sticky child's height, the deck holds
-   whatever the rail last selected, and the rail is an ordinary tablist.
-   (`place()` is still called once per selection, so the fan still reads as a
-   deck — it just never moves on its own.) */
-.dk--flat { height: auto; }
-.dk--flat .dk-pin { position: static; height: auto; min-height: 0; padding-block: clamp(40px, 6vh, 80px); }
-.dk--flat .dk-motes { display: none; }
-@media (prefers-reduced-motion: reduce) {
-  .dk *, .dk *::before, .dk *::after {
-    transition-duration: 0.01ms !important;
-    animation: none !important;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   #lab · THE SUITE
-   one window: title bar, module sidebar, tab strip, viewport, console, status
-   ═══════════════════════════════════════════════════════════════ */
-.sui {
-  --line-2: rgba(242, 240, 247, 0.18);
+/* ═══════════ the console, kept from the old suite window ═══════════ */
+.sui-console {
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  position: relative;
-  margin: clamp(26px, 4vh, 46px) var(--pad) 0;
-  border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden;
-  background: #08040f;
-  box-shadow: 0 40px 90px -50px #000, 0 0 0 1px rgba(89, 230, 255, 0.05) inset;
+  background: #0a0513; padding: 13px 16px; min-height: 96px; border-radius: 6px;
 }
-.sui-bar {
-  display: flex; align-items: center; gap: 12px; padding: 11px 14px;
-  border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, #150d24, #0f0819);
-}
-.sui-dots { display: flex; gap: 6px; flex: none; }
-.sui-dots i { width: 10px; height: 10px; border-radius: 50%; background: #2a1c3d; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset; }
-.sui-dots i:first-child { background: #3d1f33; }
-.sui-name {
-  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; color: var(--ink-dim);
-  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.sui-name b { color: var(--ink); font-weight: 600; }
-/* deliberately NOT a pulsing dot: this section's whole point is that it costs
-   nothing while you are not touching it */
-.sui-live {
-  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
-  color: var(--cyan); flex: none; display: flex; align-items: center; gap: 7px;
-}
-.sui-live i { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
-
-.sui-body { display: grid; grid-template-columns: 232px minmax(0, 1fr); }
-.sui-side { border-right: 1px solid var(--line); background: #0b0615; padding: 12px 0; min-width: 0; }
-.sui-lbl {
-  display: block; padding: 0 14px 10px;
-  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.18em;
-  text-transform: uppercase; color: var(--ink-dim);
-}
-.sui-mod {
-  display: flex; gap: 11px; align-items: flex-start; width: 100%;
-  padding: 10px 14px 10px 12px; border: 0; background: none; cursor: pointer; text-align: left;
-  border-left: 2px solid transparent;
-  transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
-}
-.sui-mod .n { font-family: var(--mono); font-size: 0.64rem; color: #5c4d78; padding-top: 3px; flex: none; }
-.sui-mod .w { min-width: 0; }
-.sui-mod .t {
-  font-family: var(--display); font-weight: 600; font-size: 0.94rem; letter-spacing: -0.01em;
-  display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: var(--ink-dim); transition: color 0.3s var(--ease);
-}
-.sui-mod .k { font-size: 0.7rem; color: #6d5f8a; display: block; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sui-mod:hover { background: rgba(242, 240, 247, 0.03); }
-.sui-mod:hover .t { color: var(--ink); }
-.sui-mod:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
-.sui-mod[aria-selected='true'] { background: rgba(242, 28, 140, 0.09); border-left-color: var(--magenta); }
-.sui-mod[aria-selected='true'] .t { color: #fff; }
-.sui-mod[aria-selected='true'] .n { color: var(--magenta); }
-
-.sui-main { min-width: 0; display: flex; flex-direction: column; }
-.sui-tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); background: #0a0513; scrollbar-width: none; }
-.sui-tabs::-webkit-scrollbar { display: none; }
-.sui-tabs button {
-  flex: none; padding: 10px 16px; border: 0; background: none; cursor: pointer;
-  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.06em; color: #6d5f8a;
-  border-right: 1px solid var(--line); border-bottom: 2px solid transparent;
-  transition: color 0.3s var(--ease), border-color 0.3s var(--ease), background 0.3s var(--ease);
-  white-space: nowrap;
-}
-.sui-tabs button:hover { color: var(--ink); }
-.sui-tabs button[data-on='true'] { color: #fff; background: #120a1f; border-bottom-color: var(--cyan); }
-
-.sui-stage { position: relative; aspect-ratio: 16 / 9; background: #0d0716; overflow: hidden; }
-.sui-stage img {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-  opacity: 0; transform: scale(1.035);
-  transition: opacity 0.5s var(--ease), transform 0.8s var(--ease);
-}
-.sui-stage img.is-on { opacity: 1; transform: scale(1); }
-/* SPLAT LAB has no still — the pane declares that, in the language of the
-   tool, rather than showing an empty frame or a fake render */
-.sui-cloud {
-  position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s var(--ease);
-  background:
-    radial-gradient(circle at 30% 40%, rgba(89, 230, 255, 0.14), transparent 55%),
-    radial-gradient(circle at 72% 62%, rgba(242, 28, 140, 0.12), transparent 55%),
-    radial-gradient(1.4px 1.4px at 6px 8px, rgba(89, 230, 255, 0.55) 50%, transparent 51%),
-    radial-gradient(1.4px 1.4px at 20px 26px, rgba(242, 240, 247, 0.3) 50%, transparent 51%),
-    radial-gradient(1.6px 1.6px at 33px 12px, rgba(242, 28, 140, 0.4) 50%, transparent 51%),
-    #0a0513;
-  background-size: auto, auto, 40px 40px, 40px 40px, 40px 40px, auto;
-  display: grid; place-items: center; text-align: center; padding: 24px;
-  pointer-events: none;
-}
-.sui-cloud.is-on { opacity: 1; }
-.sui-cloud p {
-  font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.16em; line-height: 2;
-  color: var(--cyan); text-transform: uppercase; text-shadow: 0 2px 14px #000;
-}
-.sui-cloud p span { color: var(--ink-dim); display: block; }
-/* the ONLY looping animation in this file, and it is gated on the pane being
-   the selected module — at rest, and for the other five modules, it does not
-   exist on the compositor at all */
-/* full-height box carrying the hairline as its own background, so the sweep is
-   `translateY(-2% → 102%)` — a percentage of the ELEMENT's height, i.e. pure
-   transform. Animating `top` here would be a layout property. */
-.sui-scan {
-  position: absolute; left: 0; right: 0; top: 0; height: 100%; opacity: 0;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent) top left / 100% 1px no-repeat;
-}
-.sui-cloud.is-on .sui-scan { opacity: 0.5; animation: sui-scan 4.5s linear infinite; }
-@keyframes sui-scan { from { transform: translateY(-2%); } to { transform: translateY(102%); } }
-
-.sui-console { border-top: 1px solid var(--line); background: #0a0513; padding: 13px 16px; min-height: 96px; }
 .sui-console .row { font-family: var(--mono); font-size: 0.74rem; line-height: 1.75; color: var(--ink-dim); word-break: break-word; }
 .sui-console .row .p { color: var(--magenta); }
 .sui-console .row .c { color: var(--cyan); }
@@ -512,45 +586,26 @@
 @keyframes sui-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 
 /* the real download chips for the selected tool, filed as a command */
-.sui-get {
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-  background: #0a0513; padding: 0 16px 14px;
+.sui-get { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sui-get > .sui-get-lbl {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.74rem; color: #6d5f8a; flex: none;
 }
-.sui-get > .sui-get-lbl { font-family: var(--mono); font-size: 0.74rem; color: #6d5f8a; flex: none; }
 .sui-get .dl-row { margin-top: 0; }
 
-.sui-foot {
-  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-  padding: 9px 14px; border-top: 1px solid var(--line);
-  background: linear-gradient(180deg, #0f0819, #150d24);
-  font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.1em; color: #6d5f8a;
-}
-.sui-foot .pill { color: #0d0716; background: var(--magenta); padding: 3px 8px; border-radius: 4px; font-weight: 600; }
-.sui-foot .sp { flex: 1; }
-
-@media (max-width: 860px) {
-  .sui-body { grid-template-columns: minmax(0, 1fr); }
-  .sui-side {
-    border-right: 0; border-bottom: 1px solid var(--line);
-    display: flex; overflow-x: auto; padding: 0; scrollbar-width: none;
-  }
-  .sui-side::-webkit-scrollbar { display: none; }
-  .sui-side > .sui-lbl { display: none; }
-  .sui-mod { flex: none; width: auto; border-left: 0; border-bottom: 2px solid transparent; padding: 11px 14px; }
-  .sui-mod[aria-selected='true'] { border-bottom-color: var(--magenta); }
-  .sui-tabs { display: none; }
-}
-@media (max-width: 640px) {
-  .sui-stage { aspect-ratio: 4 / 3; }
-  .sui-name { font-size: 0.62rem; }
-}
-
-/* ═══════════════════ reduced motion ═══════════════════
-   Both sections are transform/opacity only, so this is a blanket kill inside
-   the two sections rather than a per-rule rewrite. The typewriter is switched
-   off in JS (the text is set in one go), and the caret is never mounted. */
+/* ═══════════ reduced motion ═══════════
+   The pin is the animation in the deck, so it is removed outright rather than
+   damped: the section collapses to its sticky child's height, the deck holds
+   whatever the rail last selected, and the rail is an ordinary tablist.
+   (`place()` is still called once per selection, so the fan still reads as a
+   deck — it just never moves on its own.) The stage's shot cycle is switched
+   off in JS: the interval is never created. */
+.dk--flat { height: auto; }
+.dk--flat .dk-pin { position: static; height: auto; min-height: 0; padding-block: clamp(40px, 6vh, 80px); }
+.dk--flat .dk-motes { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .sui *, .sui *::before, .sui *::after {
+  .stg *, .stg *::before, .stg *::after,
+  .dk *, .dk *::before, .dk *::after {
     transition-duration: 0.01ms !important;
     animation: none !important;
   }

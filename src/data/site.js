@@ -153,6 +153,18 @@ export const APPS = [
     // that only knows about one image (a preload, an og:image) still works.
     shot: '/img/apps/kwakwa.webp',
     shots: ['/img/apps/kwakwa.webp', '/img/apps/kwakwa-2.webp', '/img/apps/kwakwa-3.webp'],
+    // `mocks` OVERRIDES the stage's own iPhone frame: these are the rendered
+    // KwaKwa mockups with the pond background cut away (macOS Vision subject
+    // mask — see scratchpad/cutout.swift), so each image already carries its
+    // own device at its own tilt. The stage drops the frame + glass entirely
+    // for an app that has them and cycles these instead, on the same 2s beat.
+    // All three are padded onto one 460 × 790 canvas so the cycle never nudges
+    // the device; each phone keeps the position it was composed at.
+    mocks: [
+      '/img/apps/kwakwa-mock-1.webp',
+      '/img/apps/kwakwa-mock-2.webp',
+      '/img/apps/kwakwa-mock-3.webp',
+    ],
     logo: '/img/apps/kwakwa-icon.webp',
     icon: 'duck',
     grad: ['#ffc740', '#ff9f5a'],

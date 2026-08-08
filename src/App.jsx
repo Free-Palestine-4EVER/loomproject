@@ -6,7 +6,9 @@ import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { Crew } from './components/Crew.jsx'
-import { Moon } from './components/Moon.jsx'
+// Moon.jsx (the orthographic globe) is the previous Ascent — kept in the tree
+// for reference, but the section is now the loom climb in AscentLoom.jsx.
+import { AscentLoom } from './components/AscentLoom.jsx'
 import { Counter, OfferPair, Bolt } from './components/Banners.jsx'
 import { MobileChrome } from './components/MobileChrome.jsx'
 import { Flyer } from './components/Flyer.jsx'
@@ -227,7 +229,7 @@ export default function App() {
         <ToolsLab />
         <Crew />
         <Solutions />
-        <Moon />
+        <AscentLoom />
         <Process />
         <Stats />
         <Bolt />
