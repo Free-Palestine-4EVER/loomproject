@@ -500,12 +500,93 @@ def _scatter(rng, pitch, jitter, fn, scale_range, rot=True):
 
 def _mix(rng, specs):
     """specs = [(fn, pitch, jitter, scale_range)] — several layers overlaid."""
+    if PACKED:
+        return _pack(rng, specs)
     inks, lines, centres = [], [], []
     for fn, pitch, jitter, sr in specs:
         i, l, c = _scatter(rng, pitch, jitter, fn, sr)
         inks += i
         lines += l
         centres += c
+    return inks, lines, centres
+
+
+# ————————————————————————————————————————————————————————— packed placement
+# A jittered grid lets neighbours overlap: the grid guarantees an average
+# spacing, not a minimum one, and the motifs vary in size. PACKED=1 replaces it
+# with dart-throwing against a minimum-distance test, so no two blooms ever
+# touch — every flower is whole and separate, and you read them one at a time.
+#
+# The test is between BOUNDING CIRCLES, which is conservative for a leaf or a
+# sprig (long and thin, so its circle is much bigger than its ink). That is the
+# right way round to be wrong: it spaces those a little further apart than it
+# strictly must, and never lets anything collide.
+#
+# The packing is done across ALL layers of a cut at once, not layer by layer —
+# packing each layer separately would keep leaves off leaves but happily drop a
+# leaf straight through a sunflower.
+
+PACKED = bool(os.environ.get('PACKED'))
+PACK_GAP = 16.0        # clear units left between any two motifs
+PACK_TRIES = 90000     # darts thrown; dart-throwing thins out as the field fills
+
+
+def _centred(path):
+    """The path moved so its bounding box is centred on the origin, plus the
+    radius of the circle that contains it. Rotation about the origin then keeps
+    that circle exactly where it is, which is what makes the distance test valid
+    for any rotation."""
+    x0, y0, x1, y1 = path.bounds
+    cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+    r = 0.5 * math.hypot(x1 - x0, y1 - y0)
+    return xform(path, dx=-cx, dy=-cy), r, (cx, cy)
+
+
+def _pack(rng, specs):
+    lib = []
+    for fn, pitch, jitter, sr in specs:
+        # a tighter pitch meant "more of these", and it still does — it becomes
+        # this motif's share of the darts rather than its grid spacing
+        weight = 1.0 / (pitch * pitch)
+        for _ in range(VARIANTS):
+            ink, line = fn(rng, rng.uniform(*sr))
+            cline, r, (cx, cy) = _centred(line)
+            cink = xform(ink, dx=-cx, dy=-cy)
+            lib.append((cink, cline, r, weight))
+    total = sum(v[3] for v in lib)
+
+    maxr = max(v[2] for v in lib) + PACK_GAP
+    cell = maxr * 2.0
+    grid = {}
+    inks, lines, centres = [], [], []
+
+    def clashes(x, y, r):
+        gx, gy = int(x // cell), int(y // cell)
+        for ix in (gx - 1, gx, gx + 1):
+            for iy in (gy - 1, gy, gy + 1):
+                for (px, py, pr) in grid.get((ix, iy), ()):
+                    if (x - px) ** 2 + (y - py) ** 2 < (r + pr + PACK_GAP) ** 2:
+                        return True
+        return False
+
+    for _ in range(PACK_TRIES):
+        t = rng.uniform(0, total)
+        acc = 0.0
+        for cink, cline, r, w in lib:
+            acc += w
+            if acc >= t:
+                break
+        s = rng.uniform(0.86, 1.16)
+        rr = r * s
+        x = rng.uniform(FIELD_X0, FIELD_X0 + FIELD_W)
+        y = rng.uniform(FIELD_Y0, FIELD_Y0 + FIELD_H)
+        if clashes(x, y, rr):
+            continue
+        grid.setdefault((int(x // cell), int(y // cell)), []).append((x, y, rr))
+        a = rng.uniform(0, 360)
+        inks.append(xform(cink, sx=s, sy=s, rot=a, dx=x, dy=y))
+        lines.append(xform(cline, sx=s, sy=s, rot=a, dx=x, dy=y))
+        centres.append((x, y))
     return inks, lines, centres
 
 
@@ -622,7 +703,7 @@ def _cache_path(fam):
     here = os.path.dirname(os.path.abspath(__file__))
     d = os.path.join(here, 'out', 'fields')
     os.makedirs(d, exist_ok=True)
-    return os.path.join(d, f'{fam}.pickle')
+    return os.path.join(d, f'{fam}{"-packed" if PACKED else ""}.pickle')
 
 
 # ————————————————————————————————————————————————————————— tiling
