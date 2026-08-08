@@ -157,8 +157,11 @@
 .counter .cnt-band {
   display: block;
   position: absolute;
-  inset: 0;
-  border-radius: 0;               /* the tile clips; never round twice */
+  /* insets to the tile's 9px die margin. The tile no longer clips —
+     it has overflow:visible so the peel can lift — so the band has to
+     round its own corners now. 28px outer minus 9px margin = 19px. */
+  inset: 9px;
+  border-radius: 19px;
 }
 /* Reads the pill off the photo on a light still without tinting the set:
    a bottom-anchored scrim only, no blur, no filter on a parent with
@@ -166,11 +169,14 @@
 .counter .cnt-tile::after {
   content: '';
   position: absolute;
-  inset: auto 0 0 0;
-  height: 46%;
+  /* inside the die margin, and rounded to match the band — a scrim that
+     ran to the tile's edge would paint over the white cut line */
+  inset: auto 9px 9px 9px;
+  height: 44%;
+  border-radius: 0 0 19px 19px;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(24, 12, 34, 0.52), rgba(24, 12, 34, 0) 78%);
+  background: linear-gradient(to top, rgba(24, 12, 34, 0.62), rgba(24, 12, 34, 0) 78%);
 }
 /* Fixed size, anchored top-left. The instant the medallion out-weighs the word
    the tile reads as clip-art. `--wool-icon` is a custom property, so it beats
@@ -224,42 +230,24 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  /* FULL-BLEED, and that is the whole idea. The tape runs off both edges
-     of the tile and is cut square by it, the way a real woven label tape
-     is cut. Inset it and round it and the same photograph stops reading
-     as cloth and starts reading as a UI chip with a texture on it — the
-     material only convinces when the frame is what ends it. */
-  left: 0;
-  right: 0;
-  bottom: 16px;
-  min-height: 58px;
-  /* right padding clears the button, which overhangs the band's end */
-  padding: 12px 56px 12px 20px;
+  /* On a sticker the label is PRINTED ON the artwork, not a chip laid
+     over it. So: no plate, no fill, no shadow of its own — just type on
+     the scrim that ::after already lays down. Anything with its own
+     background here immediately reads as UI sitting on top of a photo,
+     which is the exact thing the die-cut is buying us out of. */
+  left: 24px;
+  /* clears the peel in the bottom-right corner */
+  right: 74px;
+  bottom: 22px;
+  min-height: 0;
+  padding: 0;
   border-radius: 0;
-  background-color: var(--yarn-cream);
-  /* Tiled at the weave's OWN gauge, not stretched to fit. `cover` on a
-     ~400px strip blows the tape up to roughly 4x life size and the
-     threads stop reading as threads. tape-tile.webp is cross-faded at
-     the wrap in scripts/make-strip-assets.mjs, so repeat-x has no seam. */
-  background-image: url('/img/wool/tex/tape-tile.webp');
-  background-size: auto 100%;
-  background-repeat: repeat-x;
-  color: #33243d;                 /* the ONE dark ink wool.css:253 puts on cream.
-                                     Never a brand colour: cream felt is speckled
-                                     and brand hues drop under 4.5:1 in the flecks. */
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -2px 6px rgba(51, 36, 61, 0.16),
-    0 10px 22px -12px rgba(0, 0, 0, 0.7);
-  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+  background: none;
+  box-shadow: none;
+  color: #fff;
+  transition: transform 0.5s var(--ease);
 }
-.counter .cnt-tile:hover .cnt-strip {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -2px 6px rgba(51, 36, 61, 0.16),
-    0 16px 30px -12px rgba(0, 0, 0, 0.78);
-}
+.counter .cnt-tile:hover .cnt-strip { transform: translateY(-2px); }
 .counter .cnt-label {
   font-family: var(--display);
   font-weight: 580;
@@ -271,23 +259,28 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* the type sits directly on the print now, so it carries its own
+     legibility instead of borrowing a plate's */
+  font-weight: 620;
+  font-size: 1.16rem;
+  text-shadow: 0 2px 10px rgba(13, 7, 22, 0.85);
 }
-/* The CTA is a real crocheted yarn button, photographed, on alpha. It is
-   the pill's one saturated element and the thing that makes the strip read
-   as pressable rather than as a caption.
+/* The CTA is a real crocheted yarn button, photographed, on alpha —
+   the one saturated element on the sticker and the thing that says
+   pressable rather than decorative.
 
-   It deliberately OVERHANGS the tape's bottom-right corner instead of
-   sitting inside it. A button centred in the pill reads as an icon; a
-   button hanging off the edge reads as sewn ON to the tape, which is the
-   whole point of photographing one. .cnt-strip's right padding is what
-   keeps the label clear of it. */
+   It sits at the TOP-right, not the bottom. The bottom-right corner is
+   the peel's, and two objects competing for one corner is why the first
+   pass had the button half-buried under the curl. */
 .counter .cnt-arrow {
   flex: none;
   position: absolute;
-  right: -10px;
-  bottom: -12px;
-  width: 58px;
-  height: 58px;
+  right: 20px;
+  top: 20px;
+  bottom: auto;
+  width: 54px;
+  height: 54px;
+  z-index: 4;
   border: 0;
   border-radius: 50%;
   background: url('/img/wool/buttons/wool-button-256.webp') center / contain no-repeat;
@@ -330,8 +323,14 @@
   /* 2-up: squarer box so the still is not a letterbox and the pill keeps
      its air. The band is inset:0 now — the TILE owns the ratio. */
   .counter .cnt-tile { aspect-ratio: 1 / 1; }
-  .counter .cnt-strip { min-height: 50px; padding: 8px 40px 8px 15px; left: 11px; right: 11px; bottom: 11px; }
-  .counter .cnt-arrow { width: 50px; height: 50px; right: -8px; bottom: -10px; }
+  /* the die margin shrinks with the tile, so everything anchored to it
+     has to come in with it — otherwise the label drifts off the print */
+  .counter .cnt-tile { padding: 7px; border-radius: 22px; }
+  .counter .cnt-band { inset: 7px; border-radius: 15px; }
+  .counter .cnt-tile::after { inset: auto 7px 7px 7px; border-radius: 0 0 15px 15px; }
+  .counter .cnt-strip { left: 17px; right: 58px; bottom: 16px; }
+  .counter .cnt-arrow { width: 44px; height: 44px; right: 15px; top: 15px; }
+  .counter .cnt-peel { width: 58px; height: 58px; border-radius: 0 0 22px 0; }
 }
 @media (max-width: 400px) {
   .counter .cnt-medal { --wool-icon: 44px; left: 11px; top: 12px; }
@@ -925,6 +924,8 @@ main > section.offer::before {
      ::after), so freezing it means exactly that. */
   .counter .cnt-tile:hover .cnt-arrow { transform: none; }
   .counter .cnt-tile:hover .cnt-strip { transform: none; }
+  .counter .cnt-peel,
+  .counter .cnt-tile:hover .cnt-peel { transform: none; }
 
   /* the tree holds its pose: the float, the halo breath and the petals all
      stop. The petals are not rendered at all under reduced motion (Banners.jsx

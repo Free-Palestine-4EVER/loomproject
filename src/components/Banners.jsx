@@ -99,10 +99,17 @@ export function Counter() {
                     />
                   )}
                 </span>
+                {/* The button and the peel are siblings of the strip, not
+                    children of it. Both are positioned against the TILE —
+                    the button to the top-right corner, the peel to the
+                    bottom-right — and the strip is now a bare label with no
+                    box of its own, so it cannot serve as their containing
+                    block. */}
                 <span className="cnt-strip">
                   <span className="cnt-label">{need}</span>
-                  <i className="cnt-arrow" aria-hidden="true" />
                 </span>
+                <i className="cnt-arrow" aria-hidden="true" />
+                <i className="cnt-peel" aria-hidden="true" />
               </button>
             </Reveal>
           )
