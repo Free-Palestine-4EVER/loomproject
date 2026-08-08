@@ -21,6 +21,7 @@
 // Same public API as ButterflyField/CuratedField: setScroll / setMouse /
 // start / stop / resize / dispose.
 import * as THREE from 'three'
+import { releaseRenderer } from './glContext.js'
 
 const PLANET_MAP = '/img/hero/planet.webp'
 
@@ -53,7 +54,10 @@ export class PlanetField {
     // This canvas renders only the LOOM planet, its motes and its haze, on
     // top of that photo; the nebula shader is gone entirely rather than kept
     // and hidden, since nothing was going to sample it any more.
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !narrow, alpha: true, powerPreference: 'high-performance' })
+    // stencil:false — nothing in this scene masks or clips, and the stencil
+    // attachment is a byte per pixel of the default framebuffer that is
+    // allocated for the whole life of the context whether it is read or not.
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !narrow, alpha: true, stencil: false, powerPreference: 'high-performance' })
     this.renderer.setClearColor(0x000000, 0)
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, narrow ? 1.4 : 1.75))
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -274,6 +278,8 @@ export class PlanetField {
     if (this.raf) cancelAnimationFrame(this.raf)
     window.removeEventListener('resize', this.resize)
     for (const d of this.disposables) d.dispose?.()
-    this.renderer.dispose()
+    // dispose() alone leaves the GL context alive and attached to the canvas —
+    // see glContext.js for the measurement.
+    releaseRenderer(this.renderer)
   }
 }

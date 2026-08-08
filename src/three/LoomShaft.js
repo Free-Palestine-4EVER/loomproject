@@ -10,6 +10,8 @@
 // already on the page for the companion butterfly, so this adds geometry, not a
 // second engine.
 
+import { releaseRenderer } from './glContext.js'
+
 const YARNS = [0xd6247e, 0x9b55c9, 0x5cc0e8, 0xe0a82f]
 
 // sky/fog colour per altitude band — matches the CSS gradient behind the canvas
@@ -42,7 +44,9 @@ export class LoomShaft {
     this.running = false
     this.t = 0
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'low-power' })
+    // stencil:false — line-work and fog, nothing masked or clipped, so the
+    // stencil attachment is a byte per pixel of framebuffer bought for nothing.
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, stencil: false, powerPreference: 'low-power' })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))
     this.renderer = renderer
 
@@ -285,9 +289,14 @@ export class LoomShaft {
       if (o.geometry) o.geometry.dispose()
       if (o.material) {
         const mats = Array.isArray(o.material) ? o.material : [o.material]
-        mats.forEach((mm) => mm.dispose())
+        // A material's dispose() does not touch its maps, and every ring label
+        // is a canvas-backed CanvasTexture — without the second call the six
+        // 1024×256 sprite textures stayed resident after the section unmounted.
+        mats.forEach((mm) => { mm.map?.dispose?.(); mm.dispose() })
       }
     })
-    this.renderer.dispose()
+    // dispose() alone leaves the GL context alive and attached to the canvas —
+    // see glContext.js for the measurement.
+    releaseRenderer(this.renderer)
   }
 }

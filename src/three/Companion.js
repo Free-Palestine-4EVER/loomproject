@@ -114,6 +114,7 @@
 //   aoaGain, aoaMax, aoaDampRate, cruiseAoA
 import * as THREE from 'three'
 import { loadButterfly, prepFlyer, waypointSampler } from './butterflyAsset.js'
+import { releaseRenderer } from './glContext.js'
 import {
   resolveInitialProfileId, isExplicitProfileSelection, setStoredProfileId,
   loadProfile, bindProfileHotkeys, applyRigOverrides, formatHudText, mulberry32,
@@ -207,7 +208,20 @@ export class Companion {
     this.burst = 0
 
     this.renderer = new THREE.WebGLRenderer({
-      canvas, alpha: true, antialias: !this.isMobile, powerPreference: 'high-performance',
+      canvas,
+      alpha: true,
+      antialias: !this.isMobile,
+      // No stencil buffer is ever used — nothing here masks, clips or outlines.
+      // Asking for one costs a full extra byte per pixel of the default
+      // framebuffer for the whole life of the context (and on iOS the
+      // depth+stencil attachment is what actually gets allocated), which on a
+      // full-viewport layer is the single biggest GPU allocation this file makes.
+      stencil: false,
+      // 'high-performance' is a hint to pick the discrete/high-power GL config.
+      // On a phone there is only one GPU, so the hint buys nothing and only
+      // signals "give me the expensive context" to a driver already under a
+      // memory ceiling. Desktop keeps it.
+      powerPreference: this.isMobile ? 'default' : 'high-performance',
     })
     // 1.0 on phones: this layer is the only WebGL context there now, and on a
     // 3x display even 1.25 quadruples the framebuffer for a decorative flyer.
@@ -264,6 +278,31 @@ export class Companion {
     this.loop = this.loop.bind(this)
     window.addEventListener('resize', this.resize)
     this.resize()
+
+    // ── surviving a context eviction ──
+    // iOS Safari does not fail loudly when it runs out of GPU room: it drops the
+    // OLDEST live WebGL context on the page and carries on. Without these two
+    // handlers that shows up as a butterfly that silently stops existing while a
+    // requestAnimationFrame loop keeps calling render() into a dead context every
+    // frame for the rest of the visit — CPU spent on nothing, forever.
+    //
+    // preventDefault() on the loss event is what makes the browser willing to
+    // hand the context back at all; three re-uploads every geometry, texture and
+    // program itself on the restore, so all this has to do is stop the loop and
+    // start it again.
+    this._onContextLost = (e) => {
+      e.preventDefault()
+      this._contextLost = true
+      this.stop()
+      cancelAnimationFrame(this.raf)
+    }
+    this._onContextRestored = () => {
+      this._contextLost = false
+      if (!this.disposed && this.flyer && !this.reduced) this.start()
+    }
+    this._contextLost = false
+    canvas.addEventListener('webglcontextlost', this._onContextLost, false)
+    canvas.addEventListener('webglcontextrestored', this._onContextRestored, false)
 
     // ── flight profile: selection, switching, HUD ──
     this.profile = null
@@ -441,7 +480,7 @@ export class Companion {
     el.style.display = 'block'
   }
 
-  start() { if (!this.running && !this.disposed) { this.running = true; this.clock.start(); this.loop() } }
+  start() { if (!this.running && !this.disposed && !this._contextLost) { this.running = true; this.clock.start(); this.loop() } }
   stop() { this.running = false }
 
   renderOnce() {
@@ -672,6 +711,8 @@ export class Companion {
       for (const m of this.flyer.disposables) m.dispose?.()
     }
     this.scene.traverse((o) => { if (o.geometry) o.geometry.dispose() })
-    this.renderer.dispose()
+    this.canvas.removeEventListener('webglcontextlost', this._onContextLost, false)
+    this.canvas.removeEventListener('webglcontextrestored', this._onContextRestored, false)
+    releaseRenderer(this.renderer)
   }
 }

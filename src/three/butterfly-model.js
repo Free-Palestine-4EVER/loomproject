@@ -131,7 +131,10 @@ function toTex(THREE, canvas, srgb) {
   const t = new THREE.CanvasTexture(canvas);
   t.wrapT = THREE.RepeatWrapping;
   if (srgb) t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 8;
+  // Anisotropic filtering is 8 texture taps per fragment. It earns that on a
+  // desktop wing seen edge-on across a big canvas; on a phone the wing is ~60px
+  // and every one of those taps is fill-rate on the one GPU the whole tab has.
+  t.anisotropy = (typeof window !== 'undefined' && window.innerWidth < 768) ? 2 : 8;
   return t;
 }
 
@@ -256,9 +259,36 @@ function shade(hex, factor) {
   return `rgb(${r},${g},${b})`;
 }
 
+// Texture budget for the SHIPPING variant (woven — see butterflyAsset.js).
+//
+// Every wing map here is painted into a canvas and uploaded as a CanvasTexture,
+// so its resolution is paid twice over: once as the HTMLCanvasElement's backing
+// store, which three keeps alive as `texture.image` for the life of the material
+// so it can re-upload after a context loss, and once as the GPU texture plus its
+// mip chain. At 768² that is 2.36 MB of canvas + ~3.1 MB of GPU memory, for each
+// of the two maps (colour and alpha) — ~11 MB in total.
+//
+// On a phone the companion butterfly is the ONLY WebGL layer on the page (the
+// hero planet and the loom shaft are both skipped on coarse pointers) and the
+// tab is already close to iOS Safari's per-tab memory ceiling. The creature is
+// drawn at 0.31 of a 390px viewport — about 120px of wingspan, so roughly 60px
+// per wing — and a 384² map is still more than three texels per rendered pixel.
+// Half resolution is invisible there and gives ~8 MB back.
+//
+// Everything below is written in fractions of W/H already, so the map is
+// resolution-independent by construction; `GRAIN` is the one place with absolute
+// pixel sizes (the fibre strokes) and it is scaled by the same factor so the
+// painting stays proportionally identical rather than merely smaller.
+// Read at BUILD time, not module-load time: butterfly-model.js is imported once
+// but the butterfly is constructed after the viewport is known, and a lab page
+// may build several at different sizes.
+const wovenTexSize = () =>
+  (typeof window !== "undefined" && window.innerWidth < 768) ? 384 : 768;
+
 function wovenMaps(THREE, cfg) {
-  const W = 768;
-  const H = 768;
+  const W = wovenTexSize();
+  const H = W;
+  const GRAIN = W / 768;
   const [c, x] = newCanvas(W, H);
   const [a, ax] = newCanvas(W, H);
   const rnd = lcg(5231);
@@ -333,21 +363,21 @@ function wovenMaps(THREE, cfg) {
   // whichever strand they land on, so a "thread" reads as spun fibre —
   // individual filaments catching the light — rather than a flat ribbon.
   // One-time canvas paint at butterfly creation, not a per-frame cost.
-  x.lineWidth = 1.1;
+  x.lineWidth = 1.1 * GRAIN;
   for (let i = 0; i < 1100; i++) {
     const onSpoke = rnd() > 0.45;
     const light = rnd() > 0.5;
     x.strokeStyle = light ? "rgba(255,250,232,0.15)" : "rgba(96,64,22,0.13)";
-    const len = 9 + rnd() * 16;
+    const len = (9 + rnd() * 16) * GRAIN;
     x.beginPath();
     if (onSpoke) {
       const xx = rnd() * W, yy = rnd() * H;
       x.moveTo(xx, yy);
-      x.lineTo(xx + len, yy + (rnd() - 0.5) * 3);
+      x.lineTo(xx + len, yy + (rnd() - 0.5) * 3 * GRAIN);
     } else {
       const xx = rnd() * W, yy = rnd() * H;
       x.moveTo(xx, yy);
-      x.lineTo(xx + (rnd() - 0.5) * 3, yy + len);
+      x.lineTo(xx + (rnd() - 0.5) * 3 * GRAIN, yy + len);
     }
     x.stroke();
   }
