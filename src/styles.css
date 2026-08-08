@@ -294,7 +294,7 @@ html.cursor-hot .cursor-ring {
      vanishing rather than the row overflowing visibly. Fixed size, always. */
   flex: none;
 }
-/* 10 items now (Software + blip.net joined the original 8) — the old fixed
+/* 9 items now (Software joined the original 8) — the old fixed
    clamp fit 8 comfortably up to 1440 but let WORK collide with the wordmark
    and 3D LAB wrap to two lines in the 1150-1360 laptop range once two more
    labels were added. white-space stops the wrap outright; the 1360px query
@@ -1486,7 +1486,7 @@ html.cursor-hot .cursor-ring {
   }
   .lab-grid { grid-template-columns: repeat(2, 1fr); }
 }
-/* was 820px — 10 nav items (Software + blip.net joined the original 8) still
+/* was 820px — 9 nav items (Software joined the original 8) still
    overflowed the header between ~830-960px even with the tightened gap/font
    above, so the burger now takes over a little earlier, before that pinch
    range rather than inside it. */

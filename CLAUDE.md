@@ -28,7 +28,7 @@ unreachable from Jordan — do not propose it.**
 ## Shape of the app
 
 `src/App.jsx` is the whole router: one pathname check against a small `PAGES`
-table (`/type`, `/blip`), no router dependency. The long page mounts ~18
+table (`/type`), no router dependency. The long page mounts ~18
 sections in a fixed order; a sub-page route renders that page instead.
 
 | What | Where |

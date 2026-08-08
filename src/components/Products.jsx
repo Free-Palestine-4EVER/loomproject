@@ -376,10 +376,76 @@ function ShotCycle({ app, shots, on, reduced, hero = true, crop }) {
   )
 }
 
+/* The stage pins for `APPS.length` slices of scroll, so scrolling THROUGH the
+   section walks the rail on its own — the same contract the deck below already
+   runs on (scroll POSITION is the only input; nothing is hijacked, no wheel
+   listener, the scrollbar and a deep link drive it identically). The rail's
+   tabs still work: a click scrolls to that app's slice rather than setting
+   state, otherwise the next scroll event would snap the copy straight back.
+
+   The pin is off on phones and on short viewports (`STAGE_PIN`) — a card
+   taller than the viewport cannot sit still inside a sticky 100vh box — and
+   off under reduced motion. In every one of those cases the section falls back
+   to exactly what it was before: a normal-height card driven only by clicks. */
+const STAGE_PIN = '(min-width: 761px) and (min-height: 620px)'
+
 export function AppsShowcase() {
   const reduced = useReducedMotion()
   const [i, setI] = useState(0)
-  const { refs, onKeyDown } = useTabList(APPS.length, i, setI)
+  const wrapRef = useRef(null)
+  const N = APPS.length
+
+  /* Scroll to an app's slice of the pin. Lenis owns window.scrollTo on this
+     site, so it is asked directly when it exists. Falls back to setting state
+     when the section isn't pinned (mobile / reduced motion). */
+  const goTo = useCallback((n) => {
+    const wrap = wrapRef.current
+    const total = wrap ? wrap.offsetHeight - window.innerHeight : 0
+    // The media query is checked here as well as in the driver, and it has to
+    // be: an unpinned track can still be taller than a short viewport, and
+    // scrolling to a slice of a timeline nothing is reading would leave the
+    // rail stuck on whatever it was showing.
+    const pinned = !reduced && window.matchMedia(STAGE_PIN).matches && total > 0
+    if (!pinned) { setI(n); return }
+    const top = wrap.getBoundingClientRect().top + window.scrollY
+    const y = top + (n / (N - 1)) * total
+    if (window.__lenis) window.__lenis.scrollTo(y)
+    else window.scrollTo({ top: y, behavior: 'smooth' })
+  }, [N, reduced])
+
+  const { refs, onKeyDown } = useTabList(N, i, goTo)
+
+  // ——— the scroll driver ———
+  useEffect(() => {
+    if (reduced) return undefined
+    const mq = window.matchMedia(STAGE_PIN)
+    let raf = 0
+    const paint = () => {
+      raf = 0
+      const wrap = wrapRef.current
+      if (!wrap || !mq.matches) return
+      const total = wrap.offsetHeight - window.innerHeight
+      if (total <= 0) return
+      const y = Math.min(Math.max(-wrap.getBoundingClientRect().top, 0), total)
+      // rounded, not eased: the stage has no intermediate state to draw — a
+      // tab is either the selected one or it isn't, so the only thing scroll
+      // position decides is WHEN the crossfade fires
+      const near = Math.round((y / total) * (N - 1))
+      setI((v) => (v === near ? v : near))
+    }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(paint) }
+    paint()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    mq.addEventListener('change', onScroll)
+    return () => {
+      if (raf) cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      mq.removeEventListener('change', onScroll)
+    }
+  }, [reduced, N])
+
   const app = APPS[i]
   const dl = DOWNLOADS[app.name] || {}
   // memoised so each slot's array keeps its identity between renders — the
@@ -397,7 +463,8 @@ export function AppsShowcase() {
                 from the simulator, from a LiDAR device, from a real iPhone, and
                 from the running web app. The claim names them rather than
                 implying everything came out of the simulator. */}
-            Seven products, one stage. Pick an icon — every screen wearing a{' '}
+            Seven products, one stage. <strong>Just scroll</strong> — the stage changes
+            itself, and the rail is there when you want to jump. Every screen wearing a{' '}
             <strong>REAL BUILD</strong> chip was captured from the running app,
             in the simulator, on-device, or in the browser.
           </p>
@@ -411,6 +478,15 @@ export function AppsShowcase() {
         </Reveal>
       </div>
 
+      {/* the tall element. Its height IS the rail's timeline; the sticky child
+          is what the reader actually sees. Both collapse to nothing under the
+          media query in the stylesheet, which is the mobile/reduced fallback. */}
+      <div
+        className={`stg-scroll${reduced ? ' stg-scroll--flat' : ''}`}
+        ref={wrapRef}
+        style={{ '--steps': N - 1 }}
+      >
+      <div className="stg-pin">
       {/* the card carries the selected app's own colour pair, which is all the
           aura and the floor pool below the device are made of — a colour
           transition on two gradients, not a repaint of anything */}
@@ -427,7 +503,7 @@ export function AppsShowcase() {
               aria-selected={n === i}
               aria-controls="stg-panel"
               tabIndex={n === i ? 0 : -1}
-              onClick={() => setI(n)}
+              onClick={() => goTo(n)}
               data-cursor
             >
               {/* the accessible name of the tab — the icon itself is decorative */}
@@ -482,7 +558,13 @@ export function AppsShowcase() {
                 ))}
               </div>
             )}
-            <div className="stg-count"><b>{two(i)}</b> / {two(APPS.length - 1)} — LOOM-built products</div>
+            {/* the same progress rule the deck carries, for the same reason:
+                once scroll drives the switch, the reader needs to see how far
+                through the set they are */}
+            <div className="stg-count">
+              <b>{two(i)}</b> / {two(N - 1)} — LOOM-built products
+              <i aria-hidden="true" style={{ '--w': `${(i / (N - 1)) * 100}%` }} />
+            </div>
           </div>
 
           {/* The imagery column. Three phones for every app that has a capture:
@@ -554,6 +636,8 @@ export function AppsShowcase() {
             </div>
           </div>
         </div>
+      </div>
+      </div>
       </div>
     </section>
   )
@@ -640,37 +724,53 @@ function DeckWindow({ tool, n, onPick, active, refCb }) {
         aria-label={`Show ${tool.name}`}
         data-cursor
       >
+        {/* The laptop, drawn — lid, display, hinge and base are four CSS
+            boxes, not a photograph. A photo cannot be rotated in 3D without
+            its chrome and its screen shearing apart, which is the whole trick
+            this deck runs on; drawn, the whole machine turns as one solid. */}
         <span className="dk-body">
-          {tool.mock ? (
-            <img className="dk-mock" src={tool.mock} alt={`${tool.name} — product mockup`} loading="lazy" decoding="async" />
-          ) : (
-            <>
-              <span className="dk-chrome" aria-hidden="true">
-                <i /><i /><i />
-                <em>{slug(tool.name)}.tool</em>
-              </span>
-              <span className="dk-screen">
-                {tool.shot ? (
-                  <img src={tool.shot} alt={`${tool.name} — real tool screenshot`} loading="lazy" decoding="async" />
-                ) : (
-                  /* SPLAT LAB has no still, and one would be a lie: its output
-                     is a live splat, not a frame. The pane says so, in the
-                     language of the tool. */
-                  <span className="dk-cloud">
-                    <em>
-                      no still on file
-                      <b>output is a live splat — 1.2 M gaussians</b>
-                      <b>captured · trained · streamed</b>
-                    </em>
+          <span className="dk-lid">
+            <span className="dk-display">
+              {/* the camera housing, so the lid reads as a modern laptop
+                  rather than a generic dark rectangle */}
+              <span className="dk-notch" aria-hidden="true" />
+              {tool.mock ? (
+                <img className="dk-mock" src={tool.mock} alt={`${tool.name} — product mockup`} loading="lazy" decoding="async" />
+              ) : (
+                <>
+                  <span className="dk-chrome" aria-hidden="true">
+                    <i /><i /><i />
+                    <em>{slug(tool.name)}.tool</em>
                   </span>
-                )}
-              </span>
-            </>
-          )}
-          {/* the light that sells the tilt: one sheen sweep across the glass,
-              and one flat scrim that deepens with distance from centre */}
-          <span className="dk-sheen" aria-hidden="true" />
-          <span className="dk-scrim" aria-hidden="true" />
+                  <span className="dk-screen">
+                    {tool.shot ? (
+                      <img src={tool.shot} alt={`${tool.name} — real tool screenshot`} loading="lazy" decoding="async" />
+                    ) : (
+                      /* SPLAT LAB has no still, and one would be a lie: its
+                         output is a live splat, not a frame. The pane says so,
+                         in the language of the tool. */
+                      <span className="dk-cloud">
+                        <em>
+                          no still on file
+                          <b>output is a live splat — 1.2 M gaussians</b>
+                          <b>captured · trained · streamed</b>
+                        </em>
+                      </span>
+                    )}
+                  </span>
+                </>
+              )}
+              {/* the light that sells the tilt: one sheen sweep across the
+                  glass, and one flat scrim that deepens with distance from
+                  centre. Both sit INSIDE the display, so the aluminium keeps
+                  its own shading instead of being washed with the glare. */}
+              <span className="dk-sheen" aria-hidden="true" />
+              <span className="dk-scrim" aria-hidden="true" />
+            </span>
+          </span>
+          {/* the deck: a touch wider than the lid, with the thumb scoop cut
+              out of its front edge */}
+          <span className="dk-base" aria-hidden="true"><i /></span>
         </span>
       </button>
     </div>

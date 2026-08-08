@@ -99,6 +99,30 @@
    rail (tabs) | copy (.stg-info) | phones (.stg-panel)
    Identity sits beside the rail; the imagery is the right-hand column.
    ═══════════════════════════════════════════════════════════════ */
+/* ——— the scroll timeline. One viewport to read the stage in, plus 0.62 of one
+   per app to travel through; `--steps` comes from JSX (APPS.length − 1), so
+   adding a product lengthens the timeline on its own. The card itself is
+   unchanged — it is simply held still by a sticky parent while the page
+   scrolls past it, and Products.jsx reads how far in the reader is.
+
+   Below 761px wide or 620px tall the whole mechanism folds flat: the track
+   loses its height, the pin stops sticking, and the section is exactly the
+   ordinary click-driven card it was before. Same for reduced motion. ——— */
+.stg-scroll {
+  height: calc(100vh + var(--steps) * 62vh);
+  position: relative;
+}
+.stg-pin {
+  position: sticky; top: 0;
+  min-height: 100vh;
+  display: grid; align-content: center;
+}
+.stg-scroll--flat,
+.stg-scroll--flat .stg-pin { height: auto; min-height: 0; position: static; }
+@media (max-width: 760px), (max-height: 619px) {
+  .stg-scroll, .stg-pin { height: auto; min-height: 0; position: static; }
+}
+
 .stg {
   --spring: linear(0, .0088 1.1%, .0346 2.3%, .1442 4.9%, .7688 14.2%, .9202 16.7%, 1.0139 19.3%,
     1.0498 21.9%, 1.0546 24.7%, 1.0338 28.2%, .9994 32.6%, .9895 37.3%, .9994 44.2%, 1.0026 55.3%, 1);
@@ -336,11 +360,18 @@
 .stg-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
 .stg-info .dl-row { margin-top: 18px; }
 .stg-count {
+  position: relative;
   font-family: var(--display); font-weight: 620;
   font-size: 0.72rem; letter-spacing: 0.2em; color: var(--ink-dim);
   margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line);
 }
 .stg-count b { color: var(--ink); font-weight: 620; }
+/* how far through the seven the scroll has carried the stage */
+.stg-count i {
+  position: absolute; left: 0; top: -1px; height: 2px; width: var(--w, 0%);
+  background: linear-gradient(90deg, var(--magenta), var(--cyan));
+  transition: width 0.5s var(--ease);
+}
 
 @media (max-width: 1080px) {
   .stg { grid-template-columns: auto minmax(0, 1fr); }
@@ -473,28 +504,74 @@
 }
 .dk-card:focus-visible { outline: 2px solid var(--cyan); outline-offset: 8px; border-radius: 16px; }
 
-/* ——— the window, drawn.
-   A hairline bezel as a conic gradient (bright at the two lit edges, dark at
-   the two shadowed ones), a title bar, then the screen. Three layers, no
-   images. The reflection is `-webkit-box-reflect`, which costs one compositor
-   mirror and no extra DOM — Firefox simply doesn't draw it. ——— */
+/* ——— the laptop, drawn.
+   Four boxes: `.dk-body` is the whole machine (and the only thing that owns
+   the reflection), `.dk-lid` is the milled aluminium shell, `.dk-display` is
+   the glass, `.dk-base` is the deck under the hinge. No images, so the whole
+   thing survives a rotateY that would shear a photograph apart.
+
+   The aluminium is one 158° gradient with a hairline inset highlight on top of
+   it, which is what reads as a machined edge catching the room light — the
+   earlier conic bezel was a hairline frame and only ever looked like a window.
+   The reflection is `-webkit-box-reflect`, which costs one compositor mirror
+   and no extra DOM — Firefox simply doesn't draw it. ——— */
 .dk-body {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 34px 46px rgba(0, 0, 0, 0.85));
+  -webkit-box-reflect: below 12px linear-gradient(transparent 66%, rgba(255, 255, 255, 0.1));
+}
+.dk-lid {
+  position: relative; width: 100%; flex: 1; min-height: 0;
+  border-radius: 15px 15px 5px 5px;
+  padding: 1.9% 1.6% 3.4%;
+  background:
+    linear-gradient(158deg,
+      #9aa0ae 0%, #5d626f 12%, #3b3f4b 34%, #2b2e38 62%, #23252d 82%, #6b7180 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(0, 0, 0, 0.65);
+}
+/* the glass. Overflow lives here rather than on the body, so the base is free
+   to be wider than the lid without being clipped. */
+.dk-display {
   position: relative; display: flex; flex-direction: column;
   width: 100%; height: 100%; overflow: hidden;
-  border-radius: 14px; padding: 1px;
-  background:
-    conic-gradient(from 210deg at 50% 50%,
-      #6a6379 0deg, #37324a 42deg, #8e88a0 96deg, #443f58 150deg,
-      #837d96 200deg, #2f2b40 262deg, #7a7490 314deg, #6a6379 360deg);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.6),
-    0 34px 70px -30px rgba(0, 0, 0, 0.95),
-    0 8px 22px -12px rgba(0, 0, 0, 0.8);
-  -webkit-box-reflect: below 10px linear-gradient(transparent 64%, rgba(255, 255, 255, 0.12));
+  border-radius: 8px; background: #07040e;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.9), inset 0 2px 14px rgba(0, 0, 0, 0.75);
+}
+/* the camera housing — 15% of the lid wide, hanging off the top edge */
+.dk-notch {
+  position: absolute; z-index: 4; left: 50%; top: 0; transform: translateX(-50%);
+  width: 15%; height: 5.4%; min-height: 5px; max-height: 14px;
+  border-radius: 0 0 6px 6px; background: #07040e;
+}
+.dk-notch::after {
+  content: ''; position: absolute; left: 50%; top: 34%; transform: translateX(-50%);
+  width: 3px; height: 3px; border-radius: 50%;
+  background: #1d2733; box-shadow: 0 0 2px rgba(120, 200, 255, 0.5);
+}
+/* the deck under the hinge: wider than the lid, tapering to a lit front edge,
+   with the thumb scoop cut into it */
+.dk-base {
+  position: relative; flex: none;
+  width: 106%; height: 2.6%; min-height: 5px;
+  border-radius: 0 0 9px 9px;
+  background: linear-gradient(180deg, #191b21 0%, #4d525e 24%, #babfca 62%, #6f7480 100%);
+  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.9), inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+}
+.dk-base i {
+  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 14%; height: 62%;
+  border-radius: 0 0 5px 5px;
+  background: linear-gradient(180deg, #2b2e36, #14161b);
 }
 .dk-chrome {
   display: flex; align-items: center; gap: 6px; flex: none;
-  padding: 9px 12px; border-radius: 13px 13px 0 0;
+  padding: 9px 12px;
   background: linear-gradient(180deg, #150d24, #0f0819);
   border-bottom: 1px solid var(--line);
 }
@@ -507,13 +584,13 @@
 }
 .dk-screen {
   position: relative; display: block; flex: 1; min-height: 0; overflow: hidden;
-  border-radius: 0 0 13px 13px; background: #0b0713;
+  background: #0b0713;
 }
 .dk-screen img {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; object-position: 50% 0;
 }
-.dk-mock { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 13px; }
+.dk-mock { display: block; width: 100%; height: 100%; object-fit: cover; }
 /* SPLAT LAB has no still, and one would be a lie: its output is a live splat,
    not a frame. The pane says so, in the language of the tool. */
 .dk-cloud {
@@ -538,14 +615,14 @@
 /* the light. `dk-sheen` is a fixed diagonal glare on the glass; `dk-scrim`
    is the distance darkening the driver writes as `--dim`. */
 .dk-sheen {
-  position: absolute; inset: 0; border-radius: 14px; pointer-events: none;
+  position: absolute; inset: 0; border-radius: 8px; pointer-events: none;
   background: linear-gradient(122deg,
     rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 16%,
     transparent 34%, transparent 70%, rgba(255, 255, 255, 0.07) 100%);
   mix-blend-mode: screen;
 }
 .dk-scrim {
-  position: absolute; inset: 0; border-radius: 14px; pointer-events: none;
+  position: absolute; inset: 0; border-radius: 8px; pointer-events: none;
   background: #05030a; opacity: var(--dim, 0);
 }
 

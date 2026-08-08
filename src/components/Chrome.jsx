@@ -70,9 +70,8 @@ const LINKS = [
   { href: '#apps', label: 'Apps' },
   { href: '#lab', label: '3D Lab' },
   { href: '#own-apps', label: 'Software' },
-  /* Paths, not hashes — go() below lets them fall through to the App-level
+  /* A path, not a hash — go() below lets it fall through to the App-level
      route handler, which pushStates and swaps in the dedicated page. */
-  { href: '/blip', label: 'blip.net' },
   { href: '/type', label: 'Typeface' },
   { href: '#contact', label: 'Contact' },
 ]

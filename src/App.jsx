@@ -20,15 +20,13 @@ import { mountFx } from './lib/fx.js'
 import { mountViewportBudget } from './lib/viewportBudget.js'
 import { Typeface } from './components/Typeface.jsx'
 import { TypeShowcase } from './components/TypeShowcase.jsx'
-import { Blip } from './components/Blip.jsx'
 
 // firebase.json rewrites ** -> /index.html, so every path already boots this
 // SPA. A real URL therefore costs one pathname check, not a router dependency
-// or a second Vite entry: /type renders the typeface specimen, /blip renders
-// the blip.net product page, everything else renders the long page. Trailing
-// slash tolerated (cleanUrls is on). PAGES is also the allow-list for the
-// in-page link interceptor below.
-const PAGES = ['/type', '/blip']
+// or a second Vite entry: /type renders the typeface specimen, everything else
+// renders the long page. Trailing slash tolerated (cleanUrls is on). PAGES is
+// also the allow-list for the in-page link interceptor below.
+const PAGES = ['/type']
 
 const currentRoute = () => {
   if (typeof window === 'undefined') return '/'
@@ -206,11 +204,6 @@ export default function App() {
              studio's own display face. Contact stays off it on purpose: the
              page's job is the download, not a lead. */
           <Typeface />
-        ) : route === '/blip' ? (
-          /* /blip — the dedicated page for blip.net, LOOM's flagship
-             product. Same reasoning as /type: Contact stays off it, the
-             page's own CTA opens the wizard directly instead. */
-          <Blip />
         ) : (
         <>
         <Hero />
