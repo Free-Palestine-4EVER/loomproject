@@ -7,9 +7,11 @@ import { ContactWizard } from './ContactWizard.jsx'
 import { LoomHead } from './LoomHead.jsx'
 import { MachineChat, useMachineLang } from './MachineChat.jsx'
 import { useWizard } from '../lib/wizard.jsx'
-import { ProcessGlyph, ThreadDivider, StatSpark } from './Rich.jsx'
+import { ProcessGlyph, ThreadDivider } from './Rich.jsx'
 import { WoolButton, WoolIcon } from './Wool.jsx'
 import './sections-stage.css'
+import './stats.css'
+import './studios.css'
 
 export function Hero() {
   const { open: openWizard } = useWizard()
@@ -530,6 +532,63 @@ export function Process() {
   )
 }
 
+/** One glyph per fact, not decoration: a weave for brands, a globe for reach,
+ *  a tool grid for the lab, and the two-pin thread that echoes the Studios
+ *  section for the studio count — so a reader who only skims icons still gets
+ *  the shape of each claim before reading the number. Line-art in `currentColor`
+ *  so the four-way accent rotation below (magenta/cyan/violet/gold, the same
+ *  four the rest of the site cycles through) recolours icon, index and rule
+ *  together from one CSS variable instead of four separate props. */
+function StatIcon({ i }) {
+  const glyphs = [
+    // brands woven — three threads crossing at different depths
+    <svg key="0" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path d="M4 9 L28 23" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M4 23 L28 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+      <path d="M4 16 L28 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.35" />
+    </svg>,
+    // countries shipped to — globe + orbit
+    <svg key="1" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="1.6" />
+      <ellipse cx="16" cy="16" rx="10" ry="4.2" stroke="currentColor" strokeWidth="1.2" opacity="0.55" />
+      <path d="M16 6 V26 M6.4 16 H25.6" stroke="currentColor" strokeWidth="1" opacity="0.4" />
+    </svg>,
+    // apps & tools in the lab — a small grid, one cell lit
+    <svg key="2" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      {[[6, 6], [18, 6], [6, 18], [18, 18]].map(([x, y], gi) => (
+        <rect key={gi} x={x} y={y} width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.6" opacity={gi === 3 ? 1 : 0.5} />
+      ))}
+    </svg>,
+    // studios — the same two-pin-and-thread motif as the Studios arc below
+    <svg key="3" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path d="M9.5 21.5 L22.5 10.5" stroke="currentColor" strokeWidth="1.2" strokeDasharray="1 4" opacity="0.55" />
+      <circle cx="9.5" cy="21.5" r="4" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="22.5" cy="10.5" r="4" stroke="currentColor" strokeWidth="1.6" />
+    </svg>,
+  ]
+  return glyphs[i] || glyphs[0]
+}
+
+/** Thin rule under each stat that draws itself in, timed to land just after
+ *  its CountUp finishes counting (CountUp's own duration is 1.6s) — so the
+ *  fill reads as the number's own weight settling onto the line, not an
+ *  unrelated second animation firing on the same card. */
+function StatRule({ reduced, delay }) {
+  return (
+    <span className="stat-rule" aria-hidden="true">
+      <motion.span
+        className="stat-rule-fill"
+        initial={{ scaleX: reduced ? 1 : 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true, margin: '-10% 0px' }}
+        transition={{ duration: reduced ? 0 : 1.3, ease: EASE, delay: reduced ? 0 : delay }}
+      />
+    </span>
+  )
+}
+
+const STAT_ACCENTS = ['var(--magenta)', 'var(--cyan)', 'var(--violet)', 'var(--gold)']
+
 export function Stats() {
   const ref = useRef(null)
   const reduced = useReducedMotion()
@@ -551,10 +610,12 @@ export function Stats() {
       </motion.div>
       <div className="stats-grid">
         {STATS.map((s, i) => (
-          <Reveal key={s.label} delay={i * 0.07} className="stat">
+          <Reveal key={s.label} delay={i * 0.07} className="stat" style={{ '--accent': STAT_ACCENTS[i % 4] }}>
+            <span className="stat-index">{String(i + 1).padStart(2, '0')}</span>
+            <span className="stat-icon"><StatIcon i={i} /></span>
             <div className="stat-value"><CountUp value={s.value} suffix={s.suffix} /></div>
             <div className="stat-label">{s.label}</div>
-            <StatSpark seed={i + 3} />
+            <StatRule reduced={reduced} delay={i * 0.07 + 0.35} />
           </Reveal>
         ))}
       </div>
@@ -562,21 +623,44 @@ export function Stats() {
   )
 }
 
-function useCityTime(tz) {
-  const [time, setTime] = useState('')
+// Studio hours are a visual threshold only (drives the awake pill and the
+// day/night tint of each card) — not a claim printed anywhere, so there is
+// nothing here for the client's "verify every number" rule to catch.
+const STUDIO_OPEN = 9
+const STUDIO_CLOSE = 19
+
+/** Local clock for one city, plus the two derived numbers the card actually
+ *  needs to *show* the time-zone story instead of just stating it: `hour` for
+ *  the awake/asleep pill, `dayFrac` (0–1 through the 24h clock) for the
+ *  daytrack marker's position. One Intl formatter, parsed once per tick
+ *  rather than three separate `format()` calls for the same instant. */
+function useCityClock(tz) {
+  const [clock, setClock] = useState({ display: '--:--', hour: 12, minute: 0, dayFrac: 0.5 })
   useEffect(() => {
-    const fmt = () => setTime(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: tz }).format(new Date()))
-    fmt()
-    const id = setInterval(fmt, 30_000)
+    const fmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz })
+    const tick = () => {
+      const parts = fmt.formatToParts(new Date())
+      const hour = Number(parts.find((p) => p.type === 'hour').value)
+      const minute = Number(parts.find((p) => p.type === 'minute').value)
+      setClock({
+        display: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+        hour, minute,
+        dayFrac: (hour + minute / 60) / 24,
+      })
+    }
+    tick()
+    const id = setInterval(tick, 30_000)
     return () => clearInterval(id)
   }, [tz])
-  return time
+  return clock
 }
 
 /** Measures the Amman and Sarajevo cards and builds a single quadratic-bezier
- *  arc between their top edges — a thread pulled taut over the two studios,
- *  not through them. Apex is the true bezier midpoint, not a guess, so the
- *  "2,100 km" label always sits exactly on the line. */
+ *  thread between them — over their top edges side by side (desktop), or
+ *  through the row gap between them stacked (mobile; see `stacked` below).
+ *  Apex is the true bezier midpoint, not a guess, so the "2,100 km" label
+ *  always sits exactly on the line — in the layouts that show that label at
+ *  all; see the render side for why stacked doesn't. */
 function useTwoCityArc() {
   const stageRef = useRef(null)
   const cardRefs = useRef([])
@@ -591,18 +675,38 @@ function useTwoCityArc() {
     // i.e. through them instead of over them. It has to walk the offsetParent chain,
     // not read offsetTop once: Reveal's wrapper keeps an inline transform, which makes
     // it the offsetParent even though it is position:static.
-    const anchor = (el, xf) => {
+    const anchor = (el, xf, yf = 0) => {
       let x = 0, y = 0
       for (let n = el; n && n !== stage; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop }
-      return { x: x + el.offsetWidth * xf, y }
+      return { x: x + el.offsetWidth * xf, y: y + el.offsetHeight * yf }
     }
     const measure = () => {
       const a = cardRefs.current[0]
       const b = cardRefs.current[1]
       if (!a || !b) return
-      const p0 = anchor(a, 0.86)
-      const p2 = anchor(b, 0.14)
-      const ctrl = { x: (p0.x + p2.x) / 2, y: Math.min(p0.y, p2.y) - 92 }
+      const topA = anchor(a, 0.86, 0)
+      const topB = anchor(b, 0.14, 0)
+      // Side-by-side (desktop grid) the cards' top edges sit at nearly the
+      // same y and far apart in x; stacked (mobile, one column) it is the
+      // reverse. Comparing |dy| to |dx| reads the layout straight off the
+      // DOM rather than duplicating the grid's own breakpoint here.
+      const stacked = Math.abs(topB.y - topA.y) > Math.abs(topB.x - topA.x)
+      let p0, p2, ctrl
+      if (stacked) {
+        // "Over the top edges" only reads as a thread pulled taut when the
+        // cards are side by side — applied to a stacked column it draws a
+        // loop above Amman, over its own header, before dropping down past
+        // its full height to reach Sarajevo. Anchoring bottom-of-Amman to
+        // top-of-Sarajevo instead keeps the curve entirely inside the row
+        // gap between them, where it can't cross either card's content.
+        p0 = anchor(a, 0.5, 1)
+        p2 = anchor(b, 0.5, 0)
+        ctrl = { x: (p0.x + p2.x) / 2 + 22, y: (p0.y + p2.y) / 2 }
+      } else {
+        p0 = topA
+        p2 = topB
+        ctrl = { x: (p0.x + p2.x) / 2, y: Math.min(p0.y, p2.y) - 92 }
+      }
       const apex = {
         x: 0.25 * p0.x + 0.5 * ctrl.x + 0.25 * p2.x,
         y: 0.25 * p0.y + 0.5 * ctrl.y + 0.25 * p2.y,
@@ -610,7 +714,7 @@ function useTwoCityArc() {
       setGeo({
         w: stage.offsetWidth, h: stage.offsetHeight,
         d: `M ${p0.x} ${p0.y} Q ${ctrl.x} ${ctrl.y} ${p2.x} ${p2.y}`,
-        apex,
+        apex, stacked,
       })
     }
     measure()
@@ -625,11 +729,11 @@ function useTwoCityArc() {
 
 export function Studios() {
   const reduced = useReducedMotion()
-  const amman = useCityTime('Asia/Amman')
-  const sarajevo = useCityTime('Europe/Sarajevo')
+  const amman = useCityClock('Asia/Amman')
+  const sarajevo = useCityClock('Europe/Sarajevo')
   const cities = [
-    { name: 'Amman', country: 'Jordan', role: 'HQ — strategy, AI & production', time: amman, phone: BRAND.phoneJO, href: BRAND.whatsapp, action: 'WhatsApp us' },
-    { name: 'Sarajevo', country: 'Bosnia & Herzegovina', role: 'Design & campaign studio', time: sarajevo, phone: 'By appointment', href: `mailto:${BRAND.email}`, action: 'Email the studio' },
+    { name: 'Amman', country: 'Jordan', role: 'HQ — strategy, AI & production', clock: amman, phone: BRAND.phoneJO, href: BRAND.whatsapp, action: 'WhatsApp us' },
+    { name: 'Sarajevo', country: 'Bosnia & Herzegovina', role: 'Design & campaign studio', clock: sarajevo, phone: 'By appointment', href: `mailto:${BRAND.email}`, action: 'Email the studio' },
   ]
   const { stageRef, cardRefs, geo } = useTwoCityArc()
   return (
@@ -660,28 +764,68 @@ export function Studios() {
             {!reduced && (
               <span className="studios-arc-pulse" style={{ offsetPath: `path('${geo.d}')` }} />
             )}
-            <span className="studios-arc-label" style={{ left: geo.apex.x, top: geo.apex.y }}>
-              <i />2,100 km
-            </span>
+            {/* Stacked, the whole gap the curve has to fit in is one
+                row-gap (18–40px) tall — nowhere near enough for this label
+                without it lapping into a card's own padding. The dashed
+                thread and the travelling pulse still make the same point
+                on mobile; this one badge is the one piece of the desktop
+                treatment that doesn't survive the narrower stage. */}
+            {!geo.stacked && (
+              <span className="studios-arc-label" style={{ left: geo.apex.x, top: geo.apex.y }}>
+                <i />2,100 km
+              </span>
+            )}
           </div>
         )}
         <div className="studios-grid">
-          {cities.map((c, i) => (
-            <Reveal key={c.name} delay={i * 0.1}>
-              <article className="studio-card" ref={(el) => { cardRefs.current[i] = el }} data-cursor>
-                <header>
-                  <h3>{c.name}</h3>
-                  <span className="studio-time" aria-label={`Local time in ${c.name}`}>{c.time}</span>
-                </header>
-                <p className="studio-country">{c.country}</p>
-                <p className="studio-role">{c.role}</p>
-                <footer>
-                  <span>{c.phone}</span>
-                  <a href={c.href} target={c.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">{c.action} →</a>
-                </footer>
-              </article>
-            </Reveal>
-          ))}
+          {cities.map((c, i) => {
+            // Two thresholds, not one: "awake" (the pill, the story's own
+            // stakes) is stricter than "day" (the card's tint and the
+            // sun/moon on the daytrack) — a studio can be lit and daylit at
+            // 07:00 without anyone at a desk yet.
+            const isAwake = c.clock.hour >= STUDIO_OPEN && c.clock.hour < STUDIO_CLOSE
+            const isDay = c.clock.hour >= 6 && c.clock.hour < 19
+            return (
+              <Reveal key={c.name} delay={i * 0.1}>
+                <article
+                  className={`studio-card ${isDay ? 'is-day' : 'is-night'}`}
+                  ref={(el) => { cardRefs.current[i] = el }}
+                  data-cursor
+                >
+                  <header>
+                    <h3>{c.name}</h3>
+                    <span className={`studio-pill ${isAwake ? 'is-awake' : 'is-asleep'}`}>
+                      <i aria-hidden="true" />{isAwake ? 'Awake' : 'Asleep'}
+                    </span>
+                  </header>
+                  <p className="studio-country">{c.country}</p>
+                  {/* The clock is the section's real asset — it now leads the
+                      card instead of hiding in the header next to the city
+                      name, and it is the one thing on the card that keeps
+                      moving after the Reveal settles. */}
+                  <div className="studio-clock" aria-label={`Local time in ${c.name}`}>
+                    <span className="studio-clock-time">{c.clock.display}</span>
+                    <span className="studio-clock-tz" aria-hidden="true">local</span>
+                  </div>
+                  <div className="studio-daytrack" aria-hidden="true">
+                    <span className="studio-daytrack-band" />
+                    {[6, 12, 18].map((h) => (
+                      <i key={h} className="studio-daytrack-tick" style={{ left: `${(h / 24) * 100}%` }} />
+                    ))}
+                    <span
+                      className={`studio-daytrack-mark ${isDay ? 'is-sun' : 'is-moon'}`}
+                      style={{ left: `${c.clock.dayFrac * 100}%` }}
+                    />
+                  </div>
+                  <p className="studio-role">{c.role}</p>
+                  <footer>
+                    <span>{c.phone}</span>
+                    <a href={c.href} target={c.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">{c.action} →</a>
+                  </footer>
+                </article>
+              </Reveal>
+            )
+          })}
         </div>
       </div>
     </section>

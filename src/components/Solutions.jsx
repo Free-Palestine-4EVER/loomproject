@@ -13,12 +13,22 @@
 // resolves right under the search field, no list to scroll to get there.
 // The index stays because the breadth is the claim, but it's set as plain
 // grouped type in newspaper-index columns — honest, dense, and a fraction
-// of the height a row-per-industry list demanded. No per-row image at all:
-// the only per-industry mark left is a single hairline in that group's own
-// yarn colour under the active name, which is both truthful (each of the
-// seven groups really does have its own colour everywhere else on the site)
-// and impossible to confuse with a placeholder.
-import { useCallback, useMemo, useState } from 'react'
+// of the height a row-per-industry list demanded. No per-ROW image: the
+// mark that killed the old rack build was one identical icon on all 30
+// rows, so nothing here repeats per-niche. What every group DOES get is
+// one honest, group-truthful icon (below) — seven, not thirty, and every
+// one of them actually draws its own trade.
+//
+// Second pass (client brief: real search behaviour, a pink stage, icons,
+// more design): the console — search field plus the one resolved answer —
+// now sits on its own pink ground, the site's second pink surface after
+// the footer's bloom-sky, built off the same grammar (a soft radial bloom
+// crossing the edge, ink re-pointed to the house's #33243d family, never a
+// hard rule). The search field grew an actual glass icon and a cycling,
+// typewriter placeholder that stops the instant a visitor focuses or
+// types. The answer card grew a group-icon badge next to its name, and the
+// index below grew the same seven icons ahead of their group labels.
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { NICHES, NICHE_GROUPS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
@@ -26,6 +36,131 @@ import { useWizard } from '../lib/wizard.jsx'
 import { WoolButton } from './Wool.jsx'
 
 import './solutions.css'
+
+// WoolIcon's 20 names (arrow-right, plus, list, user, trash, settings, home,
+// lock, unlock, eye, search, heart, cart, tag, phone, pin, calendar, upload,
+// share-nodes, copy — see WOOL_ICONS in Wool.jsx) are generic UI glyphs, not
+// trade marks: nothing in that set reads as "restaurant" or "dental clinic"
+// or "barbershop", so borrowing one per group would either lie (a lock icon
+// on Property) or repeat (home on both Property AND every group that isn't
+// food/health/beauty). They're also photographed medallions shot for a dark
+// stage — cream felt on a lavender rope reads fine on white, but at 300+
+// repaints (30 index rows) that's 30 network requests for icons that don't
+// even name the right trade. Seven small inline SVGs, one per NICHE_GROUPS
+// id, colour themselves from the same --panel-yarn/--grp-yarn custom
+// properties the section already threads through everything else, cost
+// nothing to repeat, and actually draw the group they stand for.
+const GROUP_ICON_PATHS = {
+  food: (
+    <>
+      <path d="M6 2.5v6a2 2 0 0 0 4 0v-6" />
+      <path d="M8 8.5V21" />
+      <path d="M15.4 2.5c-1.5 1-2.3 2.7-2.3 4.5 0 1.9 1 3.4 2.3 4.2V21" />
+    </>
+  ),
+  health: (
+    <>
+      <circle cx="12" cy="12" r="8.3" />
+      <path d="M12 8.2v7.6M8.2 12h7.6" />
+    </>
+  ),
+  beauty: (
+    <>
+      <circle cx="6.6" cy="6.2" r="2.2" />
+      <circle cx="6.6" cy="17.8" r="2.2" />
+      <path d="M8.3 7.7L19.5 18M8.3 16.3L19.5 6" />
+    </>
+  ),
+  retail: (
+    <>
+      <path d="M6.3 8h11.4l-1 12h-9.4l-1-12z" />
+      <path d="M9 8V6.6a3 3 0 0 1 6 0V8" />
+    </>
+  ),
+  property: (
+    <>
+      <path d="M4 11.3L12 4.5l8 6.8" />
+      <path d="M6.5 10.3V19.5h11V10.3" />
+    </>
+  ),
+  services: (
+    <path d="M15.3 5a4 4 0 0 0-5.5 5.3L4 16l3 3 5.7-5.7A4 4 0 0 0 18 8.5l-2.6 2.6-2-2 2.6-2.6z" />
+  ),
+  creative: (
+    <path d="M12 3.3l1.8 5.2 5.2 1.8-5.2 1.8L12 17.3l-1.8-5.2-5.2-1.8 5.2-1.8L12 3.3z" />
+  ),
+}
+function GroupIcon({ group, className = '' }) {
+  const d = GROUP_ICON_PATHS[group]
+  if (!d) return null
+  return (
+    <svg
+      viewBox="0 0 24 24" className={`sol-gicon ${className}`.trimEnd()} aria-hidden="true"
+      fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+    >
+      {d}
+    </svg>
+  )
+}
+
+// A short list of real niche names, worded the way someone actually types
+// them into a search box (lowercase, sometimes shortened) — the same trades
+// NICHES already lists, not invented ones. "car rental" and "dental clinics"
+// lead the list because they're the client's own two examples for this
+// exact feature.
+const SEARCH_EXAMPLES = [
+  'car rental', 'dental clinics', 'restaurants', 'real estate',
+  'barbershops', 'law firms', 'cafés', 'wedding venues',
+]
+
+// Type-on, hold, delete, next — a plain setTimeout chain, not an interval,
+// because the four phases (type/hold/delete/gap) each need their own delay
+// and a single tick rate can't express that. Frozen at the first word
+// whenever `active` is false: the caller flips that off the instant the
+// field is focused or carries a real query, so this never fights the
+// visitor's own typing, and reduced-motion callers simply never flip it on.
+function useTypewriter(words, active) {
+  const [text, setText] = useState(words[0])
+  const stateRef = useRef({ i: 0, char: 0, deleting: false })
+
+  useEffect(() => {
+    if (!active) {
+      stateRef.current = { i: 0, char: 0, deleting: false }
+      setText(words[0])
+      return
+    }
+    let timer
+    const TYPE_MS = 62, HOLD_MS = 1500, DELETE_MS = 34, GAP_MS = 420
+    const tick = () => {
+      const s = stateRef.current
+      const word = words[s.i]
+      if (!s.deleting) {
+        s.char += 1
+        setText(word.slice(0, s.char))
+        if (s.char >= word.length) {
+          s.deleting = true
+          timer = setTimeout(tick, HOLD_MS)
+        } else {
+          timer = setTimeout(tick, TYPE_MS)
+        }
+      } else {
+        s.char -= 1
+        setText(word.slice(0, s.char))
+        if (s.char <= 0) {
+          s.deleting = false
+          s.i = (s.i + 1) % words.length
+          timer = setTimeout(tick, GAP_MS)
+        } else {
+          timer = setTimeout(tick, DELETE_MS)
+        }
+      }
+    }
+    timer = setTimeout(tick, GAP_MS)
+    return () => clearTimeout(timer)
+  }, [active, words])
+
+  return text
+}
 
 // Same seven-groups-seven-yarns map the old build used — kept, because the
 // colour coding is the one piece of the previous design that was actually
@@ -86,8 +221,13 @@ function AnswerCard({ n, reduced, onOpen }) {
       />
       <div className="sol-answer-left">
         <div className="sol-answer-head">
-          <p className="sol-answer-kicker">{GROUP_LABEL[n.group]}</p>
-          <h3 className="sol-answer-name">{n.name}</h3>
+          <span className="sol-answer-badge" aria-hidden="true">
+            <GroupIcon group={n.group} className="sol-answer-gicon" />
+          </span>
+          <div className="sol-answer-headtext">
+            <p className="sol-answer-kicker">{GROUP_LABEL[n.group]}</p>
+            <h3 className="sol-answer-name">{n.name}</h3>
+          </div>
         </div>
         <p className="sol-answer-hook">{n.hook}</p>
         <WoolButton
@@ -156,6 +296,7 @@ export function Solutions() {
   const { open } = useWizard()
   const [query, setQuery] = useState('')
   const [pinnedKey, setPinnedKey] = useState(NICHES[0].key)
+  const [focused, setFocused] = useState(false)
 
   const typedMatch = useMemo(() => resolveNiche(query), [query])
   const noMatch = query.trim().length > 1 && !typedMatch
@@ -165,6 +306,18 @@ export function Solutions() {
     setPinnedKey(n.key)
     setQuery(n.name)
   }, [])
+
+  // Cycling only when there's nothing real to fight: idle, empty, unfocused,
+  // motion allowed. The instant any of those flips — a tap into the field, a
+  // keystroke — this goes false and the hook freezes on its current word
+  // instead of finishing its animation underneath the cursor.
+  const cycling = !reduced && !focused && query.length === 0
+  const example = useTypewriter(SEARCH_EXAMPLES, cycling)
+  const placeholder = reduced
+    ? 'Try "cafés", "dental", "real estate"…'
+    : cycling
+      ? `Try "${example}"…`
+      : 'Type an industry…'
 
   const sectionAccent = YARN_HEX[GROUP_YARN[shown.group]]
 
@@ -181,36 +334,44 @@ export function Solutions() {
       </div>
 
       <Reveal delay={0.05} className="sol-console">
-        <div className="sol-search-row">
-          <label className="sol-search-label" htmlFor="sol-search">Find your industry</label>
-          <div className="sol-search-field">
-            <input
-              id="sol-search"
-              className="sol-search"
-              type="text"
-              autoComplete="off"
-              spellCheck="false"
-              placeholder="Try “cafés”, “dental”, “real estate”…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              list="sol-search-list"
-              aria-describedby="sol-answer"
-            />
-            <span className="sol-search-arrow" aria-hidden="true" />
-            <datalist id="sol-search-list">
-              {NICHES.map((n) => <option key={n.key} value={n.name} />)}
-            </datalist>
+        <div className="sol-console-panel">
+          <div className="sol-search-row">
+            <label className="sol-search-label" htmlFor="sol-search">Find your industry</label>
+            <div className="sol-search-field">
+              <svg className="sol-search-glass" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="10.3" cy="10.3" r="6.3" />
+                <path d="M19.5 19.5l-4.7-4.7" />
+              </svg>
+              <input
+                id="sol-search"
+                className="sol-search"
+                type="text"
+                autoComplete="off"
+                spellCheck="false"
+                placeholder={placeholder}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                list="sol-search-list"
+                aria-describedby="sol-answer"
+              />
+              <span className="sol-search-arrow" aria-hidden="true" />
+              <datalist id="sol-search-list">
+                {NICHES.map((n) => <option key={n.key} value={n.name} />)}
+              </datalist>
+            </div>
           </div>
-        </div>
 
-        <div id="sol-answer" role="region" aria-live="polite" aria-label="Selected industry" className="sol-answer-slot">
-          <AnimatePresence mode="wait" initial={false}>
-            {noMatch ? (
-              <NoMatchCard query={query} reduced={reduced} onOpen={(niche) => open({ niche })} />
-            ) : (
-              <AnswerCard n={shown} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
-            )}
-          </AnimatePresence>
+          <div id="sol-answer" role="region" aria-live="polite" aria-label="Selected industry" className="sol-answer-slot">
+            <AnimatePresence mode="wait" initial={false}>
+              {noMatch ? (
+                <NoMatchCard query={query} reduced={reduced} onOpen={(niche) => open({ niche })} />
+              ) : (
+                <AnswerCard n={shown} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </Reveal>
 
@@ -228,7 +389,7 @@ export function Solutions() {
             const items = NICHES.filter((n) => n.group === g.id)
             return (
               <span className="sol-idx-group" key={g.id} style={{ '--grp-yarn': YARN_HEX[GROUP_YARN[g.id]] }}>
-                <span className="sol-idx-label">{g.label}</span>{' '}
+                <span className="sol-idx-label"><GroupIcon group={g.id} className="sol-idx-gicon" />{g.label}</span>{' '}
                 {items.map((n, i) => (
                   <span key={n.key}>
                     <button

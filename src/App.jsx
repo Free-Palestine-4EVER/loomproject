@@ -5,6 +5,8 @@ import { Hero, Marquee, Manifesto, Process, Stats, Studios, Contact } from './co
 import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { OwnApps } from './components/OwnApps.jsx'
+import { LoomMcp } from './components/LoomMcp.jsx'
+import { AnswerEngine } from './components/AnswerEngine.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { TheMachine } from './components/TheMachine.jsx'
 import { Hiring } from './components/Hiring.jsx'
@@ -19,13 +21,16 @@ import { mountFx } from './lib/fx.js'
 import { mountViewportBudget } from './lib/viewportBudget.js'
 import { Typeface } from './components/Typeface.jsx'
 import { TypeShowcase } from './components/TypeShowcase.jsx'
+import { Workshops } from './components/Workshops.jsx'
+import { WorkshopsPromo } from './components/WorkshopsPromo.jsx'
 
 // firebase.json rewrites ** -> /index.html, so every path already boots this
 // SPA. A real URL therefore costs one pathname check, not a router dependency
-// or a second Vite entry: /type renders the typeface specimen, everything else
-// renders the long page. Trailing slash tolerated (cleanUrls is on). PAGES is
-// also the allow-list for the in-page link interceptor below.
-const PAGES = ['/type']
+// or a second Vite entry: /type renders the typeface specimen, /ai-workshops
+// renders the workshops booking page, everything else renders the long page.
+// Trailing slash tolerated (cleanUrls is on). PAGES is also the allow-list
+// for the in-page link interceptor below.
+const PAGES = ['/type', '/ai-workshops']
 
 const currentRoute = () => {
   if (typeof window === 'undefined') return '/'
@@ -203,6 +208,12 @@ export default function App() {
              studio's own display face. Contact stays off it on purpose: the
              page's job is the download, not a lead. */
           <Typeface />
+        ) : route === '/ai-workshops' ? (
+          /* /ai-workshops — corporate AI training. Its own page because the
+             booking form (module picker + live price) needs room the long
+             page's sections don't have; the home page only pitches and links
+             here via WorkshopsPromo, below. */
+          <Workshops />
         ) : (
         <>
         <Hero />
@@ -231,10 +242,24 @@ export default function App() {
             is building for itself, honestly labelled as in-build since none
             of the five have shipped yet. */}
         <OwnApps />
+        {/* Straight off the software LOOM builds for itself: the same shelf,
+            one level more technical. Three MCP servers, private beta, access
+            by request — a gate, not a download (see LoomMcp.jsx's header). It
+            has to sit ABOVE The Machine, because MACHINE is that offering
+            exposed as tools and the reader needs the section to land first. */}
+        <LoomMcp />
+        {/* The same idea aimed at an ordinary business rather than a dev team:
+            the Protocol puts LOOM inside the client's AI, this puts the
+            CLIENT inside everyone else's. Shorter than the Protocol on
+            purpose — four deliverables, one demo, one CTA. */}
+        <AnswerEngine />
         {/* The Machine sits where Crew used to: straight off the products LOOM
             builds for itself, the natural next beat is HOW it builds them. */}
         <TheMachine />
-        <Hiring />
+        {/* Straight off THE MACHINE — that section is AI LOOM runs FOR a
+            client; this is AI LOOM teaches a client's own team to run. Same
+            shelf, handed to the client's staff instead of kept in-house. */}
+        <WorkshopsPromo />
         <Solutions />
         {/* BY RESULT (1.75 JOD per WhatsApp conversation) was retired 8 Aug 2026:
             LOOM cannot promise an outcome that depends on the client's own
@@ -246,6 +271,12 @@ export default function App() {
         <Bolt />
         <Studios />
         <Contact />
+        {/* Last section on the page, just above the footer — the client asked
+            for this literally ("just above the footer"). Contact carries the
+            sales CTA; this is a different ask entirely (careers, not a lead),
+            short enough that it reads as a footnote to the page rather than a
+            second pitch competing with Contact's. */}
+        <Hiring />
         </>
         )}
       </main>

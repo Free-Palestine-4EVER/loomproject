@@ -8,11 +8,17 @@
    resolves right under the search field. No list to scroll to get there.
    The 30-strong index that used to be the whole section is now a compact
    newspaper-style, multi-column index below the answer — plain grouped
-   type, no icons, a fraction of the old height. */
+   type, a fraction of the old height (one icon per CATEGORY now, not one
+   per row — see the GroupIcon comment in Solutions.jsx). */
 .solutions {
   padding-bottom: clamp(36px, 5vh, 64px);
   position: relative;
   isolation: isolate;
+  /* the pink bloom below bleeds well past the console's own box on purpose
+     (see .sol-console::before) — clip X here so that bleed can never be the
+     thing that opens a horizontal scrollbar, the same belt-and-suspenders
+     move every other full-bleed section on the page already makes. */
+  overflow-x: clip;
 }
 /* this section trades the shared section-head's usual generous air for
    density on purpose — the whole redesign is about proving "a fraction of
@@ -42,16 +48,62 @@
 }
 
 /* ——————————————————————————————————————————————
-   The console — search field + the one resolved answer
-   —————————————————————————————————————————————— */
+   The console — search field + the one resolved answer, on its own pink
+   ground. This is the site's SECOND pink surface (the footer's bloom-sky
+   is the first) and it borrows that surface's exact grammar rather than
+   inventing a new one: ink re-pointed once for everything nested inside
+   (same three tokens, same #33243d family footer--bloom uses in
+   styles.css), and the join to the dark page is a soft radial bloom
+   bleeding across the edge — never a hard rule. Unlike the footer, this
+   pink is a contained, rounded card rather than a full-bleed photograph:
+   there's no "sky" image to mask here, so the same eased-crossing move is
+   built from two gradients instead — a soft bloom escaping the card
+   (::before) plus a gradient fill inside it, both using the footer's own
+   pink values so the two surfaces read as the same decision, not two. */
 .sol-console {
-  /* wider than the old 900px cap on purpose — the answer card spends this
-     width on ONE resolved line per deliverable instead of wrapping to two,
-     which is where a surprising share of the section's old height was
-     hiding. More width here, less height below. */
   max-width: 1120px;
-  margin: 0 auto clamp(12px, 1.6vh, 18px);
+  margin: 0 auto clamp(28px, 4vh, 44px);
   padding: 0 var(--pad);
+  position: relative;
+}
+.sol-console::before {
+  content: '';
+  position: absolute; z-index: -1;
+  left: 50%; top: -12%;
+  width: min(1500px, 160%); height: 128%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  /* the exact two stops footer--bloom's own ::before uses (styles.css) —
+     reused verbatim, not re-eyeballed, so this bloom and the footer's read
+     as the same pink rather than a close guess at it. */
+  background: radial-gradient(58% 62% at 50% 38%,
+    rgba(247, 176, 202, 0.42) 0%,
+    rgba(196, 116, 172, 0.19) 46%,
+    rgba(13, 7, 22, 0) 78%);
+}
+.sol-console-panel {
+  /* re-pointed once, exactly like .footer--bloom does in styles.css — every
+     descendant that already reaches for var(--ink)/var(--ink-dim)/
+     var(--ink-faint) (the search label, the placeholder, every line inside
+     the answer card) flips to house-ink-on-paper for free, no per-element
+     overrides. */
+  --ink: #33243d;
+  --ink-dim: #4a3652;
+  --ink-faint: #6b5273;
+  --line: rgba(96, 40, 76, 0.2);
+  position: relative;
+  isolation: isolate;
+  border-radius: calc(var(--radius) * 1.5);
+  padding: clamp(20px, 2.6vw, 30px) clamp(20px, 3vw, 34px) clamp(24px, 3vw, 34px);
+  /* three soft radial washes over one base tone rather than a flat fill —
+     a single solid pink behind white paragraph text read as a sticker; this
+     reads as the same felted-paper warmth the rest of the site's yarn
+     textures carry, at a fraction of the cost of an actual photograph. */
+  background:
+    radial-gradient(120% 140% at 12% -10%, rgba(255, 255, 255, 0.5), transparent 55%),
+    radial-gradient(90% 120% at 100% 0%, rgba(255, 197, 223, 0.55), transparent 60%),
+    linear-gradient(165deg, #ffe4f0 0%, #fbd0e6 55%, #f3b4d5 100%);
+  box-shadow: 0 30px 60px -32px rgba(90, 24, 66, 0.55);
 }
 
 /* label sits INLINE to the left of the field rather than stacked above it
@@ -64,24 +116,33 @@
   color: var(--ink-faint); white-space: nowrap;
 }
 .sol-search-field { position: relative; flex: 1; min-width: 0; }
+.sol-search-glass {
+  position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; pointer-events: none;
+  color: var(--ink-faint);
+}
 .sol-search {
   width: 100%;
   font-family: var(--display); font-weight: 560;
   font-size: clamp(1.1rem, 2.2vw, 1.5rem);
   color: var(--ink);
-  background: var(--bg-3);
-  border: 1px solid var(--line);
+  /* translucent white over the pink, not an opaque plate — the same move
+     .footer--bloom .footer-contact makes over the sky, so the field reads
+     as sitting IN the pink rather than punched out of it. */
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(96, 40, 76, 0.18);
   border-radius: calc(var(--radius) * 0.55);
-  padding: 11px 52px 11px 22px;
-  transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
+  padding: 13px 50px 13px 50px;
+  transition: border-color 0.3s var(--ease), background 0.3s var(--ease), box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
 }
 .sol-search::placeholder { color: var(--ink-faint); font-weight: 480; }
-.sol-search:hover { border-color: rgba(242, 240, 247, 0.22); }
+.sol-search:hover { border-color: rgba(96, 40, 76, 0.3); background: rgba(255, 255, 255, 0.74); }
 .sol-search:focus-visible {
   outline: none;
   border-color: var(--magenta);
-  background: color-mix(in srgb, var(--magenta) 6%, var(--bg-3));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--magenta) 25%, transparent);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--magenta) 22%, transparent);
+  transform: translateY(-1px);
 }
 /* a small arrow, same corner-fold mark the rack rows used to carry — reads
    as "this resolves to something," not decoration for its own sake */
@@ -114,14 +175,18 @@
   display: grid;
   grid-template-columns: 0.86fr 1.14fr;
   gap: 6px clamp(28px, 4vw, 48px);
-  padding: clamp(14px, 1.8vw, 18px) clamp(20px, 2.4vw, 26px) clamp(14px, 1.6vw, 16px);
+  padding: clamp(16px, 2vw, 20px) clamp(20px, 2.4vw, 26px) clamp(16px, 1.8vw, 18px);
   border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.1);
-  background: var(--bg-3);
+  /* translucent white over the pink panel, same "still visibly the pink
+     underneath" call .footer--bloom .footer-contact makes over the sky —
+     an opaque plate here would have read as a second, unrelated surface
+     stacked on the first instead of one console with two layers of depth. */
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.4));
   overflow: hidden;
 }
 .sol-answer::after {
   content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: radial-gradient(55% 65% at 100% 0%, color-mix(in srgb, var(--panel-yarn, var(--magenta)) 14%, transparent), transparent 70%);
+  background: radial-gradient(55% 65% at 100% 0%, color-mix(in srgb, var(--panel-yarn, var(--magenta)) 20%, transparent), transparent 70%);
 }
 .sol-answer > * { position: relative; z-index: 1; }
 
@@ -135,20 +200,39 @@
 
 .sol-answer-left, .sol-answer-right { display: flex; flex-direction: column; min-width: 0; }
 .sol-answer-left { gap: 6px; }
-/* kicker and name share a baseline instead of stacking — the group tag
-   reads as a small coloured label riding beside the headline, not its own
-   line. Wraps back to two lines only if the width genuinely can't take it. */
+/* the badge sits on its OWN cross-axis-centred row with the kicker+name
+   stack, not sharing their baseline — a 44px icon has no sane baseline to
+   share with 0.7rem uppercase type, and trying just pushed the kicker down
+   into the icon's optical centre instead. */
 .sol-answer-head {
-  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px;
+  display: flex; align-items: center; gap: 14px;
 }
+.sol-answer-headtext { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* the group-icon badge — SEE the file-top comment on GroupIcon for why this
+   is a hand-drawn SVG and not a WoolIcon medallion. Tinted from the same
+   --panel-yarn this card's thread and radial glow already use, so the
+   badge reads as part of the same colour decision instead of a fourth hue
+   arriving on the card. */
+.sol-answer-badge {
+  flex: none;
+  display: grid; place-items: center;
+  width: 46px; height: 46px;
+  border-radius: 14px;
+  color: var(--panel-yarn, var(--magenta));
+  background: color-mix(in srgb, var(--panel-yarn, var(--magenta)) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--panel-yarn, var(--magenta)) 30%, transparent);
+}
+.sol-answer-gicon { width: 24px; height: 24px; }
 .sol-answer-kicker {
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
   color: var(--panel-yarn, var(--magenta));
 }
 /* the matched industry, 30px — all 30 names ("Cafés & Coffee" included) are
-   covered; the é and the & are both in Bloom. */
+   covered; the é and the & are both in Bloom. Ink, not a hardcoded white —
+   this card sits on the pink console now, and #fff here was the one spot
+   in the whole component that ignored the re-pointed --ink token. */
 .sol-answer-name {
-  font-family: var(--bloom); font-weight: 560; color: #fff;
+  font-family: var(--bloom); font-weight: 560; color: var(--ink);
   font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.08; letter-spacing: 0;
 }
 .sol-answer-hook {
@@ -198,6 +282,12 @@
   margin-right: 7px;
 }
 .sol-agent-copy { color: var(--ink); font-size: 0.84rem; line-height: 1.45; }
+/* --cyan (#59e6ff) is tuned for the dark page — on the pink console it sat
+   under 2:1 against the panel, close to invisible. A deeper teal off the
+   same hue keeps the "this is the agent talking" cue legible without
+   reaching for a colour no other agent-tag on the site uses. */
+.sol-console-panel .sol-agent { border-left-color: #0d7f97; }
+.sol-console-panel .sol-agent-kicker { color: #0a6c81; }
 
 .sol-answer--empty { grid-template-columns: 1fr; }
 .sol-answer--empty .sol-answer-hook { max-width: 56ch; }
@@ -206,11 +296,13 @@
    The index — every one of the thirty, as one continuous run of plain
    grouped type poured into balanced newspaper columns. This is the whole
    "breadth is the claim" promise, kept without a single row of chrome: no
-   borders, no icons, no fixed-height scroll pane. It's deliberately ONE
-   paragraph rather than seven boxed groups — plain text wraps line by line,
-   so the browser's column-balance has fine-grained material to work with
-   and no single category can strand a column half-empty next to a full one.
-   —————————————————————————————————————————————— */
+   borders, no per-NICHE icon, no fixed-height scroll pane. It's deliberately
+   ONE paragraph rather than seven boxed groups — plain text wraps line by
+   line, so the browser's column-balance has fine-grained material to work
+   with and no single category can strand a column half-empty next to a full
+   one. Each of the seven group LABELS does carry the same small GroupIcon
+   the answer card's badge uses — one icon per category, not one per row, so
+   the index still reads as a dense list of names rather than a grid of art. */
 .sol-index {
   padding-top: clamp(14px, 1.6vw, 18px);
   border-top: 1px solid var(--line);
@@ -223,9 +315,11 @@
   color: var(--ink-dim);
 }
 .sol-idx-label {
+  display: inline-flex; align-items: center; gap: 5px;
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--grp-yarn, var(--ink-faint));
 }
+.sol-idx-gicon { width: 13px; height: 13px; flex: none; }
 .sol-idx-sep { color: var(--ink-faint); margin: 0 3px 0 1px; }
 .sol-idx-gap { color: var(--ink-faint); opacity: 0.5; }
 
@@ -273,5 +367,12 @@
 @media (max-width: 640px) {
   .sol-idx-flow { columns: 1; }
   .sol-answer-name { font-size: 1.5rem; }
-  .sol-answer-head { gap: 2px 8px; }
+  .sol-answer-head { gap: 10px; }
+  .sol-answer-badge { width: 38px; height: 38px; border-radius: 11px; }
+  .sol-answer-gicon { width: 20px; height: 20px; }
+  /* less padding to spare on a phone, and the bloom is sized off the
+     panel's own box — shrinking one without the other left an oversized
+     glow crowding the headline above it at 390px. */
+  .sol-console-panel { padding: 18px 18px 22px; border-radius: calc(var(--radius) * 1.1); }
+  .sol-console::before { top: -8%; height: 122%; }
 }

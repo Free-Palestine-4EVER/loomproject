@@ -23,9 +23,12 @@
   isolation: isolate;
   overflow: hidden;
   padding-bottom: clamp(60px, 9vh, 110px);
-  /* The Machine above ends on --bg and Solutions below opens on it, so this
-     section lifts in the middle and returns rather than butting two flat
-     panels together. */
+  /* Last section on the page before the footer: Contact above is flat --bg
+     (no background rule of its own) and the pink footer below reads that same
+     dark --bg through its own top fade (see .footer--bloom .foot-sky in
+     styles.css), so this section only has to open and close on --bg to hand
+     off cleanly on both sides — it lifts in the middle and returns rather
+     than butting three flat panels together. */
   background: linear-gradient(180deg, var(--bg) 0%, #14091f 45%, #150a22 62%, var(--bg) 100%);
   border-block: 1px solid var(--line);
 }
@@ -68,19 +71,6 @@
 }
 /* the head sits inside the page pad, not at the section edge */
 .hire .hire-head { width: calc(100% - 2 * var(--pad)); }
-.hire .hire-head-copy { min-width: 0; }
-
-/* the shout owns a full-width band; the lede and the steps share the row under
-   it. See the note in Hiring.jsx for what this replaced. */
-.hire .hire-head-top { min-width: 0; }
-.hire .hire-head-cols {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(24px, 3vw, 56px);
-  margin-top: clamp(22px, 3vw, 38px);
-  padding-top: clamp(20px, 2.6vw, 32px);
-  border-top: 1px solid rgba(242, 240, 247, 0.1);
-}
 
 /* the count — read off ROLES.length in the JSX, so it cannot drift from the
    grid it is describing */
@@ -135,62 +125,25 @@
      below. No filter — this is a text-shadow on a leaf text node. */
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.14), 0 14px 40px rgba(10, 2, 16, 0.7);
 }
-.hire .hire-lede {
+/* the ask — reel first and big, education second and small. The client's own
+   ordering ("show us your projects then what you studied"), made visible as a
+   type-scale drop rather than just a sentence: the primary line is body-plus
+   and bold on the lead phrase, the secondary line is a full step down and
+   dimmer, so the eye cannot read them as two equal instructions. */
+.hire .hire-ask {
   margin-top: clamp(18px, 2vw, 26px);
-  color: var(--ink-dim);
   max-width: 62ch;
 }
-.hire .hire-lede { color: var(--ink); }
-
-/* the right rail — the three instructions, plus the optional still above them
-   when the file exists (see Hiring.jsx) */
-.hire .hire-head-art { min-width: 0; }
-.hire .hire-hero {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  margin-bottom: clamp(18px, 2vw, 26px);
-  border-radius: var(--radius);
-  border: 1px solid var(--line);
+.hire .hire-ask-primary {
+  color: var(--ink);
+  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+  line-height: 1.4;
 }
-.hire .hire-how {
-  list-style: none;
-  counter-reset: hire-step;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-top: 4px;
-  border-top: 1px solid var(--line);
-}
-.hire .hire-how li {
-  counter-increment: hire-step;
-  position: relative;
-  min-width: 0;
-  padding: 12px 0 0 46px;
-  border-top: 1px solid var(--line);
-  font-size: 0.92rem;
-  line-height: 1.5;
+.hire .hire-ask-primary b { color: #fff; font-weight: 760; }
+.hire .hire-ask-secondary {
+  margin-top: 6px;
   color: var(--ink-dim);
-}
-.hire .hire-how li:first-child { border-top: 0; padding-top: 4px; }
-.hire .hire-how li b { color: var(--ink); font-weight: 760; }
-.hire .hire-how li::before {
-  content: '0' counter(hire-step);
-  position: absolute;
-  left: 0;
-  top: 12px;
-  font-family: var(--display);
-  font-size: 0.86rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: var(--magenta);
-}
-.hire .hire-how li:first-child::before { top: 4px; }
-
-@media (min-width: 1000px) {
-  .hire .hire-head-cols { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
-  .hire .hire-head-art { align-self: start; }
+  font-size: 0.88rem;
 }
 
 /* ═══ THE FOUR EMPTY STAGES ══════════════════════════════════ */
@@ -407,47 +360,13 @@
 .hire .hire-owns {
   width: fit-content;
   max-width: 100%;
-  margin: 5px 0 6px;
+  margin: 5px 0 0;
   padding: 4px 11px;
   border: 1px solid var(--line);
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--ink-dim);
-}
-.hire .hire-line {
-  color: var(--ink-dim);
-  font-size: 0.92rem;
-  overflow-wrap: anywhere;
-}
-
-.hire .hire-needs {
-  margin-top: 12px;
-  padding-top: 11px;
-  border-top: 1px solid var(--line);
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.hire .hire-needs li {
-  position: relative;
-  padding-left: 18px;
-  font-size: 0.85rem;
-  line-height: 1.45;
-  color: var(--ink);
-  overflow-wrap: anywhere;
-}
-/* a stitch, not a bullet */
-.hire .hire-needs li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.58em;
-  width: 9px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent);
 }
 
 .hire .hire-foot {

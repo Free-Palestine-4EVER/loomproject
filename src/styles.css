@@ -1532,10 +1532,11 @@ html.cursor-hot .cursor-ring {
      to erase. ORDER IS `overflow: <x> <y>` and is easy to write backwards. */
   overflow: clip visible;
   isolation: isolate;
-  padding: calc(var(--seam) + clamp(40px, 6vh, 80px)) var(--pad) 26px;
-  /* the tree needs air under the copy or it reads as a background image rather
-     than as the thing the page ends on */
-  min-height: clamp(680px, 88vh, 960px);
+  padding: calc(var(--seam) + clamp(30px, 4.5vh, 60px)) var(--pad) 26px;
+  /* No min-height. The footer is content-sized now that the tree is a flow item
+     at the top of it — the old clamp existed only to reserve room for an
+     absolutely-positioned tree, and reserving space for something that is in
+     the flow is how you get an unexplained band of empty pink. */
   display: flex;
   flex-direction: column;
 }
@@ -1595,17 +1596,17 @@ html.cursor-hot .cursor-ring {
    hem behind the copy. It is the last object on the page; the copy is arranged
    around it rather than on top of it (see the grid's empty middle column). */
 .footer--bloom .foot-bloom {
-  position: absolute;
-  left: 50%;
-  /* clear of the base bar, not flush with the hem. Bottom-anchored at 0 the
-     island grew straight through the © line and through the nav row above it —
-     and a scrim laid over blossom to rescue the text would be admitting the
-     composition does not work. The tree gets the middle of the footer; the
-     copy gets the top and the bottom; nothing overlaps anything. */
-  bottom: clamp(48px, 6vh, 74px);
+  /* IN FLOW, AT THE TOP. The tree is the first thing in the footer and the copy
+     sits under it — which is also why this file no longer needs the empty
+     middle grid column, the bottom anchor, the min-height or the mobile
+     `order` swap that the earlier bottom-anchored version all needed to keep
+     text off the canopy. Nothing is over the tree, so nothing has to be kept
+     off it. DOM order is already sky · tree · copy · hem, so being a plain flow
+     item puts it exactly where it belongs with no reordering. */
+  position: relative;
   z-index: 1;
-  width: min(600px, 44vw);
-  transform: translateX(-50%);
+  width: min(560px, 42vw);
+  margin: 0 auto clamp(26px, 4vh, 48px);
   display: grid;
   place-items: end center;
   pointer-events: none;
@@ -1638,26 +1639,45 @@ html.cursor-hot .cursor-ring {
     rgba(255, 240, 247, 0) 70%);
   animation: foot-breathe 9s ease-in-out infinite;
 }
-/* seven petals, each deriving its lane, delay and duration from --i so the set
-   never resolves into a visible cycle */
+/* ── the drift ───────────────────────────────────────────────
+   18 petals across the WHOLE footer, not 7 inside the tree's box. Every petal
+   reads its lane, size, sideways drift, spin, duration and delay off custom
+   properties set once in JSX, so the animation itself is a single keyframe and
+   nothing here is per-index CSS.
+
+   `overflow: clip` on the layer, deliberately: `.footer--bloom` is
+   `clip visible` on Y so its top bleed survives, which means a petal falling
+   past the hem would be free to lengthen the document at the exact bottom of
+   the page. The layer is also `z-index: 0` — BEHIND the copy (z 2) and behind
+   the tree (z 1) — because petals crossing over live text is the thing that
+   makes a nice effect read as debris. They fall between the sky and the type. */
 .footer--bloom .foot-petals {
   position: absolute;
-  inset: 0 -12% 0;
-  z-index: 2;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
   pointer-events: none;
 }
 .footer--bloom .foot-petals span {
   position: absolute;
-  top: 10%;
-  left: calc(8% + var(--i) * 12.5%);
-  width: clamp(7px, 0.9vw, 12px);
-  height: clamp(9px, 1.1vw, 15px);
+  top: -6%;
+  left: var(--x);
+  width: calc(clamp(7px, 0.85vw, 12px) * var(--s));
+  height: calc(clamp(9px, 1.05vw, 15px) * var(--s));
   border-radius: 60% 60% 60% 60% / 80% 80% 40% 40%;
   background: linear-gradient(160deg, #ffd0e8, #f76fb4);
   opacity: 0;
-  animation: foot-fall calc(9s + var(--i) * 1.35s) linear infinite;
-  animation-delay: calc(var(--i) * -2.1s);
+  animation: foot-fall var(--dur) linear infinite;
+  animation-delay: var(--delay);
   will-change: transform, opacity;
+}
+/* every third one is a leaf instead: a longer, flatter blade in the tree's own
+   greens, so the fall is not eighteen copies of one shape */
+.footer--bloom .foot-petals span.is-leaf {
+  width: calc(clamp(6px, 0.72vw, 10px) * var(--s));
+  height: calc(clamp(12px, 1.5vw, 20px) * var(--s));
+  border-radius: 76% 24% 76% 24% / 50% 50% 50% 50%;
+  background: linear-gradient(150deg, #cfe6b4, #7fae74);
 }
 @keyframes foot-float {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
@@ -1667,70 +1687,158 @@ html.cursor-hot .cursor-ring {
   0%, 100% { transform: scale(1);    opacity: 0.85; }
   50%      { transform: scale(1.06); opacity: 1; }
 }
+/* one keyframe for all 18 — the variation is entirely in the custom properties.
+   112vh, not a pixel constant: the footer is ~1.1 screens tall on desktop and
+   two and a half on a phone, and a 300px fall stopped a third of the way down
+   whichever one you were looking at. */
 @keyframes foot-fall {
-  0%   { transform: translate3d(0, 0, 0) rotate(0deg);           opacity: 0; }
-  12%  { opacity: 0.9; }
-  80%  { opacity: 0.7; }
-  100% { transform: translate3d(-38px, 300px, 0) rotate(220deg); opacity: 0; }
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg);                       opacity: 0; }
+  10%  { opacity: var(--o); }
+  82%  { opacity: calc(var(--o) * 0.8); }
+  100% { transform: translate3d(var(--dx), 112vh, 0) rotate(var(--rot));     opacity: 0; }
 }
 
-/* ── the copy, arranged around the trunk ─────────────────────
-   Brand left, contact right, and an EMPTY middle track the width of the
-   canopy. The gap is the layout: nothing is stacked over the tree, so no text
-   ever has to fight a busy patch of blossom for contrast. */
+/* ── the copy, under the tree ────────────────────────────────
+   FOUR TRACKS: brand · Explore · Craft · contact card. The brand column is the
+   widest and the card is the second widest; the two link lists are deliberately
+   narrow, because a link column wider than its longest label ("Solutions") is
+   just a gap with text down one edge of it. */
 .footer--bloom .footer-grid {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.75fr) minmax(0, 0.75fr) minmax(0, 1.25fr);
   align-items: start;
-  gap: clamp(20px, 3vw, 56px);
+  gap: clamp(24px, 3.2vw, 60px);
   max-width: 1560px;
   margin-inline: auto;
   width: 100%;
   z-index: 2;
 }
-.footer--bloom .foot-brand { grid-column: 1; }
-.footer--bloom .footer-contact { grid-column: 3; justify-self: end; text-align: right; }
-.footer--bloom .footer-contact a,
-.footer--bloom .footer-contact span { flex-direction: row-reverse; }
-.footer--bloom .footer-mark { color: #33243d; }
+.footer--bloom .foot-brand { grid-column: 1; max-width: 34ch; }
+.footer--bloom .footer-mark { color: #33243d; width: 38px; height: 38px; }
 .footer--bloom .footer-grid p { color: var(--ink-dim); }
-.footer--bloom .footer-contact a { color: var(--ink-dim); transition: color 0.3s; }
-.footer--bloom .footer-contact a:hover { color: #b3126a; }
-.footer--bloom .footer-contact span { color: var(--ink-dim); }
+.footer--bloom .foot-tag { line-height: 1.55; }
+.footer--bloom .foot-cities {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 14px;
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
 
-/* the nav, wrapped into the left column under the brand line. It is capped at
-   a narrow measure on purpose: three short rows inside the copy column read as
-   a list, where one long centred row read as a rule drawn across the tree.
-   `margin-top: auto` belongs to `.footer-base`, the one row that genuinely
-   sits on the hem. */
-.footer--bloom .foot-nav {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  /* COLUMN, stated outright. The nav is a descendant of `.footer-grid`, so the
-     generic `.footer-grid nav { flex-direction: column }` above already reaches
-     it — a column here by inheritance from a rule written for the old three-up
-     layout, which is exactly the kind of thing that disappears the next time
-     someone touches that rule. It is the shape this footer wants: a short
-     stacked list inside the copy column, where one long centred row landed
-     across the canopy and no ink value survives blossom. */
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 9px;
-  margin-top: clamp(22px, 3.4vh, 34px);
+/* the icon set. One size token so a 16px mail and a 16px pin optically match,
+   and `flex: none` because an icon inside a flex row with a long label is
+   otherwise the first thing the browser squashes. */
+.footer--bloom .foot-i { width: 17px; height: 17px; flex: none; }
+
+/* ── the two link columns ──
+   Headed lists, not a loose stack. The heading is the smallest type in the
+   footer and the only tracked-out uppercase in it, so it reads as a label
+   rather than as a link that does not work. */
+.footer--bloom .foot-col-t {
+  margin: 0 0 14px;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a5f86;
 }
-.footer--bloom .foot-nav a {
+.footer--bloom .foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.footer--bloom .foot-col a {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 5px 0;
   color: var(--ink-dim);
-  font-weight: 700;
-  font-size: 0.9rem;
-  transition: color 0.3s;
+  font-weight: 640;
+  font-size: 0.94rem;
+  transition: color 0.3s var(--ease, ease), transform 0.3s var(--ease, ease);
 }
-.footer--bloom .foot-nav a:hover { color: #b3126a; }
+/* the thread: a 0→10px rule that grows out of the left edge on hover, drawn
+   with a pseudo-element rather than a border so it can animate without moving
+   the label's own box (a width transition on an inline-flex child would). */
+.footer--bloom .foot-col a::before {
+  content: '';
+  width: 0; height: 2px; border-radius: 2px;
+  background: #d21f7d;
+  transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.footer--bloom .foot-col a:hover { color: #b3126a; }
+.footer--bloom .foot-col a:hover::before { width: 14px; }
+
+/* ── the contact card ──
+   The only boxed object in the footer, because the phone number is the only
+   thing here anyone came for. Translucent white over the sky, not an opaque
+   plate: the blossom has to keep showing through or the card reads as a hole
+   punched in the photograph. No backdrop-filter — this page already pays for
+   two WebGL layers and a rasterised blur at the bottom of a long scroll is a
+   permanent cost for a decoration. */
+.footer--bloom .footer-contact {
+  grid-column: 4;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: clamp(18px, 1.6vw, 24px);
+  border-radius: 20px;
+  border: 1px solid rgba(96, 40, 76, 0.16);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.62), rgba(255, 244, 249, 0.4));
+  box-shadow: 0 18px 40px -28px rgba(90, 34, 72, 0.5);
+}
+.footer--bloom .footer-contact .foot-col-t { margin-bottom: 6px; }
+.footer--bloom .foot-c-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 10px;
+  margin-inline: -10px;
+  border-radius: 13px;
+  color: var(--ink-dim);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.footer--bloom .foot-c-row:hover { background: rgba(255, 255, 255, 0.62); color: #b3126a; }
+.footer--bloom .foot-c-ico {
+  display: grid; place-items: center; flex: none;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  color: #7a3a60;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(96, 40, 76, 0.14);
+  transition: color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+.footer--bloom .foot-c-row:hover .foot-c-ico { color: #d21f7d; border-color: rgba(210, 31, 125, 0.4); transform: translateY(-1px); }
+/* `align-items: flex-start` stated: the contact row is a flex line and this
+   column inherits a centred cross-axis from the site's generic link styling,
+   which centred the WHATSAPP kicker over the number instead of stacking the
+   two flush left. */
+.footer--bloom .foot-c-txt { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.25; }
+.footer--bloom .foot-c-txt em {
+  font-style: normal; font-size: 0.68rem; font-weight: 800;
+  letter-spacing: 0.14em; text-transform: uppercase; color: #8a5f86;
+}
+/* the address itself. `break-all` is wrong for an email and `nowrap` opens a
+   scrollbar on a 320px phone — anywhere-break is the one that keeps a long
+   address inside a 260px card without hyphenating a word mid-stem. */
+.footer--bloom .foot-c-txt b { font-weight: 700; font-size: 0.95rem; overflow-wrap: anywhere; }
+.footer--bloom .foot-c-row.is-lead .foot-c-txt b { font-size: 1.02rem; letter-spacing: 0.01em; }
+.footer--bloom .foot-c-go { margin-left: auto; opacity: 0.35; transition: opacity 0.3s ease, transform 0.3s ease; }
+.footer--bloom .foot-c-row:hover .foot-c-go { opacity: 1; transform: translate(2px, -2px); }
+.footer--bloom .foot-hours {
+  display: flex; align-items: center; gap: 8px;
+  margin: 4px 0 2px;
+  font-size: 0.8rem;
+  color: var(--ink-faint) !important;
+}
+.footer--bloom .foot-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  margin-top: 6px;
+  padding: 13px 18px;
+  border: 0; border-radius: 999px;
+  font: inherit; font-weight: 750; font-size: 0.95rem;
+  color: #fff; cursor: pointer;
+  background: linear-gradient(120deg, #d21f7d, #8d2ea8);
+  box-shadow: 0 12px 26px -14px rgba(160, 24, 100, 0.85);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, filter 0.3s ease;
+}
+.footer--bloom .foot-cta:hover { transform: translateY(-2px); filter: saturate(1.08); box-shadow: 0 18px 34px -14px rgba(160, 24, 100, 0.9); }
+.footer--bloom .foot-cta:active { transform: translateY(0); }
 
 .footer--bloom .footer-base {
   z-index: 2;
-  /* the hem. `auto` here is what gives the tree every pixel of the footer's
-     min-height that the copy above does not use. */
-  margin-top: auto;
+  /* the hem. A fixed gap, not `margin-top: auto` — auto was pushing this to the
+     bottom of a reserved min-height, and the footer is content-sized now. */
+  margin-top: clamp(30px, 4.5vh, 52px);
   padding-top: 18px;
   border-top: 1px solid var(--line);
   color: var(--ink-faint);
@@ -1747,52 +1855,92 @@ html.cursor-hot .cursor-ring {
     linear-gradient(rgba(96, 40, 76, 0.14), rgba(96, 40, 76, 0.14)),
     repeating-linear-gradient(90deg, rgba(96, 40, 76, 0.28) 0 6px, transparent 6px 11px);
 }
+/* the hem's three items: copyright, the line, the control. `align-items:
+   center` so the round button does not sit on a different baseline from the
+   two text runs, and the middle item takes the slack so the button stays hard
+   right at every width. */
+.footer--bloom .footer-base { display: flex; align-items: center; gap: 12px 18px; }
+/* the right end of the hem is the ONLY place on the page that shares a corner
+   with the fixed WhatsApp FAB. The sign-off is kept clear of it by hand rather
+   than left to overlap at the one scroll position where both are visible. */
+.footer--bloom .foot-edge { margin-left: auto; margin-right: 78px; font-style: italic; }
+.footer--bloom .foot-top {
+  /* LEFT END of the hem, not the right. The WhatsApp FAB is `position: fixed`
+     in the bottom-right corner, so a control parked at the right end of the
+     last row of the document sits underneath it at exactly the scroll position
+     where both are on screen — which is the only scroll position this button
+     exists for. */
+  order: -1;
+  display: grid; place-items: center; flex: none;
+  width: 40px; height: 40px;
+  border-radius: 50%; cursor: pointer;
+  color: #7a3a60;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(96, 40, 76, 0.2);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+.footer--bloom .foot-top:hover {
+  transform: translateY(-3px);
+  color: #d21f7d;
+  border-color: rgba(210, 31, 125, 0.45);
+  background: rgba(255, 255, 255, 0.8);
+}
 
-/* ── STACKED: the tree stops being a backdrop ────────────────
-   The desktop layout works because the tree has a COLUMN of its own — an empty
-   middle track that nothing is ever set over. Stacked, that column is gone, and
-   the first two attempts here both tried to keep the tree absolutely positioned
-   behind the copy: at 0.5 the contact rows sat on the lit crystals in the
-   island, and dropping it to 0.38 bought the contrast by making the tree faint,
-   which is losing the argument rather than winning it.
+/* one visible focus ring for every interactive thing down here. The site's
+   global ring is tuned for white-on-dark and disappears against the sky. */
+.footer--bloom a:focus-visible,
+.footer--bloom button:focus-visible {
+  outline: 2px solid #b3126a;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
 
-   So the tree leaves the background entirely. Below 900px it becomes a real
-   flow item between the copy and the hem — full width, FULL OPACITY, its own
-   band, with nothing over it and nothing under it. Same composition logic as
-   desktop: the copy gets its space, the tree gets its space, they never share.
-   `order` does the placing so the DOM stays as it is (sky, tree, copy, hem) and
-   only the visual sequence changes. */
+@media (max-width: 1100px) {
+  /* three tracks: the card drops to a full-width row under the other three, so
+     the phone number keeps its own line instead of being squeezed to ~200px
+     between two link columns. */
+  .footer--bloom .footer-grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.85fr) minmax(0, 0.85fr); }
+  .footer--bloom .footer-contact { grid-column: 1 / -1; }
+}
+@media (max-width: 1100px) and (min-width: 601px) {
+  /* the card is the full width of the page here, and a stacked column inside a
+     1000px-wide box is two short rows with 700px of empty card beside them.
+     Two-up instead, with the hem of the card carrying the timezone and the CTA
+     on one line — and the CTA sized to its label, not to the box: a
+     700px-wide pill is a banner, not a button. */
+  .footer--bloom .footer-contact { display: grid; grid-template-columns: 1fr 1fr; align-items: center; column-gap: clamp(16px, 3vw, 40px); row-gap: 10px; }
+  .footer--bloom .footer-contact .foot-col-t { grid-column: 1 / -1; }
+  .footer--bloom .foot-hours { grid-column: 1; margin: 2px 0 0; }
+  .footer--bloom .foot-cta { grid-column: 2; justify-self: end; margin-top: 0; padding-inline: 30px; }
+}
+
 @media (max-width: 900px) {
   /* the seam is a proportion of a much taller, narrower box here — the desktop
-     clamp would put ~150px of empty pink above the mark before anything is
+     clamp would put ~150px of empty pink above the tree before anything is
      read. Shortened, and the top padding with it. */
-  .footer--bloom { --seam: clamp(50px, 7vh, 90px); min-height: 0; padding-bottom: 26px; }
-  .footer--bloom .footer-grid { grid-template-columns: 1fr; gap: 30px; order: 1; }
-  .footer--bloom .foot-brand { grid-column: 1; }
-  .footer--bloom .footer-contact { grid-column: 1; justify-self: start; text-align: left; }
-  .footer--bloom .footer-contact a,
-  .footer--bloom .footer-contact span { flex-direction: row; }
-
-  .footer--bloom .foot-bloom {
-    position: relative;
-    order: 2;
-    left: auto;
-    bottom: auto;
-    transform: none;
-    /* Capped and centred through the tablet range. A percentage bleed is a
-       PHONE move (see the 600px block below) and does not survive being scaled
-       up: at 820px the same 122% made the tree 911px wide and 845 tall, which
-       is not a closing image, it is a wallpaper the copy is sitting on. */
-    width: min(560px, 100%);
-    margin: clamp(30px, 6vh, 54px) auto 0;
-    opacity: 1;
-  }
-  .footer--bloom .footer-base { order: 3; margin-top: clamp(20px, 3vh, 30px); }
+  .footer--bloom { --seam: clamp(50px, 7vh, 90px); padding-bottom: 26px; }
+  /* TWO tracks, not one. The two link lists are four short words each — stacked
+     they cost a whole screen of scrolling for eight links, side by side they
+     cost one block. The brand line and the card each span both. */
+  .footer--bloom .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px clamp(18px, 5vw, 40px); }
+  .footer--bloom .foot-brand { grid-column: 1 / -1; max-width: none; }
+  .footer--bloom .footer-contact { grid-column: 1 / -1; justify-self: stretch; text-align: left; }
+  /* Capped through the tablet range rather than bled. A percentage bleed is a
+     PHONE move (see the 600px block below) and does not survive being scaled
+     up: 122% made the tree 911x845 at 820px, which is not a crowning image,
+     it is a wallpaper. */
+  .footer--bloom .foot-bloom { width: min(560px, 100%); }
+  .footer--bloom .footer-base { margin-top: clamp(20px, 3vh, 30px); }
 }
 @media (max-width: 767px) {
-  /* four lanes, not seven — the canopy is much narrower here and the extra
-     petals bunch into a column instead of reading as a drift */
-  .footer--bloom .foot-petals span:nth-child(n + 5) { display: none; }
+  /* ten lanes, not eighteen. The layer is the full footer now rather than the
+     tree's box, so the count is trimmed for the paint budget on a phone, not
+     because the petals bunched — half as many animated boxes over a band that
+     is two and a half screens tall. */
+  .footer--bloom .foot-petals span:nth-child(n + 11) { display: none; }
+  /* the hem stacks: three items on one 360px line put four words per row */
+  .footer--bloom .footer-base { flex-wrap: wrap; font-size: 0.8rem; }
+  .footer--bloom .foot-edge { margin-left: 0; margin-right: 0; order: 3; flex: 1 1 100%; }
 }
 @media (max-width: 600px) {
   /* THE PHONE BLEED. The cutout carries transparent margins on every side, so
