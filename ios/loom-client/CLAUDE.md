@@ -45,13 +45,31 @@ Apple password. Route it to them.
 The `morphic.keychain` / `errSecInternalComponent` trap that has bitten other apps
 on this Mac is currently disarmed — that keychain is not in the search list.
 
-## The state as of the first night
+## The state
 
-The app **compiles clean and is signed**, but has **never run**. It was never
-installed, because the iPhone 14 Pro was paired-but-not-attached
-(`tunnelState: unavailable`, last connection 05:42). Nothing about how it *looks or
-behaves at runtime* has been verified by anyone. Treat every visual claim as
-unproven until someone opens it.
+**It runs.** As of 8 Aug 2026 (evening) the app was built, signed, installed and
+launched on the iPhone 14 Pro — `tunnelState: connected`, developer mode on,
+iOS 26.4 — and came up as PID 1987 with no crash report. The "never run" era is
+over; the first-night note below is kept only because its warnings still apply.
+
+Still **not** verified, and no one should claim otherwise: nothing about how it
+*looks* has been seen by a human or a camera. This Mac cannot capture a physical
+device screen — `devicectl` has no screenshot verb (re-checked, still true),
+`idevicescreenshot` is not installed, and simulators are banned here for disk.
+Judging the visual design needs someone holding the phone.
+
+Install it again with `./install-on-phone.sh`, or directly:
+
+```bash
+xcrun devicectl device install app --device 2F962560-17B6-5C0E-B079-B97369FBFC55 \
+  ~/Library/Developer/Xcode/DerivedData/LOOMClient-*/Build/Products/Debug-iphoneos/LOOM.app
+xcrun devicectl device process launch --device 2F962560-17B6-5C0E-B079-B97369FBFC55 com.loom.client
+```
+
+### The first-night note, kept for its warnings
+
+The app compiled clean and was signed, but had never run — the iPhone 14 Pro was
+paired-but-not-attached (`tunnelState: unavailable`, last connection 05:42).
 
 ## Two traps that already cost time here
 
@@ -80,12 +98,19 @@ The base URL appears in **exactly one place** across the whole app:
 Sources/Core/Net/APIClient.swift  ->  init(baseURL: URL = URL(string: "http://localhost:4950")!)
 ```
 
-Firebase (`loom-clients`) was written but **never deployed**, so there is no hosted
-URL yet. When there is one, change that constant — nothing else. Features talk to
-the transport abstraction, never to `URLSession` or a URL directly. Keep it that way.
+Firebase (`loom-clients`) **is deployed and answering**:
 
-Because there is no reachable backend, **the offline/error state is the first screen
-a user reaches.** It is the app's front door, not a fallback — give it that weight.
+```
+https://europe-west1-loom-clients.cloudfunctions.net/api
+```
+
+Change that one constant to point at it — nothing else. Features talk to the
+transport abstraction, never to `URLSession` or a URL directly. Keep it that way.
+
+**Do not switch the constant until Firestore actually holds data.** `SeedData`
+only fires on a *connectivity* failure, so an empty-but-healthy backend answers
+`200 []` and the app renders blank screens instead of falling back to its seed
+month. Empty data is worse than no backend here. Seed first, switch second.
 
 ## The privacy rule
 

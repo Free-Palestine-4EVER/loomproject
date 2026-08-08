@@ -128,7 +128,15 @@ export async function requestCode(handle, { store = realStore } = {}) {
   if (client) {
     // Invalidate any still-active codes for this handle first, so requesting
     // twice can't leave two valid codes racing each other.
-    const active = await store.list('clientauthcodes', (r) => r.handle === normalized && !r.consumedAt && r.expiresAt > nowIso())
+    //
+    // `permanent` codes are EXEMPT, and that exemption is load-bearing. The app's
+    // sign-in flow always calls requestCode before verifyCode, so without this a
+    // demo/pitch code was consumed by the very first request and could never be
+    // used again — verifyCode's `permanent` check (below) never got the chance to
+    // run, because the code was already filtered out as consumed. That destroyed
+    // the App Store review account on the reviewer's first tap, which is exactly
+    // the guideline 2.1 rejection the flag exists to prevent. Proven, then fixed.
+    const active = await store.list('clientauthcodes', (r) => r.handle === normalized && !r.consumedAt && !r.permanent && r.expiresAt > nowIso())
     for (const r of active) await store.update('clientauthcodes', r.id, { consumedAt: nowIso() })
 
     const createdAt = nowIso()

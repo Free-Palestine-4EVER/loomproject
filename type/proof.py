@@ -16,7 +16,11 @@ from floral import decorate
 
 SCALE = 0.46          # units -> px
 PAD = 40
-CUTS = [('floral', 'ROSE'), ('daisy', 'DAISY'), ('tulip', 'TULIP'), ('ivy', 'IVY')]
+import os
+CUTS = [('bloom', 'BLOOM'), ('hollow', 'HOLLOW'), ('grow', 'GROW')]
+if os.environ.get('CUTS'):
+    _lbl = {'floral': 'ROSE'}
+    CUTS = [(c, _lbl.get(c, c.upper())) for c in os.environ['CUTS'].split(',')]
 
 def draw_path(dr, path, ox, oy, H):
     """Fill a skia path with the nonzero rule, by handing PIL each contour and
@@ -119,7 +123,7 @@ def main():
             if p is not None:
                 draw_path(dr, p, ox, oy, H)
             ox += adv * SCALE
-    out = 'out/PROOF.png'
+    out = os.environ.get('PROOF_OUT', 'out/PROOF.png')
     im.save(out)
     print('->', out, im.size)
 

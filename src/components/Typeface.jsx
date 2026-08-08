@@ -9,16 +9,24 @@ import { PosterMachine } from './PosterMachine.jsx'
 import './typeface.css'
 
 const DIR = '/fonts/loom-bloom'
-const ZIP_SIZE = '3.2 MB'
+const ZIP_SIZE = '7.0 MB'
 
-// One plain cut and four planted ones. Every cut shares the Regular's metrics
-// exactly, so a line of text lines up character for character across all five.
+// One plain cut and seven planted ones, in two families: Rose/Daisy/Tulip/Ivy
+// each carry a different SPECIES, and Wild/Hollow/Meadow each carry a different
+// TREATMENT of the letter. Every cut shares the Regular's metrics exactly, so a
+// line of text lines up character for character across all eight.
 const CUTS = [
   { id: 'regular', label: 'Regular', family: 'LOOM Bloom', ps: 'LOOMBloom', species: 'no ornament — the face itself' },
   { id: 'rose', label: 'Rose', family: 'LOOM Bloom Rose', ps: 'LOOMBloomRose', species: 'a millefleur of spiral roses, leaves and five-dot blossoms' },
   { id: 'daisy', label: 'Daisy', family: 'LOOM Bloom Daisy', ps: 'LOOMBloomDaisy', species: 'packed open daisies, big enough to overhang the letter' },
   { id: 'tulip', label: 'Tulip', family: 'LOOM Bloom Tulip', ps: 'LOOMBloomTulip', species: 'three-lobed tulip cups on a stub of stem, leaves between' },
   { id: 'ivy', label: 'Ivy', family: 'LOOM Bloom Ivy', ps: 'LOOMBloomIvy', species: 'a Morris vine — scrolling stems, leaves, no bloom' },
+  // The second family. These three carry the same six species as each other —
+  // sakura, poppy, sunflower, forget-me-not, anemone, hibiscus — and differ in
+  // how the cut treats the LETTER, not in how busy it is. See type/font.md.
+  { id: 'wild', label: 'Wild', family: 'LOOM Bloom Wild', ps: 'LOOMBloomWild', species: 'six species, full size, blooms overhanging the letter' },
+  { id: 'hollow', label: 'Hollow', family: 'LOOM Bloom Hollow', ps: 'LOOMBloomHollow', species: 'the letter as an outline, the garden filling the inside' },
+  { id: 'meadow', label: 'Meadow', family: 'LOOM Bloom Meadow', ps: 'LOOMBloomMeadow', species: 'flowers rising from the baseline to a wavy line' },
 ]
 
 const SIZES = {
@@ -27,6 +35,9 @@ const SIZES = {
   LOOMBloomDaisy: ['365 KB', '347 KB', '108 KB'],
   LOOMBloomTulip: ['375 KB', '359 KB', '117 KB'],
   LOOMBloomIvy: ['765 KB', '745 KB', '246 KB'],
+  LOOMBloomWild: ['871 KB', '832 KB', '213 KB'],
+  LOOMBloomHollow: ['1.11 MB', '1.05 MB', '280 KB'],
+  LOOMBloomMeadow: ['1.17 MB', '1.11 MB', '337 KB'],
 }
 
 const FORMATS = [
@@ -98,7 +109,7 @@ const ANATOMY = [
 ]
 
 const FACTS = [
-  ['5', 'cuts — one plain, four planted'],
+  ['8', 'cuts — one plain, seven planted'],
   ['98', 'glyphs per cut'],
   ['161', 'characters mapped'],
   ['31', 'accented letters — Č Ć Ž Š Đ included'],
@@ -157,7 +168,7 @@ export function Typeface() {
         <motion.div className="tf-hero-inner" style={{ y: heroY, opacity: heroFade }}>
           <div className="tf-hero-meta">
             <span className="tf-tag">The LOOM typeface</span>
-            <span>v1.100</span>
+            <span>v1.200</span>
             <span>Free — personal &amp; commercial</span>
           </div>
           <h1 className="tf-hero-word">
@@ -275,7 +286,7 @@ export function Typeface() {
       {/* ——————————————————————————— the four planted cuts */}
       <section className="tf-poster">
         <div className="tf-poster-inner">
-          <Reveal><p className="tf-tag tf-tag--light">Four gardens, one skeleton</p></Reveal>
+          <Reveal><p className="tf-tag tf-tag--light">Seven gardens, one skeleton</p></Reveal>
           <Reveal delay={0.05}>
             <p className="tf-poster-copy tf-poster-copy--lead">
               What gets subtracted from the letter is the flower's <em>outline</em>,
@@ -283,7 +294,8 @@ export function Typeface() {
               keeps most of its ink. A band of solid ink round the silhouette is
               left uncut, which is what holds the shape together at any size. Every
               planted cut keeps the Regular's metrics exactly, so the same line sets
-              identically in all five.
+              identically in all eight — and the last three change how the letter
+              itself is treated, not just how busy it is.
             </p>
           </Reveal>
           <div className="tf-species">

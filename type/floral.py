@@ -35,7 +35,34 @@ SPILL_CAP = {'daisy': 70.0, 'tulip': 0.0, 'floral': 0.0, 'ivy': 0.0}
 # The two spilling cuts carry a thinner rim, because a bloom that overhangs the
 # edge has to be allowed to break it here and there or the overhang reads as a
 # sticker sitting on top of the letter rather than growing out of it.
-RIM = {'floral': 26.0, 'ivy': 24.0, 'daisy': 15.0, 'tulip': 26.0}
+RIM = {'floral': 26.0, 'ivy': 24.0, 'daisy': 15.0, 'tulip': 26.0,
+       'bloom': 20.0, 'hollow': 0.0, 'grow': 18.0}
+
+SPILL_CAP.update({'bloom': 56.0, 'hollow': 0.0, 'grow': 0.0})
+
+# HOW each cut treats the letter. This is what makes the four new cuts four
+# different styles rather than four densities of one idea — 'field' alone can
+# only ever vary how busy a letter is.
+#
+#   field    solid letter, garden cut into it, solid rim round the silhouette.
+#            The four original cuts, and WILD.
+#   hollow   the letter is reduced to an OUTLINE and the garden fills the space
+#            inside it — the letter reads as a container, not a shape.
+#   grow     the garden fills the letter from the baseline up to a wavy line
+#            partway up, and the letter is solid above it — flowers growing up
+#            the letters rather than covering them.
+#
+# An 'inline' mode was tried and cut: a band narrow enough to leave a solid core
+# inside a 178-unit stem is ~44 units, and no flower survives being sliced to 44
+# units. It read as distressed texture, not as flowers. The lesson is that a
+# style only works if its region is big enough to hold a WHOLE bloom.
+MODE = {'hollow': 'hollow', 'grow': 'grow'}
+
+# hollow: how thick the letter's own outline is left
+HOLLOW_W = 40.0
+# grow: how far up the letter the garden reaches, and how much the boundary
+# waves. A ruler-straight cut reads as a mistake; the wave reads as planting.
+GROW_UP, GROW_WAVE = 0.56, 52.0
 
 
 def _offset(name, fam):
@@ -64,6 +91,29 @@ def decorate(name, path, advance=None, body=None, fam='floral'):
             if x0 <= cx <= x1 and y0 <= cy <= y1 and g.contains((cx, cy)):
                 spills.append(ink)
 
+    mode = MODE.get(fam, 'field')
+
+    if mode == 'hollow':
+        # The letter becomes its own outline, and the garden fills the space it
+        # encloses. The band is cut from the SOLID letter rather than stroked
+        # round it, so the outer silhouette is still exactly the approved one.
+        inner = _core(g, HOLLOW_W)
+        out = DIFF(g, inner)
+        if lines:
+            out = U(out, ISECT(lines, _core(inner, 16.0)))
+        return xform(out, dx=dx, dy=dy)
+
+    if mode == 'grow':
+        # The garden rises from the baseline to a wavy line partway up; above it
+        # the letter is untouched. The wave is seeded off the glyph so no two
+        # letters break at the same height.
+        out = g
+        if lines:
+            top = y0 + (y1 - y0) * GROW_UP
+            band = _wave(x0 - 80, y0 - 90, x1 + 80, top, GROW_WAVE, dx + dy)
+            out = DIFF(out, ISECT(ISECT(lines, band), _core(g, 18.0)))
+        return xform(out, dx=dx, dy=dy)
+
     out = g
     if spills:
         # clip the spill to a halo so a bloom on the rim of O cannot wander into
@@ -73,6 +123,20 @@ def decorate(name, path, advance=None, body=None, fam='floral'):
         # and clip the line-work to the ERODED letter, so the rim survives
         out = DIFF(out, ISECT(lines, _core(out, RIM.get(fam, 20.0))))
     return xform(out, dx=dx, dy=dy)
+
+
+def _wave(x0, y0, x1, top, amp, seed):
+    """A rectangle whose TOP edge is a sine wave — the planting line for `grow`."""
+    pts = [(x0, y0)]
+    n = 48
+    ph = (seed % 360) * math.pi / 180.0
+    for i in range(n + 1):
+        t = i / n
+        x = x0 + (x1 - x0) * t
+        pts.append((x, top + amp * math.sin(ph + t * 5.4) + amp * 0.45 * math.sin(ph * 1.7 + t * 11.0)))
+    pts.append((x1, y0))
+    from geom import poly
+    return poly(pts)
 
 
 def _tiles_over(f, x0, y0, x1, y1):

@@ -309,6 +309,155 @@ def _sprig(rng, R=1.0):
     return ink, line
 
 
+
+
+# ————————————————————————————————————————————————————————— the approved six
+# Sakura, Poppy, Sunflower, Forget-me-not, Anemone and Hibiscus were drawn in
+# newflowers.py, shown as a contact sheet and signed off one by one before any
+# of them was allowed near a font. The rejected candidates stay in that file.
+
+
+def outline_stacked(parts, w):
+    """Outline overlapping petals WITH OCCLUSION — each petal hidden by the ones
+    lying over it.
+
+    `outline_each` (garden.py) draws every petal's whole contour, which is right
+    when petals barely touch and catastrophic when they overlap a lot: you see
+    every arc that should be behind another petal, and a five-petal bloom comes
+    out as a tangle of crossing loops. Here each petal's outline is cut back by
+    the union of the petals drawn after it, so the flower has a front and a back
+    the way a drawn flower does.
+    """
+    out = []
+    for i, p in enumerate(parts):
+        ring = stroke_of(p, w)
+        if i + 1 < len(parts):
+            ring = DIFF(ring, U(*parts[i + 1:]))
+        out.append(ring)
+    # plus the silhouette, so the bloom always has a closed outer edge
+    return U(*out, stroke_of(U(*parts), w))
+
+
+def sakura(rng, size=190):
+    """Cherry blossom — five CLEFT petals and a burst of stamens."""
+    R = size / 2
+    L, W = R * 0.92, R * 0.62
+    pet = lobe(L, W, tipw=0.52, shoulder=0.66)
+    pet = DIFF(pet, circle(0, L * 1.03, W * 0.34))      # the cleft tip
+    parts = radial_parts(pet, 5, r0=R * 0.16, phase=rng.uniform(0, 72))
+    lw = max(7.0, R * 0.10)
+    return U(*parts), U(outline_stacked(parts, lw),
+                       _stamens(9, R * 0.36, lw * 0.62, phase=rng.uniform(0, 40)),
+                       circle(0, 0, R * 0.10))
+
+
+def poppy(rng, size=200):
+    """Crumpled petals round a heavy seed head.
+
+    Four petals with flat tops tiled into a literal square, so it is five now
+    with rounded tips — the tip width is what decides whether a radial bloom
+    reads as a flower or as a polygon.
+    """
+    R = size / 2
+    pet = lobe(R * 0.94, R * 0.64, tipw=0.50, shoulder=0.72, belly=1.12)
+    parts = radial_parts(pet, 5, r0=R * 0.13, phase=rng.uniform(0, 72))
+    lw = max(8.0, R * 0.11)
+    creases = [stroke_of(curve([(0, 0), _polar(a, R * 0.72)]), lw * 0.55)
+               for a in (28, 118, 208, 298)]
+    return U(*parts), U(outline_stacked(parts, lw),
+                       stroke_of(ellipse(0, 0, R * 0.26, R * 0.22), lw),
+                       _stamens(14, R * 0.40, lw * 0.5), *creases)
+
+
+def sunflower(rng, size=230):
+    """Many narrow rays round a big seeded disc."""
+    R = size / 2
+    n = rng.choice([16, 18, 20])
+    pet = lobe(R * 0.60, R * 0.155, tipw=0.34, shoulder=0.58)
+    parts = radial_parts(pet, n, r0=R * 0.40, phase=rng.uniform(0, 360))
+    lw = max(6.0, R * 0.075)
+    seeds = [circle(*_polar(a * 137.5, R * 0.36 * math.sqrt(a / 26.0)), R * 0.045)
+             for a in range(1, 27)]           # a real phyllotaxis spiral
+    return U(*parts, circle(0, 0, R * 0.42)), U(outline_each(parts, lw),
+                       stroke_of(circle(0, 0, R * 0.40), lw * 1.1), *seeds)
+
+
+def forgetmenot(rng, size=175):
+    """A CLUSTER of tiny five-petal blooms — reads as a spray, not one flower."""
+    R = size / 2
+    lw = max(5.0, R * 0.075)
+    out, body = [], []
+    for cx, cy, s in [(0, 0, 1.0), (0.62, 0.34, 0.74), (-0.56, 0.42, 0.68),
+                      (-0.30, -0.60, 0.72), (0.44, -0.56, 0.62)]:
+        r = R * 0.32 * s
+        pet = circle(0, 0, r * 0.62)
+        parts = [xform(p, dx=cx * R, dy=cy * R)
+                 for p in radial_parts(pet, 5, r0=r * 0.78, phase=rng.uniform(0, 72))]
+        out.append(outline_each(parts, lw))
+        out.append(circle(cx * R, cy * R, r * 0.24))
+        body.extend(parts)
+    return U(*body), U(*out)
+
+
+def anemone(rng, size=195):
+    """Broad petals round a very dark, very dense eye."""
+    R = size / 2
+    n = rng.choice([7, 8])
+    pet = lobe(R * 0.84, R * 0.44, tipw=0.62, shoulder=0.68)
+    parts = radial_parts(pet, n, r0=R * 0.22, phase=rng.uniform(0, 360))
+    lw = max(7.0, R * 0.095)
+    eye = [circle(*_polar(rng.uniform(0, 360), R * rng.uniform(0.04, 0.19)), R * 0.048)
+           for _ in range(16)]
+    return U(*parts), U(outline_stacked(parts, lw),
+                       stroke_of(circle(0, 0, R * 0.24), lw * 1.15), *eye)
+
+
+def hibiscus(rng, size=205):
+    """Five overlapping petals with a long protruding style."""
+    R = size / 2
+    pet = lobe(R * 0.92, R * 0.66, tipw=0.78, shoulder=0.74)
+    parts = radial_parts(pet, 5, r0=R * 0.12, phase=rng.uniform(0, 72))
+    lw = max(8.0, R * 0.10)
+    style_dir = rng.uniform(0, 360)
+    tip = _polar(style_dir, R * 0.98)
+    style = U(stroke_of(curve([(0, 0), tip]), lw * 0.7),
+              *[circle(*_polar(style_dir + d, R * 0.92), lw * 0.85) for d in (-9, 0, 9)])
+    veins = [stroke_of(curve([(0, 0), _polar(style_dir + 72 * k + 36, R * 0.66)]), lw * 0.45)
+             for k in range(5)]
+    return U(*parts), U(outline_stacked(parts, lw), style, *veins,
+                       stroke_of(circle(0, 0, R * 0.16), lw * 0.8))
+
+
+def _stamens(n, r, lw, spread=360.0, phase=0.0, tip=True):
+    """The little filaments in the middle of an open flower. What stops a
+    five-petal bloom reading as a cartoon star."""
+    parts = []
+    for i in range(n):
+        a = phase + spread * i / max(1, n - 1 if spread < 360 else n)
+        p1 = _polar(a, r)
+        parts.append(stroke_of(curve([(0, 0), p1]), lw))
+        if tip:
+            parts.append(circle(p1[0], p1[1], lw * 0.95))
+    return U(*parts)
+
+
+def _ruffle(R, n, depth, lw, phase=0.0):
+    """A scalloped rim — the edge a carnation, a peony or a marigold has and a
+    daisy does not."""
+    pts = []
+    steps = n * 8
+    for i in range(steps + 1):
+        t = i / steps
+        a = phase + 360 * t
+        rr = R * (1.0 + depth * math.sin(math.radians(a * n)))
+        pts.append(_polar(a, rr))
+    return stroke_of(curve(pts), lw)
+
+
+# ————————————————————————————————————————————————————————— the candidates
+# Each returns the line-work, centred on the origin, roughly `size` across.
+
+
 # ————————————————————————————————————————————————————————— the fields
 # Each entry: (motif callables with weights, grid pitch, spill?)
 
@@ -360,32 +509,84 @@ def _mix(rng, specs):
     return inks, lines, centres
 
 
+
+def _sized(fn, base):
+    """Adapt an approved species to the field's calling convention.
+
+    The species take a SIZE in units (they were drawn to be judged one at a
+    time); the field hands every motif a SCALE. This closes that gap in one
+    place instead of rewriting six drawings.
+    """
+    def motif(rng, R=1.0):
+        return fn(rng, size=base * R)
+    motif.__name__ = fn.__name__
+    return motif
+
+
+sakura_m = _sized(sakura, 190)
+poppy_m = _sized(poppy, 200)
+sunflower_m = _sized(sunflower, 230)
+forgetmenot_m = _sized(forgetmenot, 175)
+anemone_m = _sized(anemone, 195)
+hibiscus_m = _sized(hibiscus, 205)
+
+
+# ————————————————————————————————————————————————————————— the cuts
+# Four NEW cuts drawn from the six approved species, and they are four different
+# TREATMENTS, not four densities of the same idea — floral.py gives each one a
+# different relationship to the letter itself (see MODE there).
+#
+#   BLOOM    loud. every species, big, packed, spilling past the silhouette.
+#   WHISPER  quiet. one small flower here and there on an almost solid letter.
+#   HOLLOW   the letter becomes an OUTLINE and the garden fills the inside of it.
+#   INLINE   a solid letter with a single floral band tracing just inside its edge.
+
+SPECS = {
+    # (motif, pitch, jitter, scale range).  Smaller pitch = denser.
+    'bloom': [(sunflower_m, 560, 0.28, (0.78, 1.00)),
+              (poppy_m, 540, 0.30, (0.72, 0.95)),
+              (anemone_m, 560, 0.30, (0.68, 0.90)),
+              (hibiscus_m, 600, 0.30, (0.68, 0.88)),
+              (sakura_m, 470, 0.34, (0.52, 0.74)),
+              (forgetmenot_m, 430, 0.38, (0.45, 0.68))],
+
+
+    'hollow': [(anemone_m, 300, 0.30, (0.72, 0.95)),
+               (sakura_m, 265, 0.32, (0.55, 0.80)),
+               (forgetmenot_m, 245, 0.38, (0.50, 0.75)),
+               (_leaf, 260, 0.38, (0.55, 0.85))],
+
+    # GROW fills the bottom of the letter, so it has room for whole blooms.
+    'grow': [(poppy_m, 300, 0.30, (0.72, 0.95)),
+             (sunflower_m, 340, 0.28, (0.68, 0.90)),
+             (sakura_m, 250, 0.32, (0.52, 0.76)),
+             (forgetmenot_m, 225, 0.36, (0.45, 0.68)),
+             (_leaf, 235, 0.38, (0.55, 0.85))],
+
+    # the four originals stay exactly as signed off
+    'floral': [(_rosehead, 260, 0.32, (0.95, 1.30)),
+               (_leaf, 190, 0.36, (0.70, 1.05)),
+               (_fivedot, 165, 0.40, (0.75, 1.30))],
+    'daisy': [(_daisy, 380, 0.30, (1.05, 1.35))],
+    'tulip': [(_tulipcup, 165, 0.26, (0.95, 1.18)),
+              (_leaf, 215, 0.40, (0.45, 0.72))],
+    'ivy': [(_sprig, 330, 0.28, (0.80, 1.15)),
+            (_leaf, 175, 0.38, (0.65, 1.05)),
+            (_fivedot, 210, 0.42, (0.60, 1.00))],
+}
+
+SPILL = {'bloom': True, 'hollow': False, 'grow': False,
+         'floral': False, 'daisy': True, 'tulip': True, 'ivy': False}
+
+SEED = {'bloom': 71, 'hollow': 97, 'grow': 103,
+        'floral': 23, 'daisy': 11, 'tulip': 37, 'ivy': 53}
+
+
 def _build_field(fam):
-    rng = random.Random({'daisy': 11, 'floral': 23, 'tulip': 37, 'ivy': 53}[fam])
-    if fam == 'daisy':
-        # a single layer of big daisies, spaced enough to keep the letter black
-        specs = [(_daisy, 380, 0.26, (1.00, 1.30))]
-        spill = True
-    elif fam == 'floral':
-        # millefleur: roses, leaves and tiny five-dot fillers, fine and dense
-        specs = [(_rosehead, 260, 0.32, (0.95, 1.30)),
-                 (_leaf, 190, 0.36, (0.70, 1.05)),
-                 (_fivedot, 165, 0.40, (0.75, 1.30))]
-        spill = False
-    elif fam == 'tulip':
-        # compact tulip HEADS, packed tight enough that letters actually
-        # carry them (density benchmarked against daisy/ivy), plus a smaller
-        # leaf layer as filler between the cups — same recipe rows 2 and 4 use
-        specs = [(_tulipcup, 165, 0.26, (0.95, 1.18)),
-                 (_leaf, 215, 0.40, (0.45, 0.72))]
-        spill = True
-    else:  # ivy — a Morris vine damask, edge to edge, no spill
-        specs = [(_sprig, 330, 0.28, (0.80, 1.15)),
-                 (_leaf, 175, 0.38, (0.65, 1.05)),
-                 (_fivedot, 210, 0.42, (0.60, 1.00))]
-        spill = False
+    rng = random.Random(SEED[fam])
+    specs = SPECS[fam]
     inks, lines, centres = _mix(rng, specs)
-    return {'ink': inks, 'line': lines, 'centre': centres, 'spill': spill}
+    return {'ink': inks, 'line': lines, 'centre': centres, 'spill': SPILL[fam]}
 
 
 _FIELDS = {}

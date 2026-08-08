@@ -189,3 +189,45 @@ honestly and the seam between them is where the bugs live.** Audit seams, not pi
 
 To install: plug the phone in, unlock it, run `ios/loom-client/install-on-phone.sh`.
 No Apple password needed — signing already succeeded.
+
+---
+
+## Addendum — the evening of 8 August 2026
+
+Three of the "not verified" items above are now settled, and one new bug was
+found that would have cost an App Store submission.
+
+**The app runs.** Phone attached (`tunnelState: connected`, developer mode on,
+iOS 26.4), disk at 10 GB free. Built, signed, installed, launched: **PID 1987,
+no crash report.** The claim "it has never run" is retired.
+
+**Still unseen.** No screenshots exist and none can be taken here — re-checked,
+`devicectl` genuinely has no screenshot verb. Judging how it *looks* still needs
+a human holding the phone. Nothing about the visual design is proven.
+
+**Firebase was already deployed** — `HISTORY.md` above predates it, and the
+backend README is the accurate record. `https://europe-west1-loom-clients.cloudfunctions.net/api`
+answers `/health` 200, makes an unknown handle indistinguishable from a known
+one, and 401s an unauthenticated `/months`.
+
+**The permanent-code bug.** `requestCode()` invalidated every active code for a
+handle without exempting `permanent` ones. Since the app always requests before
+verifying, the App Store demo account consumed itself on the reviewer's first
+tap and could never be recovered — the exact guideline 2.1 rejection the flag
+was built to prevent. Reproduced, fixed, and pinned by four new assertions
+including a negative control. Suite went **66 → 70 passed, 0 failed**, and the
+fix is deployed.
+
+It is the same shape as every other trap on this project: `verifyCode`'s author
+knew about `permanent`, `requestCode`'s author did not. **Audit the seams.**
+
+**Two latent tooling bugs** fixed on the way: `sync-to-firestore.mjs` could
+never have run as documented (`firebase-admin` resolves from `functions/`, not
+the repo root — now symlinked), and Cloud Functions had no artifact cleanup
+policy, so container images would have accrued a slow bill.
+
+**Still open:** Firestore holds no data until `seed-evora.mjs` runs, which needs
+a service-account key; the app therefore still points at `localhost:4950` and
+renders its compiled-in seed month. And `firestore-store.mjs` — the one piece of
+new code in the privacy path — has still never been tested against the real
+adapter.

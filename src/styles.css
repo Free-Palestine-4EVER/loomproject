@@ -56,6 +56,27 @@
   font-weight: 400;
   font-display: swap;
 }
+/* The second family. Same six species throughout; what differs is how each cut
+   treats the LETTER — see type/font.md. All share the Regular's metrics, so any
+   of them can be swapped for any other mid-word without reflowing. */
+@font-face {
+  font-family: 'LOOM Bloom Wild';
+  src: url('/fonts/loom-bloom/LOOMBloomWild-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Hollow';
+  src: url('/fonts/loom-bloom/LOOMBloomHollow-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Meadow';
+  src: url('/fonts/loom-bloom/LOOMBloomMeadow-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
 
 :root {
   --bg: #0d0716;

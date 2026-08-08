@@ -157,6 +157,57 @@ Three things stand between this and a live URL, all requiring a human:
    truth; it needs a sync path that pushes `clients`, `posts`, `invoices`,
    `conversations` and `settings` up. That is not written yet — see below.
 
+## The permanent-code bug — found and fixed 8 Aug 2026 (evening)
+
+`requestCode()` invalidated **every** still-active code for a handle before
+issuing a new one, so that requesting twice could not leave two valid codes
+racing. It did not exempt `permanent` codes.
+
+The app's sign-in flow *always* calls `requestCode` before `verifyCode`. So the
+first tap consumed the permanent code, `verifyCode`'s candidate filter
+(`!r.consumedAt`) then excluded it, and its careful `if (!match.permanent)`
+skip-the-consume logic never got to run. **The App Store demo account destroyed
+itself on the reviewer's first tap, unrecoverably** — precisely the guideline
+2.1 rejection the flag exists to prevent.
+
+Reproduced first (verify-without-request succeeded, request-then-verify failed,
+and a second round stayed failed), then fixed by exempting `permanent` from the
+invalidation sweep. `clientapi-selftest.mjs` section 9 now pins it with four
+assertions, including a **negative control** proving an ordinary code is still
+invalidated by a new request — otherwise the fix could quietly have disabled the
+anti-racing rule it sits inside. Suite is **70 passed, 0 failed**.
+
+Same shape as the traps in `HISTORY.md`: two authors, one seam. Whoever wrote
+`verifyCode` knew about `permanent`; whoever wrote `requestCode` did not.
+
+## Running the root scripts — read before you debug an import error
+
+`sync-to-firestore.mjs` and `seed-evora.mjs` live at this directory's root but
+`firebase-admin` is installed under `functions/node_modules`. ESM resolves from
+the *file's* location, not the working directory, so both scripts died with
+`ERR_MODULE_NOT_FOUND: Cannot find package 'firebase-admin'`. There is now a
+`node_modules -> functions/node_modules` symlink here that fixes both. It is a
+local dev convenience only — `firebase deploy` bundles `functions/` and never
+looks at it.
+
+## seed-evora.mjs — the pitch client
+
+Publishes **Evora Future Home** (a real client) as the hosted demo, rather than
+an invented business. Every fact is read from Evora's own brand constants; no
+product price is stated anywhere, matching Evora's own site; and the five
+photographs it uploads were each opened and **looked at** before being listed,
+because one of Evora's client renders hides a wine column and the filename is
+not evidence. Arabic captions are written natively, not translated.
+
+```bash
+node seed-evora.mjs --dry-run     # validates images resolve, writes nothing
+node seed-evora.mjs               # uploads to Storage + writes Firestore
+```
+
+Sign-in is `evorafuturehome` / `424242`, a `permanent` code. That is a **pitch
+credential, not production auth** — swap it for the normal operator-issued flow
+before Evora is a paying client.
+
 ## Not done yet
 
 - **The engine → Firestore sync.** Without it the hosted API returns empty
@@ -168,4 +219,8 @@ Three things stand between this and a live URL, all requiring a human:
   pointed at the emulator before anyone trusts it.
 - **Token cleanup.** `clienttokens` and `clientauthattempts` grow forever. They
   want a TTL policy too, or a scheduled function.
-- Nothing here has ever executed. Syntax-checked is not tested.
+- ~~Nothing here has ever executed.~~ The deployed API has now been exercised
+  live: `/health` 200, an unknown handle returning the same body as a known one,
+  and an unauthenticated `/months` 401. The **adapter** (`firestore-store.mjs`)
+  is still the untested piece — the privacy logic above it is proven, but only
+  against the in-memory store.

@@ -40,9 +40,17 @@ CUTS = [
     ('daisy', 'LOOM Bloom Daisy', 'LOOMBloomDaisy-Regular'),
     ('tulip', 'LOOM Bloom Tulip', 'LOOMBloomTulip-Regular'),
     ('ivy', 'LOOM Bloom Ivy', 'LOOMBloomIvy-Regular'),
+    # the second family: same six approved species, four different TREATMENTS of
+    # the letter (see floral.MODE) rather than four densities of one idea
+    ('bloom', 'LOOM Bloom Wild', 'LOOMBloomWild-Regular'),
+    ('hollow', 'LOOM Bloom Hollow', 'LOOMBloomHollow-Regular'),
+    ('grow', 'LOOM Bloom Meadow', 'LOOMBloomMeadow-Regular'),
 ]
 
 SPECIES = {
+    'bloom': 'every species, packed, spilling past the letter',
+    'hollow': 'the letter as an outline, the garden inside it',
+    'grow': 'flowers rising from the baseline to a wavy line',
     'floral': 'line-drawn roses and anemones',
     'daisy': 'flat open blossoms',
     'tulip': 'tulip cups, buds and berry sprigs',

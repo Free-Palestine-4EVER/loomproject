@@ -431,6 +431,54 @@ async function main() {
   assert(emptyRequest.ok === false && emptyRequest.status === 400, 'createRequest rejects blank text')
 
   // =======================================================================
+  section('9. a permanent code survives requestCode() — App Store review path')
+  // =======================================================================
+  // The app ALWAYS calls requestCode before verifyCode, so this is the only
+  // order a real sign-in ever happens in. requestCode used to invalidate every
+  // active code for the handle, permanent ones included, which consumed the
+  // demo code on the reviewer's first tap and locked the account forever —
+  // guideline 2.1, the exact rejection the `permanent` flag exists to avoid.
+  // These assertions are the reason it cannot silently come back.
+
+  const permClient = await store.insert('clients', {
+    name: 'Permanent Code Co', nameAr: 'شركة الرمز الدائم', handle: 'permco',
+    category: 'furniture', city: 'Amman', plan: { content: true, ads: true }, archivedAt: null,
+  })
+  const PERM_CODE = '424242'
+  await store.insert('clientauthcodes', {
+    handle: 'permco', clientId: permClient.id, codeHash: crypto.createHash('sha256').update(PERM_CODE).digest('hex'),
+    createdAt: new Date().toISOString(), expiresAt: '2099-12-31T23:59:59.000Z',
+    consumedAt: null, permanent: true,
+  })
+
+  await requestCode('permco', { store })
+  const permAfterRequest = await verifyCode('permco', PERM_CODE, { store })
+  assert(permAfterRequest.ok === true, 'a permanent code still verifies AFTER requestCode() (the real sign-in order)')
+
+  await requestCode('permco', { store })
+  const permSecondRound = await verifyCode('permco', PERM_CODE, { store })
+  assert(permSecondRound.ok === true, 'and again on a second request/verify round — it is genuinely reusable')
+
+  const permRecord = (await store.list('clientauthcodes', (r) => r.handle === 'permco' && r.permanent))[0]
+  assert(permRecord && permRecord.consumedAt === null, 'requestCode() never stamps consumedAt on a permanent code')
+
+  // negative control: an ORDINARY code must still be invalidated by a new
+  // request, or this fix would have quietly disabled the anti-racing rule.
+  const ordClient = await store.insert('clients', {
+    name: 'Ordinary Code Co', nameAr: 'شركة الرمز العادي', handle: 'ordco',
+    category: 'furniture', city: 'Amman', plan: { content: true, ads: true }, archivedAt: null,
+  })
+  const ORD_CODE = '111111'
+  await store.insert('clientauthcodes', {
+    handle: 'ordco', clientId: ordClient.id, codeHash: crypto.createHash('sha256').update(ORD_CODE).digest('hex'),
+    createdAt: new Date().toISOString(), expiresAt: '2099-12-31T23:59:59.000Z',
+    consumedAt: null, permanent: false,
+  })
+  await requestCode('ordco', { store })
+  const ordAfterRequest = await verifyCode('ordco', ORD_CODE, { store })
+  assert(ordAfterRequest.ok === false, 'sanity check: a NON-permanent code is still invalidated by a new request')
+
+  // =======================================================================
   section('SUMMARY')
   // =======================================================================
   console.log(`\n  ${pass} passed, ${fail} failed`)
