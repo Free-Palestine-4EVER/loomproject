@@ -359,7 +359,7 @@ async function createClient(req, res, body) {
     plan: { content: !!body.plan?.content, ads: !!body.plan?.ads },
     price: {
       contentJod: body.price?.contentJod ?? DEFAULT_PRICING.CONTENT_PRICE_JOD,
-      perConversationJod: body.price?.perConversationJod ?? DEFAULT_PRICING.PER_CONVERSATION_JOD,
+
     },
     createdAt: nowIso(),
     archivedAt: null,

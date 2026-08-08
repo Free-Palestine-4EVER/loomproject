@@ -16,3 +16,6 @@ type/out/*.png
 
 # the garden field cache — 21 MB of regenerable boolean-op output
 type/out/fields/
+
+# local dev convenience: symlink to functions/node_modules
+clients-backend/node_modules

@@ -11,17 +11,17 @@
 export const THE_MACHINE = {
   nameEn: 'The Machine',
   nameAr: 'المصنع',
-  h2: 'Twenty posts. Four reels. No agency retainer.',
+  h2: 'Twenty photos. Two videos. No agency retainer.',
   ledeEn: 'LOOM built a machine that writes, designs and schedules a month of content — in Arabic and English — while one editor checks every piece before it ships. What an agency staffs a team to do, the machine does alone, for a fraction of the retainer.',
   bullets: [
-    { en: '20 posts a month', ar: '٢٠ منشورًا في الشهر' },
-    { en: '4 reels a month', ar: '٤ ريلز في الشهر' },
+    { en: '20 photos a month', ar: '٢٠ صورة في الشهر' },
+    { en: '2 videos a month', ar: 'فيديوهان في الشهر' },
     { en: 'Arabic and English, every piece', ar: 'بالعربية والإنجليزية لكل قطعة' },
     { en: 'A human checks every post before it ships', ar: 'إنسان يراجع كل منشور قبل نشره' },
   ],
   priceFromJod: 89,
   priceNote: 'Starting point — the exact quote depends on the brand.',
-  monthGrid: { posts: 20, reels: 4 },
+  monthGrid: { posts: 20, reels: 2 },
   ctaLabel: 'Put the machine on my brand',
   arabicPitch:
     'ما تدفعه الوكالة رواتبَ لفريقٍ كامل — كاتب، ومصمم، ومن يجدول المنشورات — تُنجزه آلة LOOM وحدها. عشرون منشورًا وأربعة ريلز كل شهر، بالعربية والإنجليزية معًا، يراجعها إنسان واحد قبل أن تُنشر. النتيجة سعر يبدأ من ربع سعر السوق تقريبًا، وجودة لا تقل عن وكالة كاملة الطاقم — غالبًا أعلى، لأن الآلة لا تنسى موعدًا ولا تأخذ إجازة.',

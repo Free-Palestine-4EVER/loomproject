@@ -99,8 +99,10 @@ export async function computeOps(month) {
   }
 
   // ——— total ——————————————————————————————————————————————————
-  const totalRevenueJod = contentRevenueJod + adsRevenueJod
-  const totalCostJod = generationCostJod + platformCostJod + qaCostJod + adSpendJod
+  const totalRevenueJod = contentRevenueJod
+  // BY RESULT retired 8 Aug 2026 — ad spend and ad revenue no longer exist, so
+  // the total IS the content business. See pricing.mjs for the reasoning.
+  const totalCostJod = generationCostJod + platformCostJod + qaCostJod
   const totalGrossJod = totalRevenueJod - totalCostJod
   const totalMarginPct = safeDiv(totalGrossJod, totalRevenueJod) * 100
 
@@ -123,16 +125,6 @@ export async function computeOps(month) {
       marginPct: round2(contentMarginPct),
       qaMinutesPerClient: round2(qaMinutesPerClient),
       breakEvenClients,
-    },
-    ads: {
-      clients: adsClients.length,
-      conversations: conversationsCount,
-      revenueJod: round2(adsRevenueJod),
-      adSpendJod: round2(adSpendJod),
-      grossJod: round2(adsGrossJod),
-      marginPct: round2(adsMarginPct),
-      cpcJod: round2(cpcJod),
-      cpcByCategory,
     },
     total: {
       revenueJod: round2(totalRevenueJod),

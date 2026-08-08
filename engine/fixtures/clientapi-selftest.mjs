@@ -172,7 +172,10 @@ async function main() {
     // sanity check below proves real coverage, not an accidental match.
     grossJod: 40, generationCostJod: 4.2,
   })
-  assert(storedInvoiceA.totalJod === 89 + 100 * 1.75, `real billing() invoice for A totals correctly (got ${storedInvoiceA.totalJod})`)
+  // BY RESULT retired 8 Aug 2026: an invoice is ONE flat content line now.
+  assert(storedInvoiceA.totalJod === 89, `real billing() invoice for A is the flat subscription only (got ${storedInvoiceA.totalJod})`)
+  assert(storedInvoiceA.lines.length === 1, `and it carries exactly one line (got ${storedInvoiceA.lines.length})`)
+  assert(!JSON.stringify(storedInvoiceA).toLowerCase().includes('conversation'), 'no invoice line mentions conversations any more')
 
   const requestA1 = await store.insert('clientrequests', { clientId: clientA.id, text: 'Can we push Friday post to Saturday?', at: '2026-08-03T10:00:00Z', from: 'client', status: 'open' })
   const requestB1 = await store.insert('clientrequests', { clientId: clientB.id, text: 'Need new product photos', at: '2026-08-04T10:00:00Z', from: 'client', status: 'open' })
@@ -361,10 +364,15 @@ async function main() {
 
   const perfA = await clientPerformance(clientA.id, '2026-08', { store, pricing: TEST_PRICING })
   const perfB = await clientPerformance(clientB.id, '2026-08', { store, pricing: TEST_PRICING })
-  assert(perfA.conversationsDelivered === 13, `performance(A) counts only A's 13 conversations (got ${perfA.conversationsDelivered})`)
-  assert(perfA.billedJod === 175, `performance(A).billedJod floors at the 100-conversation minimum (100 x 1.75 = 175, got ${perfA.billedJod})`)
-  assert(perfB.conversationsDelivered === 0, `performance(B) is 0 — B has plan.ads:false, so its 40 stray conversation records are ignored (got ${perfB.conversationsDelivered})`)
-  assert(perfB.billedJod === 0, `performance(B).billedJod is 0 when ads is off (got ${perfB.billedJod})`)
+  // performance() now reports DELIVERY, not conversations: what LOOM made this
+  // month and how much of it the client has signed off. No money at all — the
+  // invoice screen owns that, and repeating a figure here would only invite
+  // dividing the flat fee by the post count.
+  assert(perfA.photosDelivered + perfA.videosDelivered === 2, `performance(A) counts A's 2 non-draft posts as delivered (got ${perfA.photosDelivered}+${perfA.videosDelivered})`)
+  assert(perfA.photosPromised === 20 && perfA.videosPromised === 2, `performance(A) states the promise: 20 photos + 2 videos (got ${perfA.photosPromised}+${perfA.videosPromised})`)
+  assert(perfB.photosDelivered + perfB.videosDelivered === 1, `performance(B) is scoped to B's own posts (got ${perfB.photosDelivered}+${perfB.videosDelivered})`)
+  assert(perfA.billedJod === undefined && perfA.conversationsDelivered === undefined, 'performance() carries no money and no conversation count at all')
+  assert(perfB.conversationsDelivered === undefined, 'and B\'s 40 stray conversation records cannot surface through it either')
 
   // =======================================================================
   section('6. privacy — recursive forbidden-key scan of every client payload')

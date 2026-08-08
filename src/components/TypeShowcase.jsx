@@ -25,13 +25,23 @@ const WORD = 'BLOOM'
 
 const CUTS = [
   { id: 'regular', label: 'Regular', family: 'LOOM Bloom', note: 'the face itself' },
-  { id: 'rose', label: 'Rose', family: 'LOOM Bloom Rose', note: 'roses, leaves, a curling vine' },
-  { id: 'daisy', label: 'Daisy', family: 'LOOM Bloom Daisy', note: 'twelve-petal daisies' },
-  { id: 'tulip', label: 'Tulip', family: 'LOOM Bloom Tulip', note: 'tulips on their necks' },
-  { id: 'ivy', label: 'Ivy', family: 'LOOM Bloom Ivy', note: 'trailing ivy, no bloom' },
+  { id: 'rose', label: 'Rose', family: 'LOOM Bloom Rose', note: 'a millefleur of spiral roses' },
+  { id: 'daisy', label: 'Daisy', family: 'LOOM Bloom Daisy', note: 'packed open daisies' },
+  { id: 'tulip', label: 'Tulip', family: 'LOOM Bloom Tulip', note: 'three-lobed tulip cups' },
+  { id: 'ivy', label: 'Ivy', family: 'LOOM Bloom Ivy', note: 'a Morris vine, no bloom' },
+  { id: 'wild', label: 'Wild', family: 'LOOM Bloom Wild', note: 'six species, overhanging' },
+  { id: 'hollow', label: 'Hollow', family: 'LOOM Bloom Hollow', note: 'the letter as an outline' },
+  { id: 'meadow', label: 'Meadow', family: 'LOOM Bloom Meadow', note: 'flowers up from the baseline' },
 ]
 
-const STATS = [['5', 'cuts'], ['67', 'glyphs each'], ['0', 'licences bought']]
+// The planted cuts share the scroll between them, so this file never hard-codes
+// how many there are — adding a cut to CUTS above re-times the whole sequence.
+const PLANTED = CUTS.length - 1
+const BLOOM_FROM = 0.28
+const BLOOM_TO = 0.80
+const BLOOM_STEP = (BLOOM_TO - BLOOM_FROM) / Math.max(1, PLANTED - 1)
+
+const STATS = [['8', 'cuts'], ['98', 'glyphs each'], ['0', 'licences bought']]
 
 // deterministic scatter — the same letters land the same way on every visit
 const SCATTER = [
@@ -186,7 +196,8 @@ function Act({ layout, narrow }) {
   // which planted cut is on top right now — drives the rail's lit row
   useEffect(() => {
     const un = p.on('change', (v) => {
-      const n = v < 0.3 ? 0 : Math.min(4, 1 + Math.floor((v - 0.3) / 0.11))
+      const n = v < BLOOM_FROM ? 0
+        : Math.min(PLANTED, 1 + Math.floor((v - BLOOM_FROM) / BLOOM_STEP))
       setLive((c) => (c === n ? c : n))
     })
     return () => un()
@@ -208,7 +219,7 @@ function Act({ layout, narrow }) {
         </div>
 
         <motion.p className="ts-kicker" style={{ opacity: kickerO }}>
-          <span>◆</span> Our own typeface — five cuts, free
+          <span>◆</span> Our own typeface — eight cuts, free
         </motion.p>
 
         {/* the word: one animated plain layer, four planted layers blooming through */}
@@ -238,7 +249,8 @@ function Act({ layout, narrow }) {
             ))}
           </motion.div>
           {CUTS.slice(1).map((c, n) => (
-            <Bloom key={c.id} p={p} n={n} family={near ? c.family : undefined} />
+            <Bloom key={c.id} p={p} n={n} last={n === PLANTED - 1}
+                   family={near ? c.family : undefined} />
           ))}
         </motion.div>
         </motion.div>
@@ -260,11 +272,14 @@ function Act({ layout, narrow }) {
           <motion.div className="ts-copy" style={{ opacity: copyO, y: copyY, x: copyX }}>
             <h2 className="ts-h2">We didn't license a font. We drew one.</h2>
             <p className="ts-lede">
-              LOOM Bloom is a condensed display face in five cuts — one plain, four
-              with a different flower cut out of every letter. Every outline was
-              generated in our own pipeline: no foundry, no licence, no subscription.
-              It is free to download, and it is the shortest answer to <em>“can you
-              make…?”</em>
+              A condensed display face in eight cuts — one plain, seven with a
+              garden cut out of every letter.{' '}
+              <span className="ts-lede-more">
+                Every outline was generated in our own pipeline: no foundry, no
+                licence, no subscription.{' '}
+              </span>
+              Free to download, and the shortest answer we have to{' '}
+              <em>“can you make…?”</em>
             </p>
             <div className="ts-stats">
               {STATS.map(([n, l]) => (
@@ -293,10 +308,14 @@ function Act({ layout, narrow }) {
 }
 
 /** One planted cut of the word, blooming in over its slice of the scroll. */
-function Bloom({ p, n, family }) {
-  const a = 0.30 + n * 0.11
-  const opacity = useTransform(p, [a, a + 0.07, a + 0.11, a + 0.18], n === 3 ? [0, 1, 1, 1] : [0, 1, 1, 0])
-  const scale = useTransform(p, [a, a + 0.09], [1.06, 1])
+function Bloom({ p, n, last, family }) {
+  const a = BLOOM_FROM + n * BLOOM_STEP
+  const opacity = useTransform(
+    p,
+    [a, a + BLOOM_STEP * 0.64, a + BLOOM_STEP, a + BLOOM_STEP * 1.64],
+    last ? [0, 1, 1, 1] : [0, 1, 1, 0],
+  )
+  const scale = useTransform(p, [a, a + BLOOM_STEP * 0.82], [1.06, 1])
   return (
     <motion.div className="ts-layer ts-layer--cut" style={{ opacity, scale, fontFamily: family }}>
       {WORD}

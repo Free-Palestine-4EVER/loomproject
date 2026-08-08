@@ -160,21 +160,31 @@ export async function decidePost(clientId, postId, verdict, note, { store = real
 export async function performance(clientId, month, { store = realStore, pricing } = {}) {
   const client = await store.get('clients', clientId)
   const effectivePricing = pricing || (await resolvePricing())
-  const perConversationJod = client?.price?.perConversationJod ?? effectivePricing.PER_CONVERSATION_JOD
-  const minimum = effectivePricing.CONVERSATION_MINIMUM
 
-  const conversations = client?.plan?.ads
-    ? await store.list('conversations', (cv) => cv.clientId === clientId && String(cv.at ?? '').slice(0, 7) === month)
-    : []
+  // BY RESULT is retired (8 Aug 2026), so there is no conversation count and no
+  // per-conversation billing to report. What a client actually wants to know
+  // about a content subscription is simpler and more honest: what did LOOM make
+  // this month, and how much of it have they signed off?
+  //
+  // Kept deliberately free of money. The invoice screen is where the money is,
+  // and it is one flat line — repeating it here would only invite the reader to
+  // divide the fee by the post count and start haggling per photo.
+  const posts = client ? await store.list('posts', (p) => p.clientId === clientId && p.month === month) : []
 
-  const conversationsDelivered = conversations.length
-  const billedJod = client?.plan?.ads
-    ? round2(Math.max(conversationsDelivered, minimum) * perConversationJod)
-    : 0
+  const isVideo = (p) => p.kind === 'reel'
+  const delivered = posts.filter((p) => p.status !== 'draft')
 
+  const photosDelivered = delivered.filter((p) => !isVideo(p)).length
+  const videosDelivered = delivered.filter(isVideo).length
+  const approved = posts.filter((p) => p.status === 'approved' || p.status === 'scheduled' || p.status === 'posted').length
+  const awaitingYou = posts.filter((p) => p.status === 'qa' || p.status === 'draft').length
+
+  // Sign-off shape across the month, so the client can see their own pace
+  // rather than a vanity metric. Keyed on the day a decision landed.
   const byDayMap = new Map()
-  for (const cv of conversations) {
-    const date = String(cv.at ?? '').slice(0, 10)
+  for (const p of posts) {
+    if (p.status !== 'approved' && p.status !== 'rejected') continue
+    const date = String(p.decidedAt ?? p.scheduledAt ?? p.createdAt ?? '').slice(0, 10)
     if (!date) continue
     byDayMap.set(date, (byDayMap.get(date) || 0) + 1)
   }
@@ -184,9 +194,12 @@ export async function performance(clientId, month, { store = realStore, pricing 
 
   return {
     month,
-    conversationsDelivered,
-    billedJod,
-    perConversationJod: round2(perConversationJod),
+    photosDelivered,
+    videosDelivered,
+    photosPromised: effectivePricing.PHOTOS_PER_MONTH,
+    videosPromised: effectivePricing.VIDEOS_PER_MONTH,
+    approved,
+    awaitingYou,
     byDay,
   }
 }

@@ -176,8 +176,11 @@
 }
 .ts--b .ts-rail-item i { width: 12px; }
 .ts--b .ts-rail-item.is-live i { width: 24px; }
-/* the kicker would sit on the ticker — move it out of the way */
-.ts--b .ts-kicker { top: clamp(74px, 10vh, 116px); left: var(--pad); }
+/* The kicker and the ticker share the top of the screen. At five cuts the
+   centred ticker was narrow enough to clear a left-aligned kicker; at eight it
+   is not, so the kicker drops to its own line UNDER the ticker instead of
+   sitting beside it. */
+.ts--b .ts-kicker { top: clamp(104px, 13vh, 150px); left: var(--pad); }
 .ts--b .ts-bands { padding: 10vh 0 26vh; }
 
 /* ═══════════════════════════════ layout c — SPECIMEN
@@ -220,6 +223,29 @@
   .ts { height: 300vh; }
   .ts-copy-slot { padding-inline: var(--pad); }
 
+  /* The kicker is a single uppercase line at 0.2em tracking; on a 390px phone
+     "OUR OWN TYPEFACE — EIGHT CUTS, FREE" runs off the right edge and collides
+     with the menu button. Let it wrap and pull the tracking in. */
+  /* `.ts--b .ts-kicker` above sets its own top, and it outranks a bare
+     `.ts-kicker` here however far down the file this sits — so the phone value
+     has to be written at the same specificity or it silently loses. */
+  .ts-kicker, .ts--a .ts-kicker, .ts--b .ts-kicker, .ts--c .ts-kicker {
+    right: var(--pad);
+    top: clamp(104px, 13vh, 132px);
+    font-size: 10px; letter-spacing: 0.14em; gap: 8px;
+    line-height: 1.4;
+  }
+
+  /* The word is the whole point of the section and it was sitting small in the
+     middle of a tall empty screen. Fill the width and lift it off the kicker. */
+  .ts-layer { font-size: clamp(96px, 26vw, 300px); }
+  .ts-word-anchor { top: 42%; }
+
+  /* The two drifting bands were tuned for a wide viewport; at phone width they
+     crop to a couple of letters and read as debris rather than as type. */
+  .ts-band { font-size: clamp(46px, 17vw, 90px); }
+  .ts-bands { padding: 17vh 0; }
+
   /* The copy block has to clear a phone viewport in ONE screen — it is never
      scrolled past on its own, the whole section is pinned. Everything below
      buys vertical room back so the second CTA can never fall off the bottom. */
@@ -238,16 +264,41 @@
   .ts--a .ts-rail { display: none; }
 
   /* b — the wall of type still crops at the bottom; the ticker survives
-     because it is one line and it is the only thing naming the cuts. */
-  .ts--b .ts-copy-slot { padding-top: clamp(96px, 14vh, 140px); }
+     because it is the only thing naming the cuts.
+
+     It is now EIGHT names, which will not sit on one phone line at any legible
+     size, so the rail stops being a single row here and wraps: flex, centred,
+     with a fixed width to wrap inside. `grid-auto-flow: column` (the desktop
+     rule) has to be unset explicitly — it wins over `display: flex` otherwise
+     by simply still being there. */
+  /* clear the fixed header — it is ~110px tall on a phone, and the copy block
+     is the one thing in the section that is read rather than looked at. */
+  .ts--b .ts-copy-slot { padding-top: clamp(124px, 17vh, 168px); }
   .ts--b .ts-copy { max-width: none; }
   /* above the crop line, not under it — the wall of type owns the bottom */
   .ts--b .ts-rail {
-    top: auto; bottom: 24vh; left: 50%;
-    gap: 10px; font-size: 9px; letter-spacing: 0.12em;
+    top: auto; bottom: 22vh; left: 50%;
+    display: flex; grid-auto-flow: row; flex-wrap: wrap;
+    justify-content: center; align-content: center;
+    width: min(94vw, 460px);
+    gap: 4px 12px; font-size: 9px; letter-spacing: 0.11em;
   }
   .ts--b .ts-rail-item i { display: none; }
   .ts--b .ts-rail-item { gap: 0; }
+
+  /* A SHORT phone (SE, mini, anything under ~730px tall) has about 600px of
+     viewport to hold the whole copy block. It DOES fit — measured at 112..456
+     on a 602px SE — but with only ~14px between the last button and the cut
+     ticker below it, which is not enough for the moment the copy slides out.
+     Buying a little type back is all that is needed; nothing has to be hidden. */
+  @media (max-height: 730px) {
+    .ts--b .ts-copy-slot { padding-top: clamp(112px, 15vh, 140px); }
+    .ts--b .ts-rail { bottom: 7vh; }
+    .ts-h2 { font-size: clamp(19px, 5.2vw, 26px); }
+    .ts-lede { font-size: 13px; line-height: 1.45; }
+    .ts-stat-n { font-size: 26px; }
+    .ts-copy { gap: 8px; }
+  }
 
   /* c — the card becomes a bottom sheet, edge to edge. */
   .ts--c .ts-copy-slot { padding: 0; }

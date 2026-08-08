@@ -189,7 +189,7 @@ function client() {
       voiceAr: 'لهجة أردنية بسيطة وواثقة. بدون مبالغة وبدون كلام إعلانات.',
       fontHint: 'Evora wordmark — geometric sans',
     },
-    plan: { content: true, ads: true },
+    plan: { content: true, ads: false },   // BY RESULT retired — content only
     price: { contentJod: 89, perConversationJod: 1.75 },
     createdAt: new Date().toISOString(),
     archivedAt: null,
@@ -250,46 +250,17 @@ async function posts(month) {
   return out
 }
 
-// Conversations drive the Performance screen. 143 across the month, weighted
-// toward the weekend, so the by-day chart has a real shape instead of a flat
-// line — and so the invoice sits above the 100 floor rather than on it.
-function conversations(month) {
-  const out = []
-  let n = 0
-  for (let day = 1; day <= 28; day++) {
-    const dow = (day + 2) % 7            // rough weekday offset
-    const count = dow === 5 || dow === 6 ? 8 : 4
-    for (let i = 0; i < count; i++) {
-      out.push({
-        id: `${CLIENT_ID}-cv-${month}-${day}-${i}`,
-        clientId: CLIENT_ID,
-        campaignId: null,
-        at: `${month}-${String(day).padStart(2, '0')}T${String(10 + (i % 9)).padStart(2, '0')}:00:00.000Z`,
-        source: 'whatsapp',
-        billedJod: 1.75,
-        note: '',
-      })
-      n++
-    }
-  }
-  console.log(`  (${n} conversations)`)
-  return out
-}
-
-function invoice(month, conversationCount) {
-  const perConv = 1.75
-  const delivered = conversationCount * perConv
+function invoice(month) {
+  // BY RESULT retired 8 Aug 2026 — one flat subscription line, no conversations.
   const lines = [
-    { label: 'Content subscription (المصنع)', qty: 1, unitJod: 89, totalJod: 89 },
-    { label: 'Conversations delivered (WhatsApp)', qty: conversationCount, unitJod: perConv, totalJod: Number(delivered.toFixed(2)) },
+    { label: 'Content subscription (المصنع) — 20 photos + 2 videos', qty: 1, unitJod: 89, totalJod: 89 },
   ]
-  const total = lines.reduce((s, l) => s + l.totalJod, 0)
   return [{
     id: `${CLIENT_ID}-invoice-${month}`,
     clientId: CLIENT_ID,
     month,
     lines,
-    totalJod: Number(total.toFixed(2)),
+    totalJod: 89,
     status: 'sent',
     issuedAt: `${month}-01T00:00:00.000Z`,
   }]
@@ -322,12 +293,10 @@ async function main() {
   console.log(`  bucket: ${BUCKET}\n`)
 
   const p = await posts(month)
-  const cv = conversations(month)
 
   await publish('clients', [client()])
   await publish('posts', p)
-  await publish('conversations', cv)
-  await publish('invoices', invoice(month, cv.length))
+  await publish('invoices', invoice(month))
   await publish('clientauthcodes', authCode())
 
   console.log('\n  Sign in on the phone with:')

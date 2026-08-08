@@ -7,7 +7,6 @@ import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { OwnApps } from './components/OwnApps.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { TheMachine } from './components/TheMachine.jsx'
-import { ByResult } from './components/ByResult.jsx'
 import { Hiring } from './components/Hiring.jsx'
 import { Counter, OfferPair, Bolt } from './components/Banners.jsx'
 import { MobileChrome } from './components/MobileChrome.jsx'
@@ -237,10 +236,11 @@ export default function App() {
         <TheMachine />
         <Hiring />
         <Solutions />
-        {/* The productised "here's exactly what you can buy" follow-through to
-            Solutions' "the loom already knows your industry". The Machine used
-            to sit here too; it now runs once, up in Crew's old slot. */}
-        <ByResult />
+        {/* BY RESULT (1.75 JOD per WhatsApp conversation) was retired 8 Aug 2026:
+            LOOM cannot promise an outcome that depends on the client's own
+            replies and market. The Machine — the content subscription — is the
+            single offering now, and it runs once, up in Crew's old slot.
+            `components/ByResult.jsx` is still in the tree, mounted by nothing. */}
         <Process />
         <Stats />
         <Bolt />
