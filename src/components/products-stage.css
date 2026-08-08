@@ -96,7 +96,8 @@
 
 /* ═══════════════════════════════════════════════════════════════
    #apps · THE STAGE
-   rail (tabs) | phone (one device) | copy
+   rail (tabs) | copy (.stg-info) | phones (.stg-panel)
+   Identity sits beside the rail; the imagery is the right-hand column.
    ═══════════════════════════════════════════════════════════════ */
 .stg {
   --spring: linear(0, .0088 1.1%, .0346 2.3%, .1442 4.9%, .7688 14.2%, .9202 16.7%, 1.0139 19.3%,
@@ -127,16 +128,24 @@
   content: ''; position: absolute; left: 8%; width: 46%; bottom: 14%; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(242, 240, 247, 0.14) 26%, rgba(242, 240, 247, 0.14) 74%, transparent);
 }
-.stg-panel {
+/* ——— the tabpanel: identity LEFT, imagery RIGHT ———
+   The client's order, and the order the markup is written in, so DOM order and
+   visual order agree — there is no `order` property anywhere in this file.
+   The copy takes the flexible track (it is text, it reflows); the phones take
+   an auto track whose width `.stg-panel` states outright, because a percentage
+   width inside a content-sized track is circular and is what once resolved the
+   device to zero. */
+.stg-stage {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(200px, 300px) minmax(240px, 460px);
+  grid-template-columns: minmax(0, 1fr) auto;
   justify-content: center; align-items: center;
   gap: clamp(20px, 3vw, 48px);
 }
+.stg-panel { min-width: 0; width: clamp(200px, 26vw, 300px); }
 /* the fan needs half again the width of a single device — three phones
    overlapping by a quarter each */
-.stg-panel--fan { grid-template-columns: minmax(300px, 500px) minmax(240px, 400px); }
+.stg-panel--fan { width: clamp(280px, 38vw, 470px); }
 
 /* ——— the rail: a real tablist, vertical on desktop ——— */
 .stg-rail { display: flex; flex-direction: column; gap: 12px; }
@@ -225,10 +234,52 @@
   width: 52%; aspect-ratio: 460 / 790;
   transition: transform 0.5s var(--ease);
 }
-.stg-mock img {
+/* `>` on purpose: in a FRAMED fan the slot's images live inside .stg-glass and
+   .stg-frame, which draw their own shadow and set their own object-fit — a
+   descendant selector would put a drop-shadow filter on every screen capture
+   and re-fit it to `contain` inside the glass. */
+.stg-mock > img {
   display: block; width: 100%; height: 100%; object-fit: contain;
   filter: drop-shadow(0 26px 34px rgba(0, 0, 0, 0.55)) drop-shadow(0 5px 12px rgba(0, 0, 0, 0.4));
 }
+
+/* ——— the framed fan ———
+   The same three-slot composition, but each slot holds the site's own iPhone
+   frame with a flat capture behind its glass. The slot is the phone's own
+   aspect ratio (the render canvas is a different one), and the phone fills the
+   slot rather than carrying its stand-alone clamp. */
+.stg-fan--framed .stg-mock {
+  /* the phone's own ratio, not the render canvas's — and narrower than the
+     rendered fan, because a framed phone is a taller subject: at 52% the
+     hero's frame swallowed the two crops behind it and the set read as one
+     phone with debris either side */
+  aspect-ratio: 900 / 1813; width: 48%;
+}
+.stg-fan--framed .stg-phone {
+  width: 100%;
+  filter: drop-shadow(0 20px 34px rgba(0, 0, 0, 0.58)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+}
+/* pushed further out and a little smaller than the rendered fan, so each crop
+   keeps enough of its own screen to be read as a different screen */
+.stg-fan--framed .stg-mock:nth-child(1) { transform: translate(-56%, 6%) rotate(-4deg) scale(0.8); }
+.stg-fan--framed .stg-mock:nth-child(3) { transform: translate(56%, 6%) rotate(4deg) scale(0.8); }
+.stg-fan--framed:hover .stg-mock:nth-child(1) { transform: translate(-60%, 3%) rotate(-6deg) scale(0.82); }
+.stg-fan--framed:hover .stg-mock:nth-child(3) { transform: translate(60%, 3%) rotate(6deg) scale(0.82); }
+/* the two behind sit back in the light as well as in space — one flat scrim
+   per glass, no blur, no extra element */
+.stg-fan--framed .stg-mock:nth-child(1) .stg-glass::after,
+.stg-fan--framed .stg-mock:nth-child(3) .stg-glass::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: #0a0513; opacity: 0.3;
+}
+/* Placeholder crops — see `padded` in Products.jsx. Only ever applied to a
+   slot that was filled from another slot's picture: the outer two frame the
+   top and the bottom of the same screen while the hero shows it whole, so the
+   trio reads as a composition instead of as one image printed three times.
+   The moment real per-slot captures land in site.js, `padded` is false and
+   these never match. */
+.stg-glass img[data-crop='a'] { transform: scale(1.34) translateY(-12.5%); }
+.stg-glass img[data-crop='c'] { transform: scale(1.34) translateY(12.5%); }
 /* Explicit per-child rules rather than a `--i` + `abs()` expression: `abs()`
    is Chrome 133 / Safari 18, and a browser without it would drop the whole
    transform and stack all three phones dead centre. */
@@ -293,7 +344,12 @@
 
 @media (max-width: 1080px) {
   .stg { grid-template-columns: auto minmax(0, 1fr); }
-  .stg-panel { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+  /* the two columns stack IDENTITY FIRST, imagery second — the same order they
+     are read in side by side, and the order the markup is already in, so the
+     stack costs no `order` and no re-ordering for the keyboard */
+  .stg-stage { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+  .stg-panel { width: min(100%, 320px); }
+  .stg-panel--fan { width: min(100%, 470px); }
   .stg-info { max-width: 52ch; }
   .stg-id { justify-content: center; }
   .stg-meta, .stg-info .dl-row { justify-content: center; }
@@ -319,6 +375,9 @@
   .stg-mock { width: 56%; }
   .stg-mock:nth-child(1) { transform: translate(-42%, 6%) rotate(-5deg) scale(0.8); }
   .stg-mock:nth-child(3) { transform: translate(42%, 6%) rotate(5deg) scale(0.8); }
+  .stg-fan--framed .stg-mock { width: 52%; }
+  .stg-fan--framed .stg-mock:nth-child(1) { transform: translate(-52%, 6%) rotate(-4deg) scale(0.78); }
+  .stg-fan--framed .stg-mock:nth-child(3) { transform: translate(52%, 6%) rotate(4deg) scale(0.78); }
 }
 
 /* ═══════════════════════════════════════════════════════════════

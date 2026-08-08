@@ -8,6 +8,7 @@ import { Solutions } from './components/Solutions.jsx'
 import { TheMachine } from './components/TheMachine.jsx'
 import { ByResult } from './components/ByResult.jsx'
 import { Crew } from './components/Crew.jsx'
+import { Hiring } from './components/Hiring.jsx'
 // Moon.jsx (the orthographic globe) is the previous Ascent — kept in the tree
 // for reference, but the section is now the loom climb in AscentLoom.jsx.
 import { AscentLoom } from './components/AscentLoom.jsx'
@@ -232,6 +233,7 @@ export default function App() {
         <Crew />
         {/* Straight off the crew: that section has just introduced the roster
             as archetypes, so "and we want more of them" is the next beat. */}
+        <Hiring />
         <Solutions />
         {/* The two productised offerings, right where the pitch lands: Solutions
             just told the visitor "the loom already knows your industry" — these

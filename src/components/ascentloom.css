@@ -128,9 +128,12 @@
   padding: 0 var(--pad);
 }
 .al-cta-h {
-  font-family: var(--display);
-  font-size: clamp(24px, 3.4vw, 46px); font-weight: 600;
-  line-height: 1.06; letter-spacing: -0.02em;
+  /* matches .al-h2 above it in the same shaft — the altimeter, the zone
+     headings and this closing line are one voice. 560 not 600: Bloom ships a
+     single weight and Chrome fakes a bold from 600 up. */
+  font-family: var(--bloom);
+  font-size: clamp(24px, 3.4vw, 46px); font-weight: 560;
+  line-height: 1.06; letter-spacing: 0;
 }
 .al-cta > * { pointer-events: auto; }
 

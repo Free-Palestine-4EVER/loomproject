@@ -44,9 +44,15 @@
 }
 .ts-kicker span { color: var(--magenta); }
 
-/* ——————————————————————————————— the word */
-.ts-word {
+/* ——————————————————————————————— the word
+   anchor centres · shift travels (viewport units) · word scales.
+   See the note in TypeShowcase.jsx for why the three are separate. */
+.ts-word-anchor {
   position: absolute; left: 0; right: 0; top: 46%;
+  transform: translateY(-50%);
+}
+.ts-word-shift { will-change: transform, opacity; }
+.ts-word {
   transform-origin: 50% 50%;
   display: grid; place-items: center;
   will-change: transform;
@@ -86,19 +92,29 @@
 .ts-rail-item.is-live { color: var(--magenta); }
 .ts-rail-item.is-live i { width: 46px; opacity: 1; }
 
-/* ——————————————————————————————— act three */
+/* ——————————————————————————————— act three
+   The slot places, the block moves. .ts-copy carries the scroll transform, so
+   it must never need a transform of its own for positioning — every layout
+   below repositions the SLOT and leaves the block alone. */
+.ts-copy-slot {
+  position: absolute; inset: 0;
+  display: grid;
+  padding: clamp(80px, 11vh, 130px) var(--pad) clamp(30px, 5vh, 64px);
+  pointer-events: none;
+}
 .ts-copy {
-  position: absolute; left: 0; right: 0; bottom: clamp(30px, 5vh, 64px);
   display: grid; gap: clamp(12px, 1.8vh, 20px);
   max-width: 1320px; width: 100%;
-  margin: 0 auto; padding: 0 var(--pad);
   will-change: opacity, transform;
+  pointer-events: auto;
 }
 .ts-h2 {
-  font-family: var(--display);
+  /* "We didn't license a font. We drew one." — the one heading on the site
+     that had better be set in the font it is talking about. */
+  font-family: var(--bloom);
   font-size: clamp(24px, 3.1vw, 44px);
-  font-weight: 600; letter-spacing: -0.02em; line-height: 1.02;
-  max-width: 22ch;
+  font-weight: 560; letter-spacing: 0; line-height: 1.02;
+  max-width: 30ch;
 }
 .ts-lede {
   max-width: 60ch; color: var(--ink-dim);
@@ -126,10 +142,128 @@
 .ts-btn span { transition: transform 300ms var(--ease); }
 .ts-btn:hover span { transform: translateX(4px); }
 
+/* ═══════════════════════════════ layout a — SPLIT
+   The word slides right and bleeds off the edge; the copy owns a real left
+   column at mid height. The only layout where the word and the copy never
+   share a column, at any width — nothing can land on the headline. */
+.ts--a .ts-copy-slot { place-items: center start; }
+.ts--a .ts-copy { max-width: min(40%, 520px); }
+.ts--a .ts-h2 { max-width: 14ch; }
+.ts--a .ts-lede { max-width: 42ch; }
+.ts--a .ts-rail {
+  right: auto; left: var(--pad); top: auto; bottom: clamp(26px, 4vh, 44px);
+  transform: none;
+  grid-auto-flow: column; gap: clamp(14px, 2vw, 28px);
+}
+.ts--a .ts-rail-item i { width: 14px; }
+.ts--a .ts-rail-item.is-live i { width: 28px; }
+
+/* ═══════════════════════════════ layout b — STAGE
+   The word grows and sinks until its baseline is cropped by the bottom edge —
+   a wall of type you read the copy against. Copy is centred at the top, the
+   rail becomes a ticker under the kicker. */
+.ts--b .ts-copy-slot { place-items: start center; padding-top: clamp(96px, 15vh, 190px); }
+.ts--b .ts-copy { max-width: 640px; justify-items: center; text-align: center; }
+.ts--b .ts-h2 { max-width: 18ch; }
+.ts--b .ts-lede { max-width: 52ch; }
+.ts--b .ts-stats { justify-content: center; }
+.ts--b .ts-stat { align-items: center; }
+.ts--b .ts-cta { justify-content: center; }
+.ts--b .ts-rail {
+  right: auto; left: 50%; top: clamp(70px, 9.5vh, 110px);
+  transform: translateX(-50%);
+  grid-auto-flow: column; gap: clamp(12px, 2vw, 26px);
+}
+.ts--b .ts-rail-item i { width: 12px; }
+.ts--b .ts-rail-item.is-live i { width: 24px; }
+/* the kicker would sit on the ticker — move it out of the way */
+.ts--b .ts-kicker { top: clamp(74px, 10vh, 116px); left: var(--pad); }
+.ts--b .ts-bands { padding: 10vh 0 26vh; }
+
+/* ═══════════════════════════════ layout c — SPECIMEN
+   The word blurs back into a wash and a solid specimen card lands over it.
+   The densest of the three: everything in one object, the way a type foundry
+   would print it. */
+.ts--c .ts-copy-slot { place-items: end center; }
+.ts--c .ts-copy {
+  max-width: min(880px, 92vw);
+  gap: clamp(12px, 1.6vh, 18px);
+  padding: clamp(22px, 3.4vh, 38px) clamp(24px, 3vw, 44px);
+  border: 1px solid rgba(242, 240, 247, 0.14);
+  border-radius: 22px;
+  background: rgba(13, 7, 22, 0.62);
+  backdrop-filter: blur(16px) saturate(1.1);
+  box-shadow: 0 40px 90px -50px rgba(0, 0, 0, 0.9);
+}
+.ts--c .ts-h2 { max-width: 24ch; }
+.ts--c .ts-lede { max-width: 68ch; }
+.ts--c .ts-stats {
+  padding-top: clamp(10px, 1.6vh, 16px);
+  border-top: 1px solid rgba(242, 240, 247, 0.1);
+}
+.ts--c .ts-rail { top: 46%; }
+
+/* ═══════════════════════════════ the layout HUD
+   Same rule as the flight HUD in Companion.js: dev, or after an explicit
+   pick. Sits one line above it so the two never overlap. */
+.ts-hud {
+  position: fixed; right: 10px; bottom: 40px; z-index: 2147483647;
+  font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: rgba(232, 224, 255, 0.86);
+  background: rgba(13, 7, 22, 0.55);
+  padding: 5px 9px; border-radius: 7px;
+  pointer-events: none; letter-spacing: 0.02em;
+  backdrop-filter: blur(4px); white-space: nowrap;
+}
+
 @media (max-width: 900px) {
   .ts { height: 300vh; }
-  .ts-rail { display: none; }
-  .ts-copy { gap: 12px; }
+  .ts-copy-slot { padding-inline: var(--pad); }
+
+  /* The copy block has to clear a phone viewport in ONE screen — it is never
+     scrolled past on its own, the whole section is pinned. Everything below
+     buys vertical room back so the second CTA can never fall off the bottom. */
+  .ts-copy { gap: 10px; }
+  .ts-h2 { font-size: clamp(21px, 5.6vw, 30px); }
+  .ts-lede { font-size: 14px; line-height: 1.5; }
+  .ts-stat-n { font-size: 30px; }
+  .ts-cta { gap: 10px; }
+  .ts-btn { padding: 11px 20px; font-size: 13px; }
+
+  /* a — the word lifts clear to the top, the copy takes the whole width
+     underneath it. A 46% column on a phone is not a column. */
+  .ts--a .ts-copy-slot { place-items: end stretch; }
+  .ts--a .ts-copy { max-width: none; }
+  .ts--a .ts-h2, .ts--a .ts-lede { max-width: none; }
+  .ts--a .ts-rail { display: none; }
+
+  /* b — the wall of type still crops at the bottom; the ticker survives
+     because it is one line and it is the only thing naming the cuts. */
+  .ts--b .ts-copy-slot { padding-top: clamp(96px, 14vh, 140px); }
+  .ts--b .ts-copy { max-width: none; }
+  /* above the crop line, not under it — the wall of type owns the bottom */
+  .ts--b .ts-rail {
+    top: auto; bottom: 24vh; left: 50%;
+    gap: 10px; font-size: 9px; letter-spacing: 0.12em;
+  }
+  .ts--b .ts-rail-item i { display: none; }
+  .ts--b .ts-rail-item { gap: 0; }
+
+  /* c — the card becomes a bottom sheet, edge to edge. */
+  .ts--c .ts-copy-slot { padding: 0; }
+  .ts--c .ts-copy {
+    max-width: none;
+    padding: clamp(20px, 3vh, 28px) var(--pad) clamp(26px, 4vh, 36px);
+    border-radius: 22px 22px 0 0;
+    border-left: 0; border-right: 0; border-bottom: 0;
+  }
+  .ts--c .ts-rail { display: none; }
+}
+
+@media (max-width: 560px) {
+  .ts-stats { gap: 18px; }
+  .ts-cta { gap: 10px; }
+  .ts-btn { padding: 12px 20px; font-size: 13px; }
 }
 
 /* Reduced motion keeps the section, drops the pinning: no scrubbed sequence,
@@ -138,4 +272,8 @@
   .ts { height: auto; }
   .ts-sticky { position: static; height: auto; padding-block: clamp(60px, 10vh, 120px); gap: 32px; }
   .ts-bands { display: none; }
+  /* nothing is pinned any more, so the copy joins the flow under the word
+     instead of being placed over it — in every layout. */
+  .ts-copy-slot { position: static; display: block; padding: clamp(24px, 5vh, 48px) var(--pad) 0; }
+  .ts--a .ts-copy, .ts--b .ts-copy, .ts--c .ts-copy { max-width: 72ch; margin-inline: auto; }
 }

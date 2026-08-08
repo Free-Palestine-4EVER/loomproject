@@ -17,7 +17,7 @@ export const CLIENT_WALL = [
   'United Colors of Benetton', 'UNICEF', 'Vodafone', 'MAC', 'Max Factor',
   'Espresso Lab', 'Savia', 'Scion International', 'Weitnauer', 'Normfest',
   'Boccapiena', 'Zen2Fit', 'Herbas', 'MBA Centar', 'Maestro Suits',
-  'Panda Kids', 'Brill Cosmetix', 'Zaman Events', 'The Place 87', 'Šah Mat Burger',
+  'Panda Kids', 'Brill Cosmetix', 'Zaman Events', 'The Place 87',
 ]
 
 export const SERVICES = [

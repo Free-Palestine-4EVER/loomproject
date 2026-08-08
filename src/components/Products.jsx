@@ -288,14 +288,49 @@ const stageShots = (app) => {
   return { list: app.shot ? [app.shot] : [], framed: true }
 }
 
-/* The captures for one app, stacked and crossfaded.
-   All of an app's images are in the DOM at once and only `opacity` changes, so
+/* THREE PHONES FOR EVERY APP.
+   The client's ask: the three-up fan is the presentation for the whole stage,
+   not just for the one product that happens to ship three renders.
+
+   `stageTrio` deals an app's captures into exactly three slots — 0 left,
+   1 middle (the hero, in front and at full size), 2 right — the same order the
+   fan has always been composed in. Images are dealt round-robin, so an app
+   that later grows to six captures gets two per slot and each slot crossfades
+   its own pair on the existing 2-second beat.
+
+   An app with FEWER than three captures has its slots padded from what it has,
+   and `padded` is set. That is the placeholder state the client accepted until
+   real per-slot captures exist: the same picture three times at the same size
+   would read as a rendering bug, so a padded slot is also given a CROP (see
+   CROPS below) — the outer two zoom into the top and the bottom of the screen
+   while the hero shows it whole, on top of the fan's own scale/rotation/depth.
+
+   Swapping in real per-slot imagery later is a one-line data change in
+   site.js — add `shots: [a, b, c]` (or `mocks:`) to the app and `padded` goes
+   false on its own, which switches every crop off. Nothing here changes.
+
+   An app with NO capture at all (TrueSize AR) returns no slots and keeps its
+   stated "no public capture" panel — it is never given fabricated imagery. */
+const SLOTS = 3
+const CROPS = ['a', null, 'c']
+
+const stageTrio = (app) => {
+  const { list, framed } = stageShots(app)
+  if (!list.length) return { slots: [], framed, padded: false }
+  const slots = Array.from({ length: SLOTS }, () => [])
+  list.forEach((src, n) => { slots[n % SLOTS].push(src) })
+  const padded = list.length < SLOTS
+  for (let n = list.length; n < SLOTS; n++) slots[n] = [list[n % list.length]]
+  return { slots, framed, padded }
+}
+
+/* The captures for one slot, stacked and crossfaded.
+   All of a slot's images are in the DOM at once and only `opacity` changes, so
    a beat never causes a layout pass or a decode stall. The timer is a single
-   interval that exists ONLY while the app has more than one image and the
-   reader hasn't asked for reduced motion — the single-capture products cost
-   nothing at all. */
-function ShotCycle({ app, on, reduced }) {
-  const shots = useMemo(() => stageShots(app).list, [app])
+   interval that exists ONLY while the slot holds more than one image and the
+   reader hasn't asked for reduced motion — every app on the stage today deals
+   one image per slot, so at rest this costs nothing at all. */
+function ShotCycle({ app, shots, on, reduced, hero = true, crop }) {
   const [k, setK] = useState(0)
 
   useEffect(() => {
@@ -323,8 +358,9 @@ function ShotCycle({ app, on, reduced }) {
           key={src}
           className={on && n === k ? 'is-on' : undefined}
           src={src}
-          alt={n === 0 ? `${app.name} — real app screenshot` : ''}
-          aria-hidden={on && n === k ? undefined : true}
+          data-crop={crop || undefined}
+          alt={hero && n === 0 ? `${app.name} — real app screenshot` : ''}
+          aria-hidden={hero && on && n === k ? undefined : true}
           loading="lazy"
           decoding="async"
         />
@@ -346,6 +382,9 @@ export function AppsShowcase() {
   const { refs, onKeyDown } = useTabList(APPS.length, i, setI)
   const app = APPS[i]
   const dl = DOWNLOADS[app.name] || {}
+  // memoised so each slot's array keeps its identity between renders — the
+  // crossfade timer inside ShotCycle keys off it
+  const trio = useMemo(() => stageTrio(app), [app])
 
   return (
     <section className="apps" id="apps">
@@ -398,56 +437,23 @@ export function AppsShowcase() {
           ))}
         </div>
 
+        {/* The tabpanel is the whole right-hand half — identity AND imagery —
+            because both of them change when the rail changes tab, and a
+            tabpanel that only covered the phones would leave the app's name,
+            blurb and download chips outside the thing the tab controls.
+
+            Inside it, the reading order is the client's: identity first
+            (icon, name, tags, blurb, CTA, counter), imagery second. DOM order
+            and visual order agree, left to right on a desktop and top to
+            bottom once the two columns stack — no CSS `order` anywhere, so
+            keyboard and screen-reader order is the same order the page reads
+            in. */}
         <div
-          className={`stg-panel${stageShots(app).framed ? '' : ' stg-panel--fan'}`}
+          className="stg-stage"
           role="tabpanel"
           id="stg-panel"
           aria-labelledby={`stg-tab-${i}`}
         >
-          {/* The device. Two modes, one slot:
-
-              framed — the stock iPhone 14 Pro mockup the site already ships
-                (keyed to alpha by scripts/make-device-frames.mjs) with its
-                display punched out, so a flat screen capture shows through and
-                the Dynamic Island still sits on top of it.
-
-              unframed — the app ships rendered mockups that already contain a
-                device (see `mocks` in site.js). The frame and the glass are not
-                rendered at all; the render is the device, and ALL of them are
-                shown at once as a three-up fan rather than cycled: three cut-out
-                phones read as a product family in one glance, where one phone
-                swapping every two seconds asks the reader to wait for the set.
-
-              Only the SELECTED app's images are mounted, because the two modes
-              are different boxes — keeping all seven stacked would mean
-              stacking a framed phone and a free-standing render in the same
-              slot. The crossfade inside a framed app is unaffected: ShotCycle
-              still holds that app's captures together and only changes opacity. */}
-          <div className="stg-phone-wrap">
-            {stageShots(app).framed ? (
-              <div className="stg-phone">
-                <div className="stg-glass">
-                  <ShotCycle key={app.name} app={app} on reduced={reduced} />
-                </div>
-                <img className="stg-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
-              </div>
-            ) : (
-              <div className="stg-fan" key={app.name}>
-                {app.mocks.map((src, n) => (
-                  <div className="stg-mock" key={src}>
-                    <img
-                      src={src}
-                      alt={n === 1 ? `${app.name} — real app screens` : ''}
-                      aria-hidden={n === 1 ? undefined : true}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           <div className="stg-info">
             <div className="stg-id">
               <ProductIcon app={app} className="stg-icon" />
@@ -477,6 +483,75 @@ export function AppsShowcase() {
               </div>
             )}
             <div className="stg-count"><b>{two(i)}</b> / {two(APPS.length - 1)} — LOOM-built products</div>
+          </div>
+
+          {/* The imagery column. Three phones for every app that has a capture:
+
+              framed — the stock iPhone 14 Pro mockup the site already ships
+                (keyed to alpha by scripts/make-device-frames.mjs) with its
+                display punched out, so a flat screen capture shows through and
+                the Dynamic Island still sits on top of it. One frame per slot.
+
+              unframed — the app ships rendered mockups that already contain a
+                device (see `mocks` in site.js). The frame and the glass are not
+                rendered at all; the render IS the device.
+
+              Either way all three are on stage at once rather than cycled:
+              three phones read as a product family in one glance, where one
+              phone swapping every two seconds asks the reader to wait for the
+              set. A slot dealt more than one image still crossfades its own
+              pile on the 2s beat — see ShotCycle.
+
+              Only the SELECTED app's images are mounted, because the two modes
+              are different boxes — keeping all seven stacked would mean
+              stacking a framed phone and a free-standing render in the same
+              slot. */}
+          <div className={`stg-panel${trio.slots.length ? ' stg-panel--fan' : ''}`}>
+            <div className="stg-phone-wrap">
+              {trio.slots.length === 0 ? (
+                /* no capture on file — one honest panel, not three of it */
+                <div className="stg-phone">
+                  <div className="stg-glass">
+                    <ShotCycle key={app.name} app={app} shots={[]} on reduced={reduced} />
+                  </div>
+                  <img className="stg-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+                </div>
+              ) : (
+                <div className={`stg-fan${trio.framed ? ' stg-fan--framed' : ''}`} key={app.name}>
+                  {trio.slots.map((srcs, n) => (
+                    // the slot index IS the identity here — there are always
+                    // exactly three, and the fan itself is keyed on the app
+                    <div className="stg-mock" key={n}>
+                      {trio.framed ? (
+                        <div className="stg-phone">
+                          <div className="stg-glass">
+                            <ShotCycle
+                              app={app}
+                              shots={srcs}
+                              on
+                              reduced={reduced}
+                              hero={n === 1}
+                              crop={trio.padded ? CROPS[n] : null}
+                            />
+                          </div>
+                          <img className="stg-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+                        </div>
+                      ) : (
+                        /* rendered mockups are dealt one per slot by
+                           construction; the first is the one that shows */
+                        <img
+                          src={srcs[0]}
+                          alt={n === 1 ? `${app.name} — real app screens` : ''}
+                          aria-hidden={n === 1 ? undefined : true}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

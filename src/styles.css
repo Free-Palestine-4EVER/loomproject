@@ -82,6 +82,16 @@
 
   --display: 'Clash Display', 'Avenir Next', sans-serif;
   --body: 'Satoshi', 'Helvetica Neue', sans-serif;
+  /* Headings are set in the studio's own face. Clash Display stays in the
+     stack behind it: LOOM Bloom is 67 glyphs, so anything it does not draw
+     (→ … × · ٱ the whole Arabic block) falls through to Clash rather than to
+     a system serif. See the coverage note above .h2. */
+  --bloom: 'LOOM Bloom', 'Clash Display', 'Avenir Next', sans-serif;
+  /* The planted cut the hero is set in. All five cuts share ONE cmap (161
+     codepoints, 98 glyphs — verified against the woff2s, not assumed) and one
+     metric set, so Daisy → Bloom → Clash can never break a line mid-word: the
+     three faces are interchangeable character for character. */
+  --bloom-daisy: 'LOOM Bloom Daisy', 'LOOM Bloom', 'Clash Display', 'Avenir Next', sans-serif;
   --pad: clamp(20px, 5vw, 96px);
   --radius: 18px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -134,15 +144,34 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
 
 /* ——— type scale ——— */
+/* ——— section headings, in LOOM Bloom ———————————————————————————————
+   LOOM Bloom is caps-only by design (lowercase maps to the cap glyphs), so
+   every .h2 renders as caps whatever case the string is written in — that is
+   the intended look, not a bug.
+   Three numbers move with the face and none of them are decoration:
+   · font-weight stays at 560. LOOM Bloom ships one weight (400); Chrome
+     synthesises a fake bold from 600 up, so 560 is the ceiling that keeps the
+     real outlines AND keeps Clash at its tuned weight if the woff2 fails.
+   · letter-spacing goes from -0.015em to 0. The negative tracking was drawn
+     for Clash's wide caps; on a condensed grotesque with flat terminals it
+     closes the sidebearings and V/A pairs touch.
+   · max-width moves from 18ch to 26ch. `ch` measures the current font's zero
+     advance, and Bloom's is much narrower, so 18ch in Bloom is a far shorter
+     line than 18ch in Clash was — 26ch restores the same measure. */
 .h2 {
-  font-family: var(--display);
+  font-family: var(--bloom);
   font-weight: 560;
   font-size: clamp(2rem, 5.2vw, 4.4rem);
   line-height: 1.04;
-  letter-spacing: -0.015em;
-  max-width: 18ch;
+  letter-spacing: 0;
+  max-width: 26ch;
 }
 .h2--light { color: #fff; }
+/* The bolt banner's claim is a `.h2 .bolt-claim`, but banners.css re-declares
+   `font-family: var(--display)` at (0,2,0) from a later stylesheet — a plain
+   `.bolt-claim` rule here would lose the cascade. (0,3,0) takes it back
+   without editing banners.css, which is owned elsewhere. */
+.bolt .h2.bolt-claim { font-family: var(--bloom); font-weight: 560; letter-spacing: 0; max-width: 22ch; }
 .kicker {
   display: flex; align-items: center; gap: 12px;
   font-size: 0.8rem; font-weight: 700;
@@ -473,14 +502,33 @@ html.cursor-hot .cursor-ring {
   color: var(--ink); text-shadow: 0 1px 14px rgba(9,4,16,0.55); margin-bottom: 26px;
 }
 .hero-eyebrow .x { color: var(--magenta); }
+/* The hero is the one headline set in a PLANTED cut — LOOM Bloom Daisy.
+   Why Daisy and not Rose/Tulip/Ivy: all four were rendered at the real hero
+   sizes (112px desktop, 43.2px at 390 and again at 3x device pixels) over the
+   real cloud photograph. Daisy's motif is discrete — small starbursts and two
+   leaves, with clear white between them — so every letterform survives whole.
+   Rose's spirals close the counters of B/R/D; Tulip chews the cap line and
+   reads as torn paper; Ivy's angular leaves read as compression noise. Daisy
+   is also the only one that matches the world it sits on: the hero planet is
+   covered in cherry blossom, and daisies read as blossom.
+   Weight stays under 600 — Bloom Daisy ships one weight and Chrome would
+   synthesise a fake bold above that, thickening the stems until the flowers
+   fill in. */
 .hero-h1 {
-  font-family: var(--display); font-weight: 580;
+  font-family: var(--bloom-daisy); font-weight: 580;
   font-size: clamp(2.7rem, 8.2vw, 7rem);
-  line-height: 1.005; letter-spacing: -0.02em;
+  line-height: 1.005; letter-spacing: 0;
 }
 .hero-line { display: block; overflow: hidden; }
 .hero-line > span { display: block; }
+/* The accent line is a 1.5px OUTLINE with no fill, and an outline of a planted
+   cut is unreadable: every petal and leaf contributes its own contour, so
+   "ON THE EDGE" comes out as magenta confetti at every size tested. It gets
+   the plain cut instead. This costs nothing in rhythm — Daisy and Regular
+   share their metrics exactly, so the line still sets to the same width and
+   the same letter positions; it just reads as the stem before the flower. */
 .hero-line--accent {
+  font-family: var(--bloom);
   color: transparent;
   -webkit-text-stroke: 1.5px var(--magenta);
 }
@@ -770,11 +818,11 @@ html.cursor-hot .cursor-ring {
   padding: 10px 14px; color: var(--ink-faint); font-size: 0.85rem;
   border-top: 1px solid var(--line);
 }
-/* `flex-wrap: wrap` + `min-width: 0` on the title column are what make the
-   card genuinely fluid. Unwrapped, this row's min-content (title column +
-   16px gap + the flex-shrink:0 pills) was the widest thing in the card and
-   set the floor the work grid could not go under. Wrapped, the pills drop to
-   their own line on a small phone instead of pushing the page sideways. */
+/* `flex-wrap: wrap` + `min-width: 0` on the title column keep the card
+   fluid. Unwrapped, this row's min-content (title column + 16px gap + the
+   flex-shrink:0 pills) was the widest thing in the card and set the floor
+   the work grid could not shrink under; the pills drop to their own line on
+   a small phone now instead of pushing the page sideways. */
 .case-meta {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
   gap: 16px; padding: 16px 4px 0;
@@ -802,14 +850,11 @@ html.cursor-hot .cursor-ring {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: clamp(18px, 2.4vw, 34px);
 }
-/* `min-width: 0` is load-bearing, and it has to sit on the GRID ITEM, not on
-   .case-card — Reveal wraps every card in its own motion div, so the item is
-   that wrapper. A grid item's default `min-width: auto` floors the track at
-   the item's min-content, and .case-meta's min-content is ~333px (the title
-   column plus the never-shrinking .case-tags pills). Below a ~373px viewport
-   that floor is wider than the 1fr track, so the whole grid — and with it the
-   document — grew past the viewport. Measured at 320px: track 280px, resolved
-   column 332.8px, document scrollWidth 353px. */
+/* A grid item's default `min-width: auto` floors its track at the item's
+   min-content, which is how a card grid quietly widens the whole document on
+   a small phone. Measured here at 320px before this rule: track 280px,
+   resolved column 332.8px, document scrollWidth 353px. It has to sit on the
+   ITEM (Reveal wraps every card in its own motion div), not on the card. */
 .work-grid > * { min-width: 0; }
 
 /* ——— case overlay ——— */
@@ -841,7 +886,15 @@ html.cursor-hot .cursor-ring {
 .overlay-scroll { overflow-y: auto; overscroll-behavior: contain; flex: 1; }
 .overlay-head { padding: clamp(34px, 6vh, 70px) clamp(20px, 5vw, 70px) 10px; max-width: 1000px; }
 .overlay-scope { color: var(--magenta); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 14px; }
-.overlay-head h2 { font-family: var(--display); font-weight: 580; font-size: clamp(2.2rem, 5.5vw, 4.2rem); line-height: 1.02; letter-spacing: -0.015em; }
+/* Client names. Bloom carries Č/Ć/Ž/Š/Đ and the whole Western accent set, so
+   the Bosnian and French names ("Maison de l’Avenir", the ’ included) all set
+   in one face. TWO of the sixteen do not, and it is punctuation, not letters:
+   `Auraa Desire × Savia` (U+00D7) and `ModulArt · Liberty Group` (U+00B7) are
+   outside Bloom's 67 glyphs and fall through to Clash for that one mark. The
+   `·` is invisible against Bloom's flat terminals; the `×` reads a shade light.
+   The real fix is two trivial glyphs in `type/glyphs.py` — a saltire and a dot
+   — not a different font-family here. */
+.overlay-head h2 { font-family: var(--bloom); font-weight: 560; font-size: clamp(2.2rem, 5.5vw, 4.2rem); line-height: 1.02; letter-spacing: 0; }
 .overlay-title { font-family: var(--display); font-weight: 460; font-size: clamp(1.2rem, 2.4vw, 1.7rem); color: var(--ink-dim); margin-top: 8px; font-style: normal; }
 .overlay-facts { display: flex; flex-wrap: wrap; gap: clamp(20px, 4vw, 50px); margin: 26px 0; }
 .overlay-facts span { display: flex; flex-direction: column; font-weight: 620; }
@@ -1125,7 +1178,8 @@ html.cursor-hot .cursor-ring {
 }
 .wizard-stage { padding: clamp(24px, 4vw, 44px); min-height: 380px; display: grid; }
 .wpane { grid-area: 1 / 1; }
-.wq { font-family: var(--display); font-weight: 560; font-size: clamp(1.4rem, 2.6vw, 2rem); margin-bottom: 8px; }
+/* wizard question — 32px, display tier, strings are hardcoded English */
+.wq { font-family: var(--bloom); font-weight: 560; font-size: clamp(1.4rem, 2.6vw, 2rem); margin-bottom: 8px; }
 .wsub { color: var(--ink-dim); margin-bottom: 18px; font-size: 0.95rem; }
 .wintents { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 18px; }
 .wintent {
@@ -1352,10 +1406,16 @@ html.cursor-hot .cursor-ring {
   padding: clamp(90px, 14vh, 180px) var(--pad);
 }
 .contact-h2 {
-  font-family: var(--display); font-weight: 580;
-  font-size: clamp(2.8rem, 9vw, 7.5rem); line-height: 1.02; letter-spacing: -0.02em;
+  font-family: var(--bloom); font-weight: 580;
+  font-size: clamp(2.8rem, 9vw, 7.5rem); line-height: 1.02; letter-spacing: 0;
 }
 .contact-accent { color: transparent; -webkit-text-stroke: 1.5px var(--magenta); }
+/* "BOUNDARIES?" is one unbreakable 11-character word, and Bloom's caps make it
+   303px wide at 320 — 3px past the viewport, where Clash's lowercase measured
+   288. `min()` only bites below 367px; from 367 up it resolves to the same
+   2.8rem the clamp already gave, so desktop and every normal phone are
+   untouched. Measured: 320 → 39.0px, accent right edge 20..285. */
+@media (max-width: 420px) { .contact-h2 { font-size: min(12.2vw, 2.8rem); } }
 .contact-sub { color: var(--ink-dim); margin-top: 26px; font-size: clamp(1rem, 1.5vw, 1.2rem); }
 .contact-ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 40px; }
 .contact-ig { margin-top: 30px; }
@@ -1364,9 +1424,13 @@ html.cursor-hot .cursor-ring {
 
 /* ——— footer ——— */
 .footer { border-top: 1px solid var(--line); padding: clamp(50px, 8vh, 90px) var(--pad) 30px; position: relative; overflow: hidden; }
+/* DEAD RULE as of this pass — Chrome.jsx:233 replaced the type watermark with
+   `.footer-word-img` (the woven logo), so nothing matches this any more. Moved
+   to Bloom anyway so it is not a Clash landmine if the type version comes back;
+   plain Bloom outlines cleanly at 1px, unlike the planted cuts. */
 .footer-word {
   position: absolute; left: 50%; bottom: -0.24em; transform: translateX(-50%);
-  font-family: var(--display); font-weight: 640;
+  font-family: var(--bloom); font-weight: 560;
   font-size: clamp(8rem, 26vw, 24rem); line-height: 1;
   color: transparent; -webkit-text-stroke: 1px rgba(242, 240, 247, 0.07);
   pointer-events: none; user-select: none; white-space: nowrap;

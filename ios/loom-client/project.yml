@@ -1,0 +1,63 @@
+# project.yml — xcodegen spec for LOOMClient.
+# Scaffold owner only. `sources` are directory globs on purpose: adding a file
+# anywhere under Sources/ or Resources/ never requires touching this file, so
+# six feature agents can add files at the same time without conflicts here.
+# Regenerate the Xcode project with: xcodegen generate
+
+name: LOOMClient
+options:
+  bundleIdPrefix: com.loom
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    DEVELOPMENT_TEAM: 6JW6JNN28V
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_PREVIEWS: YES
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+targets:
+  LOOMClient:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources
+      - path: Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.loom.client
+        PRODUCT_NAME: LOOM
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_CFBundleDisplayName: LOOM
+    info:
+      path: Generated/Info.plist
+      properties:
+        CFBundleDisplayName: LOOM
+        ITSAppUsesNonExemptEncryption: false
+        UIAppFonts:
+          - LOOMBloom-Regular.otf
+          - LOOMBloomRose-Regular.otf
+          - LOOMBloomDaisy-Regular.otf
+          - LOOMBloomTulip-Regular.otf
+          - LOOMBloomIvy-Regular.otf
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: false
+          NSExceptionDomains:
+            localhost:
+              NSExceptionAllowsInsecureHTTPLoads: true
+              NSIncludesSubdomains: false
+    scheme:
+      testTargets: []
+      gatherCoverageData: false

@@ -405,25 +405,31 @@ function Mosaic({ list, onOpen }) {
     const restDevices = () => setDevSlugs(wide() && fine() ? [] : staticDevices())
     restDevices()
 
+    let devTile = null
     const promote = (t, i) => {
+      if (t === devTile) return
       clearTimeout(hoverT)
       if (!wide() || !fine()) return
       hoverT = setTimeout(() => {                 // don't thrash on a sweep
+        devTile = t
         flushSync(() => setDevSlugs([cards[i].slug]))
         if (!askable()) return
         const p = best.get(t)
         if (p) moveTo(p.block, p.at)
       }, 200)
     }
-    const unpromote = () => { clearTimeout(hoverT); restDevices() }
+    const unpromote = () => { clearTimeout(hoverT); devTile = null; restDevices() }
 
     const offs = []
     const on = (el, ev, fn, opts) => { el.addEventListener(ev, fn, opts); offs.push(() => el.removeEventListener(ev, fn, opts)) }
 
-    tiles.forEach((t, i) => {
-      on(t, 'pointerenter', () => promote(t, i))
-      on(t, 'focus', () => promote(t, i))
-    })
+    // Focus is per-tile; the pointer is handled on the WALL, in the same
+    // pointermove that already drives the drift. `pointerenter` on the tile is
+    // not enough: this wall moves, so a card can slide out from under a
+    // stationary cursor and the next card slide in beneath it without any
+    // pointer event firing at all — which left the reader hovering a card with
+    // no preview on it until they twitched the mouse.
+    tiles.forEach((t, i) => { on(t, 'focus', () => promote(t, i)) })
     on(root, 'pointerenter', () => { held = true; sync() })
     on(root, 'pointerleave', () => { held = false; unpromote(); sync() })
     on(root, 'focusin', () => { held = true; sync() })
@@ -520,6 +526,8 @@ function Mosaic({ list, onOpen }) {
       if (reduced() || e.pointerType === 'touch') return
       ptr = { x: e.clientX + scrollX, y: e.clientY + scrollY }
       askDrift()
+      const t = e.target?.closest?.('.wtile')
+      if (t) { const i = tiles.indexOf(t); if (i >= 0) promote(t, i) }
     }, { passive: true })
     on(root, 'pointerleave', () => { ptr = null; askDrift() })
 
@@ -617,7 +625,7 @@ function Mosaic({ list, onOpen }) {
             <span className="wm-scrim" aria-hidden="true" />
             <span className="wm-thread" aria-hidden="true" />
             {devSet.has(c.slug) && (
-              <span className="wm-dev" aria-hidden="true">
+              <span className="wm-dev" aria-hidden="true"><span className="wm-devbox">
                 {/* Convention over configuration: make-case-screens.mjs writes
                     screen-desktop/screen-mobile into every case folder, so the
                     slug alone resolves the pair. `devices` stays as the
@@ -632,7 +640,7 @@ function Mosaic({ list, onOpen }) {
                   fallback={c.cover}
                   alt={`${c.client} — ${c.title}`}
                 />
-              </span>
+              </span></span>
             )}
             {c.video && <span className="wm-reel" aria-hidden="true">REEL</span>}
             <span className="wm-cap">
@@ -653,10 +661,15 @@ function Mosaic({ list, onOpen }) {
           </button>
         ))}
       </div>
+      {/* The lab page carried a six-item engineering key under the wall (beat
+          length, move length, the four size classes, the breath period). That
+          was documentation for a concept review; on a client-facing board it
+          reads as a developer talking. What survives is the part a visitor can
+          act on — that the board is live, and that every card opens onto real
+          hardware. The dot is driven from the actual cycle, not decoration. */}
       <p className="wmosaic-note" ref={noteRef}>
-        <span><i className="wm-pulse" aria-hidden="true" />A block re-tiles every 2.6s · each move lasts 3.4s, so they overlap</span>
-        <span>Every photograph breathes on its own 27–48s period</span>
-        <span>Hold a card to see it running on <b>real hardware</b></span>
+        <span><i className="wm-pulse" aria-hidden="true" />The board re-ranks itself while you watch</span>
+        <span>Open any card to see the site running on a <b>real MacBook and iPhone</b></span>
       </p>
     </>
   )

@@ -320,7 +320,13 @@ export class Companion {
     // width — big enough to catch text almost anywhere it flew. Still a
     // clearly-sized creature, just no longer one that dominates a third of
     // the frame.
-    const frac = this.isMobile ? 0.27 : 0.165
+    // Mobile nudged 0.27 -> 0.31: on a phone the butterfly is the only piece of
+    // the 3D layer a reader ever really sees, and at 0.27 it read as a detail
+    // rather than as the companion it is. The duck's box scales off this, so
+    // the cost of the extra 4% is that it ducks slightly more often — which is
+    // the correct trade, and the hysteresis in Flyer.jsx now keeps that from
+    // flickering the way it used to.
+    const frac = this.isMobile ? 0.31 : 0.165
     this.baseScale = (frac * this.viewW) / 2.02
     // Keep the whole wingspan inside the frame. A flat ±0.92 clamp is fine on a
     // desktop where the butterfly is 13% of the width and clips by nothing; on a

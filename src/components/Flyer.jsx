@@ -32,11 +32,46 @@ import './flyer-say.css'
 const TEXT_SELECTOR = 'p, h1, h2, h3, h4, li, button, a'
 const DUCK_CHECK_MS = 130
 
-// The site's own chrome, which is neither "copy the butterfly is obscuring" nor
-// "copy the bubble must clear": the flyer's two layers (the creature and its own
-// speech bubble) and the WhatsApp FAB. One list, used by BOTH the duck scan and
-// the bubble's placement scan, so they can never disagree about what counts.
+// Two exclusion lists, and the difference between them is not an oversight.
+//
+// The DUCK ignores the flyer's own two layers (the creature must not duck from
+// its own speech bubble) and the WhatsApp FAB, whose label is chrome rather
+// than copy the butterfly could be said to be obscuring.
+//
+// The BUBBLE must only ignore the flyer's own layers. The FAB is a real
+// obstacle to it, and in the opposite direction: the FAB sits at a HIGHER
+// z-index, so a bubble placed under it does not cover the FAB, the FAB covers
+// the bubble. Sharing one list put the offer bubble behind the FAB at 390px
+// with the second line of Arabic underneath the green button.
 const SELF_SELECTOR = '.flyer-layer, .flyer-say-layer, .wa-fab-stack'
+const SAY_SELF_SELECTOR = '.flyer-layer, .flyer-say-layer'
+
+// What the BUBBLE must stay off. A superset of TEXT_SELECTOR, and the extra
+// terms are the reason: a wish tag in `#offer` is an `<article>` — a paper card
+// with generous padding — and the bubble was measured clipping 7,744px² of one
+// while touching only 1,415px² of its actual words. Covering the blank corner
+// of a card is still covering the card. `article`, `figure` and `blockquote`
+// are the standard "this is one piece of content" boxes. `section` is
+// deliberately absent — every one of them is full-bleed, so including them
+// would mark the whole viewport occupied and the scoring would carry no
+// information at all.
+//
+// Pictures count too, and `#offer` is the reason: the bloom tree between the
+// two wish tags is the centrepiece of that section, and the first version of
+// this — text boxes only — parked the bubble squarely on it. But `#offer` also
+// has a 100vw <img> for its sky, and `<canvas>` covers both this file's own
+// full-viewport layer and the hero's. So imagery is included and then filtered
+// by SIZE (see visibleContentRects): a picture bigger than BACKDROP_FRACTION of
+// the viewport is a backdrop, not a thing on the page, and cannot be avoided
+// because there is nowhere else to be.
+// `.wa-fab-stack` is named outright because it is a plain <div> wrapper: its
+// anchor and label would be caught anyway, but the stack's own box is what
+// actually has to be cleared, tail and all.
+const CONTENT_SELECTOR = TEXT_SELECTOR + ', article, figure, blockquote, img, svg, video, canvas, .wa-fab-stack'
+const MEDIA_TAGS = /^(IMG|SVG|VIDEO|CANVAS)$/
+const BACKDROP_FRACTION = 0.42
+const SAY_CLEAR_X = 10  // keep-out grown around every content box…
+const SAY_CLEAR_Y = 56  // …taller than it is wide, because scrolling is vertical
 
 // ── hysteresis ──────────────────────────────────────────────────────────────
 // MEASURED BUG (the "glitching"). The duck used to be a bare
@@ -160,7 +195,12 @@ const SAY_EDGE = 12           // px kept clear at the other three viewport edges
 // px² of recovered content — a slot that is merely a rounding error better than
 // the one already chosen does not win, so a bubble drifting along a card edge
 // settles instead of oscillating. The move itself is then eased, as before.
-const SAY_PLACE_MS = 220
+// 130ms, the same cadence as the duck scan. The pass costs a measured 0.91ms
+// (310 candidate nodes in the document, 14–16 of them on screen) and only runs
+// while a bubble is actually up — at most ~6.8s per zone — so the tighter loop
+// is affordable, and it halves how far the page can scroll under an already
+// placed bubble before the placement is reconsidered.
+const SAY_PLACE_MS = 130
 const SAY_SWITCH_WIN = 1800
 const SAY_PARK_COST = 3000
 const SAY_TRAVEL_COST = 2  // px² of penalty per px the bubble would have to move
@@ -246,17 +286,38 @@ function textOverlapArea(rect, exclude, cap) {
 // makes a viewport-wide scan affordable at all.
 function visibleContentRects() {
   const vw = window.innerWidth, vh = window.innerHeight
-  const nodes = document.querySelectorAll(TEXT_SELECTOR)
+  const nodes = document.querySelectorAll(CONTENT_SELECTOR)
   const out = []
   for (let i = 0; i < nodes.length; i++) {
     const el = nodes[i]
-    if (el.closest(SELF_SELECTOR)) continue
-    const t = el.textContent
-    if (!t || t.trim().length < 3) continue
+    if (el.closest(SAY_SELF_SELECTOR)) continue
+    // .toUpperCase() is not decoration: an inline <svg> in an HTML document
+    // reports tagName as lowercase 'svg', so the bare test silently missed
+    // every one of them.
+    const media = MEDIA_TAGS.test(el.tagName.toUpperCase())
+    // Text boxes have to actually hold words; pictures hold none, so the
+    // length test would throw every one of them away.
+    if (!media) {
+      const t = el.textContent
+      if (!t || t.trim().length < 3) continue
+    }
     const r = el.getBoundingClientRect()
     if (r.width <= 0 || r.height <= 0) continue
     if (r.right <= 0 || r.left >= vw || r.bottom <= 0 || r.top >= vh) continue
-    out.push(r)
+    if (media && r.width * r.height > vw * vh * BACKDROP_FRACTION) continue
+    // Grown by a clearance margin, and mostly a VERTICAL one, because the
+    // thing that moves content under an already-placed bubble is the scroll.
+    // Scoring the exact rects left the bubble permanently 130ms behind the
+    // page: entering `#offer` on a phone it was measured clipping the left
+    // wish tag by up to 6,636px² for three consecutive samples while it walked
+    // upward, always landing on a slot that was clear when chosen and covered
+    // by the time it got there. A margin roughly the size of one scroll step
+    // makes a slot have to be clear with room, so the collision is avoided
+    // before it happens rather than corrected after.
+    out.push({
+      left: r.left - SAY_CLEAR_X, right: r.right + SAY_CLEAR_X,
+      top: r.top - SAY_CLEAR_Y, bottom: r.bottom + SAY_CLEAR_Y,
+    })
   }
   return out
 }

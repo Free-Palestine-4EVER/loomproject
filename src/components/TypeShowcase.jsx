@@ -5,10 +5,20 @@
 //
 // LOOM drew a whole typeface from nothing, so "we can make anything" is not a
 // claim in this section — it is the thing you are reading.
+//
+// Act three exists in THREE interchangeable compositions — Split / Stage /
+// Specimen — each with its own desktop and mobile numbers. See
+// ./bloomLayouts.js for what they are and how one is chosen; this file only
+// spends the numbers that file hands it. Acts one and two (the word flying
+// together, the four cuts blooming) are the same in all three.
 import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
+import { motion, useScroll, useTransform, useMotionTemplate, useReducedMotion } from 'motion/react'
 import { EASE, Magnetic } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
+import {
+  LAYOUT_MOTION, resolveInitialLayoutId, isExplicitLayoutSelection,
+  bindLayoutHotkeys, formatLayoutHud,
+} from './bloomLayouts.js'
 import './typeshowcase.css'
 
 const WORD = 'BLOOM'
@@ -105,23 +115,71 @@ function Petals({ active, reduced }) {
   return <canvas ref={ref} className="ts-petals" aria-hidden="true" />
 }
 
+/** `true` while the viewport is at or under the section's mobile breakpoint. */
+function useNarrow(query = '(max-width: 900px)') {
+  const [narrow, setNarrow] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(query).matches : false
+  ))
+  useEffect(() => {
+    if (!window.matchMedia) return
+    const mq = window.matchMedia(query)
+    const on = () => setNarrow(mq.matches)
+    on()
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [query])
+  return narrow
+}
+
+// Public entry. Owns only the CHOICE of layout, and remounts Act (via `key`)
+// whenever the layout or the breakpoint changes — every useTransform below
+// reads its ranges from that choice, and a scroll transform that is handed
+// new ranges mid-life keeps the old ones. A remount is the honest way to
+// re-derive them, and it costs nothing: the section is scroll-driven, so
+// there is no in-flight animation state to lose.
 export function TypeShowcase() {
+  const [layout, setLayout] = useState(resolveInitialLayoutId)
+  const narrow = useNarrow()
+  const [hud, setHud] = useState(() => import.meta.env.DEV || isExplicitLayoutSelection())
+
+  useEffect(() => bindLayoutHotkeys((id) => { setLayout(id); setHud(true) }), [])
+
+  return (
+    <>
+      <Act key={`${layout}-${narrow ? 'm' : 'd'}`} layout={layout} narrow={narrow} />
+      {hud && (
+        <div className="ts-hud" aria-hidden="true">{formatLayoutHud(layout)}</div>
+      )}
+    </>
+  )
+}
+
+function Act({ layout, narrow }) {
   const wrap = useRef(null)
   const reduced = useReducedMotion()
   const near = useNearViewport(wrap)
   const { open: openWizard } = useWizard()
   const [live, setLive] = useState(0)
+  const M = LAYOUT_MOTION[layout][narrow ? 'm' : 'd']
 
   const { scrollYProgress: p } = useScroll({ target: wrap, offset: ['start start', 'end end'] })
 
   // act one — the word assembles
   const kickerO = useTransform(p, [0, 0.05, 0.72, 0.8], [0, 1, 1, 0])
   const plainO = useTransform(p, [0.26, 0.34], [1, 0])
-  // act three — the word steps back, the copy arrives
-  const wordScale = useTransform(p, [0.72, 0.94], [1, 0.52])
-  const wordY = useTransform(p, [0.72, 0.94], ['-50%', '-118%'])
-  const copyO = useTransform(p, [0.78, 0.9], [0, 1])
-  const copyY = useTransform(p, [0.78, 0.94], [50, 0])
+  // act three — the word steps back, the copy arrives. Every range comes
+  // from the active layout's numbers; the shape of the graph never changes,
+  // only the destinations, which is what keeps all three switchable live.
+  const [b0, b1] = M.beat
+  const wordScale = useTransform(p, [b0, b1], M.wordScale)
+  const wordY = useTransform(p, [b0, b1], M.wordY)
+  const wordX = useTransform(p, [b0, b1], M.wordX)
+  const wordO = useTransform(p, [b0, b1], M.wordFade)
+  const wordBlurPx = useTransform(p, [b0, b1], M.wordBlur)
+  const wordFilter = useMotionTemplate`blur(${wordBlurPx}px)`
+  const copyO = useTransform(p, [b0 + 0.06, b1 - 0.04], [0, 1])
+  const copyY = useTransform(p, [b0 + 0.06, b1], [M.copyFrom.y, 0])
+  const copyX = useTransform(p, [b0 + 0.06, b1], [M.copyFrom.x, 0])
   const bandX = useTransform(p, [0, 1], ['4%', '-22%'])
   const band2X = useTransform(p, [0, 1], ['-18%', '8%'])
 
@@ -135,7 +193,7 @@ export function TypeShowcase() {
   }, [p])
 
   return (
-    <section className="ts" id="typeface" ref={wrap}>
+    <section className={`ts ts--${layout}`} id="typeface" ref={wrap}>
       <div className="ts-sticky">
         <Petals active={near} reduced={reduced} />
 
@@ -154,7 +212,25 @@ export function TypeShowcase() {
         </motion.p>
 
         {/* the word: one animated plain layer, four planted layers blooming through */}
-        <motion.div className="ts-word" style={{ scale: wordScale, y: wordY }}>
+        {/* Three nested boxes, one job each: the anchor CENTRES the word (pure
+            CSS, so no motion value has to spend itself on centring), the shift
+            TRAVELS it in viewport units, the word SCALES. Splitting travel from
+            scale is what lets a layout say "30vh down" and mean it — a single
+            element would have to express that as a percentage of its own
+            clamp()ed line box, which changes with the width.
+
+            `filter` is attached only where a layout actually blurs: a live
+            `blur(0px)` still forces the word onto its own rasterised layer
+            every frame, which is real cost for no pixels. */}
+        <div className="ts-word-anchor">
+        <motion.div
+          className="ts-word-shift"
+          style={{
+            x: wordX, y: wordY, opacity: wordO,
+            ...(M.wordBlur[1] ? { filter: wordFilter } : null),
+          }}
+        >
+        <motion.div className="ts-word" style={{ scale: wordScale }}>
           <motion.div className="ts-layer ts-layer--plain"
                       style={{ opacity: plainO, fontFamily: near ? 'LOOM Bloom' : undefined }}>
             {WORD.split('').map((ch, i) => (
@@ -165,6 +241,8 @@ export function TypeShowcase() {
             <Bloom key={c.id} p={p} n={n} family={near ? c.family : undefined} />
           ))}
         </motion.div>
+        </motion.div>
+        </div>
 
         {/* the rail of cut names, lighting up as each one blooms */}
         <div className="ts-rail" aria-hidden="true">
@@ -175,35 +253,40 @@ export function TypeShowcase() {
           ))}
         </div>
 
-        <motion.div className="ts-copy" style={{ opacity: copyO, y: copyY }}>
-          <h2 className="ts-h2">We didn't license a font. We drew one.</h2>
-          <p className="ts-lede">
-            LOOM Bloom is a condensed display face in five cuts — one plain, four
-            with a different flower cut out of every letter. Every outline was
-            generated in our own pipeline: no foundry, no licence, no subscription.
-            It is free to download, and it is the shortest answer to <em>“can you
-            make…?”</em>
-          </p>
-          <div className="ts-stats">
-            {STATS.map(([n, l]) => (
-              <div className="ts-stat" key={l}>
-                <span className="ts-stat-n" style={{ fontFamily: near ? 'LOOM Bloom' : undefined }}>{n}</span>
-                <span className="ts-stat-l">{l}</span>
-              </div>
-            ))}
-          </div>
-          <div className="ts-cta">
-            <Magnetic strength={0.2}>
-              <a className="ts-btn ts-btn--fill" href="/type">
-                Open the specimen<span aria-hidden="true">→</span>
-              </a>
-            </Magnetic>
-            <button
-              className="ts-btn"
-              onClick={() => openWizard({ intent: 'brand', note: 'I want a custom typeface / lettering system.' })}
-            >Commission your own</button>
-          </div>
-        </motion.div>
+        {/* The slot does the PLACING (it is what each layout repositions), the
+            block inside does the MOVING — so a layout can park the copy
+            anywhere with plain CSS without fighting the scroll transform. */}
+        <div className="ts-copy-slot">
+          <motion.div className="ts-copy" style={{ opacity: copyO, y: copyY, x: copyX }}>
+            <h2 className="ts-h2">We didn't license a font. We drew one.</h2>
+            <p className="ts-lede">
+              LOOM Bloom is a condensed display face in five cuts — one plain, four
+              with a different flower cut out of every letter. Every outline was
+              generated in our own pipeline: no foundry, no licence, no subscription.
+              It is free to download, and it is the shortest answer to <em>“can you
+              make…?”</em>
+            </p>
+            <div className="ts-stats">
+              {STATS.map(([n, l]) => (
+                <div className="ts-stat" key={l}>
+                  <span className="ts-stat-n" style={{ fontFamily: near ? 'LOOM Bloom' : undefined }}>{n}</span>
+                  <span className="ts-stat-l">{l}</span>
+                </div>
+              ))}
+            </div>
+            <div className="ts-cta">
+              <Magnetic strength={0.2}>
+                <a className="ts-btn ts-btn--fill" href="/type">
+                  Open the specimen<span aria-hidden="true">→</span>
+                </a>
+              </Magnetic>
+              <button
+                className="ts-btn"
+                onClick={() => openWizard({ intent: 'brand', note: 'I want a custom typeface / lettering system.' })}
+              >Commission your own</button>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   )

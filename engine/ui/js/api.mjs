@@ -89,4 +89,10 @@ export const api = {
   ops: (month) => req("GET", `/ops${month ? "?month=" + encodeURIComponent(month) : ""}`),
   settings: () => req("GET", "/settings"),
   patchSettings: (body) => req("PATCH", "/settings", body),
+
+  // client app (ios/CONTRACT.md Part 1) — operator-facing surfaces only.
+  // The Bearer-protected /api/client/* routes are for the iOS app, not this UI.
+  clientCodes: () => req("GET", "/operator/client-codes"),
+  clientRequests: () => req("GET", "/operator/client-requests"),
+  patchClientRequest: (id, body) => req("PATCH", `/operator/client-requests/${id}`, body),
 };

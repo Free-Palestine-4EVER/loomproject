@@ -26,6 +26,23 @@
 //   GET    /api/ops?month=
 //   GET    /a/:token                                -> engine/ui/approve.html
 //   *      static files under engine/ui/
+//
+//   Client app (ios/CONTRACT.md Part 1) — one-time-code auth + client-scoped
+//   API. Every /api/client/* route below /auth is Bearer-protected and
+//   derives clientId from the token via clientauth.authenticate(), NEVER
+//   from a query/body field — that's the whole cross-tenant safety model.
+//   POST   /api/client/auth/request                 { handle } -> always 200
+//   POST   /api/client/auth/verify                  { handle, code } -> { token, client }
+//   POST   /api/client/auth/logout                  (Bearer)
+//   GET    /api/client/me                           (Bearer)
+//   GET    /api/client/months                       (Bearer)
+//   GET    /api/client/months/:month/posts          (Bearer)
+//   POST   /api/client/posts/:id/decide             (Bearer) { verdict, note }
+//   GET    /api/client/performance?month=           (Bearer)
+//   GET    /api/client/invoices                     (Bearer)
+//   GET|POST /api/client/requests                   (Bearer)
+//   GET    /api/operator/client-codes                -> pending one-time codes, for readout
+//   GET    /api/operator/client-requests              PATCH /api/operator/client-requests/:id
 // ————————————————————————————————————————————————————————————
 
 import http from 'node:http'
@@ -38,6 +55,8 @@ import { fileURLToPath } from 'node:url'
 import * as store from './lib/store.mjs'
 import { resolvePricing, DEFAULT_PRICING } from './lib/pricing.mjs'
 import { computeOps } from './lib/ops.mjs'
+import * as clientAuth from './lib/clientauth.mjs'
+import * as clientApi from './lib/clientapi.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const UI_DIR = path.join(HERE, 'ui')
@@ -763,6 +782,131 @@ async function opsRoute(req, res, query) {
   json(res, 200, snapshot)
 }
 
+// ——— client app: auth + client-scoped API (ios/CONTRACT.md Part 1) ————
+//
+// requireClient() is the ONE place a client route may learn its clientId —
+// from the Bearer token, via clientauth.authenticate(). No handler below
+// ever reads clientId from a query string or request body.
+
+function bearerToken(req) {
+  const h = req.headers['authorization']
+  if (!h || !h.startsWith('Bearer ')) return null
+  return h.slice('Bearer '.length).trim()
+}
+
+async function requireClient(req, res) {
+  const token = bearerToken(req)
+  const clientId = token ? await clientAuth.authenticate(token) : null
+  if (!clientId) {
+    fail(res, 401, 'missing or invalid client session')
+    return null
+  }
+  return clientId
+}
+
+async function clientAuthRequest(req, res, body) {
+  if (!body?.handle) return fail(res, 400, 'handle is required')
+  const result = await clientAuth.requestCode(body.handle)
+  json(res, 200, result)
+}
+
+async function clientAuthVerify(req, res, body) {
+  const missing = requireFields(body, ['handle', 'code'])
+  if (missing.length) return fail(res, 400, `missing fields: ${missing.join(', ')}`)
+  const result = await clientAuth.verifyCode(body.handle, body.code)
+  if (!result.ok) return fail(res, result.status || 401, result.error?.message || 'invalid code', { code: result.error?.code })
+  json(res, 200, { token: result.token, client: result.client })
+}
+
+async function clientAuthLogout(req, res) {
+  await clientAuth.revoke(bearerToken(req))
+  json(res, 200, { ok: true })
+}
+
+async function clientMe(req, res) {
+  const clientId = await requireClient(req, res)
+  if (!clientId) return
+  const client = await store.get('clients', clientId)
+  if (!client) return fail(res, 404, 'client not found')
+  json(res, 200, clientAuth.clientSafe(client))
+}
+
+async function clientMonths(req, res) {
+  const clientId = await requireClient(req, res)
+  if (!clientId) return
+  json(res, 200, { items: await clientApi.listMonths(clientId) })
+}
+
+async function clientMonthPosts(req, res, month) {
+  const clientId = await requireClient(req, res)
+  if (!clientId) return
+  json(res, 200, { items: await clientApi.listPosts(clientId, month) })
+}
+
+async function clientDecidePost(req, res, postId, body) {
+  const clientId = await requireClient(req, res)
+  if (!clientId) return
+  const missing = requireFields(body, ['verdict'])
+  if (missing.length) return fail(res, 400, `missing fields: ${missing.join(', ')}`)
+  const result = await clientApi.decidePost(clientId, postId, body.verdict, body.note)
+  if (!result.ok) return fail(res, result.status, result.error?.message, { code: result.error?.code })
+  json(res, 200, result.post)
+}
+
+async function clientPerformance(req, res, query) {
+  const clientId = await requireClient(req, res)
+  if (!clientId) return
+  const month = query.month || new Date().toISOString().slice(0, 7)
+  json(res, 200, await clientApi.performance(clientId, month))
+}
+
+async function clientInvoices(req, res) {
+  const clientId = await requireClient(req, res)
+  if (!clientId) return
+  json(res, 200, { items: await clientApi.listInvoices(clientId) })
+}
+
+async function clientRequestsList(req, res) {
+  const clientId = await requireClient(req, res)
+  if (!clientId) return
+  json(res, 200, { items: await clientApi.listRequests(clientId) })
+}
+
+async function clientRequestsCreate(req, res, body) {
+  const clientId = await requireClient(req, res)
+  if (!clientId) return
+  const result = await clientApi.createRequest(clientId, body?.text)
+  if (!result.ok) return fail(res, result.status, result.error?.message, { code: result.error?.code })
+  json(res, 201, result.request)
+}
+
+// operator-facing (local UI, no client Bearer): read out pending codes and
+// see incoming client requests so a real request is never lost.
+
+async function operatorClientCodes(req, res) {
+  json(res, 200, { items: clientAuth.listPendingCodesForOperator() })
+}
+
+async function operatorClientRequests(req, res) {
+  const [items, clients] = await Promise.all([store.list('clientrequests'), store.list('clients')])
+  const clientById = new Map(clients.map((c) => [c.id, c]))
+  const out = items
+    .slice()
+    .sort((a, b) => (b.at || '').localeCompare(a.at || ''))
+    .map((r) => ({
+      id: r.id, text: r.text, at: r.at, from: r.from, status: r.status,
+      clientId: r.clientId,
+      clientName: clientById.get(r.clientId)?.name || '(unknown client)',
+    }))
+  json(res, 200, { items: out })
+}
+
+async function operatorPatchClientRequest(req, res, id, body) {
+  const updated = await store.update('clientrequests', id, { status: body?.status })
+  if (!updated) return fail(res, 404, 'request not found')
+  json(res, 200, updated)
+}
+
 // ——— router ——————————————————————————————————————————————————
 
 const server = http.createServer(async (req, res) => {
@@ -868,6 +1012,31 @@ const server = http.createServer(async (req, res) => {
     if (route === '/api/invoices' && req.method === 'GET') return listInvoices(req, res, query)
     if (segs[0] === 'api' && segs[1] === 'invoices' && segs.length === 3 && req.method === 'PATCH')
       return patchInvoice(req, res, segs[2], await readBody(req))
+
+    // client auth (one-time code) ---------------------------------------
+    if (route === '/api/client/auth/request' && req.method === 'POST') return clientAuthRequest(req, res, await readBody(req))
+    if (route === '/api/client/auth/verify' && req.method === 'POST') return clientAuthVerify(req, res, await readBody(req))
+    if (route === '/api/client/auth/logout' && req.method === 'POST') return clientAuthLogout(req, res)
+    if (route === '/api/client/me' && req.method === 'GET') return clientMe(req, res)
+
+    // client-scoped API (Bearer) -----------------------------------------
+    if (route === '/api/client/months' && req.method === 'GET') return clientMonths(req, res)
+    if (segs[0] === 'api' && segs[1] === 'client' && segs[2] === 'months' && segs.length === 5 && segs[4] === 'posts' && req.method === 'GET')
+      return clientMonthPosts(req, res, segs[3])
+    if (segs[0] === 'api' && segs[1] === 'client' && segs[2] === 'posts' && segs.length === 5 && segs[4] === 'decide' && req.method === 'POST')
+      return clientDecidePost(req, res, segs[3], await readBody(req))
+    if (route === '/api/client/performance' && req.method === 'GET') return clientPerformance(req, res, query)
+    if (route === '/api/client/invoices' && req.method === 'GET') return clientInvoices(req, res)
+    if (route === '/api/client/requests') {
+      if (req.method === 'GET') return clientRequestsList(req, res)
+      if (req.method === 'POST') return clientRequestsCreate(req, res, await readBody(req))
+    }
+
+    // operator surface for client-app auth codes + client requests -------
+    if (route === '/api/operator/client-codes' && req.method === 'GET') return operatorClientCodes(req, res)
+    if (route === '/api/operator/client-requests' && req.method === 'GET') return operatorClientRequests(req, res)
+    if (segs[0] === 'api' && segs[1] === 'operator' && segs[2] === 'client-requests' && segs.length === 4 && req.method === 'PATCH')
+      return operatorPatchClientRequest(req, res, segs[3], await readBody(req))
 
     return fail(res, 404, `no route ${req.method} ${route}`)
   } catch (e) {

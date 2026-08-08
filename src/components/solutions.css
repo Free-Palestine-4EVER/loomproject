@@ -145,9 +145,11 @@
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
   color: var(--panel-yarn, var(--magenta));
 }
+/* the matched industry, 30px — all 30 names ("Cafés & Coffee" included) are
+   covered; the é and the & are both in Bloom. */
 .sol-answer-name {
-  font-family: var(--display); font-weight: 580; color: #fff;
-  font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.08; letter-spacing: -0.01em;
+  font-family: var(--bloom); font-weight: 560; color: #fff;
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.08; letter-spacing: 0;
 }
 .sol-answer-hook {
   font-family: var(--display); font-weight: 500;

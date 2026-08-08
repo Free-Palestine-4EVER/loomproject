@@ -8,6 +8,7 @@ const SCREENS = [
   { href: "qa.html", label: "QA Queue" },
   { href: "grid.html", label: "Grid" },
   { href: "approval.html", label: "Approval" },
+  { href: "codes.html", label: "Codes" },
   { href: "ads.html", label: "Ads" },
   { href: "money.html", label: "Money" },
 ];

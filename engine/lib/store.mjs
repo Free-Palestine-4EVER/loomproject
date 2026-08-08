@@ -14,6 +14,9 @@ export const DATA_DIR = path.resolve(HERE, '..', 'data')
 const COLLECTIONS = new Set([
   'clients', 'products', 'posts', 'approvals', 'creatives',
   'campaigns', 'conversations', 'invoices', 'settings',
+  // client-app additions (ios/CONTRACT.md Part 1) — one-time login codes,
+  // bearer tokens, attempt-limiter log, and the client requests thread.
+  'clientauthcodes', 'clientauthattempts', 'clienttokens', 'clientrequests',
 ])
 
 // One write-queue per collection name, so concurrent handlers never race

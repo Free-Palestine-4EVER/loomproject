@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- engine/ui/codes.html — operator panel for the client app's login: read
+     out a pending one-time code, and see requests clients have sent in. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Client codes — LOOM ENGINE</title>
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+<main>
+  <h1>Client codes</h1>
+  <p class="page-sub">There is no SMS provider — a client requests a code in the app, then calls or messages LOOM for it. Read it out from here before it expires.</p>
+
+  <div class="section">
+    <h2>Pending login codes</h2>
+    <div id="codes-body" class="skeleton">loading…</div>
+  </div>
+
+  <div class="section">
+    <h2>Client requests</h2>
+    <p class="page-sub" style="margin-top:-8px;">Sent from the app's Requests tab. Mark done once you've replied.</p>
+    <div id="requests-body" class="skeleton">loading…</div>
+  </div>
+</main>
+
+<script type="module" src="js/codes.mjs"></script>
+</body>
+</html>

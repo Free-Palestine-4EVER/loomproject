@@ -147,6 +147,10 @@
   transition: opacity 0.35s var(--ease), transform 0.45s var(--ease);
 }
 .wtile:hover .wm-seal, .wtile:focus-visible .wm-seal { opacity: 1; transform: scale(1); }
+/* On a short wide card the device pair reaches the bottom-right corner the
+   seal lives in — the iPhone is the tallest thing in the composite and the
+   seal landed on its screen. Only there does the seal move up. */
+.wtile[data-dev].wm-w .wm-seal, .wtile[data-dev].wm-h .wm-seal { top: 12px; bottom: auto; }
 .wtile .wm-seal svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
 /* The reel badge, carried over from the old grid card. No case in site.js
@@ -178,12 +182,30 @@
    move (scale(1/sx, 1/sy)), the same trick .wm-cap uses about its corner. */
 .wtile .wm-dev {
   position: absolute; inset: 0; z-index: 2;
-  display: flex; align-items: center; justify-content: center;
-  padding: 8% 6% 14%;
+  display: flex; align-items: center;
+  /* right-aligned, because the caption is bottom-LEFT on every tile. On a
+     2x1 band that is the only placement where the two do not collide, and on
+     a 2x2 flagship it reads as the classic product-shot composition. */
+  justify-content: flex-end;
+  padding: 9px 11px;
   pointer-events: none;
   transform-origin: 50% 50%;
   animation: wm-dev-in 520ms var(--ease) both;
 }
+/* THE FIT BOX. The pair's composite is ~3:2 (a 1180x686 MacBook plus the
+   iPhone's 14% bottom overhang), and a tile can be any of five shapes — a
+   640x176 band and a 305x352 tower among them. `height: 100%` + an
+   aspect-ratio derives the width from whatever height the tile has left,
+   and `max-width` caps it back when the tile is the narrow one. So the pair
+   is CONTAINED by the tile in both axes, on every size class, with no
+   container queries and no measurement. Without this the MacBook was sized
+   off the tile's width alone and a band clipped it to a bare screenshot. */
+.wtile .wm-devbox {
+  height: 100%; aspect-ratio: 3 / 2; max-width: 62%;
+  display: flex; align-items: center; justify-content: center;
+}
+.wtile.wm-t .wm-devbox, .wtile.wm-s .wm-devbox { max-width: 90%; }
+.wtile .wm-devbox .devshow { width: 100%; }
 @keyframes wm-dev-in {
   from { opacity: 0; transform: translateY(10px) scale(0.965); }
   to   { opacity: 1; transform: none; }
@@ -255,6 +277,23 @@
   .wtile .wm-rev { max-height: 150px; opacity: 1; transform: none; }
   .wtile .wm-seal { opacity: 0.85; transform: scale(1); width: 26px; height: 26px; right: 10px; bottom: 10px; }
   .wtile .wm-thread { transform: scaleX(1); }
+
+  /* One column: the caption is fully open on every tile (there is no hover to
+     open it with), so the device pair gets the top 60% of the card and the
+     words keep the rest. */
+  .wtile .wm-dev { inset: 0 0 40% 0; padding: 10px; justify-content: center; }
+  .wtile .wm-devbox { max-width: 92%; }
+  /* Undo device-showcase.css's <=560px `.devshow--card` pinning. That layout
+     (mac at 50% width top-left, phone at 33% bottom-centre) is measured for
+     the old 4:3 grid thumbnail and pins to the nearest positioned ancestor —
+     here the whole tile — which put the iPhone straight through the caption.
+     Inside the fit box the desktop composition works at any size, because the
+     box is already contained in both axes. */
+  .wtile .wm-devbox .devshow.devshow--card {
+    position: relative; inset: auto; display: block; width: 100%; max-width: 100%;
+  }
+  .wtile .wm-devbox .devshow--card .devshow-mac { position: relative; left: auto; top: auto; width: 100%; }
+  .wtile .wm-devbox .devshow--card .devshow-phone { position: absolute; left: auto; right: 3%; bottom: -14%; width: 30%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
