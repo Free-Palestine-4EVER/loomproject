@@ -236,7 +236,13 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
 }
 .btn--ghost { border-color: rgba(242, 240, 247, 0.25); color: var(--ink); }
 .btn--ghost:hover { border-color: var(--magenta); color: #fff; background: rgba(242, 28, 140, 0.08); }
-.magnetic { display: inline-block; transition: transform 0.35s var(--ease); will-change: transform; }
+.magnetic { display: inline-block; transition: transform 0.35s var(--ease); }
+/* The pull is driven by pointermove, so a coarse pointer never moves one of
+   these at all — promoting them there buys a compositor layer per button
+   (11 of them on the home page) for an animation that cannot happen. */
+@media (hover: hover) and (pointer: fine) {
+  .magnetic { will-change: transform; }
+}
 
 /* ——— loader ——— */
 .loader {

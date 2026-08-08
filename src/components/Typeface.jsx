@@ -4,7 +4,7 @@
 // the real font, not a picture of it.
 import { useMemo, useRef, useState } from 'react'
 import { motion, useScroll, useTransform } from 'motion/react'
-import { EASE, Reveal, Magnetic } from '../lib/motion.jsx'
+import { EASE, Reveal, Magnetic, useNearViewport } from '../lib/motion.jsx'
 import { PosterMachine } from './PosterMachine.jsx'
 import './typeface.css'
 
@@ -124,6 +124,26 @@ const SNIPPET = `@font-face {
 }
 
 h1 { font-family: 'LOOM Bloom', sans-serif; }`
+
+/** One entry in the species wall. The wall names all seven planted cuts, which
+ *  is 1.5 MB of display type if they all resolve at mount — so each figure
+ *  claims its own face only as it comes up the page. The caption is set in the
+ *  body font and reads correctly the whole time; only the specimen word swaps. */
+function SpecWord({ cut }) {
+  const ref = useRef(null)
+  const near = useNearViewport(ref, '300px')
+  return (
+    <figure className="tf-spec" ref={ref}>
+      <p className="tf-spec-word" style={{ fontFamily: near ? cut.family : undefined }}>
+        {cut.label.toUpperCase()}
+      </p>
+      <figcaption>
+        <strong>{cut.label}</strong>
+        <span>{cut.species}</span>
+      </figcaption>
+    </figure>
+  )
+}
 
 function Band({ family, text, dir = 1, dim }) {
   return (
@@ -301,13 +321,7 @@ export function Typeface() {
           <div className="tf-species">
             {CUTS.filter((c) => c.id !== 'regular').map((c, i) => (
               <Reveal key={c.id} delay={0.05 + i * 0.06}>
-                <figure className="tf-spec">
-                  <p className="tf-spec-word" style={{ fontFamily: c.family }}>{c.label.toUpperCase()}</p>
-                  <figcaption>
-                    <strong>{c.label}</strong>
-                    <span>{c.species}</span>
-                  </figcaption>
-                </figure>
+                <SpecWord cut={c} />
               </Reveal>
             ))}
           </div>

@@ -54,7 +54,12 @@ const LOOP_HOSTS = [
   '.marquee',      // 38 x wall-sheen, one per client name — the single biggest cluster
   '.rc-visual',    // Rich.jsx diagrams: rc-rise / rc-breathe / rc-spin / rc-ring ...
   '.rc-glyph',     // ... and its smaller glyph variant
+  '.rc-spark',     // ... and the sparkline: 28 x rc-rise, the biggest cluster left
+  '.rc-thread',    // ... and the woven thread rule (rc-k-thread)
+  '.rc-live',      // ... and the pulsing "live" dot in a section head (rc-ring)
   '.tb-petals',    // 7 falling petals on the tree break
+  '.foot-petals',  // ...and the same petals where the tree lives NOW, in the footer
+  '.footer--bloom', // foot-float on the tree + foot-breathe on the halo
   '.wish',         // the two hanging wish tags
   '.wool-btn',     // wool-breathe on the hero buttons
   '.stg-stage',    // the products stage (sui-blink and friends)
@@ -110,10 +115,29 @@ function animationBudget() {
 
   // The animation half of this file has already died once by matching nothing
   // at all. In dev, say so out loud the moment it happens again.
+  //
+  // Checking only the WHOLE list is too coarse, and that is how it rotted the
+  // second time: the footer was rebuilt around the bloom tree, `.tb-petals`
+  // stopped matching, and because the other selectors still matched something
+  // the list looked alive while 40 off-screen infinite loops ran on a phone.
+  // So report per selector, and separately report loops nothing covers — that
+  // second list is what actually catches a NEW cluster nobody has hosted yet.
   if (import.meta.env.DEV) {
     setTimeout(() => {
-      if (!document.querySelectorAll(LOOP_HOSTS).length) {
-        console.warn('[viewportBudget] LOOP_HOSTS matches no elements — the animation budget is inert. Re-derive it from document.getAnimations().')
+      const dead = LOOP_HOSTS.split(', ').filter((s) => !document.querySelectorAll(s).length)
+      if (dead.length) {
+        console.warn(`[viewportBudget] LOOP_HOSTS selectors matching nothing on this route: ${dead.join(', ')} — verify they still exist before trusting the budget.`)
+      }
+      const orphans = new Map()
+      for (const a of document.getAnimations()) {
+        const el = a.effect?.target
+        if (!el?.closest || a.effect?.getTiming?.().iterations !== Infinity) continue
+        if (LOOP_HOSTS.split(', ').some((s) => el.closest(s))) continue
+        orphans.set(a.animationName, (orphans.get(a.animationName) || 0) + 1)
+      }
+      if (orphans.size) {
+        console.warn('[viewportBudget] infinite animations no LOOP_HOST covers:',
+          [...orphans].map(([n, c]) => `${c}x ${n}`).join(', '))
       }
     }, 4000)
   }

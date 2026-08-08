@@ -12,8 +12,8 @@
 // spends the numbers that file hands it. Acts one and two (the word flying
 // together, the four cuts blooming) are the same in all three.
 import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform, useMotionTemplate, useReducedMotion } from 'motion/react'
-import { EASE, Magnetic } from '../lib/motion.jsx'
+import { motion, useScroll, useTransform, useMotionTemplate, useMotionValueEvent, useReducedMotion } from 'motion/react'
+import { EASE, Magnetic, useNearViewport } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
 import {
   LAYOUT_MOTION, resolveInitialLayoutId, isExplicitLayoutSelection,
@@ -52,22 +52,6 @@ const SCATTER = [
   { x: -46, y: -120, r: -14 }, { x: 34, y: 140, r: 11 }, { x: -22, y: -170, r: 7 },
   { x: 40, y: 120, r: -9 }, { x: -30, y: -140, r: 13 },
 ]
-
-/** True once the node has been within a screen of the viewport. Never flips back. */
-function useNearViewport(ref, margin = '800px') {
-  const [near, setNear] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el || near) return
-    if (!('IntersectionObserver' in window)) { setNear(true); return }
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setNear(true); io.disconnect() }
-    }, { rootMargin: margin })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [ref, near, margin])
-  return near
-}
 
 /** One letter of the plain word, flying in from its own scatter. */
 function Letter({ p, i, ch, reduced }) {
@@ -172,6 +156,13 @@ function Act({ layout, narrow }) {
   const wrap = useRef(null)
   const reduced = useReducedMotion()
   const near = useNearViewport(wrap)
+  // A second, tighter gate for the one band set in a PLANTED cut. `near`'s
+  // 800px lead is meant to pre-warm cheap things, but on a 390px phone the
+  // whole page stacks and #typeface lands ~1000px down — inside 800px + a
+  // 664px viewport — so it fires at scrollY 0 and a 257 KB face is fetched
+  // before the reader has moved. The plain Regular cut is 7 KB and can stay
+  // on `near`; anything planted waits until the section is actually on screen.
+  const onScreen = useNearViewport(wrap, '0px')
   const { open: openWizard } = useWizard()
   const [live, setLive] = useState(0)
   const M = LAYOUT_MOTION[layout][narrow ? 'm' : 'd']
@@ -217,7 +208,7 @@ function Act({ layout, narrow }) {
           <motion.div className="ts-band" style={{ x: reduced ? 0 : bandX, fontFamily: near ? 'LOOM Bloom' : undefined }}>
             ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789
           </motion.div>
-          <motion.div className="ts-band ts-band--low" style={{ x: reduced ? 0 : band2X, fontFamily: near ? 'LOOM Bloom Rose' : undefined }}>
+          <motion.div className="ts-band ts-band--low" style={{ x: reduced ? 0 : band2X, fontFamily: onScreen ? 'LOOM Bloom Rose' : undefined }}>
             ROSE ✿ DAISY ❀ TULIP ❦ IVY ✿ ROSE ❀ DAISY
           </motion.div>
         </div>
@@ -311,9 +302,24 @@ function Act({ layout, narrow }) {
   )
 }
 
-/** One planted cut of the word, blooming in over its slice of the scroll. */
+/** One planted cut of the word, blooming in over its slice of the scroll.
+ *
+ * A planted cut is 108–338 KB, and all seven layers are mounted at once — so
+ * naming the family here unconditionally makes the browser fetch 1.5 MB of
+ * display type the moment the section is armed, for six faces the reader
+ * cannot see yet. Each layer therefore claims its own font only once the
+ * scroll is within ARM_LEAD of its slice: one cut's worth arrives just ahead
+ * of the bloom that needs it, and a reader who never reaches #typeface pays
+ * for none of them. `armed` never flips back — scrolling up must not drop a
+ * face that is already painted. */
+const ARM_LEAD = BLOOM_STEP * 1.5
+
 function Bloom({ p, n, last, family }) {
   const a = BLOOM_FROM + n * BLOOM_STEP
+  const [armed, setArmed] = useState(() => p.get() >= a - ARM_LEAD)
+  useMotionValueEvent(p, 'change', (v) => {
+    if (!armed && v >= a - ARM_LEAD) setArmed(true)
+  })
   const opacity = useTransform(
     p,
     [a, a + BLOOM_STEP * 0.64, a + BLOOM_STEP, a + BLOOM_STEP * 1.64],
@@ -321,7 +327,8 @@ function Bloom({ p, n, last, family }) {
   )
   const scale = useTransform(p, [a, a + BLOOM_STEP * 0.82], [1.06, 1])
   return (
-    <motion.div className="ts-layer ts-layer--cut" style={{ opacity, scale, fontFamily: family }}>
+    <motion.div className="ts-layer ts-layer--cut"
+                style={{ opacity, scale, fontFamily: armed ? family : undefined }}>
       {WORD}
     </motion.div>
   )

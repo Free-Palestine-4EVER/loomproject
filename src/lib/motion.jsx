@@ -4,6 +4,30 @@ import { motion, useInView, useReducedMotion } from 'motion/react'
 
 export const EASE = [0.16, 1, 0.3, 1] // expo-out — the house easing
 
+/** True once the node has been within `margin` of the viewport. Never flips
+ *  back — a face already painted must not be dropped when you scroll away.
+ *
+ *  This is what keeps the LOOM Bloom planted cuts off the critical path: they
+ *  are 108–338 KB each and naming one in a style is what makes the browser go
+ *  and fetch it, so anything set in a planted cut waits for this. Pick the
+ *  margin against the WEIGHT being armed, not against how early it would look
+ *  nice: a generous lead on a 390px phone, where the whole page stacks and
+ *  everything sits within a screen or two of the fold, fires at scrollY 0. */
+export function useNearViewport(ref, margin = '800px') {
+  const [near, setNear] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || near) return
+    if (!('IntersectionObserver' in window)) { setNear(true); return }
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setNear(true); io.disconnect() }
+    }, { rootMargin: margin })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [ref, near, margin])
+  return near
+}
+
 /** Words rise out of a clipping mask, staggered.
  *  NOTE: inView is observed on the CONTAINER — a word clipped inside its
  *  overflow:hidden mask has zero visible area, so per-word observers never fire. */
@@ -15,12 +39,22 @@ export function SplitWords({ text, as: Tag = 'span', className = '', delay = 0, 
   // `once: true` means they settle ~1s after entering view and never move again.
   // Gate on inView: out of view, initial === animate, so motion fires
   // onAnimationComplete immediately and a naive flag would settle too early.
+  //
+  // Which is why the hint keys off `inView && !settled`, not `!settled`.
+  // Guarding setSettled with `if (inView)` stops an off-screen instance
+  // settling too early, but it also means it never settles at all — nothing
+  // animates, so onAnimationComplete never fires, and `!settled` alone left
+  // every word of every un-reached heading promoted to its own compositor
+  // layer for the whole session. On a 390px phone that measured 82 layers at
+  // rest, and layerisation of that order is paid in style/paint/GPU memory —
+  // it does not show up as script time, so it is invisible in a JS profile.
   const [settled, setSettled] = useState(false)
+  const animating = inView && !settled
   const words = String(text).split(' ')
   const hidden = reduced ? { opacity: 0 } : { y: '110%', rotate: 4 }
   const shown = reduced ? { opacity: 1 } : { y: '0%', rotate: 0 }
   return (
-    <Tag ref={ref} className={`sw ${settled ? '' : 'is-animating'} ${className}`} aria-label={text}>
+    <Tag ref={ref} className={`sw ${animating ? 'is-animating' : ''} ${className}`} aria-label={text}>
       {words.map((w, i) => (
         <span className="sw-mask" key={i} aria-hidden="true">
           <motion.span
