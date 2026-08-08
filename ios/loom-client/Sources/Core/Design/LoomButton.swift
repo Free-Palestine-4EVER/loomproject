@@ -3,6 +3,9 @@
 // `.secondary` (outlined) for everything else. Label text goes through
 // Core/I18n (`Loc`) at the call site — this view takes plain SwiftUI content.
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct LoomButton<Label: View>: View {
     enum Style: Equatable {
@@ -24,7 +27,10 @@ struct LoomButton<Label: View>: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            Self.fire(style)
+            action()
+        }) {
             label
                 .font(LoomFont.body(size: 16, weight: .semibold))
                 .tracking(0.2)
@@ -59,6 +65,25 @@ struct LoomButton<Label: View>: View {
         case .secondary: LoomColor.ink
         case .destructive: LoomColor.ink
         }
+    }
+
+    /// Every tap in the app routes through here — the one thing that makes a
+    /// dark, well-typeset screen stop feeling like a mockup and start feeling
+    /// like a physical object. `.primary` is the app's single "this matters"
+    /// action (approve, send) so it gets the firmest thud; `.secondary` a
+    /// lighter tick; `.destructive` a distinct warning buzz so sign-out never
+    /// feels like an accidental extra tap on the same control.
+    private static func fire(_ style: Style) {
+        #if canImport(UIKit)
+        switch style {
+        case .primary:
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        case .secondary:
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        case .destructive:
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        }
+        #endif
     }
 
     @ViewBuilder private var background: some View {

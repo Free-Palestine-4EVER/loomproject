@@ -129,7 +129,9 @@ def _J(B=540):
     ri = max(R1 - W * 0.62, 24)
     hook = DIFF(rrect(0, 0, B, h, R1, corners=(0, 0, 1, 1)),
                 rrect(W, W, B - W, h + 80, ri, corners=(0, 0, 0, 1)))
-    hook = DIFF(hook, rect(-1, R1 + 1, W + 1, h + 80))       # no left wall on a J
+    hook = DIFF(hook, rect(-1, R1 + 1, W + ri + 1, h + 80))  # no left wall on a J —
+    # must clear the full width of the counter's rounded corner (ri) or a black
+    # tooth of the un-rounded hole-wall survives between the cut and the curve
     return U(rect(B - W, R1 * 0.5, B, CAP), hook), B
 
 

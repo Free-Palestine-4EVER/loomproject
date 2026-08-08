@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 900" width="700" height="900">
+<rect width="700" height="900" fill="white"/>
+<path d="M218.0 750.0H422.0C514.7838439941406 750.0 590.0 674.7838363647461 590.0 582.0V316.0H412.0V572.0H285.63999938964844C257.4787902832031 572.0 234.03448486328125 551.8045196533203 229.0 525.1064300537109V581.0H50.0V582.0C50.0 674.7838363647461 125.2161636352539 750.0 218.0 750.0Z" fill="black"/>
+<line x1="50" y1="0" x2="50" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="50" y="12" font-size="10" fill="red">0</text>
+<line x1="100" y1="0" x2="100" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="100" y="12" font-size="10" fill="red">50</text>
+<line x1="150" y1="0" x2="150" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="150" y="12" font-size="10" fill="red">100</text>
+<line x1="200" y1="0" x2="200" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="200" y="12" font-size="10" fill="red">150</text>
+<line x1="250" y1="0" x2="250" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="250" y="12" font-size="10" fill="red">200</text>
+<line x1="300" y1="0" x2="300" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="300" y="12" font-size="10" fill="red">250</text>
+<line x1="350" y1="0" x2="350" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="350" y="12" font-size="10" fill="red">300</text>
+<line x1="400" y1="0" x2="400" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="400" y="12" font-size="10" fill="red">350</text>
+<line x1="450" y1="0" x2="450" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="450" y="12" font-size="10" fill="red">400</text>
+<line x1="500" y1="0" x2="500" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="500" y="12" font-size="10" fill="red">450</text>
+<line x1="550" y1="0" x2="550" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="550" y="12" font-size="10" fill="red">500</text>
+<line x1="600" y1="0" x2="600" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="600" y="12" font-size="10" fill="red">550</text>
+<line x1="650" y1="0" x2="650" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="650" y="12" font-size="10" fill="red">600</text>
+<line x1="700" y1="0" x2="700" y2="900" stroke="red" stroke-width="0.5"/>
+<text x="700" y="12" font-size="10" fill="red">650</text>
+<line x1="0" y1="750" x2="700" y2="750" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="750" font-size="10" fill="blue">0</text>
+<line x1="0" y1="700" x2="700" y2="700" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="700" font-size="10" fill="blue">50</text>
+<line x1="0" y1="650" x2="700" y2="650" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="650" font-size="10" fill="blue">100</text>
+<line x1="0" y1="600" x2="700" y2="600" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="600" font-size="10" fill="blue">150</text>
+<line x1="0" y1="550" x2="700" y2="550" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="550" font-size="10" fill="blue">200</text>
+<line x1="0" y1="500" x2="700" y2="500" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="500" font-size="10" fill="blue">250</text>
+<line x1="0" y1="450" x2="700" y2="450" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="450" font-size="10" fill="blue">300</text>
+<line x1="0" y1="400" x2="700" y2="400" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="400" font-size="10" fill="blue">350</text>
+<line x1="0" y1="350" x2="700" y2="350" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="350" font-size="10" fill="blue">400</text>
+<line x1="0" y1="300" x2="700" y2="300" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="300" font-size="10" fill="blue">450</text>
+<line x1="0" y1="250" x2="700" y2="250" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="250" font-size="10" fill="blue">500</text>
+<line x1="0" y1="200" x2="700" y2="200" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="200" font-size="10" fill="blue">550</text>
+<line x1="0" y1="150" x2="700" y2="150" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="150" font-size="10" fill="blue">600</text>
+<line x1="0" y1="100" x2="700" y2="100" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="100" font-size="10" fill="blue">650</text>
+<line x1="0" y1="50" x2="700" y2="50" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="50" font-size="10" fill="blue">700</text>
+<line x1="0" y1="0" x2="700" y2="0" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="0" font-size="10" fill="blue">750</text>
+<line x1="0" y1="-50" x2="700" y2="-50" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="-50" font-size="10" fill="blue">800</text>
+<line x1="0" y1="-100" x2="700" y2="-100" stroke="blue" stroke-width="0.5"/>
+<text x="2" y="-100" font-size="10" fill="blue">850</text>
+</svg>

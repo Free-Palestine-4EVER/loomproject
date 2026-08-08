@@ -1,0 +1,191 @@
+/* blip.css — the dedicated /blip page for blip.net. Owned by Blip.jsx only.
+   Do not import into styles.css / textile*.css / wool.css.
+
+   CASCADE NOTE (same trap every other component stylesheet documents):
+   src/main.jsx imports App.jsx BEFORE './styles.css', so this file loads
+   EARLIER in the bundle than the globals. Every class below is prefixed
+   `bp-` and unique to this file; the few places a global class is used
+   (.kicker/.h2/.lede) are used AS-IS, never restyled, so no cascade fight
+   exists to lose. */
+
+.bp {
+  --g1: var(--cyan);
+  --g2: var(--violet);
+  padding-top: clamp(92px, 11vw, 150px);
+}
+
+/* ——————————————————————————————————————— hero */
+.bp-hero { position: relative; overflow: hidden; padding: clamp(20px, 4vw, 56px) var(--pad) clamp(50px, 7vw, 90px); }
+.bp-hero-glow {
+  position: absolute; inset: -20% -10% auto -10%; height: 120%;
+  z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(40% 55% at 12% 10%, color-mix(in srgb, var(--g1) 26%, transparent), transparent 70%),
+    radial-gradient(36% 50% at 92% 40%, color-mix(in srgb, var(--g2) 22%, transparent), transparent 70%);
+}
+.bp-hero-inner { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; }
+
+.bp-hero-meta {
+  display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center;
+  font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.bp-tag {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--g1) 45%, var(--line));
+  background: color-mix(in srgb, var(--g1) 10%, transparent);
+  color: var(--ink);
+}
+.bp-tag i { width: 6px; height: 6px; border-radius: 50%; background: color-mix(in srgb, var(--g1) 70%, var(--g2) 30%); }
+
+.bp-hero-word { margin: clamp(20px, 3vw, 34px) 0 clamp(6px, 1vw, 10px); }
+.bp-wordmark {
+  display: inline-block;
+  font-family: 'LOOM Bloom', var(--display), sans-serif;
+  font-weight: 400;
+  font-size: clamp(52px, 9vw, 128px);
+  line-height: 0.9;
+  letter-spacing: 0.004em;
+  background: linear-gradient(94deg, var(--cyan) 0%, #ffffff 40%, var(--violet) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-transform: lowercase;
+}
+.bp-h1 {
+  font-weight: 640;
+  font-size: clamp(1.6rem, 3.6vw, 3.1rem);
+  line-height: 1.08;
+  max-width: 20ch;
+  margin-bottom: clamp(18px, 2.4vw, 26px);
+}
+.bp-hero-sub { max-width: 62ch; color: var(--ink-dim); font-size: clamp(14px, 1.3vw, 17px); line-height: 1.65; }
+.bp-hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(18px, 2.6vw, 32px); margin-top: clamp(22px, 3vw, 34px); }
+.bp-platforms { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.bp-platforms span {
+  font-size: 0.82rem; font-weight: 640; color: var(--ink-dim);
+  padding-inline-start: 16px; position: relative;
+}
+.bp-platforms span::before {
+  content: ''; position: absolute; left: 0; top: 0.5em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: color-mix(in srgb, var(--g1) 70%, var(--g2) 30%);
+}
+
+/* ——————————————————————————————————————— generic section */
+.bp-section { padding: clamp(60px, 9vh, 110px) var(--pad); border-top: 1px solid var(--line); }
+.bp-section--pricing { background: var(--bg-2); }
+.bp-head { max-width: 900px; margin-bottom: clamp(30px, 5vh, 54px); }
+.bp-head .lede { max-width: 62ch; color: var(--ink-dim); }
+
+/* ——— how it works ——— */
+.bp-how {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2vw, 28px);
+}
+.bp-how-cell { min-width: 0; }
+.bp-how-card {
+  height: 100%;
+  padding: clamp(22px, 2.6vw, 30px);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+}
+.bp-how-n {
+  display: block;
+  font-family: var(--display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--g1) 70%, var(--g2) 30%);
+  margin-bottom: 12px;
+}
+.bp-how-card h3 { font-size: clamp(1.1rem, 1.4vw, 1.32rem); font-weight: 660; color: var(--ink); margin-bottom: 8px; }
+.bp-how-card p { color: var(--ink-dim); font-size: 0.92rem; line-height: 1.55; }
+
+/* ——— pricing ——— */
+.bp-plans {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.2vw, 28px);
+  max-width: 800px;
+}
+.bp-cell { min-width: 0; height: 100%; }
+.bp-plan {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(24px, 2.8vw, 32px);
+  border-radius: calc(var(--radius) * 1.1);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  transition: border-color 0.4s var(--ease), transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+}
+.bp-plan.is-featured {
+  border-color: color-mix(in srgb, var(--g1) 55%, transparent);
+  background: linear-gradient(165deg, color-mix(in srgb, var(--g1) 10%, var(--bg)), var(--bg));
+  box-shadow: 0 24px 60px -30px color-mix(in srgb, var(--g1) 35%, transparent);
+}
+.bp-plan:hover { transform: translateY(-4px); }
+.bp-plan-badge {
+  position: absolute; top: -12px; right: 20px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, var(--g1), var(--g2));
+  color: #0d0716;
+  font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.bp-plan-name { font-size: 0.76rem; font-weight: 750; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
+.bp-plan-price { font-family: var(--display); font-size: clamp(2rem, 3vw, 2.6rem); font-weight: 700; color: var(--ink); margin-top: 8px; }
+.bp-plan-price em { font-style: normal; font-size: 1rem; font-weight: 600; color: var(--ink-faint); margin-left: 4px; }
+.bp-plan-blurb { margin-top: 8px; color: var(--ink-dim); font-size: 0.9rem; }
+.bp-plan-features {
+  list-style: none;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.bp-plan-features li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 0.88rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.bp-plan-features li::before {
+  content: ''; position: absolute; left: 0; top: 0.6em;
+  width: 8px; height: 2px; border-radius: 2px;
+  background: color-mix(in srgb, var(--g1) 70%, var(--g2) 30%);
+}
+
+/* ——— closing CTA ——— */
+.bp-cta-band {
+  padding: clamp(70px, 11vh, 130px) var(--pad);
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+.bp-cta-eyebrow {
+  font-family: var(--display);
+  text-transform: lowercase;
+  color: color-mix(in srgb, var(--g1) 70%, var(--g2) 30%);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 10px;
+}
+.bp-cta-h2 { font-size: clamp(1.8rem, 3.6vw, 3rem); font-weight: 660; color: var(--ink); max-width: 20ch; margin: 0 auto 12px; }
+.bp-cta-p { color: var(--ink-dim); margin-bottom: clamp(24px, 3vw, 34px); }
+.bp-cta-band .wool-btn { margin-inline: auto; }
+
+@media (max-width: 900px) {
+  .bp-how { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .bp-plans { grid-template-columns: 1fr; max-width: none; }
+}

@@ -226,7 +226,7 @@ export function WhatsAppFab() {
           height="192"
           loading="lazy"
           decoding="async"
-          fetchPriority="low"
+          fetchpriority="low"
         />
         <span className="wa-fab__label">WhatsApp us</span>
       </motion.a>

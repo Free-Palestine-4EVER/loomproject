@@ -376,12 +376,28 @@ export function Manifesto() {
             transformPerspective: 1400,
           }}
         >
-          <img
-            className="manifesto-laptop"
-            src="/img/manifesto/laptop-mascot-cutout.webp"
-            alt="The LOOM website on a laptop, with the studio's yarn-ball mascot climbing out of the screen"
-            loading="lazy"
-          />
+          {/* 1700x1275 — at 8.27 MB of decoded bitmap this is the single
+              largest resident image on the long page, and `.manifesto-laptop`
+              paints it at 150% of its column: 420px on a 390px phone, 655px at
+              1440. The phone cut is 900px, 2.1x that box.
+
+              `media`, not a `w` descriptor: at DPR 3 a 420px box asks for
+              1260px and any srcset would skip a 900px cut and take the 1700px
+              original — which is precisely the phone that cannot afford it.
+              `display: contents` keeps the <picture> out of layout, since the
+              img is a grid/flex child of `.manifesto-media` and carries its
+              own `width: 150%`. */}
+          <picture style={{ display: 'contents' }}>
+            <source media="(max-width: 767px)" type="image/avif" srcSet="/img/manifesto/laptop-mascot-cutout-sm.avif" />
+            <source media="(max-width: 767px)" type="image/webp" srcSet="/img/manifesto/laptop-mascot-cutout-sm.webp" />
+            <source type="image/avif" srcSet="/img/manifesto/laptop-mascot-cutout.avif" />
+            <img
+              className="manifesto-laptop"
+              src="/img/manifesto/laptop-mascot-cutout.webp"
+              alt="The LOOM website on a laptop, with the studio's yarn-ball mascot climbing out of the screen"
+              loading="lazy"
+            />
+          </picture>
           <p className="manifesto-caption">The edge is intentional.</p>
         </motion.div>
       </div>
@@ -522,7 +538,16 @@ export function Stats() {
   return (
     <section className="stats" aria-label="Studio in numbers" ref={ref}>
       <motion.div className="stats-bg" style={{ y }} aria-hidden="true">
-        <img src="/img/weave-alt.webp" alt="" loading="lazy" />
+        {/* full-bleed behind the stats: 1440px of box on a desktop, 390px on
+            a phone, off one 1400px file. The 800px phone cut is 2x that box.
+            Media query rather than a descriptor, for the DPR-3 reason the
+            manifesto laptop above spells out. */}
+        <picture style={{ display: 'contents' }}>
+          <source media="(max-width: 767px)" type="image/avif" srcSet="/img/weave-alt-sm.avif" />
+          <source media="(max-width: 767px)" type="image/webp" srcSet="/img/weave-alt-sm.webp" />
+          <source type="image/avif" srcSet="/img/weave-alt.avif" />
+          <img src="/img/weave-alt.webp" alt="" loading="lazy" />
+        </picture>
       </motion.div>
       <div className="stats-grid">
         {STATS.map((s, i) => (

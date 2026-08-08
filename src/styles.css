@@ -287,8 +287,26 @@ html.cursor-hot .cursor-ring {
 .nav-logo {
   display: flex; align-items: center; gap: 10px;
   font-family: var(--display); font-weight: 620; letter-spacing: 0.08em; font-size: 1.25rem;
+  /* the wordmark is an <img>, a replaced element — under the default
+     flex-shrink:1 it absorbed almost the WHOLE squeeze once 10 nav items
+     stopped fitting (it has the largest flex-basis of any header child, and
+     default shrink is basis-weighted), collapsing to ~8px wide and
+     vanishing rather than the row overflowing visibly. Fixed size, always. */
+  flex: none;
 }
-.nav-links { display: flex; gap: clamp(18px, 3vw, 40px); }
+/* 10 items now (Software + blip.net joined the original 8) — the old fixed
+   clamp fit 8 comfortably up to 1440 but let WORK collide with the wordmark
+   and 3D LAB wrap to two lines in the 1150-1360 laptop range once two more
+   labels were added. white-space stops the wrap outright; the 1360px query
+   below tightens the gap and label size for exactly the pinch range,
+   leaving the >=1360 spacing (the one every earlier screenshot judged)
+   untouched. */
+.nav-links { display: flex; gap: clamp(14px, 2.4vw, 40px); }
+.nav-links a { white-space: nowrap; }
+@media (max-width: 1360px) {
+  .nav-links { gap: clamp(8px, 1.3vw, 20px); }
+  .nav-links a { font-size: 0.72rem; }
+}
 /* Clash Display, not the inherited Satoshi body face. The nav sat in body
    text at 540 while the wordmark beside it is Clash at 620 — the two read
    as belonging to different sites. Uppercase with real tracking also makes
@@ -307,7 +325,7 @@ html.cursor-hot .cursor-ring {
   position: absolute; left: 0; top: 100%; color: var(--magenta);
 }
 .nav-links a:hover span { transform: translateY(-100%); }
-.nav-cta { display: flex; align-items: center; gap: 14px; }
+.nav-cta { display: flex; align-items: center; gap: 14px; flex: none; }
 .burger {
   display: none; flex-direction: column; gap: 5px; padding: 8px;
   min-width: 44px; min-height: 44px; align-items: center; justify-content: center;
@@ -1468,7 +1486,11 @@ html.cursor-hot .cursor-ring {
   }
   .lab-grid { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 820px) {
+/* was 820px — 10 nav items (Software + blip.net joined the original 8) still
+   overflowed the header between ~830-960px even with the tightened gap/font
+   above, so the burger now takes over a little earlier, before that pinch
+   range rather than inside it. */
+@media (max-width: 1100px) {
   .nav-links { display: none; }
   .burger { display: flex; }
   .overlay-gallery { grid-template-columns: 1fr; }

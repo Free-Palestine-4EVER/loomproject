@@ -4,6 +4,7 @@ import { Loader, Nav, Cursor, ScrollProgress, Footer } from './components/Chrome
 import { Hero, Marquee, Manifesto, Process, Stats, Studios, Contact } from './components/Sections.jsx'
 import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
+import { OwnApps } from './components/OwnApps.jsx'
 import { Solutions } from './components/Solutions.jsx'
 import { TheMachine } from './components/TheMachine.jsx'
 import { ByResult } from './components/ByResult.jsx'
@@ -23,13 +24,15 @@ import { mountFx } from './lib/fx.js'
 import { mountViewportBudget } from './lib/viewportBudget.js'
 import { Typeface } from './components/Typeface.jsx'
 import { TypeShowcase } from './components/TypeShowcase.jsx'
+import { Blip } from './components/Blip.jsx'
 
 // firebase.json rewrites ** -> /index.html, so every path already boots this
 // SPA. A real URL therefore costs one pathname check, not a router dependency
-// or a second Vite entry: /type renders the typeface specimen, everything else
-// renders the long page. Trailing slash tolerated (cleanUrls is on). PAGES is
-// also the allow-list for the in-page link interceptor below.
-const PAGES = ['/type']
+// or a second Vite entry: /type renders the typeface specimen, /blip renders
+// the blip.net product page, everything else renders the long page. Trailing
+// slash tolerated (cleanUrls is on). PAGES is also the allow-list for the
+// in-page link interceptor below.
+const PAGES = ['/type', '/blip']
 
 const currentRoute = () => {
   if (typeof window === 'undefined') return '/'
@@ -207,6 +210,11 @@ export default function App() {
              studio's own display face. Contact stays off it on purpose: the
              page's job is the download, not a lead. */
           <Typeface />
+        ) : route === '/blip' ? (
+          /* /blip — the dedicated page for blip.net, LOOM's flagship
+             product. Same reasoning as /type: Contact stays off it, the
+             page's own CTA opens the wizard directly instead. */
+          <Blip />
         ) : (
         <>
         <Hero />
@@ -230,6 +238,11 @@ export default function App() {
         <Work />
         <AppsShowcase />
         <ToolsLab />
+        {/* Right off the in-house tools ("built in-house · not for sale") —
+            the same instinct pointed at a different shelf: real products LOOM
+            is building for itself, honestly labelled as in-build since none
+            of the five have shipped yet. */}
+        <OwnApps />
         <Crew />
         {/* Straight off the crew: that section has just introduced the roster
             as archetypes, so "and we want more of them" is the next beat. */}

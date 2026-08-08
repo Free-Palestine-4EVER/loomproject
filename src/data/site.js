@@ -177,6 +177,93 @@ export const APPS = [
   },
 ]
 
+// LOOM's own product line — apps the studio is building for itself, not for a
+// client. `status` is the one honest claim each card is allowed to make: no
+// store links, no App Store badges, no download counts or user numbers,
+// because none of that exists yet for these four. When one ships for real,
+// give it a `store` field the way APPS entries above do — OwnApps.jsx already
+// knows how to render that state, it is just never been true yet.
+//
+// blip.net (formerly "LOOMSHARE") graduated out of this list — it is a real
+// product with a real pricing model now, not a work-in-progress card, so it
+// gets its own flagship spot in OwnApps.jsx plus the dedicated /blip page
+// (see BLIP below) instead of a grid slot.
+export const OWN_APPS = [
+  {
+    id: 'loom-clients',
+    name: 'LOOM for Clients', tag: 'iOS · Client portal',
+    status: 'In development',
+    grad: ['#f21c8c', '#7b2fbe'],
+    glyph: 'M4 5.5h16v13H4v-13ZM4 9.5h16M8 13h4M8 16h7',
+    blurb: 'The account in an app — briefs, deliverables and the monthly report, without the group chat.',
+  },
+  {
+    id: 'snapvault',
+    name: 'SNAPVAULT', tag: 'iOS · Screenshot triage, EN + AR',
+    status: 'In development',
+    grad: ['#ffc740', '#f21c8c'],
+    glyph: 'M4 8V5.5a1.5 1.5 0 0 1 1.5-1.5H8M20 8V5.5A1.5 1.5 0 0 0 18.5 4H16M4 16v2.5A1.5 1.5 0 0 0 5.5 20H8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 9h8v6H8Z',
+    blurb: 'The camera roll’s screenshot pile, sorted — bilingual, on-device, nothing uploaded to sort it.',
+  },
+  {
+    id: 'parallax',
+    name: 'PARALLAX', tag: 'iOS · Depth-photo parallax',
+    status: 'In development',
+    grad: ['#7b2fbe', '#2ee6a8'],
+    glyph: 'M3 7l9-3 9 3v10l-9 3-9-3V7ZM3 7l9 3 9-3M12 10v10',
+    blurb: 'Turns an ordinary iPhone photo’s depth data into a living, tilt-reactive image.',
+  },
+  {
+    id: 'solid',
+    name: 'SOLID', tag: 'iOS · 3D object capture',
+    status: 'In development',
+    grad: ['#2ee6a8', '#59e6ff'],
+    glyph: 'M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3ZM4 7.5l8 4.5 8-4.5M12 12v9',
+    blurb: 'Walk around a real object with the camera; get a clean 3D scan out the other side.',
+  },
+]
+
+// blip.net — LOOM's flagship product, and the one item here that is genuinely
+// live product-market shape rather than a work-in-progress card: a real name,
+// a real pricing model, self-serve registration, one account across devices.
+// Everything below is a stated PRODUCT FACT, not a marketing invention — no
+// screenshots, no store badges and no user-count claim are made anywhere
+// because none of those exist for it yet. The primary CTA opens the site's
+// real contact wizard (the only working conversion path this static site
+// has) rather than linking to a signup flow this repo doesn't host.
+export const BLIP = {
+  name: 'blip.net',
+  tag: 'macOS · Windows · iOS · Web — peer-to-peer file transfer',
+  status: 'Live product',
+  grad: ['#59e6ff', '#7b2fbe'],
+  headline: 'Send the file. Skip the upload.',
+  lede: 'blip.net moves files straight between two devices — no upload, no waiting on a progress bar for the other side to start downloading, no cloud storing a copy in the middle.',
+  how: [
+    { k: 'Peer-to-peer', d: 'Your file goes device to device, not device → server → device. Nothing sits on a disk you don’t own once the transfer ends.' },
+    { k: 'One account, every device', d: 'Register once and sign in from macOS, Windows, iOS or the browser — the same account follows you.' },
+    { k: 'Self-serve', d: 'No sales call, no client onboarding. Create an account and send your first file the same minute.' },
+  ],
+  plans: [
+    {
+      id: 'free',
+      name: 'Free',
+      price: '$0',
+      period: '',
+      blurb: 'For the occasional transfer.',
+      features: ['Up to 10 files a day', 'Every platform', 'No file-size cap per transfer'],
+    },
+    {
+      id: 'pro',
+      name: 'Unlimited',
+      price: '$9.99',
+      period: '/month',
+      blurb: 'For everything after the tenth file.',
+      features: ['Unlimited transfers', 'Every platform', 'One account across every device', 'Priority peer connection'],
+      featured: true,
+    },
+  ],
+}
+
 export const TOOLS = [
   {
     name: 'KUN',

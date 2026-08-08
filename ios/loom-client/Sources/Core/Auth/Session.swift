@@ -23,9 +23,26 @@ final class Session {
     }
 
     /// Call once at launch (RootView's `.task`).
+    ///
+    /// A fresh install has no saved token, which used to mean the real
+    /// Auth screen — asking for a handle and a 6-digit code LOOM has to send
+    /// by hand — as the very first thing anyone sees, with no backend
+    /// deployed anywhere to answer either request. That is the "offline/
+    /// error screen as the front door" failure this app shipped with once
+    /// already. Instead, a fresh install auto-provisions `SeedData`'s demo
+    /// identity so the client shell opens straight into a full month, same
+    /// as `APIClient`'s per-endpoint seed fallback does for content. It is
+    /// saved through the normal `KeychainTokenStore` path, so it behaves
+    /// exactly like a real session in every other way — including that a
+    /// REAL backend appearing at `APIClient`'s `baseURL` rejects this token
+    /// with 401 on the next `fetchMe()`, which the branch below already
+    /// treats as "sign out, show the real Auth screen". No flag to flip.
     func restore() async {
         defer { isRestoring = false }
-        guard let saved = KeychainTokenStore.load() else { return }
+        guard let saved = KeychainTokenStore.load() else {
+            await provisionDemoSession()
+            return
+        }
         token = saved
         api.authToken = saved
         do {
@@ -41,6 +58,19 @@ final class Session {
             // Non-APIError should not happen, but never sign someone out for
             // an error we don't recognize.
         }
+    }
+
+    private func provisionDemoSession() async {
+        let demoToken = SeedData.demoToken
+        KeychainTokenStore.save(demoToken)
+        token = demoToken
+        api.authToken = demoToken
+        // `fetchMe()` cannot actually fail here — it has its own seed
+        // fallback (`SeedData.client`) for exactly this "no backend"
+        // case — but `client` still needs setting defensively so a future
+        // change to that fallback can never re-open the empty-Account-
+        // section state `SettingsRootView` treats as real.
+        client = (try? await api.fetchMe()) ?? SeedData.client
     }
 
     /// Called by Features/Auth after a successful `verifyCode`.

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0175435D63BFC91D0F9D32DF /* LoomChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56460ADA61017F66B1F7175 /* LoomChrome.swift */; };
+		09F90EA4138969C94E5F4C12 /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E67E32B1C2B50A60EED1ADC5 /* SeedData.swift */; };
 		0C9FAEA280EAE8FFAA6C3EA6 /* MonthStatusPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04988FE78BF7C6108E39A464 /* MonthStatusPresentation.swift */; };
 		1130EF97498862E3859ADE57 /* RequestsSendQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCC046DA008D5EC68FEF5C0F /* RequestsSendQueue.swift */; };
 		13A960144705F53F4457B93D /* InvoicesStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A240711751A294F6744C558 /* InvoicesStrings.swift */; };
@@ -142,6 +143,7 @@
 		E1C06BE2B1E20B28E2D9596F /* RequestsStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestsStrings.swift; sourceTree = "<group>"; };
 		E22F3A42236EF55AF2D140FD /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		E44A773D1D396A92CF7C6BAB /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		E67E32B1C2B50A60EED1ADC5 /* SeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedData.swift; sourceTree = "<group>"; };
 		ECE0F20445016B5C8B42DF73 /* LoomBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoomBackdrop.swift; sourceTree = "<group>"; };
 		F08A46D2C41C9F473D8474FA /* PerformanceStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceStrings.swift; sourceTree = "<group>"; };
 		F3436A5316DA5F249F9145B6 /* InvoicesRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoicesRootView.swift; sourceTree = "<group>"; };
@@ -268,6 +270,7 @@
 				A0CFCF3940B9E67106E9C59C /* DecisionQueue.swift */,
 				1E2A0A5C07CFD9E2C49312FE /* NetworkMonitor.swift */,
 				9ED5264ADE4FFF2CD9402086 /* OfflineCache.swift */,
+				E67E32B1C2B50A60EED1ADC5 /* SeedData.swift */,
 			);
 			path = Net;
 			sourceTree = "<group>";
@@ -499,6 +502,7 @@
 				8AE68B575449864C1811A7CA /* RequestsViewModel.swift in Sources */,
 				C79D832EF55FB91543D37B35 /* RootView.swift in Sources */,
 				E0223EDDE053F182A11F01EB /* SectionKicker.swift in Sources */,
+				09F90EA4138969C94E5F4C12 /* SeedData.swift in Sources */,
 				80CFF2DC973B5BA6ABF3D96D /* Session.swift in Sources */,
 				E6A860F68673F672A67B9A59 /* SettingsRootView.swift in Sources */,
 				26A960CD127C3C1D37B3368C /* SettingsStrings.swift in Sources */,
@@ -515,7 +519,6 @@
 				INFOPLIST_FILE = Generated/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LOOM;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.loom.client;
@@ -565,7 +568,6 @@
 				INFOPLIST_FILE = Generated/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LOOM;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.loom.client;

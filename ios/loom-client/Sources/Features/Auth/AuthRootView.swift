@@ -51,17 +51,25 @@ struct AuthRootView: View {
         VStack(spacing: LoomSpacing.sm) {
             let wordmark = L10n.Auth.wordmark.string(for: language)
             ZStack {
-                // A soft bloom behind the wordmark, echoing the site's own
-                // hero glow — a warm hint of light rather than a hard badge.
+                // A soft bloom behind the mark, echoing the site's own hero
+                // glow — a warm hint of light rather than a hard badge.
                 Circle()
                     .fill(LoomColor.threadGradient)
                     .frame(width: 64, height: 64)
                     .blur(radius: 26)
                     .opacity(0.5)
-                Text(wordmark)
-                    .font(LoomFont.display(wordmark, size: 36, weight: .bold))
-                    .foregroundStyle(LoomColor.ink)
+                // The real woven brand mark (Assets.xcassets/BrandMark) —
+                // the same threaded "H" the site and app icon use — sitting
+                // above the wordmark rather than a text-only lockup.
+                Image("BrandMark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 44, height: 44)
+                    .accessibilityHidden(true)
             }
+            Text(wordmark)
+                .font(LoomFont.display(wordmark, size: 30, weight: .bold))
+                .foregroundStyle(LoomColor.ink)
             Capsule()
                 .fill(LoomColor.threadGradient)
                 .frame(width: 40, height: 3)

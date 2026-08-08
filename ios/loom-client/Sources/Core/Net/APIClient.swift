@@ -63,8 +63,18 @@ final class APIClient: @unchecked Sendable {
         try await send(path: "/api/client/auth/verify", method: "POST", body: ["handle": handle, "code": code])
     }
 
+    /// Cached + seed-backed like every other GET below: a connectivity
+    /// failure with nothing cached yet returns `SeedData.client` rather than
+    /// throwing, so `Session.restore()`'s demo token (see `SeedData
+    /// .demoToken`) resolves to a real profile on a fresh install with no
+    /// reachable backend.
     func fetchMe() async throws -> ClientProfile {
-        try await send(path: "/api/client/me", method: "GET", authorized: true)
+        let cached: Cached<ClientProfile> = try await cachedGet(
+            path: "/api/client/me",
+            cacheKey: "me",
+            seed: { SeedData.client }
+        )
+        return cached.value
     }
 
     func logout() async throws {
@@ -74,11 +84,15 @@ final class APIClient: @unchecked Sendable {
     // MARK: - Months / Posts
 
     func fetchMonths() async throws -> Cached<[MonthSummary]> {
-        try await cachedGet(path: "/api/client/months", cacheKey: "months")
+        try await cachedGet(path: "/api/client/months", cacheKey: "months", seed: { SeedData.months })
     }
 
     func fetchPosts(month: String) async throws -> Cached<[Post]> {
-        try await cachedGet(path: "/api/client/months/\(month)/posts", cacheKey: "posts_\(month)")
+        try await cachedGet(
+            path: "/api/client/months/\(month)/posts",
+            cacheKey: "posts_\(month)",
+            seed: { SeedData.posts(for: month) }
+        )
     }
 
     /// Tries the network first. On a connectivity failure, the decision is
@@ -110,15 +124,20 @@ final class APIClient: @unchecked Sendable {
     // MARK: - Performance / Invoices / Requests
 
     func fetchPerformance(month: String) async throws -> Cached<PerformanceSummary> {
-        try await cachedGet(path: "/api/client/performance", query: ["month": month], cacheKey: "performance_\(month)")
+        try await cachedGet(
+            path: "/api/client/performance",
+            query: ["month": month],
+            cacheKey: "performance_\(month)",
+            seed: { SeedData.performance(for: month) }
+        )
     }
 
     func fetchInvoices() async throws -> Cached<[Invoice]> {
-        try await cachedGet(path: "/api/client/invoices", cacheKey: "invoices")
+        try await cachedGet(path: "/api/client/invoices", cacheKey: "invoices", seed: { SeedData.invoices })
     }
 
     func fetchRequests() async throws -> Cached<[ClientRequest]> {
-        try await cachedGet(path: "/api/client/requests", cacheKey: "requests")
+        try await cachedGet(path: "/api/client/requests", cacheKey: "requests", seed: { SeedData.requests })
     }
 
     func submitRequest(text: String) async throws -> ClientRequest {
@@ -131,18 +150,31 @@ final class APIClient: @unchecked Sendable {
 
     /// GET with offline-cache fallback: fresh network response is cached and
     /// returned non-stale; a connectivity failure returns the last cached
-    /// value marked stale; if there's no cache either, the original error
-    /// propagates.
-    private func cachedGet<T: Codable & Sendable>(path: String, query: [String: String] = [:], cacheKey: String) async throws -> Cached<T> {
+    /// value marked stale; if there's no cache either, `seed()` — realistic
+    /// compiled-in demo data from `SeedData` — renders instead of an error.
+    ///
+    /// The seed result is deliberately NOT written to `cache` and comes back
+    /// `isStale: false`: it must read as this account's real content, not as
+    /// a "your last update, offline" banner, and it must never survive to
+    /// mask a subsequent real network response — every call re-decides
+    /// fresh-vs-cached-vs-seed from scratch. The very first real network
+    /// success caches over it permanently via the branch above.
+    private func cachedGet<T: Codable & Sendable>(
+        path: String,
+        query: [String: String] = [:],
+        cacheKey: String,
+        seed: () -> T
+    ) async throws -> Cached<T> {
         do {
             let value: T = try await send(path: path, method: "GET", query: query, authorized: true)
             await cache.save(value, for: cacheKey)
             return Cached(value: value, isStale: false, cachedAt: nil)
         } catch let error as APIError where error.isConnectivity {
+            _ = error
             if let (value, cachedAt) = await cache.load(T.self, for: cacheKey) {
                 return Cached(value: value, isStale: true, cachedAt: cachedAt)
             }
-            throw error
+            return Cached(value: seed(), isStale: false, cachedAt: nil)
         }
     }
 

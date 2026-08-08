@@ -95,12 +95,35 @@ function CrewCard({ c, i, active, setActive }) {
       >
         <div className="crew-glow" aria-hidden="true" />
         <div className="crew-stage">
-          <motion.img
-            src={c.img} alt={`${c.name} — ${c.role}, the LOOM mascot for ${c.owns}`}
-            loading="lazy"
-            animate={reduced ? {} : { y: [0, -10, 0] }}
-            transition={{ duration: 4.5 + i * 0.4, repeat: Infinity, ease: 'easeInOut' }}
-          />
+          {/* Four of these, 420-620px of cutout each, painted at 92-179px on
+              a phone — 6.2 MB of decoded bitmap for a row of mascots. The
+              phone cut is 400px, still 2.2x the widest of those boxes.
+
+              Selected by media query rather than a `w` descriptor for the
+              reason Sections.jsx's manifesto laptop spells out (a DPR-3 phone
+              asks for more than the cut and takes the original), and because
+              the four originals are four DIFFERENT widths — honest `w`
+              descriptors would mean carrying a per-mascot number in crew.js
+              just to describe files that the breakpoint already picks
+              correctly.
+
+              `display: contents` is load-bearing here: `.crew-stage` is a flex
+              container and `.crew-stage img` is sized `height: 100%;
+              width: auto` against it. A <picture> with a layout box of its own
+              would become the flex item, the img would resolve `100%` against
+              a shrink-wrapped parent, and the whole crew would come off its
+              shared ground line. */}
+          <picture style={{ display: 'contents' }}>
+            <source media="(max-width: 767px)" type="image/avif" srcSet={c.img.replace(/\.webp$/, '-sm.avif')} />
+            <source media="(max-width: 767px)" type="image/webp" srcSet={c.img.replace(/\.webp$/, '-sm.webp')} />
+            <source type="image/avif" srcSet={c.img.replace(/\.webp$/, '.avif')} />
+            <motion.img
+              src={c.img} alt={`${c.name} — ${c.role}, the LOOM mascot for ${c.owns}`}
+              loading="lazy"
+              animate={reduced ? {} : { y: [0, -10, 0] }}
+              transition={{ duration: 4.5 + i * 0.4, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </picture>
           <div className="crew-shadow" aria-hidden="true" />
         </div>
         <div className="crew-meta">

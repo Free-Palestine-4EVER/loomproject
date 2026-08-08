@@ -83,20 +83,43 @@ export function Counter() {
                       has not been shot yet is still a finished LOOM tile. */}
                   <WoolIcon name={b.mark} className="cnt-medal" />
                   {b.photo && (
-                    <img
-                      className="cnt-photo"
-                      src={`/img/needs/${b.photo}.webp`}
-                      alt=""
-                      width={800}
-                      height={800}
-                      loading="lazy"
-                      decoding="async"
-                      /* the medallion is the fallback: it only steps aside once
-                         the still has actually decoded, so a missing file leaves
-                         the original tile untouched */
-                      onLoad={(e) => e.currentTarget.closest('.cnt-tile')?.classList.add('has-photo')}
-                      onError={(e) => { e.currentTarget.style.display = 'none' }}
-                    />
+                    /* Eight of these mount together, and the stills are
+                       1264px wide for a box that is 155px on a phone and
+                       291px at 1440 — 4.09 MB of decoded bitmap each, 32.7 MB
+                       for the grid, the densest screenful on the page.
+
+                       `media`, not a `w` descriptor, and that is the whole
+                       point: decoded RAM is width x height x 4 and the phones
+                       this is for run at DPR 3, where a 155px box asks for
+                       465px and any srcset would happily hand back the 1264px
+                       original. A breakpoint is the only thing that puts a
+                       CEILING on the pixels. The -sm cut is 520px — 3.4x the
+                       phone box, so it is not soft, it is just not absurd.
+
+                       `display: contents` so the <picture> adds no box: the
+                       img is absolutely positioned against `.cnt-band` by
+                       `.counter .cnt-photo`, and a wrapper with a layout box
+                       would become its containing block instead. Same reason
+                       everywhere else this file wraps an img. */
+                    <picture style={{ display: 'contents' }}>
+                      <source media="(max-width: 767px)" type="image/avif" srcSet={`/img/needs/${b.photo}-sm.avif`} />
+                      <source media="(max-width: 767px)" type="image/webp" srcSet={`/img/needs/${b.photo}-sm.webp`} />
+                      <source type="image/avif" srcSet={`/img/needs/${b.photo}.avif`} />
+                      <img
+                        className="cnt-photo"
+                        src={`/img/needs/${b.photo}.webp`}
+                        alt=""
+                        width={800}
+                        height={800}
+                        loading="lazy"
+                        decoding="async"
+                        /* the medallion is the fallback: it only steps aside once
+                           the still has actually decoded, so a missing file leaves
+                           the original tile untouched */
+                        onLoad={(e) => e.currentTarget.closest('.cnt-tile')?.classList.add('has-photo')}
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                    </picture>
                   )}
                 </span>
                 {/* The button and the peel are siblings of the strip, not
@@ -148,17 +171,31 @@ function TreeBreak() {
     <div className="treebreak" aria-hidden="true">
       <i className="tb-glow" />
       <div className="tb-stage">
-        <img
-          className="tb-tree"
-          src="/img/tree/bloom-tree.webp"
-          srcSet="/img/tree/bloom-tree-sm.webp 800w, /img/tree/bloom-tree.webp 1600w"
-          sizes="(max-width: 767px) 88vw, min(720px, 34vw)"
-          alt=""
-          width={1860}
-          height={1723}
-          loading="lazy"
-          decoding="async"
-        />
+        {/* This was a `w`-descriptor srcSet and it never once fired on the
+            device it was written for. `bloom-tree-sm.webp 800w` against
+            `88vw` on a 390px phone asks for 343 * DPR css pixels: 686 at DPR 2
+            (so the 800w cut wins, but the FILE was only 343px wide — the
+            descriptor was simply wrong, and the tree came out as a 0.8x
+            upscale), and 1029 at DPR 3, where the browser correctly skips the
+            cut and takes the full 1600px original — 9.05 MB of decoded bitmap
+            for a decorative tree, on exactly the hardware that cannot afford
+            it. A media query cannot be argued with by a DPR. The -sm cut is
+            regenerated at a real 800px by scripts/shrink-decoded.mjs, which is
+            1.9x the 427px box it lands in. */}
+        <picture style={{ display: 'contents' }}>
+          <source media="(max-width: 767px)" type="image/avif" srcSet="/img/tree/bloom-tree-sm.avif" />
+          <source media="(max-width: 767px)" type="image/webp" srcSet="/img/tree/bloom-tree-sm.webp" />
+          <source type="image/avif" srcSet="/img/tree/bloom-tree.avif" />
+          <img
+            className="tb-tree"
+            src="/img/tree/bloom-tree.webp"
+            alt=""
+            width={1860}
+            height={1723}
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
         {/* Petals: 7 spans, each drifting on its own duration/delay so the fall
             never reads as a loop. Count is the whole budget — a real petal
             system here would be the third animation layer on a page that is
@@ -233,18 +270,29 @@ export function OfferPair() {
           `position: absolute` here it cannot reflow the row at all), and srcSet
           lets a 390px phone take the 4KB 1100px cut instead of the 14KB one.
           `object-fit: cover` + the mask that fades both edges live in the CSS. */}
-      <img
-        className="offer-sky"
-        src="/img/tree/bloom-sky.webp"
-        srcSet="/img/tree/bloom-sky-sm.webp 1100w, /img/tree/bloom-sky.webp 2200w"
-        sizes="100vw"
-        alt=""
-        width={2200}
-        height={1228}
-        loading="lazy"
-        decoding="async"
-        aria-hidden="true"
-      />
+      {/* Same correction as the tree, and here the `w` descriptors were doing
+          real damage: `100vw` on a 390px phone is 780 css px at DPR 2 and
+          1170 at DPR 3, and 1170 is past the 1100w cut — so a DPR-3 iPhone
+          took the 2200px original, 10.31 MB of decoded bitmap, for a sky that
+          is a blurred watercolour behind a mask that fades both its edges.
+          The media query pins every phone to the small cut. (That cut is
+          390px wide, not the 1100 its old descriptor claimed; it is left at
+          that size on purpose — it is what DPR-2 phones were already being
+          served, it reads correctly through the fade, and regenerating it at
+          1100 would put 2.7 MB back for no visible gain.) */}
+      <picture style={{ display: 'contents' }}>
+        <source media="(max-width: 767px)" type="image/webp" srcSet="/img/tree/bloom-sky-sm.webp" />
+        <img
+          className="offer-sky"
+          src="/img/tree/bloom-sky.webp"
+          alt=""
+          width={2200}
+          height={1228}
+          loading="lazy"
+          decoding="async"
+          aria-hidden="true"
+        />
+      </picture>
       <div className="offer-row">
         {/* tag · TREE · tag — the tree is the middle grid child, not a section
             of its own, so the three float as one composition and stay in that
@@ -309,15 +357,24 @@ export function Bolt() {
             <div className="bolt-copy">
               {/* the same file Chrome.jsx already loads three times (nav,
                   fullscreen menu, footer) — a cache hit, not a new download */}
-              <img
-                className="bolt-lockup"
-                src="/img/logo/loom-woven.webp"
-                alt={BRAND.name}
-                width={1579}
-                height={534}
-                loading="lazy"
-                decoding="async"
-              />
+              {/* 1579px of woven wordmark for a 335px box on a phone —
+                  3.37 MB decoded. The phone cut is 760px (2.3x that box).
+                  NOT the same file as Chrome.jsx's nav mark: that one is
+                  `loom-woven-sm.webp` at 480px, which is right for a 113px nav
+                  box and soft at 335. The full file stays the desktop
+                  candidate, where the footer word paints it at 880px. */}
+              <picture style={{ display: 'contents' }}>
+                <source media="(max-width: 767px)" type="image/webp" srcSet="/img/logo/loom-woven-phone.webp" />
+                <img
+                  className="bolt-lockup"
+                  src="/img/logo/loom-woven.webp"
+                  alt={BRAND.name}
+                  width={1579}
+                  height={534}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
               <SplitWords
                 as="h2"
                 className="h2 bolt-claim"

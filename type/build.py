@@ -8,6 +8,7 @@ lines up character for character.
 """
 import os
 import shutil
+import sys
 
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -21,7 +22,7 @@ from floral import decorate
 from geom import xform
 import svgart
 
-VERSION = "1.100"
+VERSION = "1.200"
 UPM = G.UPM
 ASC, DESC = 900, -200   # accents live between 746 and 900
 YEAR = 2026
@@ -42,10 +43,10 @@ CUTS = [
 ]
 
 SPECIES = {
-    'floral': 'roses, leaves and a curling vine',
-    'daisy': 'twelve-petal daisies and sprigs',
-    'tulip': 'tulips on their necks, with long leaves',
-    'ivy': 'trailing ivy — leaves and tendrils, no bloom',
+    'floral': 'line-drawn roses and anemones',
+    'daisy': 'flat open blossoms',
+    'tulip': 'tulip cups, buds and berry sprigs',
+    'ivy': 'leaf sprigs — no bloom',
 }
 
 # A fat display face is nothing without these — the diagonals and the round
@@ -236,7 +237,14 @@ def main():
     out = os.path.join(here, 'out')
     os.makedirs(out, exist_ok=True)
     made = []
+    # `python3 build.py rose ivy` rebuilds just those cuts — one cut is ~2 min,
+    # the whole family is ~10, and most edits only touch one species.
+    only = {a.lower() for a in sys.argv[1:] if not a.startswith('-')}
     for fam, family, ps_name in CUTS:
+        # the rose cut's internal family name is 'floral'; accept either
+        keys = {(fam or 'regular'), 'rose' if fam == 'floral' else (fam or 'regular')}
+        if only and not (keys & only):
+            continue
         for fmt in ('otf', 'ttf'):
             fb, ps = build(fam, family, ps_name, fmt)
             p = os.path.join(out, f'{ps}.{fmt}')

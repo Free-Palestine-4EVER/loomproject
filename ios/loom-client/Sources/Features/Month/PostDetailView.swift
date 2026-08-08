@@ -234,13 +234,7 @@ struct PostDetailView: View {
     /// door — the client can still open the note composer and override it.
     private func approvedConfirmation(post: Post, reviewState: PostReviewState) -> some View {
         HStack(spacing: LoomSpacing.sm) {
-            ZStack {
-                Circle().fill(LoomColor.threadGradient)
-                Image(systemName: "checkmark")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(LoomColor.bg)
-            }
-            .frame(width: 34, height: 34)
+            SealBadge(reduceMotion: reduceMotion)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(L10n.Month.statusApproved.string(for: languageManager.language))
@@ -336,6 +330,38 @@ struct PostDetailView: View {
                     }
                 }
                 .disabled(viewModel.isSending(post))
+            }
+        }
+    }
+}
+
+/// The one-shot "stamped" flourish behind the approve confirmation: the badge
+/// lands oversized and rotated, then springs down to rest — a physical seal
+/// hitting paper, not a checkmark that simply fades in. Runs once per
+/// appearance (the parent view only mounts this when `verdict == .yes`, so a
+/// fresh `SealBadge` — and a fresh stamp — is exactly what "just approved"
+/// should feel like).
+private struct SealBadge: View {
+    let reduceMotion: Bool
+    @State private var settled = false
+
+    var body: some View {
+        ZStack {
+            Circle().fill(LoomColor.threadGradient)
+            Image(systemName: "checkmark")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(LoomColor.bg)
+        }
+        .frame(width: 34, height: 34)
+        .scaleEffect(settled ? 1 : 1.55)
+        .rotationEffect(.degrees(settled ? 0 : -16))
+        .onAppear {
+            if reduceMotion {
+                settled = true
+                return
+            }
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.62)) {
+                settled = true
             }
         }
     }

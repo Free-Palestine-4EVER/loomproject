@@ -1,0 +1,242 @@
+/* ownapps.css — OUR OWN APPS. Owned by OwnApps.jsx only.
+   Do not import into styles.css / textile*.css / wool.css.
+
+   CASCADE NOTE (same trap hiring.css documents): src/main.jsx imports App.jsx
+   BEFORE './styles.css', so every component stylesheet lands EARLIER in the
+   bundle than the globals — a bare single-class rule here would LOSE a tie to
+   them. Every class below is prefixed `oa-` and unique to this file, and the
+   one place a global class is restyled (.lede) is written as `.oa .lede` —
+   0,2,0 — so it wins regardless of source order.
+
+   MOTION BUDGET: nothing animates at rest, no @keyframes in this file. Entry
+   is one-shot (Reveal / SplitWords in JS); everything else is a hover
+   transition on transform/border/shadow. */
+
+.oa {
+  position: relative;
+  padding-bottom: clamp(60px, 9vh, 110px);
+  background: var(--bg);
+  border-block: 1px solid var(--line);
+}
+
+.oa .lede { max-width: 68ch; }
+
+.oa-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(14px, 1.8vw, 22px);
+  padding: clamp(28px, 4vh, 44px) var(--pad) 0;
+  align-items: stretch;
+}
+.oa-cell { min-width: 0; height: 100%; }
+
+/* ═══ THE FLAGSHIP — blip.net ═══════════════════════════════════
+   Deliberately the opposite visual language from the four dashed "posted"
+   cards below it: a solid lit panel, not an outline, because this one is
+   real. Same card recipe Solutions/TheMachine use for their lead panels
+   (solid felt-dark plate, one glow, one accent gradient) rather than a new
+   pattern — the "this is the big one" read comes from scale and solidity,
+   not from a new material. */
+.oa-blip-cell { padding: 0 var(--pad); margin-bottom: clamp(18px, 2.4vh, 28px); }
+.oa-blip {
+  --g1: var(--cyan);
+  --g2: var(--violet);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: calc(var(--radius) * 1.5);
+  border: 1px solid color-mix(in srgb, var(--g1) 35%, var(--line));
+  background: linear-gradient(160deg, var(--bg-3) 0%, var(--bg-2) 65%);
+  box-shadow: 0 30px 90px -40px rgba(0, 0, 0, 0.75);
+}
+.oa-blip-glow {
+  position: absolute;
+  inset: -20% -10%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 55% at 8% 15%, color-mix(in srgb, var(--g1) 30%, transparent), transparent 70%),
+    radial-gradient(32% 50% at 96% 85%, color-mix(in srgb, var(--g2) 26%, transparent), transparent 70%);
+}
+.oa-blip-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(28px, 4vw, 52px);
+}
+
+.oa-blip-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin-bottom: clamp(18px, 2.2vw, 26px);
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--g1) 45%, var(--line));
+  background: color-mix(in srgb, var(--g1) 10%, transparent);
+  color: var(--ink);
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.oa-blip-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--g1) 70%, var(--g2) 30%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--g1) 22%, transparent);
+}
+
+.oa-blip-id { display: flex; align-items: center; gap: 16px; margin-bottom: clamp(18px, 2.2vw, 24px); }
+.oa-blip-icon { width: clamp(52px, 4.8vw, 62px); flex: none; }
+.oa-blip-name {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.3rem, 1.9vw, 1.7rem);
+  color: #fff;
+  line-height: 1.1;
+}
+.oa-blip-tag { margin-top: 4px; font-size: 0.82rem; color: var(--ink-faint); overflow-wrap: anywhere; }
+
+.oa-blip-headline {
+  font-family: var(--display);
+  font-weight: 640;
+  font-size: clamp(1.8rem, 3.4vw, 3rem);
+  line-height: 1.05;
+  color: var(--ink);
+  max-width: 18ch;
+  margin-bottom: clamp(14px, 1.8vw, 20px);
+}
+.oa-blip-lede { color: var(--ink-dim); font-size: clamp(0.94rem, 1.1vw, 1.05rem); line-height: 1.6; max-width: 62ch; }
+
+.oa-blip-plans {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 260px));
+  gap: 14px;
+  margin-top: clamp(24px, 3vw, 34px);
+}
+.oa-blip-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: rgba(242, 240, 247, 0.03);
+}
+.oa-blip-plan.is-featured {
+  border-color: color-mix(in srgb, var(--g1) 55%, transparent);
+  background: color-mix(in srgb, var(--g1) 8%, rgba(242, 240, 247, 0.03));
+}
+.oa-blip-plan-name { font-size: 0.72rem; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+.oa-blip-plan-price { font-family: var(--display); font-size: clamp(1.5rem, 2vw, 1.9rem); font-weight: 700; color: var(--ink); }
+.oa-blip-plan-price em { font-style: normal; font-size: 0.9rem; font-weight: 600; color: var(--ink-faint); margin-left: 3px; }
+.oa-blip-plan-blurb { font-size: 0.82rem; color: var(--ink-dim); }
+
+.oa-blip-cta { margin-top: clamp(26px, 3.2vw, 36px); }
+
+@media (min-width: 860px) {
+  .oa-blip-headline { max-width: 22ch; }
+}
+@media (max-width: 520px) {
+  .oa-blip-plans { grid-template-columns: 1fr; }
+}
+
+/* the posting — same "real, but not finished" dashed-edge language hiring.css
+   established for exactly this state, applied to a shipped-someday product
+   instead of an open role */
+.oa-card {
+  --g1: var(--magenta);
+  --g2: var(--violet);
+  position: relative;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(20px, 2.4vw, 28px) clamp(18px, 2vw, 24px) clamp(22px, 2.4vw, 26px);
+  border-radius: calc(var(--radius) * 1.1);
+  border: 2px dashed rgba(242, 240, 247, 0.16);
+  background: linear-gradient(165deg, rgba(24, 14, 38, 0.7), rgba(13, 7, 22, 0.55));
+  transition: border-color 0.45s var(--ease), box-shadow 0.5s var(--ease), transform 0.5s var(--ease);
+}
+.oa-card:hover,
+.oa-card:focus-within {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--g1) 55%, transparent);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.5), 0 0 50px color-mix(in srgb, var(--g1) 16%, transparent);
+}
+
+.oa-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin-bottom: clamp(16px, 2vw, 22px);
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(242, 240, 247, 0.04);
+  color: var(--ink-dim);
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+/* a steady dot, not a pulsing one — this is deliberately NOT the .rc-live
+   "on air" signal used elsewhere on the page; these apps are not live */
+.oa-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--g1) 70%, var(--g2) 30%);
+}
+
+.oa-icon {
+  display: grid;
+  place-items: center;
+  width: clamp(46px, 4.4vw, 54px);
+  aspect-ratio: 1;
+  margin-bottom: clamp(14px, 1.8vw, 18px);
+  border-radius: 23%;
+  background: linear-gradient(146deg, var(--g1), var(--g2));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 12px 26px -14px color-mix(in srgb, var(--g1) 55%, transparent);
+}
+.oa-icon svg { width: 54%; height: 54%; color: #fff; }
+
+.oa-name {
+  font-family: var(--display);
+  font-weight: 660;
+  font-size: clamp(1.05rem, 1.4vw, 1.28rem);
+  line-height: 1.15;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.oa-tag {
+  margin-top: 5px;
+  font-size: 0.74rem;
+  font-weight: 640;
+  letter-spacing: 0.01em;
+  color: var(--ink-faint);
+  overflow-wrap: anywhere;
+}
+.oa-blurb {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* four equal columns only fit desktop — the tablet/phone track collapses
+   before the cards' own min-width would force horizontal scroll */
+@media (max-width: 900px) {
+  .oa-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 460px) {
+  .oa-grid { grid-template-columns: 1fr; }
+}
