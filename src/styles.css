@@ -1492,6 +1492,291 @@ html.cursor-hot .cursor-ring {
   position: relative; z-index: 1;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   THE BLOOM FOOTER — the tree's new home
+
+   The tree came down here from `#offer`, and it brought its ground with it.
+   Two consequences, both deliberate:
+
+   1 · THE FOOTER IS THE ONLY LIGHT SURFACE ON THE SITE. Every ink value below
+       is measured against the pale sky, not inherited: `--ink`/`--ink-dim` are
+       white-on-dark tokens and would vanish here. They are re-pointed once, on
+       `.footer--bloom`, so a future child that reaches for `var(--ink-dim)`
+       gets a value that works on paper instead of a ghost.
+   2 · THERE IS NO TOP BORDER. A 1px rule between a dark section and a pale one
+       is the hardest line on the page. The sky bleeds `--seam` past the
+       footer's own top edge under an eased mask instead, exactly as `.offer`
+       did, so the dark contact section above dissolves into the pink and the
+       eye has no endpoint to find.
+
+   Nothing here animates anything but transform and opacity.
+   ═══════════════════════════════════════════════════════════ */
+.footer--bloom {
+  --seam: clamp(80px, 11vh, 150px);
+  /* ink for a light ground. #33243d is the house ink on paper (see .cnt-strip
+     and the old wish tags) — a brand hue is not used for body copy because the
+     sky is speckled and saturated hues drop under 4.5:1 in the flecks. */
+  --ink: #33243d;
+  --ink-dim: #4a3652;
+  --ink-faint: #6b5273;
+  --line: rgba(96, 40, 76, 0.22);
+  border-top: 0;
+  /* clip X so the oversized sky and halo cannot open a horizontal scrollbar;
+     Y must stay visible or the top bleed is cut off at the very edge it exists
+     to erase. ORDER IS `overflow: <x> <y>` and is easy to write backwards. */
+  overflow: clip visible;
+  isolation: isolate;
+  padding: calc(var(--seam) + clamp(40px, 6vh, 80px)) var(--pad) 26px;
+  /* the tree needs air under the copy or it reads as a background image rather
+     than as the thing the page ends on */
+  min-height: clamp(680px, 88vh, 960px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* the sky — a masked <img>, not a background-image, so it carries its own
+   intrinsic size and the box is settled before the bytes land. The mask lets
+   the dark page keep showing THROUGH at both ends, so there is no second
+   colour to keep in sync with whatever section sits above. */
+.footer--bloom .foot-sky {
+  position: absolute;
+  inset: calc(-1 * var(--seam)) 0 0;
+  z-index: 0;
+  width: 100%;
+  height: calc(100% + var(--seam));
+  object-fit: cover;
+  object-position: center 62%;
+  pointer-events: none;
+  user-select: none;
+  /* eased, not linear: a two-stop ramp is C1-discontinuous at its ends and the
+     kink shows as a mach band exactly where the fade "starts". Only the TOP
+     fades — the bottom of the page is the end of the document, there is
+     nothing below to dissolve into. */
+  -webkit-mask-image: linear-gradient(180deg,
+    rgba(0, 0, 0, 0) 0%,     rgba(0, 0, 0, 0.02) 3%,  rgba(0, 0, 0, 0.09) 6%,
+    rgba(0, 0, 0, 0.21) 9%,  rgba(0, 0, 0, 0.38) 12%, rgba(0, 0, 0, 0.58) 15%,
+    rgba(0, 0, 0, 0.76) 18%, rgba(0, 0, 0, 0.9) 21%,  rgba(0, 0, 0, 0.98) 24%,
+    rgba(0, 0, 0, 1) 27%, rgba(0, 0, 0, 1) 100%);
+  mask-image: linear-gradient(180deg,
+    rgba(0, 0, 0, 0) 0%,     rgba(0, 0, 0, 0.02) 3%,  rgba(0, 0, 0, 0.09) 6%,
+    rgba(0, 0, 0, 0.21) 9%,  rgba(0, 0, 0, 0.38) 12%, rgba(0, 0, 0, 0.58) 15%,
+    rgba(0, 0, 0, 0.76) 18%, rgba(0, 0, 0, 0.9) 21%,  rgba(0, 0, 0, 0.98) 24%,
+    rgba(0, 0, 0, 1) 27%, rgba(0, 0, 0, 1) 100%);
+}
+/* light rising out of the pink into the dark above, so the two zones interlock
+   rather than meet. Same move `.offer` used, and the same specificity trick:
+   `main > section::before` (fx.css) does not reach a <footer>, but the dark
+   contact section's own bottom edge sits right here, so the bloom is what
+   carries the join. */
+.footer--bloom::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(-1 * var(--seam));
+  z-index: 1;
+  width: min(1700px, 132%);
+  height: clamp(240px, 30vh, 420px);
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: radial-gradient(58% 108% at 50% 100%,
+    rgba(247, 176, 202, 0.40) 0%,
+    rgba(196, 116, 172, 0.17) 44%,
+    rgba(13, 7, 22, 0) 76%);
+}
+
+/* ── the tree ────────────────────────────────────────────────
+   Anchored to the BOTTOM of the footer and centred, so it grows up out of the
+   hem behind the copy. It is the last object on the page; the copy is arranged
+   around it rather than on top of it (see the grid's empty middle column). */
+.footer--bloom .foot-bloom {
+  position: absolute;
+  left: 50%;
+  /* clear of the base bar, not flush with the hem. Bottom-anchored at 0 the
+     island grew straight through the © line and through the nav row above it —
+     and a scrim laid over blossom to rescue the text would be admitting the
+     composition does not work. The tree gets the middle of the footer; the
+     copy gets the top and the bottom; nothing overlaps anything. */
+  bottom: clamp(48px, 6vh, 74px);
+  z-index: 1;
+  width: min(600px, 44vw);
+  transform: translateX(-50%);
+  display: grid;
+  place-items: end center;
+  pointer-events: none;
+}
+.footer--bloom .foot-tree {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  /* drop-shadow on a LEAF element: the tree is a cutout, so the only shadow it
+     can take is one that follows its own alpha. Warm plum, not the near-black
+     the dark page used — on pink that shadow reads as dirt. */
+  filter: drop-shadow(0 26px 38px rgba(122, 58, 96, 0.32));
+  animation: foot-float 11s ease-in-out infinite;
+  will-change: transform;
+}
+/* light in the air behind the canopy, not a plate under it */
+.footer--bloom .foot-halo {
+  position: absolute;
+  z-index: 0;
+  bottom: 6%;
+  width: min(860px, 128%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 46%,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 240, 247, 0.26) 38%,
+    rgba(255, 240, 247, 0) 70%);
+  animation: foot-breathe 9s ease-in-out infinite;
+}
+/* seven petals, each deriving its lane, delay and duration from --i so the set
+   never resolves into a visible cycle */
+.footer--bloom .foot-petals {
+  position: absolute;
+  inset: 0 -12% 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.footer--bloom .foot-petals span {
+  position: absolute;
+  top: 10%;
+  left: calc(8% + var(--i) * 12.5%);
+  width: clamp(7px, 0.9vw, 12px);
+  height: clamp(9px, 1.1vw, 15px);
+  border-radius: 60% 60% 60% 60% / 80% 80% 40% 40%;
+  background: linear-gradient(160deg, #ffd0e8, #f76fb4);
+  opacity: 0;
+  animation: foot-fall calc(9s + var(--i) * 1.35s) linear infinite;
+  animation-delay: calc(var(--i) * -2.1s);
+  will-change: transform, opacity;
+}
+@keyframes foot-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(0, -12px, 0) rotate(-0.8deg); }
+}
+@keyframes foot-breathe {
+  0%, 100% { transform: scale(1);    opacity: 0.85; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+@keyframes foot-fall {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg);           opacity: 0; }
+  12%  { opacity: 0.9; }
+  80%  { opacity: 0.7; }
+  100% { transform: translate3d(-38px, 300px, 0) rotate(220deg); opacity: 0; }
+}
+
+/* ── the copy, arranged around the trunk ─────────────────────
+   Brand left, contact right, and an EMPTY middle track the width of the
+   canopy. The gap is the layout: nothing is stacked over the tree, so no text
+   ever has to fight a busy patch of blossom for contrast. */
+.footer--bloom .footer-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(20px, 3vw, 56px);
+  max-width: 1560px;
+  margin-inline: auto;
+  width: 100%;
+  z-index: 2;
+}
+.footer--bloom .foot-brand { grid-column: 1; }
+.footer--bloom .footer-contact { grid-column: 3; justify-self: end; text-align: right; }
+.footer--bloom .footer-contact a,
+.footer--bloom .footer-contact span { flex-direction: row-reverse; }
+.footer--bloom .footer-mark { color: #33243d; }
+.footer--bloom .footer-grid p { color: var(--ink-dim); }
+.footer--bloom .footer-contact a { color: var(--ink-dim); transition: color 0.3s; }
+.footer--bloom .footer-contact a:hover { color: #b3126a; }
+.footer--bloom .footer-contact span { color: var(--ink-dim); }
+
+/* the nav, wrapped into the left column under the brand line. It is capped at
+   a narrow measure on purpose: three short rows inside the copy column read as
+   a list, where one long centred row read as a rule drawn across the tree.
+   `margin-top: auto` belongs to `.footer-base`, the one row that genuinely
+   sits on the hem. */
+.footer--bloom .foot-nav {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  /* COLUMN, stated outright. The nav is a descendant of `.footer-grid`, so the
+     generic `.footer-grid nav { flex-direction: column }` above already reaches
+     it — a column here by inheritance from a rule written for the old three-up
+     layout, which is exactly the kind of thing that disappears the next time
+     someone touches that rule. It is the shape this footer wants: a short
+     stacked list inside the copy column, where one long centred row landed
+     across the canopy and no ink value survives blossom. */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: clamp(22px, 3.4vh, 34px);
+}
+.footer--bloom .foot-nav a {
+  color: var(--ink-dim);
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+.footer--bloom .foot-nav a:hover { color: #b3126a; }
+
+.footer--bloom .footer-base {
+  z-index: 2;
+  /* the hem. `auto` here is what gives the tree every pixel of the footer's
+     min-height that the copy above does not use. */
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-faint);
+  max-width: 1560px;
+  margin-inline: auto;
+  width: 100%;
+}
+/* textile-details.css hems the base bar with `--stitch-dim`, a white-on-dark
+   token that is invisible on paper. Re-stated in plum so the stitch survives
+   the inversion. */
+.footer--bloom .footer-base::before {
+  background-image:
+    linear-gradient(rgba(96, 40, 76, 0.28), rgba(96, 40, 76, 0.28)),
+    linear-gradient(rgba(96, 40, 76, 0.14), rgba(96, 40, 76, 0.14)),
+    repeating-linear-gradient(90deg, rgba(96, 40, 76, 0.28) 0 6px, transparent 6px 11px);
+}
+
+@media (max-width: 900px) {
+  /* the trunk no longer has a column to stand in — the copy stacks and the
+     tree drops behind it, so the ink needs the extra weight of a scrim */
+  /* the seam is a proportion of a much taller, narrower box here — the desktop
+     clamp would put ~150px of empty pink above the mark before anything is
+     read. Shortened, and the top padding with it. */
+  .footer--bloom { --seam: clamp(50px, 7vh, 90px); min-height: 0; padding-bottom: 30px; }
+  .footer--bloom .footer-grid { grid-template-columns: 1fr; gap: 30px; }
+  .footer--bloom .foot-brand { grid-column: 1; }
+  .footer--bloom .footer-contact { grid-column: 1; justify-self: start; text-align: left; }
+  .footer--bloom .footer-contact a,
+  .footer--bloom .footer-contact span { flex-direction: row; }
+  /* Stacked, the tree has no column of its own — it drops BEHIND the copy, and
+     half opacity is the only thing that keeps ink readable over the canopy.
+     Still anchored above the base bar rather than bled off the bottom: the hem
+     is the last edge of the document, and a cutout running past it reads as a
+     crop, not as a bleed. */
+  .footer--bloom .foot-bloom { width: min(520px, 96vw); opacity: 0.5; bottom: 44px; }
+}
+@media (max-width: 767px) {
+  /* four lanes, not seven — the canopy is much narrower here and the extra
+     petals bunch into a column instead of reading as a drift */
+  .footer--bloom .foot-petals span:nth-child(n + 5) { display: none; }
+  /* a phone canopy is nearly viewport-wide, so the contact rows land ON the
+     lit island rather than beside it, and the crystals in its base are the
+     brightest pixels in the footer. Dropped from the 0.5 the tablet stack
+     uses — the tree still reads, and no line of ink has to survive a highlight
+     it was not designed against. */
+  .footer--bloom .foot-bloom { opacity: 0.38; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer--bloom .foot-tree,
+  .footer--bloom .foot-halo { animation: none; }
+}
+
 /* ————— responsive ————— */
 @media (max-width: 1000px) {
   .work-grid { grid-template-columns: repeat(2, 1fr); }

@@ -153,100 +153,62 @@ export function Counter() {
   )
 }
 
-/* ═══════════════════ 1b · THE TREE ═══════════════════ */
-/* The centre of the fork: panel · TREE · panel, one row, one section. It is
-   a DIV and a grid child, not a section of its own — that is what lets the
-   three float as a single composition and keeps the tree between the two
-   panels when the row stacks on a phone.
+/* ═══════════════════ 1b · THE TREE — moved ═══════════════════ */
+/* The bloom tree used to stand here, between the needs grid and the fork. It is
+   now the closing image of the page: markup in Chrome.jsx's `Footer`, styles in
+   styles.css under `.footer--bloom`. `.treebreak` / `.tb-*` are gone from this
+   file and from banners.css — the tree was never a divider, it was the site's
+   best object being spent as one. */
 
-   It is one <img> and a handful of composited transforms — no canvas, no
-   particle system. Deliberate: the page already carries two WebGL layers and
-   measured ~6x faster with them off, so an element whose only job is to be
-   beautiful does not get to allocate a third context. Everything animated
-   here is transform or opacity, so it runs on the compositor at no layout
-   cost. */
-function TreeBreak() {
-  const reduced = useReducedMotion()
-  return (
-    <div className="treebreak" aria-hidden="true">
-      <i className="tb-glow" />
-      <div className="tb-stage">
-        {/* This was a `w`-descriptor srcSet and it never once fired on the
-            device it was written for. `bloom-tree-sm.webp 800w` against
-            `88vw` on a 390px phone asks for 343 * DPR css pixels: 686 at DPR 2
-            (so the 800w cut wins, but the FILE was only 343px wide — the
-            descriptor was simply wrong, and the tree came out as a 0.8x
-            upscale), and 1029 at DPR 3, where the browser correctly skips the
-            cut and takes the full 1600px original — 9.05 MB of decoded bitmap
-            for a decorative tree, on exactly the hardware that cannot afford
-            it. A media query cannot be argued with by a DPR. The -sm cut is
-            regenerated at a real 800px by scripts/shrink-decoded.mjs, which is
-            1.9x the 427px box it lands in. */}
-        <picture style={{ display: 'contents' }}>
-          <source media="(max-width: 767px)" type="image/avif" srcSet="/img/tree/bloom-tree-sm.avif" />
-          <source media="(max-width: 767px)" type="image/webp" srcSet="/img/tree/bloom-tree-sm.webp" />
-          <source type="image/avif" srcSet="/img/tree/bloom-tree.avif" />
-          <img
-            className="tb-tree"
-            src="/img/tree/bloom-tree.webp"
-            alt=""
-            width={1860}
-            height={1723}
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
-        {/* Petals: 7 spans, each drifting on its own duration/delay so the fall
-            never reads as a loop. Count is the whole budget — a real petal
-            system here would be the third animation layer on a page that is
-            already GPU-bound. */}
-        {!reduced && (
-          <div className="tb-petals">
-            {Array.from({ length: 7 }, (_, i) => <span key={i} style={{ '--i': i }} />)}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
-/* ═══════════════════ 2 · THE OFFER ═══════════════════ */
+/* ═══════════════════ 2 · THE FORK ═══════════════════ */
 
-/* The fork, rebuilt for the pink sky.
-   The two knitted panels that used to live here were cut for a near-black page:
-   deep violet and blue wool, a photographed art band, a dark scrim and a drifting
-   aura. Every one of those choices is a value decision made against a black
-   ground, and on a pale cherry sky they read as two heavy boxes dropped on a
-   watercolour. They are gone — material, art bands and all.
-   What replaces them is a WISH TAG: the paper card people tie to a blossom tree.
-   It is the one object that belongs on this ground both materially (paper is
-   light, so it sits on the sky instead of punching a hole in it) and
-   narratively (you hang a wish on a cherry tree, and this section asks the
-   visitor which wish is theirs). Each tag hangs from a cord that runs up out of
-   the frame, so the pair reads as suspended from one shared line — the eye
-   grades two hanging objects against their hanger, not against each other.
-   Content and function are unchanged: same two choices, same wizard, same
-   secondary links. `care` and `proof` are gone from the data with the panels
-   that carried them — a fork that has to explain its own process has lost. */
+/* Rebuilt from nothing, twice over.
+
+   V1 was two knitted panels on the near-black page. V2 replaced them with paper
+   wish tags flanking the bloom tree on a pink sky — a composition that worked
+   only because the tree was in it. The tree has moved to the footer, where it
+   is the last thing on the page instead of a divider in the middle of one, and
+   a pink watercolour with nothing standing on it is just a pale stripe. So the
+   sky went with the tree and this section is back on the site's own ground.
+
+   What it is now is a SWITCH, not a pair of cards. Two full-height woven
+   panels butted against one yarn seam, sized `1fr 1fr` until you touch one —
+   then the one under the pointer takes the room and the other gives it up. The
+   interaction IS the content: the section asks which of two you are, and the
+   layout answers by physically committing to your choice before you have
+   clicked anything. A pair of equal cards can only ask; this can respond.
+
+   Everything is CSS. The expansion is one `flex-grow` transition driven by
+   `:has()`, so there is no state, no resize observer, no JS on hover — and
+   `:focus-within` gets the identical treatment, so a keyboard walks the same
+   design a pointer does. Content and function are unchanged from both previous
+   versions: same two choices, same wizard, same secondary links. */
 const OFFER = [
   {
     id: 'studio',
+    ord: '01',
+    // magenta is the house key and goes to the option most visitors are in
+    dye: 'magenta',
+    mark: 'tag',
     eyebrow: 'Already trading',
     title: 'I have a business already.',
-    // Two lines that FIT two lines. The tag clamps the body at two, and the
-    // long version was landing as a sentence cut mid-word with an ellipsis —
-    // which reads as a bug, not as brevity. The full argument (one frame,
-    // every discipline) belongs to the wizard this card opens.
-    body: `It runs — it just doesn’t land. We rebuild it around what already sells.`,
+    // The panel is tall and wide enough for three lines now, so the body no
+    // longer has to be cut to fit a 340px tag. It still stops well short of a
+    // brief — the wizard this opens is where detail belongs.
+    body: `It runs — it just doesn’t land. We take what already sells and rebuild the brand, the site and the campaign around it, in one frame.`,
     cta: 'Book a call',
     note: 'I have a business already',
     link: { href: '#work', label: 'See the work' },
   },
   {
     id: 'lab',
+    ord: '02',
+    dye: 'violet',
+    mark: 'plus',
     eyebrow: 'Starting out',
     title: 'I have a business idea.',
-    body: `Nothing exists yet — the easiest place to start. Name, site, launch.`,
+    body: `Nothing exists yet, which is the easiest place to start — name, identity, site, launch, in the order that gets you trading fastest.`,
     cta: 'Start from zero',
     note: 'I have a business idea',
     // the CTA already opens the wizard, so the secondary link carries the other
@@ -259,68 +221,55 @@ const OFFER = [
 export function OfferPair() {
   const { open } = useWizard()
   return (
-    // no .section-head — a promo pair is an interstitial, the same grammar
-    // Marquee and Stats use. It answers the work above it rather than starting
-    // a subject, so it takes the short lead-in clamp.
     <section className="offer" id="offer" aria-label="Already trading, or starting from an idea">
-      {/* The sky.
-          An <img> rather than a CSS background-image for two reasons: it carries
-          its own intrinsic width/height so the box is settled before the bytes
-          arrive (a background-image decoding late would repaint, and with
-          `position: absolute` here it cannot reflow the row at all), and srcSet
-          lets a 390px phone take the 4KB 1100px cut instead of the 14KB one.
-          `object-fit: cover` + the mask that fades both edges live in the CSS. */}
-      {/* Same correction as the tree, and here the `w` descriptors were doing
-          real damage: `100vw` on a 390px phone is 780 css px at DPR 2 and
-          1170 at DPR 3, and 1170 is past the 1100w cut — so a DPR-3 iPhone
-          took the 2200px original, 10.31 MB of decoded bitmap, for a sky that
-          is a blurred watercolour behind a mask that fades both its edges.
-          The media query pins every phone to the small cut. (That cut is
-          390px wide, not the 1100 its old descriptor claimed; it is left at
-          that size on purpose — it is what DPR-2 phones were already being
-          served, it reads correctly through the fade, and regenerating it at
-          1100 would put 2.7 MB back for no visible gain.) */}
-      <picture style={{ display: 'contents' }}>
-        <source media="(max-width: 767px)" type="image/webp" srcSet="/img/tree/bloom-sky-sm.webp" />
-        <img
-          className="offer-sky"
-          src="/img/tree/bloom-sky.webp"
-          alt=""
-          width={2200}
-          height={1228}
-          loading="lazy"
-          decoding="async"
-          aria-hidden="true"
-        />
-      </picture>
-      <div className="offer-row">
-        {/* tag · TREE · tag — the tree is the middle grid child, not a section
-            of its own, so the three float as one composition and stay in that
-            order when the row stacks on a phone. */}
+      {/* This one DOES take a section head, where the wish-tag version did not.
+          Two objects floating beside a tree were legible as a choice on their
+          own; two full-bleed panels are a piece of furniture and need to be
+          told what they are before the eye starts reading either one. */}
+      <div className="section-head">
+        <p className="kicker"><span>—</span> Two ways in</p>
+        <SplitWords as="h2" className="h2" text="Which one is you?" />
+      </div>
+
+      <div className="fork">
         {OFFER.map((o, i) => (
           <Fragment key={o.id}>
-          <Reveal delay={i * 0.08} y={26} className="offer-cell">
-            <article className="wish" data-cursor>
-              {/* the cord and the eyelet it hangs from. Two leaf elements, no
-                  children, purely decorative — the cord runs off the top of the
-                  tag and is clipped by the section, which is what sells "this
-                  is tied to a branch somewhere above". */}
-              <i className="wish-cord" aria-hidden="true" />
-              <i className="wish-eye" aria-hidden="true" />
-              <p className="wish-eyebrow">{o.eyebrow}</p>
-              <h3 className="wish-h">{o.title}</h3>
-              <p className="wish-body">{o.body}</p>
-              <div className="wish-foot">
-                <Magnetic>
-                  <button type="button" className="wish-cta" onClick={() => open({ note: o.note })}>
-                    {o.cta}
-                  </button>
-                </Magnetic>
-                <a className="wish-link" href={o.link.href}>{o.link.label} →</a>
+            {/* the seam. A real flex item between the two panels rather than an
+                absolutely-positioned centre line — the halves change width on
+                hover, and anything pinned to 50% would slide off the join. */}
+            {i === 1 && (
+              <div className="fork-seam" aria-hidden="true">
+                <i className="fork-yarn" />
+                <span className="fork-or">or</span>
+                <i className="fork-yarn" />
               </div>
-            </article>
-          </Reveal>
-          {i === 0 && <TreeBreak />}
+            )}
+            <Reveal delay={i * 0.1} y={30} className="fork-cell">
+              <article className={`fork-half blk blk--${o.dye}`} data-cursor>
+                {/* the four yarns, the same stripe .kicker::after and .progress
+                    already run — one static gradient, never animated */}
+                <i className="blk-rail" aria-hidden="true" />
+                {/* the ordinal, cut in outlined Bloom and bled off the top-right
+                    corner. It is the only thing in the panel that is allowed to
+                    be huge, which is what stops two dense text blocks reading
+                    as one wall. */}
+                <span className="fork-ord" aria-hidden="true">{o.ord}</span>
+                <div className="fork-inner">
+                  <WoolIcon name={o.mark} className="fork-medal" />
+                  <p className="fork-eyebrow">{o.eyebrow}</p>
+                  <h3 className="fork-h">{o.title}</h3>
+                  <p className="fork-body">{o.body}</p>
+                  <div className="fork-foot">
+                    <Magnetic>
+                      <button type="button" className="fork-cta" onClick={() => open({ note: o.note })}>
+                        {o.cta}
+                      </button>
+                    </Magnetic>
+                    <a className="fork-link" href={o.link.href}>{o.link.label} →</a>
+                  </div>
+                </div>
+              </article>
+            </Reveal>
           </Fragment>
         ))}
       </div>

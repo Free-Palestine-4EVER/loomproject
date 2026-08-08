@@ -224,29 +224,97 @@ export function Cursor() {
   )
 }
 
+/* THE FOOTER — the bloom tree is the last thing on the page.
+
+   It used to stand between the two cards of `#offer`, where it was competing
+   with them: the tree is the most beautiful object on the site and it was being
+   asked to be a divider. Down here it has nothing to compete with, so it can be
+   the closing image instead — the page ends in blossom rather than in a dark
+   sitemap.
+
+   The move brings the pink ground with it, which is what makes the footer read
+   as an ending and not as another dark band: `.foot-sky` is the same masked
+   watercolour `.offer` used to carry, bleeding UP past the footer's own top
+   edge so the dark contact section above dissolves into it instead of butting
+   against a rule. Everything from `.footer--bloom` down is therefore dark ink
+   on light paper — the inverse of the rest of the site, stated once here and
+   scoped so nothing else inherits it. */
 export function Footer({ onNavigate }) {
+  const reduced = useReducedMotion()
   return (
-    <footer className="footer">
-      <img className="footer-word-img" src="/img/logo/loom-woven.webp" alt="" aria-hidden="true" loading="lazy" />
+    <footer className="footer footer--bloom">
+      {/* the sky. Same file, same phone cut, same reasoning as `.offer` used:
+          media query, not a `w` descriptor, so a DPR-3 phone cannot talk itself
+          into the 2200px original for a blurred watercolour behind a mask. */}
+      <picture style={{ display: 'contents' }}>
+        <source media="(max-width: 767px)" type="image/webp" srcSet="/img/tree/bloom-sky-sm.webp" />
+        <img
+          className="foot-sky"
+          src="/img/tree/bloom-sky.webp"
+          alt=""
+          width={2200}
+          height={1228}
+          loading="lazy"
+          decoding="async"
+          aria-hidden="true"
+        />
+      </picture>
+
+      {/* the tree. `aria-hidden` and no alt: it carries no information the copy
+          beside it does not already state. One <img> and composited transforms
+          only — the page already runs two WebGL layers and the footer does not
+          get to open a third context to be pretty. */}
+      <div className="foot-bloom" aria-hidden="true">
+        <i className="foot-halo" />
+        <picture style={{ display: 'contents' }}>
+          <source media="(max-width: 767px)" type="image/avif" srcSet="/img/tree/bloom-tree-sm.avif" />
+          <source media="(max-width: 767px)" type="image/webp" srcSet="/img/tree/bloom-tree-sm.webp" />
+          <source type="image/avif" srcSet="/img/tree/bloom-tree.avif" />
+          <img
+            className="foot-tree"
+            src="/img/tree/bloom-tree.webp"
+            alt=""
+            width={1860}
+            height={1723}
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+        {!reduced && (
+          <div className="foot-petals">
+            {Array.from({ length: 7 }, (_, i) => <span key={i} style={{ '--i': i }} />)}
+          </div>
+        )}
+      </div>
+
+      {/* brand left, contact right, the tree standing in the gap between them.
+          The nav is a horizontal row below both rather than a third column —
+          a vertical list beside the trunk was reading as a branch. */}
       <div className="footer-grid">
-        <div>
+        <div className="foot-brand">
           <LoomMark className="footer-mark" />
           <p>The AI-native creative agency.<br />Amman × Sarajevo.</p>
+          {/* the nav lives INSIDE the left column, wrapping to three short rows.
+              Centred under the copy it landed across the canopy, and the canopy
+              is the busiest patch of pixels on the site — no ink value survives
+              it, and laying a scrim over blossom to rescue link text would be
+              admitting the composition does not work. Nothing is centred in
+              this footer except the tree. */}
+          <nav className="foot-nav" aria-label="Footer">
+            {/* same rule as Nav's go(): only hash links are scroll targets,
+                path links bubble to the App-level route handler */}
+            {LINKS.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={(e) => {
+                  if (!l.href.startsWith('#')) return
+                  e.preventDefault(); onNavigate(l.href)
+                }}
+              >{l.label}</a>
+            ))}
+          </nav>
         </div>
-        <nav aria-label="Footer">
-          {/* same rule as Nav's go(): only hash links are scroll targets,
-              path links bubble to the App-level route handler */}
-          {LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={(e) => {
-                if (!l.href.startsWith('#')) return
-                e.preventDefault(); onNavigate(l.href)
-              }}
-            >{l.label}</a>
-          ))}
-        </nav>
         <div className="footer-contact">
           <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">
             <WoolIcon name="phone" size="sm" />WhatsApp — {BRAND.phoneJO}
@@ -257,6 +325,7 @@ export function Footer({ onNavigate }) {
           <span><WoolIcon name="pin" size="sm" />Amman · Sarajevo</span>
         </div>
       </div>
+
       <div className="footer-base">
         <span>© {new Date().getFullYear()} LOOM. All rights reserved.</span>
         <span>The edge is intentional.</span>

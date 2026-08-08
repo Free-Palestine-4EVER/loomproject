@@ -339,447 +339,268 @@
 
 
 /* ═══════════════════════════════════════════════════════════
-   1b · THE TREE — the breath between the needs and the fork
-
-   One <img> plus composited transforms. No canvas, no filter, no blur on a
-   parent with children. Every animated property here is transform or
-   opacity, so the whole thing lives on the compositor and costs no layout —
-   which is the entire budget it is allowed, on a page that already runs two
-   WebGL layers.
+   1b · THE TREE — moved out of this file
+   The bloom tree and its petals now close the page: markup in Chrome.jsx's
+   `Footer`, styles in styles.css under `.footer--bloom`. `.treebreak`,
+   `.tb-glow`, `.tb-stage`, `.tb-tree`, `.tb-petals` and the `tb-float` /
+   `tb-breathe` / `tb-fall` keyframes are deleted here, not overridden.
    ═══════════════════════════════════════════════════════════ */
-.treebreak {
-  position: relative;
-  display: grid;
-  place-items: center;
-  padding: clamp(10px, 3vh, 40px) var(--pad) clamp(20px, 4vh, 54px);
-  overflow: hidden;
-  isolation: isolate;
-}
-/* The ground the tree floats on. A radial gradient rather than a shadow so it
-   reads as light in the air, not as a plate under the art. */
-.treebreak .tb-glow {
-  position: absolute;
-  z-index: 0;
-  width: min(900px, 88vw);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at 50% 46%,
-    rgba(242, 28, 140, 0.20) 0%,
-    rgba(166, 124, 255, 0.13) 34%,
-    rgba(13, 7, 22, 0) 68%
-  );
-  animation: tb-breathe 9s var(--ease, ease-in-out) infinite;
-}
-.treebreak .tb-stage {
-  position: relative;
-  z-index: 1;
-  width: min(560px, 46vw);
-  display: grid;
-  place-items: center;
-}
-.treebreak .tb-tree {
-  display: block;
-  width: 100%;
-  height: auto;
-  /* the cutout carries its own alpha, so the only shadow it can take is one
-     that follows the silhouette — drop-shadow on a LEAF element (no children)
-     is the exception the rest of this file's "never drop-shadow" rule allows */
-  filter: drop-shadow(0 30px 44px rgba(10, 2, 16, 0.55));
-  animation: tb-float 11s ease-in-out infinite;
-  will-change: transform;
-}
-
-/* Petals. Positioned across the canopy's width and falling past the island;
-   each one takes its index as --i and derives its own lane, delay and
-   duration from it, so seven elements never resolve into a visible cycle. */
-.treebreak .tb-petals {
-  position: absolute;
-  inset: -6% -14% -10%;
-  z-index: 2;
-  pointer-events: none;
-}
-.treebreak .tb-petals span {
-  position: absolute;
-  top: 14%;
-  left: calc(8% + var(--i) * 12.5%);
-  width: clamp(7px, 0.9vw, 12px);
-  height: clamp(9px, 1.1vw, 15px);
-  border-radius: 60% 60% 60% 60% / 80% 80% 40% 40%;
-  background: linear-gradient(160deg, #ffd0e8, #f76fb4);
-  opacity: 0;
-  animation: tb-fall calc(9s + var(--i) * 1.35s) linear infinite;
-  animation-delay: calc(var(--i) * -2.1s);
-  will-change: transform, opacity;
-}
-
-@keyframes tb-float {
-  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-  50%      { transform: translate3d(0, -14px, 0) rotate(-0.9deg); }
-}
-@keyframes tb-breathe {
-  0%, 100% { transform: scale(1);    opacity: 0.85; }
-  50%      { transform: scale(1.07); opacity: 1; }
-}
-@keyframes tb-fall {
-  0%   { transform: translate3d(0, 0, 0) rotate(0deg);          opacity: 0; }
-  12%  { opacity: 0.9; }
-  80%  { opacity: 0.75; }
-  100% { transform: translate3d(-38px, 300px, 0) rotate(220deg); opacity: 0; }
-}
-
-@media (max-width: 767px) {
-  .treebreak .tb-stage { width: 84vw; }
-  /* four lanes, not seven — the canopy is much narrower here and the extra
-     petals bunch into a column instead of reading as a drift */
-  .treebreak .tb-petals span:nth-child(n + 5) { display: none; }
-}
 
 /* ═══════════════════════════════════════════════════════════
-   2 · THE OFFER — the fork, on a pink sky
+   2 · THE FORK — the switch
 
-   Everything below replaces the two knitted panels. Those were cut for a
-   near-black page: deep violet/blue wool, a photographed art band, a dark
-   scrim and a drifting aura, all of them value decisions taken against black.
-   Dropped onto a pale cherry sky they read as two heavy boxes on a
-   watercolour, so the material is gone rather than restyled — `.offer-panel`,
-   `.offer-media`, `.offer-photo`, `.offer-stamp`, `.offer-aura`,
-   `.offer-scrim`, `.offer-face`, `.offer-care`, `.offer-proof` and the
-   `.blk--violet` / `.blk--blue` dyes are all deleted, not overridden.
+   Two full-height woven panels butted against one yarn seam. At rest they are
+   1fr : 1fr; hover or focus either one and it takes the room while the other
+   gives it up. The interaction IS the argument — the section asks which of two
+   you are, and the layout commits to your answer before you have clicked.
 
-   The replacement is PAPER: a wish tag, the card you tie to a blossom tree.
-   It is the one object that suits this ground materially (paper is light, so
-   it sits ON the sky instead of punching a hole in it) and narratively (the
-   section is asking which wish is yours). Each tag hangs from a cord that runs
-   up out of frame, which is also the alignment device: two objects hanging
-   from one shared line are graded against the line, not against each other.
+   THE WHOLE MECHANIC IS `:has()` AND ONE `flex-grow` TRANSITION.
+   No state, no JS on hover, no resize observer, and `:focus-within` is written
+   into the same selector list so a keyboard walks the identical design. Two
+   properties animate — `flex-grow` on the cell and `opacity` on the far panel's
+   scrim — and the section is otherwise static paint.
+
+   WHY THE SKY IS GONE. The pink watercolour and the bloom tree that stood on it
+   moved to the footer, where the tree closes the page instead of dividing one.
+   A pale band with nothing standing in it is just a stripe, so the ground came
+   off with the tree and this section is back on `--bg` with the rest of the
+   site — which is also what lets the knit come back. `.offer-sky`, `.wish`,
+   `.wish-cord`, `.wish-eye`, `.wish-eyebrow`, `.wish-h`, `.wish-body`,
+   `.wish-foot`, `.wish-cta`, `.wish-link`, `@keyframes wish-sway`, the seam
+   blooms and the `main > section.offer::before` rail override are all DELETED,
+   not overridden. fx.css's section rail is therefore live on `.offer` again,
+   which is correct now that it has an ordinary dark edge to mark.
    ═══════════════════════════════════════════════════════════ */
 .offer {
   position: relative;
   isolation: isolate;
-  /* the sky and the tree's halo are both deliberately wider than their boxes;
-     `clip` (not `hidden`) stops either opening a horizontal scrollbar on a
-     phone without turning the section into a scroll container. The Y axis must
-     stay VISIBLE — the whole seam below depends on the sky bleeding past the
-     section's own top and bottom edges.
-     ORDER MATTERS AND IS EASY TO GET BACKWARDS: `overflow: <x> <y>`. Written
-     the other way round this clips the VERTICAL axis, which cuts the bleed off
-     at the section's own edges and puts the hard line straight back. */
+  /* the ordinals bleed past their panels' top corners; clip X so nothing can
+     open a horizontal scrollbar. Y stays visible for the medallion's shadow.
+     ORDER IS `overflow: <x> <y>` and is easy to write backwards. */
   overflow: clip visible;
-  /* --seam: how far the sky reaches OUT of the section, top and bottom. Kept
-     under `.counter`'s ~90-130px bottom padding so the bleed lands in that
-     section's empty air, never over its content. */
-  --seam: clamp(70px, 9vh, 130px);
-  /* Deep. The pink needs dark air before it and after it, or the ramp has to
-     start the instant the section does and the eye reads the start of the ramp
-     AS the edge. Most of this padding is deliberately empty. */
-  padding: clamp(130px, 17vh, 230px) var(--pad) clamp(140px, 18vh, 245px);
+  /* no horizontal padding: the fork is full-bleed. `.section-head` carries its
+     own `var(--pad)` (styles.css:223), so the head still aligns with every
+     other section's copy while the panels run edge to edge. */
+  padding: 0 0 clamp(80px, 11vh, 140px);
 }
 
-/* ═══ THE SEAM — how the pink arrives and leaves ═════════════
-   `.counter` above and `.work` below are near-black (`--bg: #0d0716`).
-   A pale pink band butted against that is two hard rules across the page, so
-   the transition is built from three moves that stack:
-
-   1 · THE SKY BLEEDS PAST THE BOX. `inset: calc(-1 * var(--seam)) 0` puts the
-       photograph's own top and bottom edges OUTSIDE the section. There is
-       then no point in the page where a fade endpoint and a box edge coincide,
-       which is the thing the eye actually catches.
-   2 · THE MASK IS EASED, NOT LINEAR. A two-stop linear ramp is C1-discontinuous
-       at both ends — the gradient's slope jumps from 0 to constant — and that
-       kink shows as a faint mach band exactly where the fade "starts". The
-       stops below approximate a smoothstep, so the ramp eases in and out and
-       has no beginning to find. It runs over ~26% of the extended sky, ~330px
-       at 1440x900: atmosphere, not a fade on a box.
-   3 · LIGHT CROSSES THE SEAM. `::before` / `::after` bloom warm pink UP out of
-       the band into the dark above and down into the dark below, so the two
-       zones interlock instead of meeting. This is what turns the transition
-       from a dissolve into a sunrise.
-
-   A mask on the photograph, not an opaque gradient stacked over it: the dark
-   page keeps showing THROUGH, so there is no second colour to match to `--bg`
-   and no assumption about what the neighbouring section is painted. */
-.offer .offer-sky {
-  position: absolute;
-  inset: calc(-1 * var(--seam)) 0;
-  z-index: 0;
+/* ── the row ─────────────────────────────────────────────────
+   Flex, not grid: `flex-grow` is the one length that transitions smoothly
+   between two children without either of them being given an explicit width,
+   and a `grid-template-columns` transition would have to name both tracks — so
+   every state would need its own rule and the seam would be a third track that
+   changes size with them. */
+.offer .fork {
+  display: flex;
+  align-items: stretch;
   width: 100%;
-  height: calc(100% + 2 * var(--seam));
-  object-fit: cover;
-  object-position: center;
-  pointer-events: none;
-  user-select: none;
-  -webkit-mask-image: linear-gradient(180deg,
-    rgba(0, 0, 0, 0) 0%,    rgba(0, 0, 0, 0.02) 3%,  rgba(0, 0, 0, 0.08) 6%,
-    rgba(0, 0, 0, 0.19) 9%, rgba(0, 0, 0, 0.35) 12%, rgba(0, 0, 0, 0.55) 15%,
-    rgba(0, 0, 0, 0.74) 18%, rgba(0, 0, 0, 0.88) 21%, rgba(0, 0, 0, 0.97) 24%,
-    rgba(0, 0, 0, 1) 27%,
-    rgba(0, 0, 0, 1) 73%,
-    rgba(0, 0, 0, 0.97) 76%, rgba(0, 0, 0, 0.88) 79%, rgba(0, 0, 0, 0.74) 82%,
-    rgba(0, 0, 0, 0.55) 85%, rgba(0, 0, 0, 0.35) 88%, rgba(0, 0, 0, 0.19) 91%,
-    rgba(0, 0, 0, 0.08) 94%, rgba(0, 0, 0, 0.02) 97%, rgba(0, 0, 0, 0) 100%);
-  mask-image: linear-gradient(180deg,
-    rgba(0, 0, 0, 0) 0%,    rgba(0, 0, 0, 0.02) 3%,  rgba(0, 0, 0, 0.08) 6%,
-    rgba(0, 0, 0, 0.19) 9%, rgba(0, 0, 0, 0.35) 12%, rgba(0, 0, 0, 0.55) 15%,
-    rgba(0, 0, 0, 0.74) 18%, rgba(0, 0, 0, 0.88) 21%, rgba(0, 0, 0, 0.97) 24%,
-    rgba(0, 0, 0, 1) 27%,
-    rgba(0, 0, 0, 1) 73%,
-    rgba(0, 0, 0, 0.97) 76%, rgba(0, 0, 0, 0.88) 79%, rgba(0, 0, 0, 0.74) 82%,
-    rgba(0, 0, 0, 0.55) 85%, rgba(0, 0, 0, 0.35) 88%, rgba(0, 0, 0, 0.19) 91%,
-    rgba(0, 0, 0, 0.08) 94%, rgba(0, 0, 0, 0.02) 97%, rgba(0, 0, 0, 0) 100%);
 }
+.offer .fork-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;                  /* Reveal's div must pass its height down */
+  transition: flex-grow 0.75s var(--ease);
+}
+/* THE SWITCH. `:has()` on the cell for the panel that is being addressed, and
+   `:not(:has())` on the container's other child for the one that is not. Both
+   halves of the pair are stated, so the two always sum to 2 and the seam never
+   moves off the join.
+   1.34 : 0.66 is a real commitment — 0.55 read as a wobble, and anything past
+   1.5 pushed the far panel's copy into a wrap it never recovers from. */
+.offer .fork-cell:has(.fork-half:hover),
+.offer .fork-cell:has(.fork-half:focus-within) { flex-grow: 1.34; }
+.offer .fork:has(.fork-half:hover) .fork-cell:not(:has(.fork-half:hover)),
+.offer .fork:has(.fork-half:focus-within) .fork-cell:not(:has(.fork-half:focus-within)) { flex-grow: 0.66; }
 
-/* ── the light that crosses the seam ─────────────────────────
-   Two wide, very soft radial blooms anchored ON the section's edges and
-   reaching well past them. Warm pink over the dark above and below, so the
-   dark reads as sky that has not caught the light yet rather than as a
-   different surface. Both are ordinary background gradients on empty
-   pseudo-elements — no filter, nothing animated.
-
-   `main > section.offer::before` on purpose: fx.css paints a 1px
-   magenta→cyan rail across the top of EVERY section (`main > section::before`,
-   lit by `.fx-edge-glow`), which is a good section marker everywhere else and
-   is precisely the hard horizontal line this seam must not have. Specificity
-   0,1,3 here beats fx.css's 0,1,2, so this section — and only this section —
-   trades the rail for the bloom. */
-main > section.offer::before,
-.offer::after {
+/* ── the panel ───────────────────────────────────────────────
+   `.blk` supplies the material: flat dye as the paint-in and value floor, the
+   real knit photograph over it, and one flat tint rect that compresses the
+   photograph's ±25% swing into a readable field. No filter, no hue-rotate —
+   wool.css:174 already records why. */
+.offer .fork-half {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;          /* copy sits on the hem, ordinal at the head */
+  min-width: 0;
+  min-height: clamp(400px, 56vh, 580px);
+  padding: clamp(30px, 3.4vw, 58px);
+  /* left at the 240px default. 300 was tried and is wrong here for the reason
+     banners.css:36 already records: each knit texture has a mirrored centre
+     artifact, and scaling the tile UP on a box this wide spaces those mirrors
+     far enough apart to read as one vertical seam down the panel instead of as
+     repeating rhythm. */
+}
+/* the value floor for the copy. The knit is photographed, so its darkest and
+   lightest stitches are ~0.5 stops apart and white body text can land on a
+   slub. One bottom-weighted scrim guarantees the lower two-thirds — where every
+   word lives — sits at a value white clears comfortably.
+   z-index 1: over `.blk::before`'s tint (z 0), under `.fork-inner` (z 2). */
+.offer .fork-half::after {
   content: '';
   position: absolute;
-  left: 50%;
-  z-index: 1;                    /* over the sky, under the row */
-  width: min(1700px, 132%);
-  transform: translateX(-50%);
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
-  opacity: 1;                    /* fx.css starts its rail at 0 */
-  height: clamp(240px, 30vh, 420px);
+  background: linear-gradient(to top,
+    rgba(9, 4, 16, 0.78) 0%,
+    rgba(9, 4, 16, 0.52) 34%,
+    rgba(9, 4, 16, 0.16) 66%,
+    rgba(9, 4, 16, 0.06) 100%);
+  /* held under 1 at rest so the "stepped back" state has somewhere to go —
+     opacity clamps at 1 and a default of 1 would make the dim state a no-op */
+  opacity: 0.84;
+  transition: opacity 0.75s var(--ease);
 }
-main > section.offer::before {
-  top: calc(-1 * var(--seam));
-  /* the bloom's hot edge is at its BOTTOM, i.e. light rising out of the pink */
-  background: radial-gradient(58% 108% at 50% 100%,
-    rgba(247, 176, 202, 0.40) 0%,
-    rgba(196, 116, 172, 0.17) 44%,
-    rgba(13, 7, 22, 0) 76%);
-}
-.offer::after {
-  bottom: calc(-1 * var(--seam));
-  /* dimmer and cooler on the way out: the section is read top-down, and a
-     departure that matches the arrival in strength reads as a repeat */
-  background: radial-gradient(58% 108% at 50% 0%,
-    rgba(240, 168, 198, 0.26) 0%,
-    rgba(150, 96, 166, 0.13) 46%,
-    rgba(13, 7, 22, 0) 78%);
-}
+/* the panel you are NOT on steps back — the scrim thickens rather than a filter
+   being added, because a `filter` on a box with children promotes the whole
+   subtree and costs a layer per panel for a value change one gradient can make */
+.offer .fork:has(.fork-half:hover) .fork-half:not(:hover)::after,
+.offer .fork:has(.fork-half:focus-within) .fork-half:not(:focus-within)::after { opacity: 1; }
 
-/* tag · TREE · tag. The tree takes by far the widest column: it is the subject
-   and the two choices flank it. Centred, not stretched — the tags are the same
-   height by construction (see the reserved rows below), so centring puts both
-   on the tree's own centre line. */
-.offer .offer-row {
-  position: relative;
-  z-index: 2;                     /* sky 0 · seam blooms 1 · content 2 */
-  display: grid;
-  /* 0.84 : 1.9 : 0.84 — the tree still takes 2.3x either tag, which is the
-     hierarchy this section is built on, but the tag is now wide enough for a
-     real sentence to sit on two lines instead of being cut mid-word. */
-  grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.9fr) minmax(0, 0.84fr);
-  align-items: center;
-  gap: clamp(16px, 2.4vw, 44px);
-  max-width: 1560px;
-  margin-inline: auto;
-}
-/* justify-items must stay STRETCH: a centred grid item sizes to min-content,
-   which once collapsed the card to one word wide. Centre on the block axis. */
-.offer .offer-cell { display: grid; align-items: center; justify-items: stretch; min-width: 0; }
-
-/* ── the wish tag ────────────────────────────────────────────
-   Warm paper, a hairline blossom edge, and one soft cast shadow. No knit, no
-   scrim, no aura: on a light ground the card earns its separation from a
-   1px edge and 34px of shadow, not from a value slab. */
-.offer .wish {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  width: 100%;
-  max-width: 340px;
-  margin-inline: auto;
-  padding: clamp(20px, 1.7vw, 28px) clamp(18px, 1.5vw, 24px) clamp(20px, 1.6vw, 26px);
-  /* the paper itself — a barely-there warm gradient so it is not a flat swatch
-     against a graded sky */
-  background: linear-gradient(178deg, #fffdfc 0%, #fdf4f1 100%);
-  border: 1px solid rgba(122, 62, 96, 0.20);
-  /* a real tag is punched at the top and cut wider at the foot: tighter radius
-     up top where the eyelet is, softer at the bottom */
-  border-radius: 14px 14px 22px 22px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 20px 34px -20px rgba(96, 40, 76, 0.55);
-  /* THE PIVOT: 50px above the tag's own top edge, which is exactly where the
-     cord below is tied. A hanging card rotates about its knot — that is why a
-     rotating tag reads as physics here where a rotating rectangle read as
-     misalignment on the old dark layout. */
-  transform-origin: 50% -50px;
-  animation: wish-sway 9s ease-in-out infinite;
-  will-change: transform;
-  transition: box-shadow 0.4s var(--ease);
-}
-.offer .wish:hover {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 26px 42px -20px rgba(96, 40, 76, 0.6);
-}
-
-/* the cord, running off the top of the tag and clipped by nothing — it simply
-   fades out before it would need a branch to be tied to */
-.offer .wish-cord {
+/* the ordinal — outlined Bloom, bled off the top-right corner. The only thing
+   in the panel allowed to be huge, which is what stops two dense text blocks
+   from reading as one wall. Outline, not fill: a filled numeral this size is a
+   second focal point competing with the headline under it. */
+.offer .fork-ord {
   position: absolute;
-  left: 50%;
-  bottom: 100%;
-  width: 2px;
-  height: 50px;
-  margin-left: -1px;
-  border-radius: 2px;
-  background: linear-gradient(180deg,
-    rgba(140, 70, 106, 0) 0%,
-    rgba(140, 70, 106, 0.42) 45%,
-    rgba(140, 70, 106, 0.7) 100%);
-  pointer-events: none;
-}
-/* the eyelet the cord passes through */
-.offer .wish-eye {
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  width: 14px;
-  height: 14px;
-  margin-left: -7px;
-  border-radius: 50%;
-  background: #fffdfc;
-  border: 2px solid rgba(140, 70, 106, 0.6);
-  box-shadow: 0 2px 5px -2px rgba(96, 40, 76, 0.5);
-  pointer-events: none;
-}
-
-/* ── ink ─────────────────────────────────────────────────────
-   Every colour here is a dark ink on near-white paper, measured, never the
-   site's white-on-dark type. `#33243d` is the house ink for light grounds
-   (see `.cnt-strip`) — a brand hue is not used because a light speckled
-   material drops saturated hues under 4.5:1 in the flecks. */
-.offer .wish-eyebrow {
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #8a3a6b;               /* ~7:1 on the paper — the one warm note */
-}
-
-/* ── EQUAL HEIGHT BY CONSTRUCTION ────────────────────────────
-   Two objects hanging beside one tree must be the same size or the pair looks
-   accidental. Rather than a magic `height` (a number to re-guess at every
-   width, that clips when the copy grows), each variable row RESERVES its box:
-   both titles fit in three lines and both bodies in two, so the two tags
-   compute to the identical height at every width with nothing to keep in sync.
-   The em-based min-heights track the clamped font-size automatically. */
-.offer .wish-h {
-  font-family: var(--display);
-  font-weight: 600;
-  font-size: clamp(1.15rem, 1.4vw, 1.5rem);
-  line-height: 1.08;
+  z-index: 1;
+  top: -0.22em;
+  right: 0.06em;
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(7rem, 15vw, 16rem);
+  line-height: 1;
   letter-spacing: -0.02em;
-  color: #33243d;
-  /* TWO lines reserved, not three: the longer title takes two at every desktop
-     width and the shorter one takes one, so two is the reserve that holds the
-     pair level without leaving a visible void under the short title. */
-  min-height: calc(2 * 1.08em);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.offer .wish-body {
-  font-size: 0.85rem;
-  line-height: 1.55;
-  color: #4a3652;
-  /* two lines, reserved AND capped. The body is the hook, not the brief — the
-     wizard is where the detail belongs. */
-  min-height: calc(2 * 1.55em);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+  user-select: none;
 }
 
-/* stacked, not a row: at ~280px of tag the pill and the link together overrun
-   the width and wrap unpredictably, which would break the equal heights */
-.offer .wish-foot {
+.offer .fork-inner {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 13px;
-  margin-top: 5px;
+  gap: 12px;
+  /* the copy holds a comfortable measure while the PANEL grows — the expansion
+     is meant to read as the panel taking the room, not as the paragraph
+     stretching to fill it */
+  max-width: 46ch;
 }
-.offer .wish-cta {
+/* the felted medallion: a maker's stamp above the eyebrow, same anatomy the
+   counter tiles use */
+.offer .fork-medal { --wool-icon: 54px; margin-bottom: 6px; }
+.offer .fork-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+}
+.offer .fork-h {
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.7rem, 3vw, 3rem);
+  line-height: 1.04;
+  letter-spacing: 0;
+  color: #fff;
+  /* NO line clamp and no reserved rows. The wish tags needed both because two
+     objects hanging beside a tree had to be identical heights; two panels in a
+     stretch row are the same height by construction, so the copy is free. */
+}
+.offer .fork-body {
+  font-size: clamp(0.95rem, 1.1vw, 1.08rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.88);
+  max-width: 42ch;
+}
+.offer .fork-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px 26px;
+  margin-top: 12px;
+}
+/* white pill on a saturated dye — the highest-contrast object in the panel, so
+   the eye finds the action before it finishes the paragraph */
+.offer .fork-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 13px 26px;
+  padding: 15px 30px;
   border: 0;
   border-radius: 999px;
-  background: #33243d;
-  color: #fff7fb;               /* ~14:1 */
+  background: #fff7fb;
+  color: #26102b;                 /* ~15:1 */
   font: inherit;
   font-weight: 800;
-  font-size: 0.86rem;
-  letter-spacing: 0.01em;
-  /* one line, always. The tag is narrow and a wrapped label would change its
-     height — which is the one thing the pair cannot afford. */
+  font-size: 0.92rem;
   white-space: nowrap;
   cursor: pointer;
-  box-shadow: 0 12px 22px -12px rgba(51, 36, 61, 0.85);
+  box-shadow: 0 16px 30px -16px rgba(0, 0, 0, 0.8);
   transition: background-color 0.35s var(--ease), transform 0.35s var(--ease);
 }
-.offer .wish-cta:hover { background: #b3126a; }   /* ~6.5:1 on #fff7fb */
-.offer .wish-cta:active { transform: translateY(1px); }
-.offer .wish-cta:focus-visible { outline: 3px solid #8a3a6b; outline-offset: 3px; }
-.offer .wish-link {
+.offer .fork-cta:hover { background: #fff; transform: translateY(-2px); }
+.offer .fork-cta:active { transform: translateY(0); }
+.offer .fork-cta:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.offer .fork-link {
   font-weight: 700;
-  font-size: 0.82rem;
-  color: #5c3350;               /* ~9:1 */
-  border-bottom: 2px solid rgba(92, 51, 80, 0.35);
-  padding-bottom: 2px;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.9);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.32);
+  padding-bottom: 3px;
   transition: border-color 0.3s;
 }
-.offer .wish-link:hover { border-color: #5c3350; }
+.offer .fork-link:hover { border-color: rgba(255, 255, 255, 0.9); }
 
-/* a hanging tag swings about its knot. Both tags run the SAME duration with no
-   delay, applied by one rule in one style recalc, so they share a start time
-   and stay parallel to each other for the whole loop — the pair moves as one
-   object while the tree drifts on its own 11s phase behind them. Rotation only
-   (plus the 50px-high pivot, which turns rotation into an arc), so it is a
-   compositor-only transform. */
-@keyframes wish-sway {
-  0%, 100% { transform: rotate(-0.75deg); }
-  50%      { transform: rotate(0.75deg); }
+/* ── the seam ────────────────────────────────────────────────
+   A real flex item BETWEEN the two panels, not a centre line pinned to 50%:
+   the halves change width, and anything positioned against the container would
+   slide off the join the moment one of them grows. The four yarns run vertical
+   here — the same repeating gradient `.blk-rail` and `.kicker::after` paint
+   horizontally, turned on its side, so the seam is the section's own stripe
+   rather than a new device. */
+.offer .fork-seam {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 clamp(34px, 4vw, 58px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--bg);
 }
-
-/* ── the tree, relit for a light ground ──────────────────────
-   The base rule hangs a near-black drop-shadow off the cutout and floats a
-   magenta halo under it. Both were drawn for black: on pink the shadow reads
-   as dirt and the halo as a stain. Warm plum shadow, and the halo becomes a
-   light bloom instead of a colour wash. */
-.offer .treebreak .tb-tree {
-  filter: drop-shadow(0 26px 34px rgba(122, 58, 96, 0.34));
+.offer .fork-yarn {
+  flex: 1 1 auto;
+  width: 5px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(180deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px);
 }
-.offer .treebreak .tb-glow {
-  background: radial-gradient(
-    circle at 50% 46%,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 240, 247, 0.26) 38%,
-    rgba(255, 240, 247, 0) 70%
-  );
+/* the knot in the middle of the seam. Felt, not knit: the one place in the
+   section where the material changes, so it reads as a fastening rather than
+   as a third panel. */
+.offer .fork-or {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: clamp(34px, 4vw, 46px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -927,112 +748,70 @@ main > section.offer::before {
   .counter .cnt-peel,
   .counter .cnt-tile:hover .cnt-peel { transform: none; }
 
-  /* the tree holds its pose: the float, the halo breath and the petals all
-     stop. The petals are not rendered at all under reduced motion (Banners.jsx
-     gates them on useReducedMotion), so this only has to catch the two that
-     are always in the DOM. */
-  .treebreak .tb-tree,
-  .treebreak .tb-glow { animation: none; }
-
-  /* the wish tags stop swinging and hang straight. Frozen, not deleted — the
-     shadow and the cord still say "hanging", the arc just stops. */
-  .offer .wish { animation: none; transform: none; transition: none; }
-  .offer .wish-cta,
-  .offer .wish-link { transition: none; }
+  /* the switch holds still. The panels keep their resting widths and the far
+     scrim keeps its resting value — a layout that jumps between two widths with
+     no transition is worse than one that does not move at all. */
+  .offer .fork-cell { transition: none; }
+  .offer .fork-cell:has(.fork-half:hover),
+  .offer .fork-cell:has(.fork-half:focus-within) { flex-grow: 1; }
+  .offer .fork:has(.fork-half:hover) .fork-cell:not(:has(.fork-half:hover)),
+  .offer .fork:has(.fork-half:focus-within) .fork-cell:not(:has(.fork-half:focus-within)) { flex-grow: 1; }
+  .offer .fork-half::after { transition: none; }
+  .offer .fork-cta { transition: none; }
+  .offer .fork-cta:hover { transform: none; }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   1b/2 · THE FORK — one stage: TREE, flanked by two wish tags
-
-   A hierarchy, not a row of three equals. The tree is the subject and carries
-   the section; the two choices are compact tags beside it, sized to a decision
-   rather than to a pitch. Three similar-weight columns is what the first
-   version got wrong — the eye had nowhere to land and the panels grew into
-   towers to fill their height.
-   ═══════════════════════════════════════════════════════════ */
-
-/* ── the tree: by a long way the largest thing in the section ── */
-.offer .treebreak {
-  position: relative;
-  display: grid;
-  place-items: center;
-  min-width: 0;
-  overflow: visible;              /* it kept `overflow: hidden` from when it
-                                     was a full-width section, which clipped
-                                     its own halo into a hard rectangle */
-  padding: 0;
-}
-.offer .treebreak .tb-stage { width: 100%; }
-.offer .treebreak .tb-tree  { width: 100%; }
-.offer .treebreak .tb-glow  { width: min(820px, 128%); opacity: 0.8; }
-
-/* Petals must fall through the CANOPY, not across the tags.
-   The base rule bleeds the petal field out to `inset: -6% -14% -10%`, which
-   made sense when the tree owned a full-width section. Here the stage is
-   ~760px with ~30px of air to each tag, so a field 14% wider than the stage
-   put lanes ~106px PAST the trunk on both sides — petals crossed the tag edges
-   (the lane maths, `left: 8% + i * 12.5%`, spreads them right to the field's
-   edge). Pulling the field into the middle ~76% keeps every lane over the
-   blossom; the fall's -38px of drift still has ~90px before it reaches a tag. */
-.offer .treebreak .tb-petals { inset: -2% 12% -8%; }
-
-/* ═══ STACKED — must stay LAST in this file ═══
+/* ═══ THE FORK, STACKED — must stay LAST in this file ═══
    Equal-specificity rules above would otherwise win on source order and try to
-   fit tree-plus-two-tags across 390px. Order in the DOM is already
-   tag · tree · tag, so the stack needs no `order:` and the reading order stays
-   identical to the visual one. */
-@media (max-width: 1099px) {
-  .offer { padding: clamp(100px, 13vh, 150px) var(--pad) clamp(110px, 14vh, 165px); }
-  .offer .offer-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: clamp(26px, 6vw, 44px);
+   fit two 46ch panels across 390px.
+
+   The switch is DELETED here, not shrunk. `flex-grow` is meaningless in a
+   column where both children already own the full width, and on a touch screen
+   `:hover` is a state that sticks after a tap — an expanding panel would stay
+   expanded until you touched the other one. Stacked, both panels are simply
+   open. */
+@media (max-width: 900px) {
+  .offer .fork { flex-direction: column; }
+  .offer .fork-cell,
+  .offer .fork-cell:has(.fork-half:hover),
+  .offer .fork-cell:has(.fork-half:focus-within) { flex-grow: 1; transition: none; }
+  .offer .fork:has(.fork-half:hover) .fork-cell:not(:has(.fork-half:hover)),
+  .offer .fork:has(.fork-half:focus-within) .fork-cell:not(:has(.fork-half:focus-within)) { flex-grow: 1; }
+  .offer .fork:has(.fork-half:hover) .fork-half:not(:hover)::after,
+  .offer .fork:has(.fork-half:focus-within) .fork-half:not(:focus-within)::after { opacity: 0.84; }
+
+  .offer .fork-half {
+    min-height: 0;
+    padding: clamp(28px, 7vw, 44px) var(--pad) clamp(34px, 8vw, 48px);
   }
-  /* Stacked, the two tags are never seen edge to edge, so the reserved rows
-     that hold them level at desktop only buy dead air here. Release them and
-     each tag sizes to its own copy again — no empty band under a short
-     headline on a phone. */
-  .offer .wish { max-width: 330px; padding: clamp(22px, 5vw, 30px); }
-  .offer .wish-h { font-size: clamp(1.3rem, 5.4vw, 1.7rem); min-height: 0; }
-  .offer .wish-body { font-size: 0.95rem; -webkit-line-clamp: 3; min-height: 0; }
-  /* the pill and the link fit side by side again on a 440px tag */
-  .offer .wish-foot { flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap; }
-  /* the cord shortens with the gap above it, and the pivot follows it — the
-     swing has to hinge at the knot, not at a point floating in the air */
-  .offer .wish-cord { height: 34px; }
-  .offer .wish { transform-origin: 50% -34px; }
-  /* the tree has the full column to itself when stacked, so the petals get a
-     wider field back — nothing is beside them to hit. Still inside the stage,
-     which is what keeps a 390px viewport from scrolling sideways. */
-  .offer .treebreak .tb-petals { inset: -4% 2% -8%; }
-  .offer .treebreak { padding: clamp(4px, 3vw, 22px) 0; }
-  /* Stacked, the tree still has to be unmistakably the biggest thing on the
-     fold. 108vw deliberately runs it PAST both edges of the viewport — the
-     cutout's transparent margins mean the canopy itself lands at ~371px inside
-     a 390px screen, so nothing is actually cropped, and `.offer`'s
-     `overflow-x: clip` keeps the bleed from opening a scrollbar. Against a
-     330px tag that reads as 1.3x, plus its height. */
-  .offer .treebreak .tb-stage { width: min(108vw, 560px); }
-  .offer .treebreak .tb-glow { width: min(460px, 118%); }
-  /* the section is much taller than it is wide on a phone, so the same 26%
-     ramp would be ~500px of fade. Shorten it in PROPORTION and shorten the
-     bleed with it — the seam still reads as atmosphere, just at phone scale. */
-  .offer { --seam: clamp(50px, 7vh, 90px); }
-  .offer::after,
-  main > section.offer::before { height: clamp(180px, 22vh, 300px); width: 150%; }
-  .offer .offer-sky {
-    -webkit-mask-image: linear-gradient(180deg,
-      rgba(0, 0, 0, 0) 0%,     rgba(0, 0, 0, 0.06) 3%,  rgba(0, 0, 0, 0.22) 6%,
-      rgba(0, 0, 0, 0.48) 9%,  rgba(0, 0, 0, 0.76) 12%, rgba(0, 0, 0, 0.94) 15%,
-      rgba(0, 0, 0, 1) 18%,
-      rgba(0, 0, 0, 1) 82%,
-      rgba(0, 0, 0, 0.94) 85%, rgba(0, 0, 0, 0.76) 88%, rgba(0, 0, 0, 0.48) 91%,
-      rgba(0, 0, 0, 0.22) 94%, rgba(0, 0, 0, 0.06) 97%, rgba(0, 0, 0, 0) 100%);
-    mask-image: linear-gradient(180deg,
-      rgba(0, 0, 0, 0) 0%,     rgba(0, 0, 0, 0.06) 3%,  rgba(0, 0, 0, 0.22) 6%,
-      rgba(0, 0, 0, 0.48) 9%,  rgba(0, 0, 0, 0.76) 12%, rgba(0, 0, 0, 0.94) 15%,
-      rgba(0, 0, 0, 1) 18%,
-      rgba(0, 0, 0, 1) 82%,
-      rgba(0, 0, 0, 0.94) 85%, rgba(0, 0, 0, 0.76) 88%, rgba(0, 0, 0, 0.48) 91%,
-      rgba(0, 0, 0, 0.22) 94%, rgba(0, 0, 0, 0.06) 97%, rgba(0, 0, 0, 0) 100%);
+  /* wider than the desktop measure — the panel is full-bleed here, and 46ch
+     inside a 780px box leaves a ragged column against a full-width headline.
+     NOT `none`: released, the body ran ~100 characters at 820px, which is twice
+     a readable line. */
+  .offer .fork-inner { max-width: 56ch; }
+  .offer .fork-body { max-width: 56ch; }
+  /* the seam turns with the stack: a short horizontal rule between the two,
+     with the knot still in the middle of it */
+  .offer .fork-seam {
+    flex: 0 0 clamp(46px, 11vw, 66px);
+    flex-direction: row;
+    padding-inline: var(--pad);
+    gap: 16px;
   }
+  .offer .fork-yarn {
+    width: auto;
+    height: 5px;
+    background: repeating-linear-gradient(90deg,
+      var(--yarn-pink) 0 7px,
+      var(--yarn-violet) 7px 14px,
+      var(--yarn-blue) 14px 21px,
+      var(--yarn-gold) 21px 28px);
+  }
+  /* the ordinal loses its bleed — off the top of a short panel it would sit
+     over the medallion instead of over empty knit */
+  .offer .fork-ord { font-size: clamp(5rem, 22vw, 9rem); top: -0.16em; right: 0.1em; }
+}
+@media (max-width: 480px) {
+  .offer .fork-medal { --wool-icon: 44px; }
+  .offer .fork-foot { gap: 14px 18px; }
 }
