@@ -100,6 +100,13 @@ body {
   font-weight: 420;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  /* Safety net ONLY — it is no longer load-bearing. Verified 2026-08-08 with
+     this line removed: `/`, `/type` and `/consultancy` all measure
+     documentElement.scrollWidth === innerWidth at every width from 320 to
+     1920. The real fixes are the `min-width: 0` grid-item rules below
+     (.work-grid, .tf-use-grid) and .tf-switch's wrap; every oversized
+     decorative layer clips at its own container (.loom-bg, .marquee, .hero,
+     .ts-sticky), not here. Do not let a new full-bleed section lean on this. */
   overflow-x: clip;
 }
 
@@ -763,10 +770,16 @@ html.cursor-hot .cursor-ring {
   padding: 10px 14px; color: var(--ink-faint); font-size: 0.85rem;
   border-top: 1px solid var(--line);
 }
+/* `flex-wrap: wrap` + `min-width: 0` on the title column are what make the
+   card genuinely fluid. Unwrapped, this row's min-content (title column +
+   16px gap + the flex-shrink:0 pills) was the widest thing in the card and
+   set the floor the work grid could not go under. Wrapped, the pills drop to
+   their own line on a small phone instead of pushing the page sideways. */
 .case-meta {
-  display: flex; justify-content: space-between; align-items: flex-start;
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
   gap: 16px; padding: 16px 4px 0;
 }
+.case-meta > :first-child { min-width: 0; }
 .case-meta h3 { font-family: var(--display); font-weight: 560; font-size: 1.25rem; }
 .case-meta p { color: var(--ink-dim); font-size: 0.95rem; }
 .case-tags { display: flex; gap: 8px; flex-shrink: 0; }
@@ -789,6 +802,15 @@ html.cursor-hot .cursor-ring {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: clamp(18px, 2.4vw, 34px);
 }
+/* `min-width: 0` is load-bearing, and it has to sit on the GRID ITEM, not on
+   .case-card — Reveal wraps every card in its own motion div, so the item is
+   that wrapper. A grid item's default `min-width: auto` floors the track at
+   the item's min-content, and .case-meta's min-content is ~333px (the title
+   column plus the never-shrinking .case-tags pills). Below a ~373px viewport
+   that floor is wider than the 1fr track, so the whole grid — and with it the
+   document — grew past the viewport. Measured at 320px: track 280px, resolved
+   column 332.8px, document scrollWidth 353px. */
+.work-grid > * { min-width: 0; }
 
 /* ——— case overlay ——— */
 .overlay { position: fixed; inset: 0; z-index: 95; }

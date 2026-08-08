@@ -45,7 +45,9 @@ export function AscentLoom() {
   const hudO = useTransform(p, [0, 0.04, 0.9, 0.97], [0, 1, 1, 0])
   const ctaO = useTransform(p, [0.86, 0.95], [0, 1])
   const ctaY = useTransform(p, [0.86, 0.97], [40, 0])
-  const stageO = useTransform(p, [0.02, 0.08, 0.86, 0.93], [0, 1, 1, 0])
+  // the stage waits for the intro caption to clear — they share a grid cell
+  const stageO = useTransform(p, [0.15, 0.21, 0.86, 0.93], [0, 1, 1, 0])
+  const introO = useTransform(p, [0, 0.03, 0.11, 0.16], [0, 1, 1, 0])
 
   // HUD state — one subscription, throttled to real changes only
   useEffect(() => {
@@ -78,7 +80,7 @@ export function AscentLoom() {
       ])
       if (cancelled || !canvas.current) return
       try {
-        shaft = new LoomShaft(canvas.current, THREE, { reduced })
+        shaft = new LoomShaft(canvas.current, THREE, { reduced, labels: TERRITORIES.map((t) => t.label) })
       } catch {
         canvas.current.style.display = 'none'   // no WebGL — the CSS shaft stays
         return
@@ -138,6 +140,11 @@ export function AscentLoom() {
             </div>
           </div>
 
+          <motion.p className="al-intro" style={{ opacity: introO }}>
+            You are inside a loom, climbing. Six rings pass on the way up — one
+            for each thing we do. Keep scrolling.
+          </motion.p>
+
           <motion.div className="al-stage" style={{ opacity: stageO }}>
             <h2 className="al-h2">{z.h}</h2>
             <p className="al-blurb">{z.p}</p>
@@ -152,7 +159,9 @@ export function AscentLoom() {
           </div>
 
           <p className="al-passing" aria-live="polite">
-            {terr >= 0 ? <><b>{TERRITORIES[terr].label}</b> {TERRITORIES[terr].blurb}</> : 'Six territories on the way up.'}
+            {terr >= 0
+              ? <><span className="al-passing-tag">Now passing</span><b>{TERRITORIES[terr].label}</b>{TERRITORIES[terr].blurb}</>
+              : <><span className="al-passing-tag">Below you</span>Amman. Six rings to go.</>}
           </p>
         </motion.div>
 

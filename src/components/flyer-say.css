@@ -1,19 +1,50 @@
 /* The butterfly's speech bubble — bilingual EN + AR, anchored to the creature.
 
-   It lives INSIDE `.flyer-layer` (see Flyer.jsx), which is deliberate and does
-   three jobs with no extra code:
-     · z-index 70 — under the nav (80), the menu (75), overlays (95). It can
-       never cover the chrome.
-     · the layer is already `pointer-events: none`, and this is too, twice over
-       (below), so nothing here can ever eat a click.
-     · `.flyer-layer.is-ducking { opacity: .45 }` is GROUP opacity, so when the
-       butterfly ducks over copy the bubble fades with it — one behaviour, one
-       implementation, no second code path to drift.
+   ── why it is NOT inside `.flyer-layer` ──────────────────────────────────────
+   It used to be, and that was measured wrong. `.flyer-layer.is-ducking` sets
+   `opacity: .45` on the LAYER, and group opacity applies to every descendant —
+   so the bubble faded with the butterfly. The duck is on almost continuously
+   (it is deliberately biased toward staying ducked; a 26-step scroll sweep
+   through `#offer` found `is-ducking` true on 24 of 26 samples), which meant
+   the bubble spent nearly its whole life at 45% over a semi-transparent fill.
+   Measured on the real page at 390px: 3.33:1 for the English and 2.09:1 for the
+   Arabic — both under the 4.5:1 floor, the Arabic barely visible.
 
-   Position is written as a transform by Flyer.jsx's rAF loop (translate3d, so
-   it stays on the compositor and never triggers layout). Everything here is
-   the look, plus the enter/exit fade. */
+   The duck exists so the butterfly does not obscure copy. The bubble is copy;
+   fading it is the opposite of what it needs. So the bubble is portalled into
+   its own fixed layer at the SAME z-index (70), which keeps every property that
+   mattered — under the nav (80), the menu (75) and overlays (95), and
+   pointer-events:none — while decoupling its opacity from the duck.
+   Flyer.jsx's duck scan excludes this layer by selector, so the bubble's own
+   words still never make the butterfly duck from itself. */
 
+.flyer-say-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  /* No `will-change` on the layer: the bubble inside is the only thing that
+     moves and it declares its own. */
+}
+
+/* Anything that locks the page takes the bubble with it — the same rule
+   flyer.css applies to the butterfly. Flyer.jsx also calls hideSay() on the
+   lock, so this is belt-and-braces for the frames before that lands. */
+html.overlay-open .flyer-say-layer,
+html.menu-open .flyer-say-layer {
+  opacity: 0;
+}
+
+/* ── the bubble ──────────────────────────────────────────────────────────────
+   The surface is OPAQUE, on purpose. It used to be `rgba(20,11,34,.86)` with a
+   backdrop blur, which is a fine look over the near-black body of the page and
+   falls apart over `#offer`, where `/img/tree/bloom-sky.webp` puts a pale pink
+   sky behind it: 14% of a bright background bleeding through lifted the fill
+   from ~#140b22 to ~#342640, and (with the duck fade on top) took the Arabic to
+   2.09:1. An opaque fill makes the contrast ratio a property of this file alone
+   — identical over the pink sky, the near-black sections and the hero — which
+   is the only version of this that cannot regress when a section changes its
+   backdrop. Measured after: 15.9:1 for both languages, in both zones. */
 .flyer-say {
   position: absolute;
   top: 0;
@@ -22,11 +53,9 @@
   max-width: min(340px, 62vw);
   padding: 12px 16px 13px;
   border-radius: 16px;
-  border: 1px solid rgba(242, 240, 247, 0.16);
-  background: rgba(20, 11, 34, 0.86);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 18px 44px rgba(9, 4, 16, 0.55), 0 0 0 1px rgba(155, 85, 201, 0.14);
+  border: 1px solid rgba(242, 240, 247, 0.22);
+  background: #1a1029;
+  box-shadow: 0 18px 44px rgba(9, 4, 16, 0.55), 0 0 0 1px rgba(155, 85, 201, 0.16);
   color: var(--ink);
   display: flex;
   flex-direction: column;
@@ -50,7 +79,15 @@
    horizontal centre relative to the bubble, so it keeps pointing at the
    creature even after the bubble has been clamped against a viewport edge.
    `.is-below` flips it to the top edge, which is what happens when the bubble
-   would otherwise have been pushed up under the nav. */
+   has been placed under the creature instead of over it.
+
+   `.is-tailless` is the third case, and it exists because the bubble is now
+   free to move SIDEWAYS to get off the copy (see placeSay in Flyer.jsx). A tail
+   welded to the top or bottom edge of a bubble sitting to the LEFT of the
+   butterfly points at empty page, which reads as a rendering fault. When the
+   creature is not under the bubble's horizontal span, the tail is simply not
+   drawn — the bubble still reads as an aside, it just stops lying about where
+   the speaker is. */
 .flyer-say::after {
   content: '';
   position: absolute;
@@ -59,9 +96,9 @@
   width: 13px;
   height: 13px;
   margin-left: -6.5px;
-  background: rgba(20, 11, 34, 0.86);
-  border-right: 1px solid rgba(242, 240, 247, 0.16);
-  border-bottom: 1px solid rgba(242, 240, 247, 0.16);
+  background: #1a1029;
+  border-right: 1px solid rgba(242, 240, 247, 0.22);
+  border-bottom: 1px solid rgba(242, 240, 247, 0.22);
   transform: rotate(45deg);
   border-radius: 0 0 3px 0;
 }
@@ -70,10 +107,11 @@
   top: -7px;
   border-right: none;
   border-bottom: none;
-  border-left: 1px solid rgba(242, 240, 247, 0.16);
-  border-top: 1px solid rgba(242, 240, 247, 0.16);
+  border-left: 1px solid rgba(242, 240, 247, 0.22);
+  border-top: 1px solid rgba(242, 240, 247, 0.22);
   border-radius: 3px 0 0 0;
 }
+.flyer-say.is-tailless::after { display: none; }
 
 .flyer-say-en {
   font-family: var(--body);
@@ -81,6 +119,7 @@
   font-weight: 560;
   line-height: 1.35;
   letter-spacing: -0.005em;
+  color: var(--ink);
 }
 
 /* Arabic gets its OWN stack, and it matters: Satoshi and Clash Display carry
@@ -89,17 +128,26 @@
    real Arabic faces first keeps the shaping in a font that was drawn for it.
    The joining itself is the shaper's job — the markup is a plain `dir="rtl"
    lang="ar"` span with ordinary logical-order Arabic in it; nothing anywhere
-   reverses, mirrors or pre-shapes the string. */
+   reverses, mirrors or pre-shapes the string.
+
+   EQUAL PRESENCE, deliberately. This line used to be `var(--ink-dim)` (#a89fc0)
+   at the inherited weight, against English at `var(--ink)` (#f2f0f7) / 560 —
+   measured 5.39:1 against 12.29:1 in the same bubble, which is exactly the
+   "the Arabic is fainter" complaint, and it was three faults at once: a dimmer
+   colour, a lighter weight, and a Naskh face whose x-height at a matched px
+   size is visibly smaller than Satoshi's. All three are corrected here: same
+   ink, matched weight, and +1.5px of size to bring the two x-heights level. */
 .flyer-say-ar {
   font-family: 'SF Arabic', 'Geeza Pro', 'Noto Naskh Arabic', 'Noto Sans Arabic',
     'Al Bayan', 'Segoe UI', 'Tahoma', sans-serif;
-  font-size: 14.5px;
-  line-height: 1.65;
-  color: var(--ink-dim);
+  font-size: 15.5px;
+  font-weight: 560;
+  line-height: 1.7;
+  color: var(--ink);
   /* the whole line reads right-to-left, including its own alignment */
   text-align: right;
-  padding-top: 4px;
-  border-top: 1px solid rgba(242, 240, 247, 0.09);
+  padding-top: 5px;
+  border-top: 1px solid rgba(242, 240, 247, 0.14);
 }
 
 @media (max-width: 640px) {
@@ -109,16 +157,17 @@
     border-radius: 14px;
   }
   .flyer-say-en { font-size: 13px; }
-  .flyer-say-ar { font-size: 13.5px; }
+  .flyer-say-ar { font-size: 14.5px; }
 }
 
 /* Reduced motion: the flyer layer is display:none there (flyer.css) and
-   Flyer.jsx returns null outright, so the bubble does not exist in that path
-   at all. This block is the belt-and-braces for the LIVE flip — the media
-   query changing mid-session, which this project treats as a first-class
-   state (Chrome's Battery Saver forces it). Nothing may animate in the frames
-   before React unmounts the layer. */
+   Flyer.jsx returns null outright, so neither this layer nor the bubble exists
+   in that path at all. This block is the belt-and-braces for the LIVE flip —
+   the media query changing mid-session, which this project treats as a
+   first-class state (Chrome's Battery Saver forces it). Nothing may animate in
+   the frames before React unmounts the layer. */
 @media (prefers-reduced-motion: reduce) {
+  .flyer-say-layer { display: none; }
   .flyer-say { transition: none; }
   .flyer-say.is-on { transition: none; }
 }

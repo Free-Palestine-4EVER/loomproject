@@ -22,6 +22,7 @@
 // This file also owns the SPEECH BUBBLES (see `flyer-say.css` and the SAYINGS
 // table below) — a bilingual EN/AR aside anchored to the same projected box.
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useReducedMotion } from 'motion/react'
 import './flyer.css'
 import './flyer-say.css'
@@ -30,6 +31,12 @@ import './flyer-say.css'
 // and "what we measure against" can never quietly drift apart.
 const TEXT_SELECTOR = 'p, h1, h2, h3, h4, li, button, a'
 const DUCK_CHECK_MS = 130
+
+// The site's own chrome, which is neither "copy the butterfly is obscuring" nor
+// "copy the bubble must clear": the flyer's two layers (the creature and its own
+// speech bubble) and the WhatsApp FAB. One list, used by BOTH the duck scan and
+// the bubble's placement scan, so they can never disagree about what counts.
+const SELF_SELECTOR = '.flyer-layer, .flyer-say-layer, .wa-fab-stack'
 
 // ── hysteresis ──────────────────────────────────────────────────────────────
 // MEASURED BUG (the "glitching"). The duck used to be a bare
@@ -127,6 +134,37 @@ const SAY_HOLD_MS = 6800      // it says its piece, then gets out of the way
 const SAY_COOLDOWN_MS = 20000 // …and does not nag on every re-entry
 const SAY_NAV_SAFE = 96       // px kept clear at the top: the nav lives there
 const SAY_GAP = 16            // px between the wingtip box and the bubble
+const SAY_EDGE = 12           // px kept clear at the other three viewport edges
+
+// ── keeping the bubble off the page's own content ───────────────────────────
+// MEASURED BUG. The bubble was pinned to ONE placement — centred above the
+// butterfly, flipped below only when the nav was in the way — and then clamped
+// into the viewport. That is a rule about the CREATURE with no term at all for
+// the PAGE, so wherever the flight path happened to pass over a card, the
+// bubble landed on it. A 26-step scroll sweep of `#offer` caught it sitting on
+// the left wish tag ("I have a business already.") for five consecutive
+// samples, peaking at 23,649px² of the card covered at 390px, and on a
+// solutions card button for 12,033px² at 1440px.
+//
+// The fix keeps the same anchor but makes the placement a CHOICE: eight
+// candidate slots around the projected wingtip box (the four sides, then the
+// four diagonals as the escape hatch when every axis is busy), each clamped
+// into the safe area, each scored by how much rendered content it would cover.
+// Lowest score wins, with the order below breaking ties — so "above the
+// butterfly" is still what you get whenever it is free, and the bubble only
+// leaves that spot to get off the copy.
+//
+// Two things keep it from twitching between slots. The scan runs at ~2.5Hz, not
+// per frame (it is a viewport-wide DOM walk; the duck's own scan only ever looks
+// at the small box under the wings). And a switch has to be worth SAY_SWITCH_WIN
+// px² of recovered content — a slot that is merely a rounding error better than
+// the one already chosen does not win, so a bubble drifting along a card edge
+// settles instead of oscillating. The move itself is then eased, as before.
+const SAY_PLACE_MS = 220
+const SAY_SWITCH_WIN = 1800
+const SAY_PARK_COST = 3000
+const SAY_TRAVEL_COST = 2  // px² of penalty per px the bubble would have to move
+const SAY_SNAP_PX = 150    // longer than this and the move is cut, not glided
 
 // A big card is routinely wrapped in one <button> (image + headline + meta),
 // and that button's own getBoundingClientRect() covers the image too — the
@@ -192,6 +230,51 @@ function textOverlapArea(rect, exclude, cap) {
     if (area > best) best = area
   }
   return best
+}
+
+// Every piece of the page's own content currently on screen, as plain rects —
+// the sheet the bubble's eight candidate slots are scored against.
+//
+// This deliberately uses each element's BOUNDING BOX, not the glyph rects the
+// duck uses, and the two want opposite things. The duck asks "am I sitting on
+// letters?", where a <button> wrapping a card image would over-report wildly,
+// so it walks Ranges. The bubble asks "am I sitting on something the reader is
+// looking at?", where covering the image half of a card is just as bad as
+// covering its headline — the reported bug was the bubble on top of a wish
+// tag, most of which is not glyphs. The box is also ~30× cheaper: one
+// querySelectorAll and one layout flush, no Range walk per node, which is what
+// makes a viewport-wide scan affordable at all.
+function visibleContentRects() {
+  const vw = window.innerWidth, vh = window.innerHeight
+  const nodes = document.querySelectorAll(TEXT_SELECTOR)
+  const out = []
+  for (let i = 0; i < nodes.length; i++) {
+    const el = nodes[i]
+    if (el.closest(SELF_SELECTOR)) continue
+    const t = el.textContent
+    if (!t || t.trim().length < 3) continue
+    const r = el.getBoundingClientRect()
+    if (r.width <= 0 || r.height <= 0) continue
+    if (r.right <= 0 || r.left >= vw || r.bottom <= 0 || r.top >= vh) continue
+    out.push(r)
+  }
+  return out
+}
+
+// px² of `rects` covered by the box (x, y, w, h). Summed, not maxed: a slot
+// that clips three different cards a little is worse than one that clips a
+// single card the same amount, which is the opposite of the duck's per-element
+// MAX (there, "one paragraph is one reading unit" is the whole point).
+function coverArea(x, y, w, h, rects) {
+  let sum = 0
+  const r1 = x + w, b1 = y + h
+  for (let i = 0; i < rects.length; i++) {
+    const r = rects[i]
+    const l = Math.max(x, r.left), t = Math.max(y, r.top)
+    const rt = Math.min(r1, r.right), bt = Math.min(b1, r.bottom)
+    if (rt > l && bt > t) sum += (rt - l) * (bt - t)
+  }
+  return sum
 }
 
 export function Flyer() {
@@ -280,13 +363,13 @@ export function Flyer() {
       // ── the speech bubbles ──
       // Driven imperatively from this same loop: a React state update per
       // frame to move a decorative div would re-render the tree 60×/second
-      // for something that is pure transform. The bubble lives INSIDE
-      // .flyer-layer, which buys three things for free — it is under the nav
-      // (z-index 70 vs 80), it is pointer-events:none, and the group opacity
-      // of `.is-ducking` applies to it, so the bubble ducks with the
-      // butterfly without a second code path. overlapsText() already excludes
-      // `.flyer-layer`, so the bubble's own words never make the butterfly
-      // duck from itself.
+      // for something that is pure transform. The bubble lives in its OWN
+      // fixed layer, portalled to <body> — same z-index 70 (under the nav),
+      // same pointer-events:none, but deliberately NOT under
+      // `.flyer-layer.is-ducking`'s group opacity, which was fading the words
+      // along with the creature. textOverlapArea() excludes both layers via
+      // SELF_SELECTOR, so the bubble's own words still never make the
+      // butterfly duck from itself.
       let sayId = null          // what is on screen right now
       let sayShownAt = 0
       const sayLastEnd = new Map()  // id -> when it last went away (cooldown)
@@ -320,22 +403,101 @@ export function Flyer() {
         window.__loomFlyerSay = null
       }
 
-      // Placement: above the wingtip box, tail pointing down at it; flipped
-      // below when there is no room left under the nav. Clamped into the
-      // viewport, and the tail slides along the bubble so it keeps pointing at
-      // the actual creature even when the bubble itself has been clamped.
-      const placeSay = (rect, dt) => {
-        const el = bubbleRef.current
-        if (!el || !sayId || !bw) return
+      // Where the bubble WANTS to be: the eight candidate slots around the
+      // projected wingtip box, in preference order. Each is clamped into the
+      // safe area — SAY_NAV_SAFE at the top (the nav lives there) and SAY_EDGE
+      // on the other three sides — so every candidate is a legal position and
+      // scoring is comparing like with like.
+      let tx = 0, ty = 0            // the chosen target, in viewport px
+      let lastPlaceAt = -Infinity
+      let placeScore = Infinity
+      const cands = []              // reused array, no per-scan garbage
+      const chooseSlot = (rect) => {
         const vw = window.innerWidth, vh = window.innerHeight
         const cx = (rect.left + rect.right) / 2
-        let tx = cx - bw / 2
-        let ty = rect.top - SAY_GAP - bh
-        let below = false
-        if (ty < SAY_NAV_SAFE) { ty = rect.bottom + SAY_GAP; below = true }
-        tx = Math.max(12, Math.min(tx, vw - bw - 12))
-        ty = Math.max(SAY_NAV_SAFE, Math.min(ty, vh - bh - 12))
-        if (!bPlaced) { bx = tx; by = ty; bPlaced = true }
+        const cy = (rect.top + rect.bottom) / 2
+        const above = rect.top - SAY_GAP - bh
+        const below = rect.bottom + SAY_GAP
+        const left = rect.left - SAY_GAP - bw
+        const right = rect.right + SAY_GAP
+        // (x, y, penalty). The eight slots hugging the creature carry no
+        // penalty and are tried in this order, so ties resolve upward.
+        cands.length = 0
+        cands.push(cx - bw / 2, above, 0)   // over the creature — the default look
+        cands.push(cx - bw / 2, below, 0)
+        cands.push(left, cy - bh / 2, 0)
+        cands.push(right, cy - bh / 2, 0)
+        cands.push(left, above, 0)
+        cands.push(right, above, 0)
+        cands.push(left, below, 0)
+        cands.push(right, below, 0)
+        // …and four PARKING slots, in the corners of the safe area, for the
+        // case the eight all fail: a phone in the hero has a headline, a lede
+        // and two buttons in one viewport, and every slot around the butterfly
+        // was measured covering at least 7,664px² of it. The penalty is what
+        // keeps these last-resort — a corner only wins when staying near the
+        // creature would cost more than SAY_PARK_COST px² of the reader's
+        // page, so the bubble does not wander off to a corner merely because
+        // the corner is empty.
+        cands.push(SAY_EDGE, SAY_NAV_SAFE, SAY_PARK_COST)
+        cands.push(vw - bw - SAY_EDGE, SAY_NAV_SAFE, SAY_PARK_COST)
+        cands.push(SAY_EDGE, vh - bh - SAY_EDGE, SAY_PARK_COST)
+        cands.push(vw - bw - SAY_EDGE, vh - bh - SAY_EDGE, SAY_PARK_COST)
+
+        const rects = visibleContentRects()
+        let bestX = 0, bestY = 0, best = Infinity
+        for (let i = 0; i < cands.length; i += 3) {
+          const x = Math.max(SAY_EDGE, Math.min(cands[i], vw - bw - SAY_EDGE))
+          const y = Math.max(SAY_NAV_SAFE, Math.min(cands[i + 1], vh - bh - SAY_EDGE))
+          // …plus a small toll on DISTANCE from where the bubble already is.
+          // Two slots that are both clear are not equally good: the far one has
+          // to be travelled to, and the trip is what drags the bubble across
+          // the copy in between. A few px² per px is enough to prefer the near
+          // one without ever overriding a real content collision.
+          const s = coverArea(x, y, bw, bh, rects) + cands[i + 2]
+            + (bPlaced ? Math.hypot(x - bx, y - by) * SAY_TRAVEL_COST : 0)
+          if (s < best) { best = s; bestX = x; bestY = y }
+        }
+        // STICKINESS. This used to try to find the incumbent among the twelve
+        // candidates by coordinate — which never matched, because every one of
+        // those coordinates is derived from the butterfly's box and the
+        // butterfly never stops moving. `cur` was therefore Infinity on every
+        // pass, SAY_SWITCH_WIN never once engaged, and the bubble re-targeted
+        // 2.5 times a second: it chased the creature, and a 26-step sweep
+        // caught it mid-flight across the left wish tag (27,199px² at 1440px,
+        // 15,679px² at 390px) — the reported bug surviving in a new form.
+        //
+        // The incumbent is not a candidate. It is (tx, ty), and it is scored
+        // as itself. The bubble then holds that spot until some other slot is
+        // SAY_SWITCH_WIN px² better, so it moves when content slides under it
+        // and not merely because the butterfly wandered.
+        const cur = bPlaced ? coverArea(tx, ty, bw, bh, rects) : Infinity
+        if (cur - best < SAY_SWITCH_WIN) { placeScore = cur; return }
+        tx = bestX; ty = bestY; placeScore = best
+      }
+
+      // Placement: re-chosen at SAY_PLACE_MS, eased toward every frame. The
+      // tail slides along the bubble so it keeps pointing at the creature even
+      // when the bubble has been clamped against a viewport edge — and is
+      // dropped outright (`.is-tailless`) when the chosen slot is beside the
+      // butterfly rather than over or under it, where no edge-mounted tail can
+      // point at anything true.
+      const placeSay = (rect, now, dt) => {
+        const el = bubbleRef.current
+        if (!el || !sayId || !bw) return
+        if (!bPlaced || now - lastPlaceAt >= SAY_PLACE_MS) {
+          lastPlaceAt = now
+          chooseSlot(rect)
+        }
+        // A SHORT move is eased; a LONG one is cut. Easing is right for the
+        // small corrections that keep the bubble reading as attached to the
+        // creature, and wrong for a re-slot, because the whole reason to
+        // re-slot is that the old spot was on the copy — and a 400px glide to
+        // the new one drags an opaque card straight across everything between.
+        // A tooltip that repositions instantly is ordinary; a tooltip that
+        // sails over the page is not.
+        const far = bPlaced && Math.hypot(tx - bx, ty - by) > SAY_SNAP_PX
+        if (!bPlaced || far) { bx = tx; by = ty; bPlaced = true }
         else {
           // Frame-rate-independent ease, same rule as Companion.js: a
           // per-SECOND rate, never a per-frame fraction. Without it the bubble
@@ -345,9 +507,14 @@ export function Flyer() {
           bx += (tx - bx) * k
           by += (ty - by) * k
         }
+        const cx = (rect.left + rect.right) / 2
+        const over = by + bh <= rect.top + 2   // bubble sits above the creature
+        const under = by >= rect.bottom - 2    // …or below it
+        const inSpan = cx > bx + 14 && cx < bx + bw - 14
         el.style.transform = `translate3d(${Math.round(bx)}px, ${Math.round(by)}px, 0)`
         el.style.setProperty('--tail', `${Math.round(Math.max(20, Math.min(cx - bx, bw - 20)))}px`)
-        el.classList.toggle('is-below', below)
+        el.classList.toggle('is-below', under && inSpan)
+        el.classList.toggle('is-tailless', !inSpan || (!over && !under))
       }
 
       let lastFrame = 0
@@ -372,29 +539,45 @@ export function Flyer() {
         // measuring real overlap. This is the box that actually has wings in it.
         window.__loomFlyerBBox = { ...rect, opacity }
 
-        placeSay(rect, dt)
+        // The 7.5Hz block. This used to `return` early and let placeSay() run
+        // above it, which put the frame that SHOWS a bubble in the wrong order:
+        // showSay() sets .is-on (a 0.42s fade-in) at the END of this block, so
+        // the first frame the bubble was visible still carried the transform
+        // from the LAST time it spoke — a stale position, measured once at
+        // 29,313px² on top of a wish tag, corrected on the following frame.
+        // Placing AFTER the show/hide decision makes the first visible frame
+        // the correctly-placed one.
+        if (now - lastDuckCheck >= DUCK_CHECK_MS) {
+          lastDuckCheck = now
 
-        if (now - lastDuckCheck < DUCK_CHECK_MS) return
-        lastDuckCheck = now
+          // Asymmetric box: a tight one to START ducking, a generous one to stop.
+          // Asymmetric rail too: ENTER at MIN_OVERLAP_AREA, only LEAVE below
+          // EXIT_OVERLAP_AREA. `hit` is "the state the raw signal is asking for".
+          const probe = ducking ? boxOf(DUCK_EXIT_PAD) : rect
+          const rail = ducking ? EXIT_OVERLAP_AREA : MIN_OVERLAP_AREA
+          const area = textOverlapArea(probe, SELF_SELECTOR, rail)
+          const hit = area >= rail
+          if (hit === ducking) agree = 0
+          else if (++agree >= (ducking ? DUCK_EXIT_CHECKS : DUCK_ENTER_CHECKS)
+                   && now - lastDuckChange >= DUCK_MIN_HOLD_MS) {
+            setDuck(!ducking, now)
+          }
 
-        // Asymmetric box: a tight one to START ducking, a generous one to stop.
-        // Asymmetric rail too: ENTER at MIN_OVERLAP_AREA, only LEAVE below
-        // EXIT_OVERLAP_AREA. `hit` is "the state the raw signal is asking for".
-        const probe = ducking ? boxOf(DUCK_EXIT_PAD) : rect
-        const rail = ducking ? EXIT_OVERLAP_AREA : MIN_OVERLAP_AREA
-        const area = textOverlapArea(probe, '.flyer-layer, .wa-fab-stack', rail)
-        const hit = area >= rail
-        if (hit === ducking) agree = 0
-        else if (++agree >= (ducking ? DUCK_EXIT_CHECKS : DUCK_ENTER_CHECKS)
-                 && now - lastDuckChange >= DUCK_MIN_HOLD_MS) {
-          setDuck(!ducking, now)
+          // Zone check rides the same throttle — one getBoundingClientRect on
+          // #offer at 7.5 Hz, not per frame.
+          const want = SAYINGS.find((s) => { try { return s.test() } catch (e) { return false } })
+          if (sayId && (!want || want.id !== sayId || now - sayShownAt > SAY_HOLD_MS)) hideSay(now)
+          if (!sayId && want && now - (sayLastEnd.get(want.id) ?? -Infinity) > SAY_COOLDOWN_MS) showSay(want, now)
         }
 
-        // Zone check rides the same throttle — one getBoundingClientRect on
-        // #offer at 7.5 Hz, not per frame.
-        const want = SAYINGS.find((s) => { try { return s.test() } catch (e) { return false } })
-        if (sayId && (!want || want.id !== sayId || now - sayShownAt > SAY_HOLD_MS)) hideSay(now)
-        if (!sayId && want && now - (sayLastEnd.get(want.id) ?? -Infinity) > SAY_COOLDOWN_MS) showSay(want, now)
+        placeSay(rect, now, dt)
+        // The bubble's own settled box, for the QA probe: it is transform-
+        // positioned inside a fixed layer, so this is the number a placement
+        // test wants — alongside the px² of page content the chosen slot is
+        // covering, which is the thing that is supposed to stay at zero.
+        window.__loomFlyerSayBox = sayId
+          ? { id: sayId, left: bx, top: by, width: bw, height: bh, cover: placeScore }
+          : null
       }
       raf = requestAnimationFrame(measure)
 
@@ -454,6 +637,7 @@ export function Flyer() {
         cancelAnimationFrame(raf)
         delete window.__loomFlyerBBox
         delete window.__loomFlyerSay
+        delete window.__loomFlyerSayBox
         delete window.__loomFlyer
         window.removeEventListener('scroll', onScroll)
         window.removeEventListener('resize', onResize)
@@ -488,18 +672,40 @@ export function Flyer() {
 
   if (reduced) return null
   return (
-    // aria-hidden covers the bubbles too, and that is the deliberate choice:
-    // they are decoration that restates what the page already says in its own
-    // headings ("scroll down", "choose one"). An aria-live region firing off
-    // scroll position would interrupt a screen-reader user mid-sentence with
-    // information they already have, twice, in two languages — that is noise,
-    // not access. The guidance itself is not exclusive to the bubble.
-    <div className="flyer-layer" ref={layerRef} aria-hidden="true">
-      <canvas ref={canvasRef} />
-      <div className="flyer-say" ref={bubbleRef}>
-        <span className="flyer-say-en" lang="en" dir="ltr" />
-        <span className="flyer-say-ar" lang="ar" dir="rtl" />
+    <>
+      <div className="flyer-layer" ref={layerRef} aria-hidden="true">
+        <canvas ref={canvasRef} />
       </div>
-    </div>
+      {/* The bubble is PORTALLED to <body>, into its own fixed layer at the
+          same z-index (70). `.flyer-layer.is-ducking` sets opacity on the
+          LAYER, and group opacity reaches every descendant — so while the
+          bubble lived inside it, the duck dragged the bubble's contrast down
+          with the butterfly's (measured 3.33:1 EN / 2.09:1 AR at 390px, both
+          failing). Fading a decorative creature off the copy is the point;
+          fading the words it is saying is not. Portalling is what separates
+          the two without a second opacity path to keep in sync — the bubble
+          keeps every other property of living there, because .flyer-say-layer
+          restates them (see flyer-say.css).
+
+          aria-hidden covers the bubble, and that is the deliberate choice: it
+          is decoration that restates what the page already says in its own
+          headings ("scroll down", "choose one"). An aria-live region firing
+          off scroll position would interrupt a screen-reader user mid-sentence
+          with information they already have, twice, in two languages — that is
+          noise, not access. The guidance itself is not exclusive to the bubble.
+
+          The Arabic is a plain `dir="rtl" lang="ar"` span holding ordinary
+          logical-order Arabic; the browser's own bidi and shaper do the
+          joining. Nothing here reverses, mirrors or pre-shapes the string. */}
+      {createPortal(
+        <div className="flyer-say-layer" aria-hidden="true">
+          <div className="flyer-say" ref={bubbleRef}>
+            <span className="flyer-say-en" lang="en" dir="ltr" />
+            <span className="flyer-say-ar" lang="ar" dir="rtl" />
+          </div>
+        </div>,
+        document.body,
+      )}
+    </>
   )
 }

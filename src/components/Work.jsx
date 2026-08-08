@@ -1,12 +1,56 @@
-// Selected Work — featured showcases, filterable grid, full-screen case overlay.
+// ————————————————————————————————————————————————————————
+// Selected Work — the living Mosaic, the discipline filters, and the
+// full-screen case overlay.
+//
+// The board used to be a plain 3-up grid of 4:3 cards. It is now the Mosaic
+// prototyped and measured in work-lab.html #c2: ONE picture wall in four size
+// classes where the size IS the ranking, and the ranking is re-argued on a
+// beat. Everything below is that prototype driven from `CASES` instead of the
+// lab's hardcoded copy, plus the three things the lab page never modelled —
+// the case overlay, the discipline filters, and the device preview.
+//
+// THE FOUR MOTIONS, and why they do not fight each other
+// ------------------------------------------------------
+// 1. THE RE-TILING. Grid spans are not animatable, so a block of the wall
+//    swaps its size map and every moved card is FLIPped from its old box to
+//    its new one on transform alone. 2.6s beat, 3.4s move — the move is
+//    longer than the gap, so a move is always in flight.
+// 2. THE BREATH. Every photograph runs a permanent 27–48s Ken-Burns drift on
+//    its own period, bearing and phase, so the wall is alive even between
+//    beats and on a phone, where the re-tiling is deliberately off.
+// 3. THE POINTER DRIFT. Every visible crop leans toward the cursor by an
+//    amount that falls off with distance, so sixteen framed pictures read as
+//    one surface you are moving over.
+// 4. THE DEVICE PREVIEW. See `wm-dev` below.
+//
+// Each of those owns exactly ONE node of the photo stack
+// (.wm-ph > .wm-par > img — FLIP, drift, breath in that order) and nothing
+// else ever writes that node. That separation is the entire reason the
+// effects compose instead of overwriting each other, and it is load-bearing:
+// only .wm-ph is ever scaled non-uniformly, and only as the exact inverse of
+// its own tile's box scale, so the composite crop can be cropped tighter or
+// looser but can never stretch. Do not collapse the stack.
+//
+// WHY THE TILES ARE DRIVEN IMPERATIVELY. A FLIP is measure → mutate →
+// measure in one synchronous pass; React state cannot do that. So the tiles
+// are rendered once per filter and the controller below owns their size
+// classes through `classList`. React never writes `className` on a tile after
+// mount — every className prop in the JSX is a constant string, so
+// re-rendering (a hover, a filter, an overlay open) cannot clobber the
+// classes the controller put there. Anything React DOES need to toggle rides
+// on a `data-` attribute instead, which lives in a different attribute
+// namespace and cannot collide.
+// ————————————————————————————————————————————————————————
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
-import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'motion/react'
+import { flushSync } from 'react-dom'
+import { motion, AnimatePresence } from 'motion/react'
 import { CASES, FILTERS } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
 import { useBottomSheet, useIsMobile, useSheetScrollHandoff, SheetHandle } from '../lib/sheet.jsx'
-import { WoolButton, WoolIcon } from './Wool.jsx'
+import { WoolButton } from './Wool.jsx'
 import { DeviceShowcase } from './DeviceShowcase.jsx'
 import './heads-v7.css'
+import './work-mosaic.css'
 
 // Spelled-out numerals up to the range this board can plausibly reach; past
 // that the digit is fine and honest.
@@ -39,120 +83,582 @@ const COUNTRY_COUNT = new Set(
 const imgFade = (el) => { if (el && el.complete && el.naturalWidth) el.classList.add('is-loaded') }
 const onImgLoad = (e) => e.currentTarget.classList.add('is-loaded')
 
-function CaseCard({ c, onOpen }) {
-  const ref = useRef(null)
-  const vidRef = useRef(null)
-  const reduced = useReducedMotion()
-  const [coarse, setCoarse] = useState(false)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-6%', '6%'])
+const n2 = (i) => String(i + 1).padStart(2, '0')
+
+// ————————————————————————————————————————————————————————
+// THE SIZE MAPS
+//
+// A block is a run of contiguous cards built to occupy EXACTLY two rows of
+// the four-column grid. A block's "map" is the list of size classes its cards
+// wear; every map below fills its two rows with no holes and no spill, which
+// is what makes the wall a fixed number of rows tall no matter which maps are
+// showing — swap a map and nothing under #work moves.
+//
+// Every map here was verified against a simulation of CSS grid's SPARSE
+// auto-placement (4 columns, cursor never moves backwards) before it shipped:
+// two candidates that looked fine by eye — ['m-w','m-w','m-t','m-t'] for four
+// cards and a two-band map for two — turned out to need three rows and leave
+// four empty cells, and were dropped.
+//
+// wm-h = 4 cols x 2 rows   wm-f = 2 x 2   wm-t = 1 x 2   wm-w = 2 x 1   wm-s = 1 x 1
+// ————————————————————————————————————————————————————————
+const SIZES = ['wm-h', 'wm-f', 'wm-t', 'wm-w', 'wm-s']
+const AREA = { 'wm-h': 8, 'wm-f': 4, 'wm-t': 2, 'wm-w': 2, 'wm-s': 1 }
+// the classes big enough to carry a MacBook + iPhone legibly
+const BIG = new Set(['wm-h', 'wm-f'])
+
+const MAPS = {
+  1: { h1: ['wm-h'] },
+  2: { f1: ['wm-f', 'wm-f'] },
+  3: {
+    f1: ['wm-f', 'wm-t', 'wm-t'],
+    f2: ['wm-f', 'wm-w', 'wm-w'],
+    f3: ['wm-t', 'wm-t', 'wm-f'],
+  },
+  4: {
+    f1: ['wm-f', 'wm-s', 'wm-s', 'wm-w'],
+    f2: ['wm-f', 'wm-w', 'wm-s', 'wm-s'],
+    t1: ['wm-t', 'wm-t', 'wm-w', 'wm-w'],
+    t2: ['wm-t', 'wm-t', 'wm-t', 'wm-t'],
+  },
+  5: {                                                     // five cards, eight cells, two rows
+    f1: ['wm-f', 'wm-s', 'wm-s', 'wm-s', 'wm-s'],          // feature left, four standards right
+    t2: ['wm-t', 'wm-t', 'wm-w', 'wm-s', 'wm-s'],          // two towers, a band, two standards
+    t3: ['wm-t', 'wm-t', 'wm-s', 'wm-s', 'wm-w'],          // …band drops to the second row
+    t4: ['wm-t', 'wm-s', 'wm-s', 'wm-t', 'wm-w'],          // towers to the outside, band centred
+  },
+  6: {                                                     // six cards, eight cells, two rows
+    w1: ['wm-s', 'wm-s', 'wm-w', 'wm-s', 'wm-s', 'wm-w'],
+    b1: ['wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-w', 'wm-w'],  // the base map: four + two bands
+    b2: ['wm-s', 'wm-s', 'wm-s', 'wm-t', 'wm-s', 'wm-w'],
+    b3: ['wm-s', 'wm-t', 'wm-s', 'wm-s', 'wm-s', 'wm-w'],
+    b4: ['wm-t', 'wm-s', 'wm-s', 'wm-s', 'wm-w', 'wm-s'],
+  },
+  7: {
+    s1: ['wm-w', 'wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s'],
+    s2: ['wm-s', 'wm-s', 'wm-w', 'wm-s', 'wm-s', 'wm-s', 'wm-s'],
+    s3: ['wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-w', 'wm-s', 'wm-s'],
+    s4: ['wm-t', 'wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s'],
+    s5: ['wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-w'],
+  },
+  8: { a1: ['wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s', 'wm-s'] },
+}
+// Each block walks its chain like a metronome — 0,1,2,3,2,1,0,… — because
+// ADJACENT maps in these chains differ in only three or four cards. Jumping
+// across a chain would re-flow the whole block; stepping along it moves the
+// smallest legible number of cards.
+const CHAINS = {
+  1: ['h1'], 2: ['f1'], 3: ['f1', 'f2', 'f3'], 4: ['f1', 'f2', 't1', 't2'],
+  5: ['f1', 't2', 't3', 't4'], 6: ['w1', 'b1', 'b2', 'b3', 'b4'],
+  7: ['s1', 's2', 's3', 's4', 's5'], 8: ['a1'],
+}
+// where each block rests: the composition the wall falls back to on a phone,
+// under reduced motion and on every resize below the switching threshold
+const BASE_AT = { 6: 1 }
+
+/** Cut a list of N cards into blocks of two grid rows each.
+ *  16 → 5,5,6, exactly the partition the lab measured. */
+function blockSizes(n) {
+  const out = []
+  let r = n
+  while (r > 0) {
+    if (r <= 8) { out.push(r); break }
+    if (r - 5 >= 5) { out.push(5); r -= 5 } else { out.push(6); r -= 6 }
+  }
+  return out
+}
+
+/** Index 0 of a block gets the top tier in most of its maps, so a `featured`
+ *  case is walked to the head of each block. Relative order is preserved
+ *  inside both pools, so the wall is still the data's order, only re-phrased
+ *  — no hardcoded slug list like the lab's, which could not survive a filter. */
+function arrange(list, sizes) {
+  const feat = list.filter((c) => c.featured)
+  const rest = list.filter((c) => !c.featured)
+  const out = []
+  let fi = 0, ri = 0
+  for (const n of sizes) {
+    const block = []
+    if (fi < feat.length) block.push(feat[fi++])
+    while (block.length < n) {
+      if (ri < rest.length) block.push(rest[ri++])
+      else if (fi < feat.length) block.push(feat[fi++])
+      else break
+    }
+    out.push(...block)
+  }
+  return out
+}
+
+const DUR = 3400, STAGGER = 140, CADENCE = 2600
+const FLIP_EASE = 'cubic-bezier(.42,0,.24,1)'   // long, soft in, no snap at the end
+const DRIFT = 1.35
+
+function Mosaic({ list, onOpen }) {
+  const wallRef = useRef(null)
+  const noteRef = useRef(null)
+  const tileRefs = useRef([])
+  // the slugs currently showing a MacBook + iPhone. On a fine pointer this is
+  // at most one — see the wm-dev note below.
+  const [devSlugs, setDevSlugs] = useState([])
+  const devSet = useMemo(() => new Set(devSlugs), [devSlugs])
+
+  const wall = useMemo(() => {
+    const sizes = blockSizes(list.length)
+    return { sizes, cards: arrange(list, sizes) }
+  }, [list])
 
   useEffect(() => {
-    const mq = window.matchMedia('(pointer: coarse)')
-    const set = () => setCoarse(mq.matches)
-    set()
-    mq.addEventListener('change', set)
-    return () => mq.removeEventListener('change', set)
-  }, [])
+    const root = wallRef.current
+    const cards = wall.cards
+    const tiles = tileRefs.current.slice(0, cards.length)
+    if (!root || tiles.length !== cards.length || tiles.some((t) => !t)) return
 
-  // Cards with a reel play it on hover (fine pointers), poster otherwise — no autoplay bandwidth cost.
-  const playVideo = () => {
-    if (reduced || coarse || !vidRef.current) return
-    vidRef.current.play().catch(() => {})
-  }
-  const stopVideo = () => {
-    if (coarse || !vidRef.current) return
-    vidRef.current.pause()
-    vidRef.current.currentTime = 0
-  }
+    const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const wide = () => window.matchMedia('(min-width: 1001px)').matches
+    const fine = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
-  // Touch devices: hover doesn't exist, so autoplay the reel muted while the card is
-  // substantially in view instead — preload stays 'none' until the first play() call.
-  useEffect(() => {
-    if (!coarse || reduced || !c.video || !ref.current) return
-    const vid = vidRef.current
-    const io = new IntersectionObserver(
-      (entries) => {
-        const en = entries[0]
-        if (!en) return
-        if (en.isIntersecting) vid?.play().catch(() => {})
-        else vid?.pause()
-      },
-      { threshold: 0.6 }
-    )
-    io.observe(ref.current)
-    return () => io.disconnect()
-  }, [coarse, reduced, c.video])
+    // ── the blocks ──────────────────────────────────────────────────────────
+    const blocks = []
+    let at = 0
+    for (const n of wall.sizes) {
+      const maps = MAPS[n]
+      const chain = CHAINS[n]
+      if (!maps || !chain) { at += n; continue }
+      blocks.push({
+        maps, chain, from: at, to: at + n, tiles: tiles.slice(at, at + n),
+        at: BASE_AT[n] ?? 0, base: BASE_AT[n] ?? 0, dir: 1, busy: 0,
+      })
+      at += n
+    }
+
+    const wear = (b, next) => {
+      const map = b.maps[b.chain[next]]
+      b.tiles.forEach((t, i) => {
+        t.classList.remove(...SIZES)
+        t.classList.add(map[i])
+        // the caption carries the lead flag too — that is what drives the
+        // bigger heading and the always-open reveal on the largest cards
+        t.querySelector('.wm-cap')?.classList.toggle('is-lead', BIG.has(map[i]))
+      })
+      b.at = next
+    }
+    const rest = () => blocks.forEach((b) => wear(b, b.base))
+    rest()
+
+    const running = new Set()   // every in-flight WAAPI animation, so unmount can cancel
+
+    /* ── the move itself: FLIP ────────────────────────────────────────────────
+       A grid span is not an animatable property — swapping `span 2` for
+       `span 1` snaps. So: read every rect in the block, swap the classes, read
+       the rects again, then run each moved card from its OLD box to its new
+       one on transform alone. Nothing here touches layout after that single
+       measure/mutate/measure pass; the frames are compositor work.
+
+       Three counter-animations stop the content deforming inside a box that is
+       being scaled non-uniformly:
+         · the .wm-ph LAYER — not the img, which is busy breathing — gets
+           scale(1.04c/sx, 1.04c/sy) where c = max(sx,sy), resolving to its
+           resting scale(1.04). The card's own scale(sx,sy) multiplies through
+           and leaves scale(1.04c, 1.04c) — a UNIFORM scale about the photo's
+           centre, so it never stretches; and 1.04c >= c >= sx,sy guarantees it
+           still covers the box at every frame even with the drift and the
+           breath riding inside it.
+         · the .wm-cap gets scale(1/sx, 1/sy) about its own bottom-left anchor,
+           so the type is drawn at true proportions throughout. It dips to 12%
+           opacity for the first tenth of the move and is back by a third,
+           which covers the one thing that cannot be transformed away: the
+           heading changing size class under it.
+         · the .wm-dev layer, when one is mounted, gets the same inverse about
+           its own CENTRE — the device frames are a fixed-proportion object and
+           a stretched MacBook is the most obvious artefact on the page. */
+    function moveTo(b, next) {
+      if (b.busy || next === b.at || next < 0 || next >= b.chain.length) return
+      const first = b.tiles.map((t) => t.getBoundingClientRect())
+      wear(b, next)
+      const last = b.tiles.map((t) => t.getBoundingClientRect())
+
+      const movers = []
+      b.tiles.forEach((t, i) => {
+        const a = first[i], z = last[i]
+        if (!z.width || !z.height) return                       // never divide by a zero box
+        const dx = a.left - z.left, dy = a.top - z.top
+        const sx = a.width / z.width, sy = a.height / z.height
+        if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 &&
+            Math.abs(sx - 1) < 0.004 && Math.abs(sy - 1) < 0.004) return
+        movers.push({ t, dx, dy, sx, sy })
+      })
+      if (!movers.length) return
+
+      b.busy = movers.length
+      movers.forEach((m, k) => {
+        const timing = { duration: DUR, delay: k * STAGGER, easing: FLIP_EASE, fill: 'backwards' }
+        m.t.classList.add('is-moving')
+        m.t.style.willChange = 'transform'   // only while moving — 16 permanent layers is not free
+        const c = Math.max(m.sx, m.sy)
+        const ph = m.t.querySelector('.wm-ph')
+        const cap = m.t.querySelector('.wm-cap')
+        const dev = m.t.querySelector('.wm-dev')
+        ph.style.willChange = 'transform'
+        running.add(ph.animate([
+          { transform: `scale(${1.04 * c / m.sx},${1.04 * c / m.sy})` },
+          { transform: 'scale(1.04)' },
+        ], timing))
+        running.add(cap.animate([
+          { transform: `scale(${1 / m.sx},${1 / m.sy})`, opacity: 0.12, offset: 0 },
+          { opacity: 0.12, offset: 0.1 },
+          { opacity: 1, offset: 0.34 },
+          { transform: 'none', offset: 1 },
+        ], timing))
+        if (dev) running.add(dev.animate([
+          { transform: `scale(${1 / m.sx},${1 / m.sy})` },
+          { transform: 'none' },
+        ], timing))
+        const run = m.t.animate(
+          [{ transform: `translate(${m.dx}px,${m.dy}px) scale(${m.sx},${m.sy})` }, { transform: 'none' }],
+          timing)
+        running.add(run)
+        run.finished.then(() => {
+          m.t.classList.remove('is-moving')
+          m.t.style.willChange = ph.style.willChange = ''
+          if (--b.busy <= 0) { b.busy = 0; invalidateBoxes() }
+        }).catch(() => { b.busy = 0; m.t.classList.remove('is-moving'); invalidateBoxes() })
+      })
+    }
+
+    /* ── the cadence ──────────────────────────────────────────────────────────
+       One block per beat, 2.6s apart, rotating A → C → B so two consecutive
+       moves are never in touching rows. The move lasts 3.4s plus up to three
+       140ms stagger steps — LONGER than the gap between beats — so the next
+       block sets off while the last is still settling and there is never an
+       instant with no card in flight. A block still only recomposes once every
+       7.8s, so no single card is ever hurried. */
+    const ROTATION = blocks.length === 3 ? [0, 2, 1] : blocks.map((_, i) => i)
+    let beat = null, spin = 0, held = false, onScreen = false, hoverT = null
+    const live = () => !reduced() && wide() && onScreen && !held && !document.hidden && blocks.some((b) => b.chain.length > 1)
+
+    const tick = () => {
+      const b = blocks[ROTATION[spin++ % ROTATION.length]]
+      if (!b) return
+      let next = b.at + b.dir
+      if (next >= b.chain.length || next < 0) { b.dir *= -1; next = b.at + b.dir }
+      moveTo(b, next)
+    }
+    const sync = () => {
+      if (beat) { clearInterval(beat); beat = null }
+      const on = live()
+      if (on) {
+        beat = setInterval(tick, CADENCE)
+        // arriving at the wall should not mean waiting a whole beat for the
+        // first move — but only kick if nothing is already in flight, or every
+        // stray pointerleave would fire an extra beat
+        if (!blocks.some((b) => b.busy)) {
+          setTimeout(() => { if (live() && !blocks.some((b) => b.busy)) tick() }, 420)
+        }
+      }
+      noteRef.current?.classList.toggle('is-beating', on)
+    }
+
+    /* ── attention sets size, and mounts the hardware ─────────────────────────
+       Hovering or tab-focusing a card walks its block to whichever of its maps
+       gives THAT card the most area, and the ambient cycle stands down while
+       the pointer is anywhere in the wall.
+
+       The device preview rides the same 200ms intent timer. The wall is
+       photography at rest; stop on a card and it shows you the site itself,
+       running on a real MacBook and a real iPhone. That is where the frames
+       belong: they are the reward for stopping, and mounting them one at a
+       time means the two heavy frame PNGs are decoded once instead of sixteen
+       times — which is exactly what the previous 3-up grid did, and the single
+       most expensive thing about it.
+
+       flushSync is load-bearing. The promotion FLIP measures the DOM in the
+       same tick, so the device layer has to already BE there when moveTo looks
+       for `.wm-dev` to counter-scale — otherwise the frames spend the whole
+       3.4s move inside a non-uniform scale, stretched. */
+    const best = new Map()
+    blocks.forEach((b) => b.tiles.forEach((t, i) => {
+      let bi = b.at, ba = -1
+      b.chain.forEach((k, ci) => { const a = AREA[b.maps[k][i]]; if (a > ba) { ba = a; bi = ci } })
+      best.set(t, { block: b, at: bi })
+    }))
+    // same gate as the ambient cycle minus the pause flags — a promotion is
+    // wanted precisely when the pointer IS in the wall
+    const askable = () => !reduced() && wide() && !document.hidden
+
+    // Below 1001px there is no hover to reward and the wall never re-tiles, so
+    // the size classes are static — which makes the largest card of each block
+    // a safe permanent home for the pair. That is how a phone still gets the
+    // device preview on the board itself, and it is at most one per block.
+    const staticDevices = () => {
+      const out = []
+      blocks.forEach((b) => {
+        const map = b.maps[b.chain[b.base]]
+        const big = map.map((cls, i) => (BIG.has(cls) ? i : -1)).filter((i) => i >= 0)
+        // A block whose resting map has no flagship (the seven-case maps are
+        // six standards and a band) still gets one — the largest card it has.
+        const picks = big.length ? big : [map.reduce((bi, cls, i) => (AREA[cls] > AREA[map[bi]] ? i : bi), 0)]
+        picks.forEach((i) => out.push(cards[b.from + i].slug))
+      })
+      return out
+    }
+    const restDevices = () => setDevSlugs(wide() && fine() ? [] : staticDevices())
+    restDevices()
+
+    const promote = (t, i) => {
+      clearTimeout(hoverT)
+      if (!wide() || !fine()) return
+      hoverT = setTimeout(() => {                 // don't thrash on a sweep
+        flushSync(() => setDevSlugs([cards[i].slug]))
+        if (!askable()) return
+        const p = best.get(t)
+        if (p) moveTo(p.block, p.at)
+      }, 200)
+    }
+    const unpromote = () => { clearTimeout(hoverT); restDevices() }
+
+    const offs = []
+    const on = (el, ev, fn, opts) => { el.addEventListener(ev, fn, opts); offs.push(() => el.removeEventListener(ev, fn, opts)) }
+
+    tiles.forEach((t, i) => {
+      on(t, 'pointerenter', () => promote(t, i))
+      on(t, 'focus', () => promote(t, i))
+    })
+    on(root, 'pointerenter', () => { held = true; sync() })
+    on(root, 'pointerleave', () => { held = false; unpromote(); sync() })
+    on(root, 'focusin', () => { held = true; sync() })
+    on(root, 'focusout', () => { held = false; unpromote(); sync() })
+
+    /* ── the breath: live windows, not stills ─────────────────────────────────
+       Every card's photograph runs a permanent, very slow Ken-Burns drift — a
+       pan of under a percent and a zoom of four to seven points, over 27 to 48
+       seconds. It is deliberately below the threshold where you can watch it
+       happen: you notice the wall is alive, not that anything moved.
+
+       Nothing about it is shared. Each card gets its own period (27.00s +
+       i×1.37s — no common factor, so the wall can never fall into step), its
+       own bearing (the golden angle, 137.508° apart), its own zoom range and
+       its own starting phase.
+
+       IT CANNOT DISTORT THE PHOTO. The breath owns the <img> and nothing else
+       does; the FLIP counter-scale lives one node up on .wm-ph. Both scales
+       are uniform on their own node, and the pan is bounded by the zoom: the
+       minimum scale s0 leaves a margin of (s0-1)/2 on every edge and the pan
+       amplitude is strictly under it (0.55 ≤ 0.9, 0.67 ≤ 1.2, 0.79 ≤ 1.5,
+       0.91 ≤ 1.8). So the breathing image always covers its own box with room
+       to spare, and every transform outside it only scales that covered region.
+
+       WHAT IT COSTS. One compositor-only transform animation per card, created
+       lazily and PAUSED the moment the card leaves the viewport or the tab
+       goes away. No will-change anywhere: a running WAAPI transform gets its
+       layer for the duration and gives it back on pause. Reduced motion
+       cancels them outright. */
+    const BREATH = tiles.map((t, i) => {
+      const dur = 27000 + i * 1370                       // 27.00s … 47.55s, all distinct
+      const ang = i * 137.508 * Math.PI / 180            // golden angle: no shared bearing
+      const s0 = 1.018 + (i % 4) * 0.006                 // 1.018 … 1.036 — the floor
+      const s1 = s0 + 0.038 + (i % 5) * 0.007            // +3.8 … +6.6 points of zoom
+      const amp = 0.55 + (i % 4) * 0.12                  // %, strictly under (s0-1)/2
+      const phase = (i * 6700 + (i % 3) * 4100) % (2 * dur)
+      return {
+        t, i, img: t.querySelector('.wm-par img'), par: t.querySelector('.wm-par'),
+        dur, s0, s1, phase, vis: false, anim: null,
+        tx: +(amp * Math.cos(ang)).toFixed(3), ty: +(amp * Math.sin(ang)).toFixed(3),
+      }
+    })
+    const syncBreath = (b) => {
+      if (!b.img) return
+      if (!reduced() && b.vis && !document.hidden) {
+        if (!b.anim) {
+          b.anim = b.img.animate([
+            { transform: `translate(${-b.tx}%,${-b.ty}%) scale(${b.s0})` },
+            { transform: `translate(${b.tx}%,${b.ty}%) scale(${b.s1})` },
+          ], {
+            duration: b.dur, iterations: Infinity, direction: 'alternate',
+            easing: 'cubic-bezier(.45,0,.55,1)',
+          })
+          b.anim.currentTime = b.phase
+        }
+        if (b.anim.playState !== 'running') b.anim.play()
+      } else if (b.anim) {
+        if (reduced()) { b.anim.cancel(); b.anim = null } else b.anim.pause()
+      }
+    }
+    const syncBreathAll = () => BREATH.forEach(syncBreath)
+
+    /* ── the pointer: the crop leans toward you ───────────────────────────────
+       One rAF and N string writes per pointer move, with no measurement — the
+       boxes are cached and only re-read after a block settles or on resize. It
+       lives on .wm-par, between the counter-scaled .wm-ph and the breathing
+       img, and it spends the 4% of slack .wm-ph permanently holds: 1.35% of
+       drift against ~1.9% of headroom, so it can never expose an edge either.
+       The 0.6s CSS transition means the crop trails the cursor, not tracks it. */
+    let boxes = null, praf = 0, ptr = null
+    function invalidateBoxes() { boxes = null }
+    const clamp1 = (v) => (v < -1 ? -1 : v > 1 ? 1 : v)
+    const drift = () => {
+      praf = 0
+      if (!boxes) {
+        boxes = tiles.map((t) => {
+          const r = t.getBoundingClientRect()
+          return {
+            cx: r.left + scrollX + r.width / 2, cy: r.top + scrollY + r.height / 2,
+            w: Math.max(r.width, 1), h: Math.max(r.height, 1),
+          }
+        })
+      }
+      BREATH.forEach((b, i) => {
+        if (!ptr || !b.vis || reduced()) { if (b.par.style.transform) b.par.style.transform = ''; return }
+        const q = boxes[i]
+        const dx = clamp1((ptr.x - q.cx) / (q.w * 1.6))
+        const dy = clamp1((ptr.y - q.cy) / (q.h * 1.6))
+        b.par.style.transform = `translate(${(dx * DRIFT).toFixed(3)}%,${(dy * DRIFT).toFixed(3)}%)`
+      })
+    }
+    const askDrift = () => { if (!praf) praf = requestAnimationFrame(drift) }
+    on(root, 'pointermove', (e) => {
+      if (reduced() || e.pointerType === 'touch') return
+      ptr = { x: e.clientX + scrollX, y: e.clientY + scrollY }
+      askDrift()
+    }, { passive: true })
+    on(root, 'pointerleave', () => { ptr = null; askDrift() })
+
+    // ── the gates ───────────────────────────────────────────────────────────
+    const wallIO = new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; sync() }, { rootMargin: '120px' })
+    wallIO.observe(root)
+    const tileIO = new IntersectionObserver((es) => es.forEach((e) => {
+      const b = BREATH.find((x) => x.t === e.target)
+      if (!b) return
+      b.vis = e.isIntersecting
+      syncBreath(b)
+      if (!b.vis && b.par.style.transform) b.par.style.transform = ''
+    }), { rootMargin: '80px' })
+    BREATH.forEach((b) => tileIO.observe(b.t))
+
+    on(document, 'visibilitychange', () => { sync(); syncBreathAll() })
+
+    const rmq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const onRM = () => {
+      if (reduced()) { rest(); ptr = null }
+      sync(); syncBreathAll(); drift()
+    }
+    rmq.addEventListener('change', onRM)
+
+    // Below 1001px the wall settles: at one or two columns a size class no
+    // longer buys a distinct shape (a "tall" card is just a column-wide card),
+    // the maps stop tiling cleanly, and every switch would push the rest of the
+    // document up and down. So phone and tablet get the base composition, held
+    // still — and the device preview moves onto the biggest card of each block.
+    let wasWide = wide()
+    const onResize = () => {
+      invalidateBoxes()
+      const now = wide()
+      if (now !== wasWide) { wasWide = now; if (!now) rest(); restDevices() }
+      sync()
+    }
+    on(window, 'resize', onResize)
+    sync()
+
+    if (import.meta.env.DEV) {
+      window.__mosaic = {
+        tiles, blocks, BREATH, tick, moveTo, rest, live, wide, syncBreathAll,
+        CADENCE, DUR, DRIFT,
+        breathParams: BREATH.map((b) => ({ i: b.i, slug: b.t.dataset.slug, durMs: b.dur, phaseMs: b.phase, s0: b.s0, s1: b.s1, tx: b.tx, ty: b.ty })),
+      }
+    }
+
+    return () => {
+      if (beat) clearInterval(beat)
+      clearTimeout(hoverT)
+      if (praf) cancelAnimationFrame(praf)
+      offs.forEach((f) => f())
+      rmq.removeEventListener('change', onRM)
+      wallIO.disconnect(); tileIO.disconnect()
+      BREATH.forEach((b) => { b.anim?.cancel(); b.anim = null })
+      running.forEach((a) => { try { a.cancel() } catch { /* already gone */ } })
+      running.clear()
+      if (import.meta.env.DEV) delete window.__mosaic
+    }
+    // setDevSlugs is a stable setState; `wall` is the only real input.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wall])
 
   return (
-    <motion.article
-      ref={ref}
-      className="case-card"
-      whileHover={reduced || coarse ? undefined : 'hover'}
-      onHoverStart={playVideo} onHoverEnd={stopVideo}
-      data-cursor
-    >
-      <button className="case-hit" onClick={() => onOpen(c.slug)} aria-label={`Open case study: ${c.client} — ${c.title}`}>
-        <div className="case-media">
-          {/* The thumbnail IS the product shot — no loose cover image sits
-              behind it any more. Every case renders on a real MacBook +
-              iPhone (DeviceShowcase's `card` mode: same pair the case
-              overlay shows at full size, scaled and centered to sit inside
-              this 4:3 tile — see device-showcase.css's .devshow--card for the
-              measured aperture rects and sizing). This wrapper is the motion
-              layer only (scroll parallax + the whole-composite hover scale,
-              same values the old cover img used); DeviceShowcase itself
-              drives the mac tilt / phone lift on hover via variant
-              propagation from .case-card's whileHover below. */}
-          <motion.div
-            className="case-devframe"
-            style={{ y }}
-            variants={{ hover: { scale: 1.035 } }}
-            transition={{ duration: 0.8, ease: EASE }}
+    <>
+      {/* keyed on the filter's card list so the whole wall is rebuilt (and the
+          controller re-run) when the discipline changes. The old grid used
+          motion's `layout` + AnimatePresence for that; a layout animation and
+          a FLIP are two systems writing one transform, so the wall cross-fades
+          on opacity instead — see work-mosaic.css. */}
+      <div className="wmosaic" ref={wallRef}>
+        {wall.cards.map((c, i) => (
+          <button
+            key={c.slug}
+            ref={(el) => { tileRefs.current[i] = el }}
+            type="button"
+            className="wtile"
+            data-slug={c.slug}
+            data-cursor
+            data-dev={devSet.has(c.slug) ? '' : undefined}
+            onClick={() => onOpen(c.slug)}
+            aria-label={`Open case study: ${c.client} — ${c.title}`}
           >
-            <DeviceShowcase
-              card
-              desktop={c.devices?.desktop || `/img/cases/${c.slug}/screen-desktop.webp`}
-              mobile={c.devices?.mobile || `/img/cases/${c.slug}/screen-mobile.webp`}
-              fallback={c.cover}
-              alt={`${c.client} — ${c.title}`}
-            />
-          </motion.div>
-          {c.video && (
-            <video
-              ref={vidRef} className="case-video" src={c.video} poster={c.cover}
-              muted loop playsInline preload="none" tabIndex={-1} aria-hidden="true"
-            />
-          )}
-          {c.video && <span className="case-reel" aria-hidden="true">REEL</span>}
-          <motion.div
-            className="case-veil" aria-hidden="true"
-            variants={{ hover: { opacity: 1 } }}
-            // Coarse pointers never hover, so the veil that tells a visitor the card
-            // opens something has to rest partly visible instead of hiding at 0 —
-            // quieter than the full-strength hover reveal desktop gets on interest.
-            initial={{ opacity: coarse ? 0.58 : 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {/* the ↗ becomes a felt seal — inline-flex here because .case-veil span
-                is plain inline text and would drop the 30px medallion on the baseline */}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-              Open case <WoolIcon name="arrow-right" size="sm" />
+            {/* three layers, three motions — see the file banner */}
+            <span className="wm-ph"><span className="wm-par">
+              <img
+                src={c.cover} alt={`${c.client} — ${c.title}`}
+                loading="lazy" decoding="async"
+              />
+            </span></span>
+            {c.video && (
+              <video className="wm-video" src={c.video} poster={c.cover}
+                muted loop playsInline preload="none" tabIndex={-1} aria-hidden="true" />
+            )}
+            <span className="wm-scrim" aria-hidden="true" />
+            <span className="wm-thread" aria-hidden="true" />
+            {devSet.has(c.slug) && (
+              <span className="wm-dev" aria-hidden="true">
+                {/* Convention over configuration: make-case-screens.mjs writes
+                    screen-desktop/screen-mobile into every case folder, so the
+                    slug alone resolves the pair. `devices` stays as the
+                    explicit override for a case with real client screenshots,
+                    and the cover is the last resort so a missing file is never
+                    a hole. aria-hidden because the overlay shows the same pair
+                    with real alt text — on the board it is decoration. */}
+                <DeviceShowcase
+                  card
+                  desktop={c.devices?.desktop || `/img/cases/${c.slug}/screen-desktop.webp`}
+                  mobile={c.devices?.mobile || `/img/cases/${c.slug}/screen-mobile.webp`}
+                  fallback={c.cover}
+                  alt={`${c.client} — ${c.title}`}
+                />
+              </span>
+            )}
+            {c.video && <span className="wm-reel" aria-hidden="true">REEL</span>}
+            <span className="wm-cap">
+              <span className="wm-rank">{n2(i)}</span>
+              <h3>{c.client}</h3>
+              <span className="wm-rev">
+                <p>{c.title}</p>
+                <span className="wm-meta">
+                  <span>{c.scope.slice(0, 2).join(' · ')}</span>
+                  <span className="wm-market">{c.country}</span>
+                  <span>{c.year}</span>
+                </span>
+              </span>
             </span>
-          </motion.div>
-        </div>
-        <div className="case-meta">
-          <div>
-            <h3>{c.client}</h3>
-            <p>{c.title}</p>
-          </div>
-          <div className="case-tags">
-            <span className="case-country">{c.country}</span>
-            <span className="case-year">{c.year}</span>
-          </div>
-        </div>
-      </button>
-    </motion.article>
+            <span className="wm-seal" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7v8" /></svg>
+            </span>
+          </button>
+        ))}
+      </div>
+      <p className="wmosaic-note" ref={noteRef}>
+        <span><i className="wm-pulse" aria-hidden="true" />A block re-tiles every 2.6s · each move lasts 3.4s, so they overlap</span>
+        <span>Every photograph breathes on its own 27–48s period</span>
+        <span>Hold a card to see it running on <b>real hardware</b></span>
+      </p>
+    </>
   )
 }
 
@@ -258,20 +764,15 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
             </div>
             <p className="overlay-copy">{c.copy}</p>
           </div>
-          {/* Every case gets shown on real hardware, not just the six or seven
-              jobs that happened to ship a dedicated mobile capture. `devices`
-              is optional per-case data (site.js) — when it's missing, both
-              panes fall back to the same cover shot the card already uses, so
-              a case with only one production still reads as "responsive",
-              never as a placeholder or a missing asset. */}
+          {/* The full-size device pair. The board shows one of these at a time
+              as the reward for holding a card; the overlay is where it is the
+              subject — one per case, at panel width, with real alt text. Every
+              case gets shown on real hardware, not just the jobs that happened
+              to ship a dedicated mobile capture: when `devices` is missing,
+              both panes fall back to the same cover shot the tile uses, so a
+              case with one production still reads as "responsive", never as a
+              placeholder or a missing asset. */}
           <div className="overlay-devices">
-            {/* Convention over configuration: make-case-screens.mjs writes
-                screen-desktop/screen-mobile into every case folder, so the
-                slug alone resolves the pair and a new case gets its showcase
-                the moment the script is re-run — no 17 hand-edits, nothing to
-                forget. `devices` stays as the explicit override for a case
-                that has real client screenshots worth using instead, and the
-                cover is the last resort so a missing file is never a hole. */}
             <DeviceShowcase
               desktop={c.devices?.desktop || `/img/cases/${c.slug}/screen-desktop.webp`}
               mobile={c.devices?.mobile || `/img/cases/${c.slug}/screen-mobile.webp`}
@@ -377,21 +878,7 @@ export function Work() {
             >{f.label}</button>
           ))}
         </div>
-        <motion.div className="work-grid" layout>
-          <AnimatePresence mode="popLayout">
-            {list.map((c) => (
-              <motion.div
-                key={c.slug} layout
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.45, ease: EASE }}
-              >
-                <CaseCard c={c} onOpen={openCase} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        <Mosaic key={filter} list={list} onOpen={openCase} />
       </div>
 
       <AnimatePresence>

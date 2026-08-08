@@ -101,12 +101,31 @@
 .stg {
   --spring: linear(0, .0088 1.1%, .0346 2.3%, .1442 4.9%, .7688 14.2%, .9202 16.7%, 1.0139 19.3%,
     1.0498 21.9%, 1.0546 24.7%, 1.0338 28.2%, .9994 32.6%, .9895 37.3%, .9994 44.2%, 1.0026 55.3%, 1);
+  position: relative; isolation: isolate;
   margin: clamp(26px, 4vh, 46px) var(--pad) 0;
   display: grid; grid-template-columns: auto minmax(0, 1fr);
   gap: clamp(18px, 3vw, 40px); align-items: center;
   border: 1px solid var(--line); border-radius: 28px;
   background: var(--bg-2);
   padding: clamp(20px, 2.6vw, 36px);
+  overflow: hidden;
+}
+/* the card's own light, in the SELECTED app's colours (`--g1`/`--g2` are set
+   inline from site.js). Two pools and a floor: a wash behind the device, a
+   cooler one behind the copy, and an elliptical pool the device stands in so
+   it isn't floating on a flat rectangle. Only the colour transitions. */
+.stg-aura {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(46% 60% at 34% 34%, color-mix(in oklab, var(--g1) 20%, transparent), transparent 70%),
+    radial-gradient(40% 50% at 78% 74%, color-mix(in oklab, var(--g2) 14%, transparent), transparent 72%),
+    radial-gradient(30% 12% at 34% 84%, color-mix(in oklab, var(--g1) 22%, transparent), transparent 70%);
+  transition: background 0.8s var(--ease);
+}
+/* a hairline the device stands on, so the pool reads as a floor and not a blur */
+.stg-aura::after {
+  content: ''; position: absolute; left: 8%; width: 46%; bottom: 14%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(242, 240, 247, 0.14) 26%, rgba(242, 240, 247, 0.14) 74%, transparent);
 }
 .stg-panel {
   min-width: 0;
@@ -115,6 +134,9 @@
   justify-content: center; align-items: center;
   gap: clamp(20px, 3vw, 48px);
 }
+/* the fan needs half again the width of a single device — three phones
+   overlapping by a quarter each */
+.stg-panel--fan { grid-template-columns: minmax(300px, 500px) minmax(240px, 400px); }
 
 /* ——— the rail: a real tablist, vertical on desktop ——— */
 .stg-rail { display: flex; flex-direction: column; gap: 12px; }
@@ -170,31 +192,54 @@
   width: 100%; height: 100%; object-fit: fill;
   pointer-events: none; user-select: none;
 }
-/* ——— the unframed device ———
+/* ——— the unframed device: the three-up fan ———
    For an app whose images are rendered mockups (KwaKwa), the frame and the
-   glass above are not rendered at all — the render carries its own phone on a
-   transparent background. One fixed box, `object-fit: contain`, so three
-   cut-outs of slightly different widths cycle without nudging anything. The
-   shadow is a `filter` on the images rather than a box-shadow on the box: the
-   subject is a tilted phone, not a rectangle, and a box-shadow would draw the
-   silhouette of the padding instead of the phone. */
+   glass above are not rendered at all — each render carries its own phone on a
+   transparent background — and all three are on stage together.
+
+   They OVERLAP rather than sitting in a row: three separate phones at full
+   width would each be a third the size and the screens would stop being
+   readable. Overlapping by a quarter puts the middle one in front at full
+   size, with the outer two behind it, lower and turned slightly out — the
+   pose the renders were already composed in.
+
+   The shadow is a `filter` on each image rather than a box-shadow on its box:
+   the subject is a tilted phone, not a rectangle, and a box-shadow would draw
+   the silhouette of the transparent padding instead of the phone. */
+.stg-fan {
+  /* every phone in the SAME grid cell, so the overlap is real overlap and not
+     three flex tracks fighting for a third of the column each — that version
+     rendered each phone at a third the width and the screens stopped being
+     readable at any size */
+  display: grid; place-items: center;
+  grid-template-areas: 'fan';
+  width: 100%;
+  animation: stg-fan-in 0.6s var(--ease) both;
+}
+@keyframes stg-fan-in {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to { opacity: 1; transform: none; }
+}
 .stg-mock {
-  /* a touch wider than the framed device: the render is a TILTED phone
-     inside a padded canvas, so the phone itself only spans ~85% of the box */
-  position: relative; width: clamp(220px, 54vw, 342px);
-  aspect-ratio: 460 / 790;
+  grid-area: fan; position: relative;
+  width: 52%; aspect-ratio: 460 / 790;
+  transition: transform 0.5s var(--ease);
 }
 .stg-mock img {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: contain;
-  opacity: 0; transition: opacity 0.5s var(--ease);
-  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.55)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
+  display: block; width: 100%; height: 100%; object-fit: contain;
+  filter: drop-shadow(0 26px 34px rgba(0, 0, 0, 0.55)) drop-shadow(0 5px 12px rgba(0, 0, 0, 0.4));
 }
-.stg-mock img.is-on { opacity: 1; }
-/* the pips ride under the device rather than inside a screen that isn't there */
-.stg-mock .stg-pips { bottom: -6px; }
-.stg-mock .stg-pips i { background: rgba(242, 240, 247, 0.26); }
-.stg-mock .stg-pips i[data-on='true'] { background: var(--gold); }
+/* Explicit per-child rules rather than a `--i` + `abs()` expression: `abs()`
+   is Chrome 133 / Safari 18, and a browser without it would drop the whole
+   transform and stack all three phones dead centre. */
+.stg-mock:nth-child(1) { z-index: 1; transform: translate(-45%, 5%) rotate(-4deg) scale(0.86); }
+.stg-mock:nth-child(2) { z-index: 3; transform: none; }
+.stg-mock:nth-child(3) { z-index: 1; transform: translate(45%, 5%) rotate(4deg) scale(0.86); }
+/* the fan opens a little under the pointer — the only hover in this section,
+   and it is one transform on three elements */
+.stg-fan:hover .stg-mock:nth-child(1) { transform: translate(-49%, 2%) rotate(-6deg) scale(0.88); }
+.stg-fan:hover .stg-mock:nth-child(3) { transform: translate(49%, 2%) rotate(6deg) scale(0.88); }
+.stg-fan:hover .stg-mock:nth-child(2) { transform: translateY(-6px); }
 
 /* the beat, made visible: one pip per capture of the app on the phone, so the
    reader knows the screen is going to change before it does. Sits INSIDE the
@@ -269,7 +314,11 @@
   }
   .stg-rail button[aria-selected='true']::before { width: 24px; margin-left: -12px; height: 3px; margin-top: 0; }
   .stg-phone { width: clamp(190px, 56vw, 224px); }
-  .stg-mock { width: clamp(220px, 66vw, 264px); }
+  /* the fan tightens rather than shrinking: on a phone the outer two are
+     context, and the middle one has to stay readable */
+  .stg-mock { width: 56%; }
+  .stg-mock:nth-child(1) { transform: translate(-42%, 6%) rotate(-5deg) scale(0.8); }
+  .stg-mock:nth-child(3) { transform: translate(42%, 6%) rotate(5deg) scale(0.8); }
 }
 
 /* ═══════════════════════════════════════════════════════════════

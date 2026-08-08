@@ -1,0 +1,266 @@
+/* ————————————————————————————————————————————————————————
+   work-mosaic.css — the living Mosaic wall for #work. Owned by Work.jsx and
+   imported by nothing else.
+
+   Ported from work-lab.html concept #c2 (`.mosaic`), which is the measured
+   spec. What that prototype proved, and what every rule below exists to keep:
+
+     · sixteen cards in four size classes; SIZE IS THE RANKING, and the
+       ranking is re-argued on a beat — a block of the wall re-tiles every
+       2.6s with a 3.4s eased move, so a move is always in flight;
+     · every photograph BREATHES on its own 27–48s period (Work.jsx owns the
+       WAAPI animation — no CSS rule here may ever write `img`'s transform);
+     · the wall's total height is a constant number of grid rows, so nothing
+       below #work reflows while it recomposes.
+
+   CASCADE NOTE (the same trap device-showcase.css documents): main.jsx
+   imports App.jsx before styles.css, so this file lands EARLIER in the
+   bundle and loses any specificity tie against styles.css. Every class here
+   is prefixed `wm-` / `wmosaic` / `wtile`, and none of those prefixes exists
+   anywhere else in the app — there is nothing to tie against. In particular
+   the tile is deliberately NOT `.case-card`: styles.css gives that class a
+   permanent `transform: perspective(...) rotateX/rotateY` for the pointer
+   tilt, and a FLIP that writes the same property would fight it every beat.
+
+   THE PHOTOGRAPH IS A THREE-LAYER STACK, and each motion owns exactly ONE
+   node. This is the whole reason the three effects compose instead of
+   overwriting each other — do not collapse it:
+
+     .wm-ph    the FLIP counter-scale and the hover push-in. Rests at
+               scale(1.04); that 4% is deliberate slack for the drift below.
+     .wm-par   the pointer drift. Inline transform written from a rAF and
+               CSS-transitioned, so the crop TRAILS the cursor.
+     img       the ambient breath. Owned by a Web Animations animation in
+               Work.jsx, which is precisely why nothing else may write it.
+
+   Only .wm-ph is ever scaled non-uniformly, and only for the length of a
+   FLIP where it is the exact inverse of the tile's own box scale. .wm-par
+   translates and img scales uniformly, so the composite crop can never
+   stretch — it is only ever cropped tighter or looser.
+   ———————————————————————————————————————————————————————— */
+
+.wmosaic {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: clamp(118px, 12.2vw, 176px);
+  gap: clamp(9px, 1vw, 16px);
+}
+/* Filter changes swap the whole wall at once (the FLIP controller owns the
+   tiles imperatively, so a per-card layout animation would be two systems
+   writing one transform). Opacity only — never a transform, which the FLIP
+   would inherit and fight. */
+.wmosaic { animation: wm-wall-in 420ms var(--ease) both; }
+@keyframes wm-wall-in { from { opacity: 0; } to { opacity: 1; } }
+
+.wtile {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 46px -30px #000;
+  transition: transform 0.55s var(--ease), opacity 0.45s var(--ease), border-color 0.4s var(--ease);
+  /* FLIP maths is written top-left-relative, so the box must scale from 0,0 */
+  transform-origin: 0 0;
+  color: inherit;
+}
+.wtile:hover, .wtile:focus-visible {
+  transform: translateY(-6px);
+  border-color: rgba(242, 28, 140, 0.5);
+  outline: none;
+}
+/* a card mid-move overlaps its neighbours — it has to sit on top of them */
+.wtile.is-moving { z-index: 6; transition: none; }
+.wtile.is-moving:hover { transform: none; }
+/* The wall answers as ONE surface: enter it and the cards you are not on step
+   back a little, so the card under the pointer is lit without anything having
+   to grow. Opacity only — no filter, nothing that touches layout.
+   @media(hover:hover) because a touch browser keeps :hover on the last thing
+   tapped: without it one tap would leave fifteen cards dimmed for good. */
+@media (hover: hover) { .wmosaic:hover .wtile:not(:hover) { opacity: 0.7; } }
+.wmosaic:focus-within .wtile:not(:focus-visible) { opacity: 0.7; }
+
+.wtile .wm-ph {
+  position: absolute; inset: 0; z-index: 0;
+  transform: scale(1.04);
+  transition: transform 0.7s var(--ease), opacity 0.5s var(--ease);
+}
+.wtile:hover .wm-ph, .wtile:focus-visible .wm-ph { transform: scale(1.1); }
+.wtile .wm-par { position: absolute; inset: 0; transition: transform 0.6s var(--ease); }
+.wtile .wm-par img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wtile .wm-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(to top, rgba(8, 4, 14, 0.93) 0, rgba(8, 4, 14, 0.72) 26%, rgba(8, 4, 14, 0.14) 62%, transparent 88%);
+}
+/* the caption is counter-scaled during a move, anchored to the bottom-left
+   corner it already sits in, so the type never stretches with the box */
+.wtile .wm-cap {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 3;
+  padding: clamp(12px, 1.3vw, 20px);
+  transform-origin: 0 100%;
+  text-align: left;
+}
+.wtile .wm-rank {
+  font-family: var(--display); font-weight: 560; font-size: 0.62rem;
+  letter-spacing: 0.2em; color: var(--magenta); display: block; margin-bottom: 6px;
+}
+.wtile h3 {
+  font-family: var(--display); font-weight: 600; letter-spacing: -0.02em;
+  line-height: 1.06; font-size: clamp(0.98rem, 1.25vw, 1.28rem);
+}
+.wtile .wm-cap.is-lead h3 { font-size: clamp(1.3rem, 2.2vw, 2.1rem); }
+.wtile .wm-rev {
+  display: block; overflow: hidden; max-height: 0; opacity: 0;
+  transform: translateY(6px);
+  transition: max-height 0.5s var(--ease), opacity 0.4s var(--ease), transform 0.5s var(--ease);
+}
+.wtile:hover .wm-rev, .wtile:focus-visible .wm-rev { max-height: 150px; opacity: 1; transform: translateY(0); }
+/* the biggest cards are big enough to say the line without being asked */
+.wtile .wm-cap.is-lead .wm-rev { max-height: 150px; opacity: 1; transform: none; }
+.wtile .wm-rev p { font-size: 0.83rem; line-height: 1.36; color: #ded7ef; margin-top: 7px; }
+.wtile .wm-meta {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px;
+  font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: #a396c4;
+}
+.wtile .wm-meta span + span { padding-left: 8px; border-left: 1px solid rgba(242, 240, 247, 0.18); }
+.wtile .wm-meta .wm-market { color: var(--magenta); }
+.wtile .wm-thread {
+  position: absolute; left: 0; right: 0; top: 0; height: 3px; z-index: 4;
+  transform-origin: 0 50%; transform: scaleX(0);
+  transition: transform 0.55s var(--ease);
+  background: repeating-linear-gradient(90deg,
+    var(--yarn-pink) 0 12px, var(--yarn-violet) 12px 24px,
+    var(--yarn-blue) 24px 36px, var(--yarn-gold) 36px 48px);
+}
+.wtile:hover .wm-thread, .wtile:focus-visible .wm-thread { transform: scaleX(1); }
+
+/* The seal that says the card opens something. Inline SVG rather than the
+   felt <WoolIcon> the old grid card used: sixteen tiles means sixteen more
+   lazy <img> for the image budget to shepherd, for a 30px mark. */
+.wtile .wm-seal {
+  position: absolute; right: 12px; bottom: 12px; z-index: 5;
+  width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--magenta); color: #fff;
+  opacity: 0; transform: scale(0.6);
+  transition: opacity 0.35s var(--ease), transform 0.45s var(--ease);
+}
+.wtile:hover .wm-seal, .wtile:focus-visible .wm-seal { opacity: 1; transform: scale(1); }
+.wtile .wm-seal svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The reel badge, carried over from the old grid card. No case in site.js
+   currently ships `video`, but the field is supported and the badge is the
+   only thing that tells a visitor the tile holds one. */
+.wtile .wm-reel {
+  position: absolute; top: 12px; left: 12px; z-index: 5;
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 0.18em; color: #fff;
+  background: rgba(242, 28, 140, 0.9); border-radius: 999px; padding: 4px 10px;
+  box-shadow: 0 4px 18px rgba(242, 28, 140, 0.45);
+}
+.wtile .wm-video {
+  position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0; transition: opacity 0.45s var(--ease); pointer-events: none;
+}
+.wtile:hover .wm-video { opacity: 1; }
+
+/* ── the device preview ──────────────────────────────────────────────────────
+   The MacBook + iPhone pair is the REWARD for stopping on a card: the wall is
+   photography at rest, and the card you hold shows the site itself running on
+   real hardware. Exactly one of these is mounted at a time on a fine pointer
+   (Work.jsx keys it off the same 200ms intent timer that drives the size
+   promotion), so the two heavy frame PNGs are decoded once, never sixteen
+   times — which is what the previous grid did.
+
+   It is a sibling of .wm-ph, NOT a child: .wm-ph carries the FLIP
+   counter-scale and would drag the frames through the same non-uniform
+   scale. Work.jsx counter-scales this layer about its own CENTRE during a
+   move (scale(1/sx, 1/sy)), the same trick .wm-cap uses about its corner. */
+.wtile .wm-dev {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8% 6% 14%;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  animation: wm-dev-in 520ms var(--ease) both;
+}
+@keyframes wm-dev-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.965); }
+  to   { opacity: 1; transform: none; }
+}
+/* the photograph steps back so the product shot is the read, and the scrim
+   deepens under it so the caption stays legible over the frames */
+/* `data-dev`, not a class: React owns this attribute, and every className on a
+   tile has to stay a constant string or a re-render would clobber the size
+   class the FLIP controller wrote there. */
+.wtile[data-dev] .wm-ph { opacity: 0.28; }
+.wtile[data-dev] .wm-scrim { background: linear-gradient(to top, rgba(8, 4, 14, 0.95) 0, rgba(8, 4, 14, 0.78) 34%, rgba(8, 4, 14, 0.5) 100%); }
+/* the pair is laid out for a ~620px panel; inside a tile it may never overflow */
+.wtile .wm-dev .devshow { max-width: 100%; margin: 0; }
+
+/* ── the size classes: this is the ranking ───────────────────────────────── */
+.wtile.wm-h { grid-column: span 4; grid-row: span 2; }
+.wtile.wm-f { grid-column: span 2; grid-row: span 2; }
+.wtile.wm-t { grid-column: span 1; grid-row: span 2; }
+.wtile.wm-w { grid-column: span 2; grid-row: span 1; }
+.wtile.wm-s { grid-column: span 1; grid-row: span 1; }
+
+/* ── the beat indicator ──────────────────────────────────────────────────────
+   One line under the wall that says out loud what the wall is doing, and
+   reports whether the cycle is running. `.is-held` is toggled by Work.jsx. */
+.wmosaic-note {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px;
+  margin-top: 18px; font-size: 0.68rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.wmosaic-note b { color: var(--ink-dim); font-weight: 500; }
+.wmosaic-note .wm-pulse {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--magenta); margin-right: 8px; vertical-align: middle;
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+}
+/* No infinite CSS animation on this dot on purpose: it would be the one thing
+   in #work still on the compositor when the whole wall is parked off-screen.
+   Work.jsx drives `.is-beating` from the actual beat instead, so the dot
+   reports a real event rather than decorating. */
+.wmosaic-note .wm-pulse { opacity: 0.28; transform: scale(0.7); }
+.wmosaic-note.is-beating .wm-pulse { opacity: 1; transform: scale(1); }
+
+@media (max-width: 1000px) {
+  /* Two columns: the wall settles. The size switching is turned off in JS
+     below 1001px and every block is pinned to its base map, which at two
+     columns tiles exactly — no holes and no card narrower than a column. */
+  .wmosaic { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: clamp(112px, 17vw, 168px); }
+  .wtile.wm-h { grid-column: span 2; grid-row: span 1; }
+  .wtile.wm-f { grid-column: span 2; grid-row: span 2; }
+  .wtile.wm-w { grid-column: span 2; grid-row: span 1; }
+  /* m-t must be named too: a tall card in a 2-col grid strands a half row */
+  .wtile.wm-t { grid-column: span 1; grid-row: span 1; }
+  .wtile.wm-s { grid-column: span 1; grid-row: span 1; }
+}
+@media (max-width: 640px) {
+  /* One column: the row-span ladder stops meaning anything, so each class
+     becomes an aspect ratio instead and the wall keeps its rhythm. Every size
+     class has to be named — `.wtile { grid-column: 1 }` alone loses to
+     `.wtile.wm-f { grid-column: span 2 }` above, which pushed half the wall
+     into an implicit second column of zero width and collapsed six tiles to
+     0x0 in the lab. */
+  .wmosaic { grid-template-columns: 1fr; grid-auto-rows: auto; gap: 10px; }
+  .wtile.wm-h, .wtile.wm-f, .wtile.wm-t, .wtile.wm-w, .wtile.wm-s { grid-column: 1; grid-row: auto; }
+  .wtile.wm-h { aspect-ratio: 5 / 4; }
+  .wtile.wm-f { aspect-ratio: 5 / 4; }
+  .wtile.wm-t { aspect-ratio: 3 / 4; }
+  .wtile.wm-w { aspect-ratio: 16 / 9; }
+  .wtile.wm-s { aspect-ratio: 4 / 3; }
+  .wtile .wm-rev { max-height: 150px; opacity: 1; transform: none; }
+  .wtile .wm-seal { opacity: 0.85; transform: scale(1); width: 26px; height: 26px; right: 10px; bottom: 10px; }
+  .wtile .wm-thread { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wmosaic { animation: none; }
+  .wtile, .wtile .wm-ph, .wtile .wm-par, .wtile .wm-rev, .wtile .wm-seal, .wtile .wm-thread { transition: none; }
+  .wtile:hover, .wtile:focus-visible { transform: none; }
+  .wtile .wm-dev { animation: none; }
+  .wtile .wm-rev { max-height: 150px; opacity: 1; transform: none; }
+}

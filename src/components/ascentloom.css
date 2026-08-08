@@ -1,6 +1,8 @@
 /* #ascent — the climb up the inside of a loom. */
 
-.al { position: relative; height: 560vh; }
+/* 420vh, not 560 — the first cut was long enough that the middle read as
+   'nothing is happening' rather than as a climb */
+.al { position: relative; height: 420vh; }
 
 .al-pin {
   position: sticky; top: 0;
@@ -46,7 +48,10 @@
   display: grid; grid-template-rows: auto 1fr auto;
   pointer-events: none;
 }
-.al-top { display: flex; flex-direction: column; gap: 12px; }
+/* Explicit cells for all four HUD blocks. The intro and the stage deliberately
+   share row 2 (they cross-fade); without a column both they and everything after
+   them auto-place into a second implicit column and the layout slides right. */
+.al-top { grid-row: 1; grid-column: 1; display: flex; flex-direction: column; gap: 12px; }
 .al-alt { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .al-m {
   font-family: 'LOOM Bloom', var(--display), sans-serif;
@@ -64,7 +69,16 @@
 
 /* max-width belongs on the blurb, not the block — a 132px headline inside a
    30ch box overflows to the right and reads as badly off-centre */
-.al-stage { align-self: center; justify-self: center; text-align: center; width: 100%; }
+.al-intro {
+  grid-row: 2; grid-column: 1;
+  align-self: center; justify-self: center;
+  max-width: 40ch; text-align: center;
+  font-size: clamp(15px, 1.6vw, 20px); line-height: 1.55;
+  color: rgba(255, 255, 255, 0.86);
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
+}
+
+.al-stage { grid-row: 2; grid-column: 1; align-self: center; justify-self: center; text-align: center; width: 100%; }
 .al-h2 {
   font-family: 'LOOM Bloom', var(--display), sans-serif;
   font-weight: 400;
@@ -93,13 +107,18 @@
 .al-rail-row.is-live i { width: 46px; opacity: 1; background: var(--magenta); }
 
 .al-passing {
-  align-self: end; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: rgba(255, 255, 255, 0.65);
+  grid-row: 3; grid-column: 1;
+  align-self: end; max-width: 58ch;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+  font-size: 13px; line-height: 1.55; color: rgba(255, 255, 255, 0.66);
+}
+.al-passing-tag {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--magenta);
 }
 .al-passing b {
   color: #fff; font-weight: 500;
   letter-spacing: 0.14em; text-transform: uppercase; font-size: 11px;
-  margin-right: 8px;
 }
 
 /* ————————————————————————————————— the close */

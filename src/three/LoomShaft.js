@@ -21,14 +21,17 @@ const BANDS = [
   { at: 0.92, c: 0x05060a },
 ]
 
-const WARPS = 84
+const WARPS = 72
+const INNER_WARPS = 34
+const INNER_RADIUS = 3.5
 const RADIUS = 7
 const HEIGHT = 260
 const RINGS = 6
 const CLIMB = 178          // world units travelled over the whole section
 
 export class LoomShaft {
-  constructor(canvas, THREE, { reduced = false } = {}) {
+  constructor(canvas, THREE, opts = {}) {
+    const { reduced = false } = opts
     this.THREE = THREE
     this.canvas = canvas
     this.reduced = reduced
@@ -56,7 +59,7 @@ export class LoomShaft {
     this.shaft = new THREE.Group()
     scene.add(this.shaft)
 
-    const geo = new THREE.BoxGeometry(0.055, HEIGHT, 0.055)
+    const geo = new THREE.BoxGeometry(0.05, HEIGHT, 0.05)
     // NOT vertexColors — BoxGeometry has no colour attribute, so that flag makes
     // the shader read a missing attribute and every thread comes out black.
     // instanceColor is enabled automatically by setColorAt below.
@@ -64,14 +67,27 @@ export class LoomShaft {
     const warp = new THREE.InstancedMesh(geo, mat, WARPS)
     const m = new THREE.Matrix4()
     const col = new THREE.Color()
+    // a real warp is not a perfect cylinder — each thread gets a hair of tilt and
+    // its own radius so the shaft reads as thread, not as a fence
+    let sd = 3
+    const rr = () => (sd = (sd * 16807) % 2147483647) / 2147483647
+    const e = new THREE.Euler()
+    const q = new THREE.Quaternion()
+    const vpos = new THREE.Vector3()
+    const one = new THREE.Vector3(1, 1, 1)
     for (let i = 0; i < WARPS; i++) {
       const a = (i / WARPS) * Math.PI * 2
-      m.makeTranslation(Math.cos(a) * RADIUS, HEIGHT / 2 - 30, Math.sin(a) * RADIUS)
+      const r = RADIUS + (rr() - 0.5) * 0.5
+      vpos.set(Math.cos(a) * r, HEIGHT / 2 - 30, Math.sin(a) * r)
+      e.set((rr() - 0.5) * 0.02, 0, (rr() - 0.5) * 0.02)
+      q.setFromEuler(e)
+      m.compose(vpos, q, one)
       warp.setMatrixAt(i, m)
-      col.setHex(YARNS[i % YARNS.length])
-      // every fourth thread is a house yarn, the rest are pale linen — that
-      // ratio is what stops it reading as a rainbow
-      warp.setColorAt(i, i % 4 === 0 ? col : col.setHex(0xefe7da).multiplyScalar(0.62))
+      // one thread in six is a house yarn, the rest pale linen — any more colour
+      // and the shaft reads as a barcode instead of cloth
+      warp.setColorAt(i, i % 6 === 0
+        ? col.setHex(YARNS[(i / 6) % YARNS.length])
+        : col.setHex(0xefe7da).multiplyScalar(0.5 + rr() * 0.25))
     }
     warp.instanceMatrix.needsUpdate = true
     // without this the colour buffer is never uploaded and every thread renders
@@ -80,9 +96,27 @@ export class LoomShaft {
     this.shaft.add(warp)
     this.warp = warp
 
+    // an inner shell, closer to the camera and dimmer. Two shells at different
+    // radii is what makes the climb read as depth rather than a flat backdrop.
+    const inner = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({
+      color: 0xffffff, transparent: true, opacity: 0.5, fog: true,
+    }), INNER_WARPS)
+    for (let i = 0; i < INNER_WARPS; i++) {
+      const a = (i / INNER_WARPS) * Math.PI * 2 + 0.14
+      vpos.set(Math.cos(a) * INNER_RADIUS, HEIGHT / 2 - 30, Math.sin(a) * INNER_RADIUS)
+      m.compose(vpos, q.identity(), one)
+      inner.setMatrixAt(i, m)
+      inner.setColorAt(i, col.setHex(0xefe7da).multiplyScalar(0.34))
+    }
+    inner.instanceMatrix.needsUpdate = true
+    if (inner.instanceColor) inner.instanceColor.needsUpdate = true
+    this.shaft.add(inner)
+
     // ————— weft: one ring per territory, each with a shuttle running it
     this.rings = []
     this.shuttles = []
+    this.labels = []
+    const labels = opts.labels || []
     // The territory rings have to be fat enough to read as a band passing the
     // camera, not a hairline. Thin filler rings sit between them so the shaft
     // looks woven the whole way up rather than empty between territories.
@@ -103,6 +137,28 @@ export class LoomShaft {
       ring.position.y = 16 + i * 27
       this.shaft.add(ring)
       this.rings.push(ring)
+
+      // the ring's own label, drawn to a canvas and hung in 3D space. Without
+      // this the rings are abstract and nobody can tell what they just passed.
+      if (labels[i]) {
+        const cv = document.createElement('canvas')
+        cv.width = 1024; cv.height = 256
+        const cx2 = cv.getContext('2d')
+        cx2.fillStyle = '#ffffff'
+        cx2.font = '600 120px "LOOM Bloom", system-ui, sans-serif'
+        cx2.textAlign = 'center'
+        cx2.textBaseline = 'middle'
+        cx2.fillText(labels[i].toUpperCase(), 512, 128)
+        const tex = new THREE.CanvasTexture(cv)
+        tex.anisotropy = 2
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: tex, transparent: true, opacity: 0.9, depthWrite: false, fog: true,
+        }))
+        sprite.scale.set(7.2, 1.8, 1)
+        sprite.position.set(0, ring.position.y + 2.4, 0)
+        this.shaft.add(sprite)
+        this.labels.push(sprite)
+      }
 
       const sh = new THREE.Mesh(shuttleGeo, new THREE.MeshBasicMaterial({ color: 0xefe7da }))
       sh.position.y = ring.position.y
@@ -166,22 +222,22 @@ export class LoomShaft {
     camera.position.y += (y - camera.position.y) * 0.12
 
     // the shaft funnels in near the top: the threads close overhead
-    const s = 1 - Math.max(0, (p - 0.62) / 0.38) * 0.66
+    const s = 1 - Math.max(0, (p - 0.70) / 0.30) * 0.42
     this.shaft.scale.set(s, 1, s)
-    this.shaft.rotation.y = this.t * 0.03
+    this.shaft.rotation.y = this.t * 0.012
 
     // look slightly up the shaft, with a little mouse parallax
     this.mouse.x += (this.aim.x - this.mouse.x) * 0.06
     this.mouse.y += (this.aim.y - this.mouse.y) * 0.06
     camera.rotation.set(
-      0.22 + this.mouse.y * 0.09,
-      this.mouse.x * 0.16,
-      Math.sin(this.t * 0.14) * 0.012
+      0.16 + this.mouse.y * 0.06,
+      this.mouse.x * 0.1,
+      Math.sin(this.t * 0.1) * 0.006
     )
 
     // shuttles run their rings
     for (let i = 0; i < this.shuttles.length; i++) {
-      const a = this.t * (0.5 + i * 0.09) + i * 1.7
+      const a = this.t * (0.32 + i * 0.05) + i * 1.7
       const r = RADIUS
       this.shuttles[i].position.set(Math.cos(a) * r, this.rings[i].position.y, Math.sin(a) * r)
     }
@@ -190,7 +246,12 @@ export class LoomShaft {
     const c = this.bandColor(p)
     this.fogColor.lerp(c, 0.08)
     this.scene.fog.color.copy(this.fogColor)
-    this.scene.fog.density = 0.03 - p * 0.012
+    this.scene.fog.density = 0.026 - p * 0.011
+
+    for (const sp of this.labels) {
+      const d = Math.abs(sp.position.y - camera.position.y)
+      sp.material.opacity = Math.max(0, Math.min(0.95, 1.25 - d / 16))
+    }
 
     this.stars.material.opacity = Math.max(0, (p - 0.55) / 0.4) * 0.9
 

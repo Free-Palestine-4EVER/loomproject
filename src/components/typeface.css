@@ -100,8 +100,14 @@
 
 /* ——————————————————————————————————————— tester */
 .tf-controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+/* Five cut names in one pill rail: intrinsically 385px wide, and it is a
+   single non-wrapping flex row, so .tf-controls' own `flex-wrap` could never
+   help it — below a 390px viewport the rail pushed the whole document
+   sideways (measured 385px against a 360px viewport). It wraps now, and
+   `max-width: 100%` stops it claiming more than its column ever again. */
 .tf-switch {
-  display: inline-flex; gap: 3px; padding: 3px;
+  display: inline-flex; flex-wrap: wrap; gap: 3px; padding: 3px;
+  max-width: 100%;
   border: 1px solid var(--line); border-radius: 999px;
   background: rgba(255, 255, 255, 0.03);
 }
@@ -112,6 +118,11 @@
   transition: background 260ms var(--ease), color 260ms var(--ease);
 }
 .tf-switch-btn.is-on { background: var(--magenta); color: #fff; }
+/* on a phone the five cuts fit on one line only if the pills stop carrying
+   desktop padding — cheaper than letting the rail wrap into two rows */
+@media (max-width: 460px) {
+  .tf-switch-btn { padding: 9px 11px; }
+}
 .tf-slider { display: flex; align-items: center; gap: 12px; color: var(--ink-faint); font-size: 12px; }
 .tf-slider span { min-width: 46px; text-align: right; font-variant-numeric: tabular-nums; }
 .tf-slider input {
@@ -256,7 +267,14 @@
 .tf-file:hover .tf-file-arrow { color: #fff; }
 
 /* ——————————————————————————————————————— code + licence */
-.tf-use-grid { display: grid; gap: clamp(24px, 4vw, 56px); grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+/* `minmax(min(320px, 100%), 1fr)`, not `minmax(320px, 1fr)`: a bare 320px
+   floor is wider than this section's content box on a 320px phone (var(--pad)
+   takes 20px a side), so the track — and the document — overflowed by 20px.
+   `min()` lets the floor collapse to the container on anything narrower.
+   `min-width: 0` on the items stops the code block's long lines setting a
+   second floor of their own; .tf-code already scrolls internally. */
+.tf-use-grid { display: grid; gap: clamp(24px, 4vw, 56px); grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
+.tf-use-grid > * { min-width: 0; }
 .tf-use-grid .tf-h2 { margin-bottom: 20px; }
 .tf-code {
   position: relative;

@@ -358,7 +358,7 @@ export function AppsShowcase() {
                 from the simulator, from a LiDAR device, from a real iPhone, and
                 from the running web app. The claim names them rather than
                 implying everything came out of the simulator. */}
-            Seven products, one phone. Pick an icon — every screen wearing a{' '}
+            Seven products, one stage. Pick an icon — every screen wearing a{' '}
             <strong>REAL BUILD</strong> chip was captured from the running app,
             in the simulator, on-device, or in the browser.
           </p>
@@ -372,7 +372,11 @@ export function AppsShowcase() {
         </Reveal>
       </div>
 
-      <div className="stg">
+      {/* the card carries the selected app's own colour pair, which is all the
+          aura and the floor pool below the device are made of — a colour
+          transition on two gradients, not a repaint of anything */}
+      <div className="stg" style={{ '--g1': app.grad[0], '--g2': app.grad[1] }}>
+        <div className="stg-aura" aria-hidden="true" />
         <div className="stg-rail" role="tablist" aria-label="Choose an app" onKeyDown={onKeyDown}>
           {APPS.map((a, n) => (
             <button
@@ -394,7 +398,12 @@ export function AppsShowcase() {
           ))}
         </div>
 
-        <div className="stg-panel" role="tabpanel" id="stg-panel" aria-labelledby={`stg-tab-${i}`}>
+        <div
+          className={`stg-panel${stageShots(app).framed ? '' : ' stg-panel--fan'}`}
+          role="tabpanel"
+          id="stg-panel"
+          aria-labelledby={`stg-tab-${i}`}
+        >
           {/* The device. Two modes, one slot:
 
               framed — the stock iPhone 14 Pro mockup the site already ships
@@ -404,13 +413,16 @@ export function AppsShowcase() {
 
               unframed — the app ships rendered mockups that already contain a
                 device (see `mocks` in site.js). The frame and the glass are not
-                rendered at all; the render is the device.
+                rendered at all; the render is the device, and ALL of them are
+                shown at once as a three-up fan rather than cycled: three cut-out
+                phones read as a product family in one glance, where one phone
+                swapping every two seconds asks the reader to wait for the set.
 
               Only the SELECTED app's images are mounted, because the two modes
               are different boxes — keeping all seven stacked would mean
               stacking a framed phone and a free-standing render in the same
-              slot. The crossfade inside an app is unaffected: ShotCycle still
-              holds that app's captures together and only changes opacity. */}
+              slot. The crossfade inside a framed app is unaffected: ShotCycle
+              still holds that app's captures together and only changes opacity. */}
           <div className="stg-phone-wrap">
             {stageShots(app).framed ? (
               <div className="stg-phone">
@@ -420,8 +432,18 @@ export function AppsShowcase() {
                 <img className="stg-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
               </div>
             ) : (
-              <div className="stg-mock">
-                <ShotCycle key={app.name} app={app} on reduced={reduced} />
+              <div className="stg-fan" key={app.name}>
+                {app.mocks.map((src, n) => (
+                  <div className="stg-mock" key={src}>
+                    <img
+                      src={src}
+                      alt={n === 1 ? `${app.name} — real app screens` : ''}
+                      aria-hidden={n === 1 ? undefined : true}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>

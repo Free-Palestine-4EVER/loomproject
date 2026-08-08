@@ -160,9 +160,13 @@ export const APPS = [
     // for an app that has them and cycles these instead, on the same 2s beat.
     // All three are padded onto one 460 × 790 canvas so the cycle never nudges
     // the device; each phone keeps the position it was composed at.
+    // ordered for the fan, not chronologically: the middle slot is the one
+    // rendered at full size and in front, so the duck-hatching screen (the
+    // shot that says what the app IS) sits there, with chat and the shared
+    // playlist flanking it
     mocks: [
-      '/img/apps/kwakwa-mock-1.webp',
       '/img/apps/kwakwa-mock-2.webp',
+      '/img/apps/kwakwa-mock-1.webp',
       '/img/apps/kwakwa-mock-3.webp',
     ],
     logo: '/img/apps/kwakwa-icon.webp',
