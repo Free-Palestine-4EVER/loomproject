@@ -5,7 +5,7 @@
 import SwiftUI
 
 struct LoomButton<Label: View>: View {
-    enum Style {
+    enum Style: Equatable {
         case primary
         case secondary
         case destructive
@@ -27,10 +27,25 @@ struct LoomButton<Label: View>: View {
         Button(action: action) {
             label
                 .font(LoomFont.body(size: 16, weight: .semibold))
+                .tracking(0.2)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, LoomSpacing.sm + 2)
                 .foregroundStyle(foreground)
                 .background(background)
+                .overlay(alignment: .top) {
+                    // The site's buttons carry no top highlight, but its cards
+                    // and the app's own LoomCard do — this keeps a filled
+                    // LoomButton reading like it belongs to the same raised,
+                    // felted surface family rather than a flat UIKit control.
+                    if style != .destructive {
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.14), Color.white.opacity(0)],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                        .frame(height: 14)
+                        .allowsHitTesting(false)
+                    }
+                }
                 .overlay(border)
                 .clipShape(RoundedRectangle(cornerRadius: LoomRadius.standard, style: .continuous))
         }
@@ -49,7 +64,7 @@ struct LoomButton<Label: View>: View {
     @ViewBuilder private var background: some View {
         switch style {
         case .primary:
-            LoomColor.magenta
+            LinearGradient(colors: [LoomColor.magenta, LoomColor.magentaDeep], startPoint: .top, endPoint: .bottom)
         case .secondary:
             LoomColor.bg3
         case .destructive:

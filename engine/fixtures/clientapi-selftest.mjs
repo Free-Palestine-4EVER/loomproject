@@ -181,19 +181,33 @@ async function main() {
   section('1. requestCode() — unknown vs known handle must be indistinguishable')
   // =======================================================================
 
-  const N_TRIALS = 25
-  let knownTotalMs = 0
-  let unknownTotalMs = 0
+  // Timing is compared on the MEDIAN, not the mean. This assertion is checking for
+  // a *systematic* difference between known and unknown handles; an OS scheduler
+  // preemption or a GC pause is not one, but a single 50ms outlier destroys a mean
+  // of 25 samples and leaves the median untouched. That is exactly the property
+  // wanted here — and this machine routinely runs several Xcode builds at once,
+  // which is when the mean-based version failed.
+  // The threshold stays tight on purpose: widening it until it never flakes would
+  // also make it blind to a real enumeration oracle, which is the whole point of
+  // the check. A warmup pass keeps JIT compilation out of the first samples.
+  const N_TRIALS = 41
+  const knownMs = []
+  const unknownMs = []
   let knownResult, unknownResult
+
+  for (let w = 0; w < 5; w++) {
+    await requestCode('@sofahouse', { store })
+    await requestCode('@totally-unknown-handle-xyz', { store })
+  }
 
   for (let i = 0; i < N_TRIALS; i++) {
     const t0 = performance.now()
     knownResult = await requestCode('@sofahouse', { store })
-    knownTotalMs += performance.now() - t0
+    knownMs.push(performance.now() - t0)
 
     const t1 = performance.now()
     unknownResult = await requestCode('@totally-unknown-handle-xyz', { store })
-    unknownTotalMs += performance.now() - t1
+    unknownMs.push(performance.now() - t1)
   }
 
   assert(JSON.stringify(Object.keys(knownResult).sort()) === JSON.stringify(Object.keys(unknownResult).sort()),
@@ -202,10 +216,33 @@ async function main() {
   assert(knownResult.delivery === 'operator' && unknownResult.delivery === 'operator', 'both report delivery:"operator"')
   assert(JSON.stringify(knownResult) === JSON.stringify(unknownResult), 'response bodies are byte-for-byte identical')
 
-  const avgKnown = knownTotalMs / N_TRIALS
-  const avgUnknown = unknownTotalMs / N_TRIALS
-  console.log(`  timing: known handle avg ${avgKnown.toFixed(3)}ms, unknown handle avg ${avgUnknown.toFixed(3)}ms over ${N_TRIALS} trials`)
-  assert(Math.abs(avgKnown - avgUnknown) < 10, `timing is comparable (delta ${Math.abs(avgKnown - avgUnknown).toFixed(3)}ms < 10ms threshold)`)
+  const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[(s.length - 1) >> 1] }
+  const medKnown = median(knownMs)
+  const medUnknown = median(unknownMs)
+  const delta = Math.abs(medKnown - medUnknown)
+  // Symmetric ratio — whichever side is slower. A one-directional check would have
+  // read "0.24x, fine" here while the known path was actually 4x the unknown one.
+  const hi = Math.max(medKnown, medUnknown)
+  const lo = Math.min(medKnown, medUnknown)
+  const ratio = lo > 0 ? hi / lo : Infinity
+  const slower = medKnown > medUnknown ? 'known' : 'unknown'
+  console.log(`  timing: known handle median ${medKnown.toFixed(3)}ms, unknown handle median ${medUnknown.toFixed(3)}ms over ${N_TRIALS} trials (${slower} slower, ${ratio.toFixed(2)}x)`)
+
+  // The absolute delta is the security-relevant number: over a network, tenths of a
+  // millisecond are unobservable. This is the assertion that matters.
+  assert(delta < 10, `timing is comparable (median delta ${delta.toFixed(3)}ms < 10ms threshold)`)
+
+  // The ratio is an early-warning shape check, but ratios between sub-millisecond
+  // numbers are mostly measurement noise, so it is only enforced once the slower
+  // side is big enough for the comparison to mean anything. Note the two paths do
+  // genuinely different work — a known handle invalidates old codes and inserts a
+  // new one, an unknown handle writes nothing — so this will never be exactly 1x.
+  const RATIO_FLOOR_MS = 1
+  if (hi >= RATIO_FLOOR_MS) {
+    assert(ratio < 3, `known/unknown cost within 3x (got ${ratio.toFixed(2)}x, ${slower} slower — a widening gap here is an enumeration oracle)`)
+  } else {
+    console.log(`  note: ratio ${ratio.toFixed(2)}x not asserted — both medians under ${RATIO_FLOOR_MS}ms, so the ratio is noise, not signal`)
+  }
 
   // Unknown handle must never have created a code record at all.
   const codesForUnknown = await store.list('clientauthcodes', (r) => r.handle === 'totally-unknown-handle-xyz')

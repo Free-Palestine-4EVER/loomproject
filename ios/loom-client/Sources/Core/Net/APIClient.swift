@@ -26,20 +26,21 @@ final class APIClient: @unchecked Sendable {
     /// immediately without re-creating the client.
     @MainActor var authToken: String?
 
-    /// Wired at app launch to DecisionQueue's `sendHandler`, so the queue can
-    /// call back into the client without a circular type dependency.
-    let decisionQueue: DecisionQueue
+    /// The offline decision queue. `lazy` + `@MainActor` rather than a
+    /// constructor argument: `DecisionQueue` is itself MainActor-isolated
+    /// (it's `@Observable` for the UI to read `pending` from), and a plain
+    /// `init` cannot evaluate a MainActor-isolated default argument. Being
+    /// `lazy` defers construction to first access, which — since every
+    /// access in this file goes through a MainActor hop — is always safe.
+    @MainActor lazy var decisionQueue = DecisionQueue()
 
-    init(baseURL: URL = URL(string: "http://localhost:4950")!, session: URLSession = .shared, decisionQueue: DecisionQueue = DecisionQueue()) {
+    init(baseURL: URL = URL(string: "http://localhost:4950")!, session: URLSession = .shared) {
         self.baseURL = baseURL
         self.session = session
-        self.decisionQueue = decisionQueue
     }
 
     /// Wires the offline queue's retry path back into this client. Call once
-    /// from a MainActor context at launch (RootView's `.task`) — not from
-    /// `init`, since `init` itself is nonisolated and `decisionQueue` is
-    /// MainActor-isolated.
+    /// from a MainActor context at launch (RootView's `.task`).
     @MainActor
     func attachDecisionQueue() {
         decisionQueue.sendHandler = { [weak self] pending in
@@ -88,7 +89,9 @@ final class APIClient: @unchecked Sendable {
             let post = try await sendDecision(postId: postId, verdict: verdict, note: note)
             return .sent(post)
         } catch let error as APIError where error.isConnectivity {
-            let item = await decisionQueue.enqueue(postId: postId, verdict: verdict, note: note)
+            let item = await MainActor.run {
+                decisionQueue.enqueue(postId: postId, verdict: verdict, note: note)
+            }
             return .queued(item)
         }
     }

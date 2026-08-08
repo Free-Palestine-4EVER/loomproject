@@ -14,7 +14,7 @@ struct RootView: View {
             if session.isRestoring {
                 LoadingState(caption: Text(L10n.Common.loading.string(for: languageManager.language)))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(LoomColor.bg)
+                    .loomBackdrop()
             } else if session.isAuthenticated {
                 MainTabView()
             } else {

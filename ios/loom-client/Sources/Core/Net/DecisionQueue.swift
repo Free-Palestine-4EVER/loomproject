@@ -30,7 +30,11 @@ final class DecisionQueue {
         let directory = base.appendingPathComponent("LOOMClient", isDirectory: true)
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         fileURL = directory.appendingPathComponent("pending-decisions.json")
-        load()
+        guard let data = try? Data(contentsOf: fileURL),
+              let items = try? JSONDecoder.loomAPI.decode([PendingDecision].self, from: data) else {
+            return
+        }
+        pending = items
     }
 
     func isPending(postId: String) -> Bool {
@@ -73,13 +77,5 @@ final class DecisionQueue {
     private func persist() {
         guard let data = try? JSONEncoder.loomAPI.encode(pending) else { return }
         try? data.write(to: fileURL, options: .atomic)
-    }
-
-    private func load() {
-        guard let data = try? Data(contentsOf: fileURL),
-              let items = try? JSONDecoder.loomAPI.decode([PendingDecision].self, from: data) else {
-            return
-        }
-        pending = items
     }
 }

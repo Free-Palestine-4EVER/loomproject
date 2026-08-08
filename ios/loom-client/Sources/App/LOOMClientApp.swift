@@ -10,6 +10,10 @@ struct LOOMClientApp: App {
     @State private var languageManager = LanguageManager()
     @State private var networkMonitor = NetworkMonitor()
 
+    init() {
+        LoomChrome.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()

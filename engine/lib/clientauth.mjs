@@ -55,7 +55,18 @@ async function findClientByHandle(handle, store) {
   const normalized = normalizeHandle(handle)
   if (!normalized) return null
   const clients = await store.list('clients')
-  return clients.find((c) => !c.archivedAt && normalizeHandle(c.handle) === normalized) || null
+  // Deliberately scans the WHOLE list instead of `.find()`, which short-circuits
+  // on a match. With an early exit, a known handle returns as soon as it hits its
+  // record while an unknown handle always walks every client — a timing signal
+  // that says "this handle exists", and one that widens as the client list grows.
+  // Doing the same work either way removes the oracle at the source rather than
+  // relying on the difference staying too small to measure.
+  let found = null
+  for (const c of clients) {
+    const isMatch = !c.archivedAt && normalizeHandle(c.handle) === normalized
+    if (isMatch && found === null) found = c
+  }
+  return found
 }
 
 // ---------------------------------------------------------------------------
@@ -148,7 +159,13 @@ export async function verifyCode(handle, code, { store = realStore } = {}) {
   const now = nowIso()
   const windowStart = new Date(Date.now() - ATTEMPT_WINDOW_MS).toISOString()
 
-  const recentAttempts = await store.list('clientauthattempts', (a) => a.handle === normalized && a.at >= windowStart)
+  // Only FAILED attempts count toward the lockout. Brute force is made of wrong
+  // guesses, so counting successes buys no security and costs real logins: with
+  // successes counted, the 6th correct sign-in inside 15 minutes was refused —
+  // which an App Store reviewer retrying the demo account across devices and
+  // reinstalls would hit (guideline 2.1), and so would a client using a phone
+  // and an iPad. Successes are still recorded, just not counted.
+  const recentAttempts = await store.list('clientauthattempts', (a) => a.handle === normalized && a.at >= windowStart && a.ok !== true)
   if (recentAttempts.length >= MAX_ATTEMPTS) {
     return { ok: false, status: 401, error: { code: 'LOCKED_OUT', message: 'Too many attempts. Ask LOOM for a fresh code in 15 minutes.' } }
   }
@@ -175,7 +192,19 @@ export async function verifyCode(handle, code, { store = realStore } = {}) {
     return { ok: false, status: 401, error: { code: 'INVALID_CODE', message: 'That code is wrong or expired.' } }
   }
 
-  await store.update('clientauthcodes', match.id, { consumedAt: now })
+  // A `permanent` code is NOT consumed. This exists for exactly one reason:
+  // App Store review. The app is gated behind operator-issued codes that expire
+  // in 10 minutes and are read out by a human, so a reviewer has no way in, and
+  // guideline 2.1 rejects login-gated apps without a working demo account.
+  //
+  // The flag is deliberately narrow — it only skips the consume step. The
+  // attempt limiter, the timing-safe compare, the expiry check and the
+  // client-scoping all still apply, so a permanent code is a reusable password
+  // for ONE seeded demo client, not a bypass. Only seed-demo-client.mjs sets
+  // it, and it must never be set on a real client.
+  if (!match.permanent) {
+    await store.update('clientauthcodes', match.id, { consumedAt: now })
+  }
   pendingCodesMemory.delete(normalized)
 
   const client = await store.get('clients', match.clientId)

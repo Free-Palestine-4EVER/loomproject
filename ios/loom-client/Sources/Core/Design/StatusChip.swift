@@ -15,13 +15,21 @@ struct StatusChip: View {
 
     var body: some View {
         text
-            .font(LoomFont.body(size: 13, weight: .semibold))
+            .font(LoomFont.body(size: 12, weight: .bold))
+            .tracking(0.2)
             .foregroundStyle(tint)
             .padding(.horizontal, LoomSpacing.sm)
             .padding(.vertical, LoomSpacing.xxs)
-            .background(tint.opacity(0.16))
+            .background(
+                // A soft top-to-bottom fade rather than a flat fill — same
+                // "raised felt" read as LoomCard's highlight, at chip scale.
+                LinearGradient(
+                    colors: [tint.opacity(0.22), tint.opacity(0.12)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
             .clipShape(Capsule())
-            .overlay(Capsule().strokeBorder(tint.opacity(0.35), lineWidth: 1))
+            .overlay(Capsule().strokeBorder(tint.opacity(0.4), lineWidth: 1))
     }
 }
 

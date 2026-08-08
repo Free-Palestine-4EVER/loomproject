@@ -7,18 +7,30 @@ struct EmptyState: View {
     let systemImage: String
     let title: Text
     let message: Text?
+    /// Optional woven artwork (an Assets.xcassets image name, e.g. "EmptyWoven")
+    /// shown instead of the SF Symbol. Additive: every existing call site keeps
+    /// working unchanged, since this defaults to nil.
+    let imageName: String?
 
-    init(systemImage: String, title: Text, message: Text? = nil) {
+    init(systemImage: String, title: Text, message: Text? = nil, imageName: String? = nil) {
         self.systemImage = systemImage
         self.title = title
         self.message = message
+        self.imageName = imageName
     }
 
     var body: some View {
         VStack(spacing: LoomSpacing.sm) {
-            Image(systemName: systemImage)
-                .font(.system(size: 34, weight: .light))
-                .foregroundStyle(LoomColor.inkFaint)
+            if let imageName {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 64, height: 64)
+            } else {
+                Image(systemName: systemImage)
+                    .font(.system(size: 34, weight: .light))
+                    .foregroundStyle(LoomColor.inkFaint)
+            }
             title
                 .font(LoomFont.body(size: 17, weight: .semibold))
                 .foregroundStyle(LoomColor.ink)
@@ -38,18 +50,30 @@ struct ErrorState: View {
     let message: Text
     let retryTitle: Text
     let onRetry: (() -> Void)?
+    /// Optional woven artwork (e.g. "ErrorWoven": a snapped weft thread) shown
+    /// instead of the SF Symbol. Additive — defaults to nil, existing call
+    /// sites are unaffected.
+    let imageName: String?
 
-    init(message: Text, retryTitle: Text, onRetry: (() -> Void)? = nil) {
+    init(message: Text, retryTitle: Text, onRetry: (() -> Void)? = nil, imageName: String? = nil) {
         self.message = message
         self.retryTitle = retryTitle
         self.onRetry = onRetry
+        self.imageName = imageName
     }
 
     var body: some View {
         VStack(spacing: LoomSpacing.md) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 30, weight: .light))
-                .foregroundStyle(LoomColor.gold)
+            if let imageName {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 64, height: 64)
+            } else {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 30, weight: .light))
+                    .foregroundStyle(LoomColor.gold)
+            }
             message
                 .font(LoomFont.body(size: 15))
                 .foregroundStyle(LoomColor.inkDim)
