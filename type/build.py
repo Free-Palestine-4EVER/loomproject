@@ -19,6 +19,7 @@ from fontTools.misc.timeTools import timestampNow
 import glyphs as G
 from floral import decorate
 from geom import xform
+import svgart
 
 VERSION = "1.100"
 UPM = G.UPM
@@ -133,9 +134,9 @@ def collect(fam):
             path = decorate(name, path, adv, fam=fam)
         out[name] = (path, adv)
     for name, _cp, kind in ORNAMENTS:
-        orn = xform(G.ornament(kind, fam or 'floral'), sx=1.35, sy=1.35,
-                    dx=440, dy=G.CAP * 0.50)
-        out[name] = (orn, 880)
+        art = svgart.motif(fam or 'floral', kind, 620.0)
+        src = art if art is not None else xform(G.ornament(kind, fam or 'floral'), sx=1.35, sy=1.35)
+        out[name] = (xform(src, dx=380, dy=G.CAP * 0.50), 760)
     return out
 
 

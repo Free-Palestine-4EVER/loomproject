@@ -1,0 +1,209 @@
+"""Turn public-domain SVG ornaments into glyph outlines.
+
+The flowers used to be drawn by hand in code, which is fine for a leaf and
+hopeless for a rose. These come from real vector artwork — everything under
+`svg/raw/` is Public Domain or CC0 (provenance in svg/sources.json), so it can
+be redrawn into a font that is itself given away.
+
+Each file is flattened to one filled path, recentred, and scaled to a standard
+size so the placement code can treat every ornament identically.
+"""
+import json
+import math
+import os
+
+from pathops import Path
+from svgelements import SVG, Path as SPath, Shape, Color
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+RAW = os.path.join(HERE, 'svg', 'raw')
+
+
+def _is_ink(fill):
+    """Skip white/none fills — those are page, not drawing."""
+    if fill is None or fill == 'none':
+        return False
+    try:
+        c = Color(fill)
+    except Exception:
+        return True
+    if c.value is None:
+        return False
+    # luminance: white-ish shapes are background plates in most of these files
+    lum = (0.2126 * c.red + 0.7152 * c.green + 0.0722 * c.blue) / 255.0
+    return lum < 0.86
+
+
+def load(name, target=300.0, flip=True):
+    """Read one SVG and return (pathops.Path, width, height) normalised so the
+    artwork is centred on the origin and `target` units across its long side."""
+    svg = SVG.parse(os.path.join(RAW, name), reify=True, ppi=96.0)
+    p = Path()
+    pen = p.getPen()
+    drew = 0
+    for el in svg.elements():
+        if not isinstance(el, Shape):
+            continue
+        if not _is_ink(getattr(el, 'fill', None)):
+            continue
+        try:
+            sp = SPath(el)
+        except Exception:
+            continue
+        started = False
+        for seg in sp:
+            t = type(seg).__name__
+            if t == 'Move':
+                if started:
+                    pen.closePath()
+                pen.moveTo((seg.end.x, seg.end.y)); started = True
+            elif t == 'Line':
+                if started: pen.lineTo((seg.end.x, seg.end.y))
+            elif t == 'CubicBezier':
+                if started: pen.curveTo((seg.control1.x, seg.control1.y),
+                                        (seg.control2.x, seg.control2.y),
+                                        (seg.end.x, seg.end.y))
+            elif t == 'QuadraticBezier':
+                if started: pen.qCurveTo((seg.control.x, seg.control.y), (seg.end.x, seg.end.y))
+            elif t == 'Arc':
+                if started:
+                    for c in seg.as_cubic_curves():
+                        pen.curveTo((c.control1.x, c.control1.y),
+                                    (c.control2.x, c.control2.y), (c.end.x, c.end.y))
+            elif t == 'Close':
+                if started: pen.closePath(); started = False
+        if started:
+            pen.closePath()
+        drew += 1
+    if not drew:
+        return None
+    p.simplify(fix_winding=True, keep_starting_points=False)
+
+    x0, y0, x1, y1 = p.bounds
+    w, h = x1 - x0, y1 - y0
+    if w <= 0 or h <= 0:
+        return None
+    s = target / max(w, h)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+
+    out = Path()
+    o = out.getPen()
+    for verb, pts in p:
+        f = lambda q: ((q[0] - cx) * s, (cy - q[1]) * s if flip else (q[1] - cy) * s)
+        if verb == 0: o.moveTo(f(pts[0]))
+        elif verb == 1: o.lineTo(f(pts[0]))
+        elif verb == 2: o.qCurveTo(f(pts[0]), f(pts[1]))
+        elif verb == 4: o.curveTo(f(pts[0]), f(pts[1]), f(pts[2]))
+        elif verb == 5: o.closePath()
+    out.simplify(fix_winding=True, keep_starting_points=False)
+    return out, w * s, h * s
+
+
+def catalogue():
+    return sorted(f for f in os.listdir(RAW) if f.endswith('.svg'))
+
+
+if __name__ == '__main__':
+    import sys
+    for f in catalogue():
+        try:
+            r = load(f)
+            print(f'{"ok " if r else "EMPTY"} {f}' + (f'  {r[1]:.0f}x{r[2]:.0f}' if r else ''))
+        except Exception as e:
+            print('FAIL', f, type(e).__name__, str(e)[:60])
+
+
+# ————————————————————————————————————————————————— the curated set
+# Which artwork each planted cut uses, and how it is turned. Chosen from the
+# public-domain sheet in out/svgsheet.svg — see svg/sources.json for provenance.
+ART = {
+    'floral': [                       # roses
+        ('art-nouveau-floral-ornament-by-e-m-lilien.svg', 0),
+        ('rose-ornament-1905.svg', 0),
+        ('flower-closed-ornament-colored-up-left.svg', 0),
+    ],
+    'daisy': [                        # open blossoms
+        ('flower-ornament-coloured.svg', 0),
+        ('abstract-floral-ornament.svg', 0),
+        ('flower-closed-ornament-colored-down-right.svg', 180),
+    ],
+    'tulip': [                        # tulips and buds
+        ('abstract-floral-ornament-1913.svg', 0),
+        ('acorn-square-ornament-brown.svg', 0),
+        ('flowers-ornament-red-up-right.svg', 0),
+    ],
+    'ivy': [                          # vine corners and leaves
+        ('corner-ornament-black-up-left.svg', 0),
+        ('corner-ornament-black-down-right.svg', 0),
+        ('flowers-ornament-red-down-left.svg', 0),
+    ],
+}
+
+_CACHE = {}
+_DISK = os.path.join(HERE, 'out', 'art.json')
+
+
+def _serialise(p):
+    return [[int(v), [[round(x, 2), round(y, 2)] for x, y in pts]] for v, pts in p]
+
+
+def _deserialise(rec):
+    p = Path()
+    pen = p.getPen()
+    for v, pts in rec:
+        if v == 0: pen.moveTo(tuple(pts[0]))
+        elif v == 1: pen.lineTo(tuple(pts[0]))
+        elif v == 2: pen.qCurveTo(tuple(pts[0]), tuple(pts[1]))
+        elif v == 4: pen.curveTo(tuple(pts[0]), tuple(pts[1]), tuple(pts[2]))
+        elif v == 5: pen.closePath()
+    return p
+
+
+def _rotate(p, deg):
+    if not deg:
+        return p
+    a = math.radians(deg)
+    ca, sa = math.cos(a), math.sin(a)
+    out = Path()
+    pen = out.getPen()
+    f = lambda q: (q[0] * ca - q[1] * sa, q[0] * sa + q[1] * ca)
+    for v, pts in p:
+        if v == 0: pen.moveTo(f(pts[0]))
+        elif v == 1: pen.lineTo(f(pts[0]))
+        elif v == 2: pen.qCurveTo(f(pts[0]), f(pts[1]))
+        elif v == 4: pen.curveTo(f(pts[0]), f(pts[1]), f(pts[2]))
+        elif v == 5: pen.closePath()
+    return out
+
+
+def _disk():
+    if os.path.exists(_DISK):
+        try:
+            return json.load(open(_DISK))
+        except Exception:
+            pass
+    return {}
+
+
+def motif(fam='floral', k=0, target=300.0):
+    """One ornament, centred on the origin, `target` units across its long side.
+    Parsed once and cached to out/art.json — parsing 12 SVGs on every build of
+    every cut is the difference between a 40-second build and a five-minute one."""
+    entries = ART.get(fam) or ART['floral']
+    name, rot = entries[k % len(entries)]
+    key = f'{name}|{rot}|{target:.0f}'
+    if key in _CACHE:
+        return _CACHE[key]
+    store = _disk()
+    if key in store:
+        p = _deserialise(store[key])
+    else:
+        r = load(name, target=target)
+        if not r:
+            return None
+        p = _rotate(r[0], rot)
+        store[key] = _serialise(p)
+        os.makedirs(os.path.dirname(_DISK), exist_ok=True)
+        json.dump(store, open(_DISK, 'w'))
+    _CACHE[key] = p
+    return p

@@ -16,7 +16,7 @@ import numpy as np
 import glyphs as G
 
 CELL = 13.0
-MAXSPOTS = 4
+MAXSPOTS = 3   # real ornament is dense; four of them buries the letterform
 MIN_CLEAR = 3.0          # cells — below this the area is too thin for a flower
 
 

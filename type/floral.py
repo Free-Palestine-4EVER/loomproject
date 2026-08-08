@@ -14,12 +14,16 @@ Four species share the same anchors: roses (`floral`), daisies, tulips and ivy.
 from geom import DIFF, xform
 from glyphs import CAP, motif_single
 import place
+import svgart
 
 _ANCHORS = None
 
-# the single motif is ~150 units across at scale 1, so scale = clearance / this
-FIT = 168.0
-MIN_SCALE, MAX_SCALE = 0.30, 1.05
+# The ornaments are real public-domain artwork (see svgart.ART and
+# svg/sources.json), normalised to 300 units across, so their half-size is 150.
+# A spot with clearance C should carry art of roughly that half-size.
+ART_TARGET = 300.0
+FIT = 178.0
+MIN_SCALE, MAX_SCALE = 0.32, 1.0
 
 # per-species trim — a daisy carries further than a tulip at the same scale
 FAM_SCALE = {'floral': 1.0, 'daisy': 0.92, 'tulip': 1.04, 'ivy': 1.0}
@@ -41,7 +45,9 @@ def decorate(name, path, advance=None, body=None, fam='floral'):
     out = path
     for i, s in enumerate(spots):
         scale = max(MIN_SCALE, min(MAX_SCALE, s['clear'] / FIT)) * fs
-        motif = xform(motif_single(i, fam), sx=scale, sy=scale,
-                      rot=(i * 47) % 360, dx=s['x'], dy=s['y'])
+        art = svgart.motif(fam, i, ART_TARGET)
+        base = art if art is not None else motif_single(i, fam)
+        motif = xform(base, sx=scale, sy=scale, rot=(i * 23) % 360,
+                      dx=s['x'], dy=s['y'])
         out = DIFF(out, motif)
     return out

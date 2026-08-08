@@ -13,4 +13,11 @@ YOU MAY NOT
   · sell, sublicense or redistribute the font files as a product
   · claim authorship of the typeface
 
+
+ORNAMENT PROVENANCE
+  The flowers cut into the planted cuts are redrawn from public-domain and CC0
+  vector artwork (Art Nouveau and Victorian ornament, 1899–1913, plus CC0
+  ornament sets). Every source file, its licence and its author are recorded in
+  the project at type/svg/sources.json. No rights-reserved artwork is included.
+
 No warranty of any kind. Questions: loomstudio-jo.com

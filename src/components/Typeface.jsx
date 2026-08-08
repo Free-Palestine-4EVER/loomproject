@@ -9,7 +9,7 @@ import { PosterMachine } from './PosterMachine.jsx'
 import './typeface.css'
 
 const DIR = '/fonts/loom-bloom'
-const ZIP_SIZE = '413 KB'
+const ZIP_SIZE = '1.05 MB'
 
 // One plain cut and four planted ones. Every cut shares the Regular's metrics
 // exactly, so a line of text lines up character for character across all five.
@@ -22,11 +22,11 @@ const CUTS = [
 ]
 
 const SIZES = {
-  LOOMBloom: ['13 KB', '15 KB', '7 KB'],
-  LOOMBloomRose: ['190 KB', '195 KB', '31 KB'],
-  LOOMBloomDaisy: ['226 KB', '241 KB', '34 KB'],
-  LOOMBloomTulip: ['84 KB', '88 KB', '18 KB'],
-  LOOMBloomIvy: ['58 KB', '63 KB', '14 KB'],
+  LOOMBloom: ['25 KB', '27 KB', '11 KB'],
+  LOOMBloomRose: ['1.2 MB', '1.1 MB', '68 KB'],
+  LOOMBloomDaisy: ['277 KB', '281 KB', '27 KB'],
+  LOOMBloomTulip: ['501 KB', '475 KB', '35 KB'],
+  LOOMBloomIvy: ['260 KB', '243 KB', '24 KB'],
 }
 
 const FORMATS = [
@@ -178,9 +178,10 @@ export function Typeface() {
               corner radius — drawn from scratch in our own type pipeline, not
               licensed from anyone. Five cuts: the plain face, and four planted
               ones — Rose, Daisy, Tulip and Ivy — each with a different flower
-              cut out of the letterforms. Every flower is placed by measuring
-              the letter itself — one bloom per part thick enough to hold one,
-              sized to the room it has.
+              cut out of the letterforms. The ornament is real Art Nouveau and
+              Victorian vector work, all public domain, and every piece is placed
+              by measuring the letter itself — one flower per part thick enough
+              to hold one, sized to the room it has.
             </p>
             <div className="tf-hero-cta">
               <Magnetic strength={0.2}>
@@ -377,7 +378,10 @@ export function Typeface() {
             <p>
               Free to use, embed and modify for personal and commercial work, print
               and screen. Don't resell the font files themselves or claim authorship
-              of the typeface. Full terms ship inside the zip.
+              of the typeface. The ornament inside the planted cuts is redrawn
+              from public-domain and CC0 vector artwork (1899–1913 Art Nouveau
+              and Victorian ornament, plus CC0 ornament sets); every source is
+              recorded in the project. Full terms ship inside the zip.
             </p>
             <p className="tf-licence-meta">
               LOOM Bloom v1.100<br />© {new Date().getFullYear()} LOOM · Amman × Sarajevo

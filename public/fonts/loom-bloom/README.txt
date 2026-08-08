@@ -34,6 +34,10 @@ ON THE WEB
 
 Set the planted cuts large — 48px and up. They are poster faces, not body text.
 
+ORNAMENTS
+  Redrawn from public-domain / CC0 vector artwork; provenance in the project
+  at type/svg/sources.json.
+
 SPACING
   Per-glyph sidebearings (round letters fit tighter than flat ones) and a
   class-based kerning feature covering the diagonals, the arms, round/flat
