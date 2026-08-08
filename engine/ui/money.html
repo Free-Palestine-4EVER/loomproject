@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- engine/ui/money.html — Money: /api/ops unit economics + invoices, every constant editable and marked as assumption -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Money — LOOM ENGINE</title>
+<link rel="stylesheet" href="css/app.css" />
+<style>
+  .assumption-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); gap: 10px; }
+  .assumption-row:last-child { border-bottom: none; }
+  .assumption-row input { width: 110px; text-align: right; }
+  .stat { padding: 12px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline; }
+  .stat:last-child { border-bottom: none; }
+  .stat .v { font-size: 15px; }
+  .stat .k { color: var(--muted); font-size: 12px; }
+  .headroom-banner { padding: 12px 14px; border-radius: 6px; border: 1px solid var(--line); margin-bottom: 16px; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Money</h1>
+  <p class="page-sub">The real unit economics. Every figure below marked <span class="assumption-tag">assumption</span> is an editable guess, not a fact — change it and the snapshot recomputes.</p>
+
+  <div class="section" style="display:flex;gap:12px;align-items:flex-end;">
+    <div>
+      <label for="mo-month">Month</label>
+      <input id="mo-month" type="month" />
+    </div>
+    <button id="mo-reload">Reload</button>
+  </div>
+
+  <div id="mo-headroom"></div>
+
+  <div class="grid-2 section">
+    <div class="panel">
+      <h2>Pricing assumptions</h2>
+      <div id="mo-assumptions" class="skeleton">loading…</div>
+    </div>
+    <div class="panel">
+      <h2>Capacity</h2>
+      <div id="mo-capacity" class="skeleton">loading…</div>
+    </div>
+  </div>
+
+  <div class="grid-2 section">
+    <div class="panel">
+      <h2>THE MACHINE — content</h2>
+      <div id="mo-content" class="skeleton">loading…</div>
+    </div>
+    <div class="panel">
+      <h2>BY RESULT — ads</h2>
+      <div id="mo-ads" class="skeleton">loading…</div>
+    </div>
+  </div>
+
+  <div class="section panel">
+    <h2>Total</h2>
+    <div id="mo-total" class="skeleton">loading…</div>
+  </div>
+
+  <div class="section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h2 style="margin:0;">Invoices</h2>
+      <button id="mo-gen-invoices">Generate invoices for month</button>
+    </div>
+    <div id="mo-invoices" class="skeleton">loading…</div>
+  </div>
+</main>
+
+<script type="module" src="js/money.mjs"></script>
+</body>
+</html>

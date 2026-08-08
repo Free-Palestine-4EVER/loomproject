@@ -1,19 +1,42 @@
 
 languagesystem DFLT dflt;
 languagesystem latn dflt;
+
+@ROUND   = [C G O Q S U zero six eight nine Ccaron Cacute Ccedilla Scaron
+            Oacute Ograve Ocircumflex Odieresis Otilde Uacute Ugrave
+            Ucircumflex Udieresis];
+@FLAT    = [B D E F H I K L M N P R Dcroat];
+@UP      = [A V W Y Aacute Agrave Acircumflex Adieresis Atilde Aring Yacute];
+@STOP    = [period comma colon semicolon];
+@QUOTE   = [quotesingle quotedbl];
+
 feature kern {
-  pos A V -70; pos V A -70; pos A W -55; pos W A -55;
-  pos A Y -75; pos Y A -75; pos A T -80; pos T A -80;
-  pos L T -85; pos L V -80; pos L W -70; pos L Y -85;
-  pos T O -35; pos T C -35; pos T G -35;
-  pos P A -55; pos F A -55; pos V O -25; pos W O -20;
-  pos Y O -30; pos O V -25; pos O W -20; pos O Y -30; pos O X -20;
-  pos R V -20; pos R Y -25; pos K O -25; pos K C -25;
-  pos T period -110; pos T comma -110;
-  pos V period -80; pos V comma -80;
-  pos W period -65; pos W comma -65;
-  pos Y period -95; pos Y comma -95;
-  pos F period -80; pos F comma -80;
-  pos P period -80; pos P comma -80;
-  pos L quotesingle -70; pos L quotedbl -70;
+  # the diagonals — the biggest holes in a condensed face
+  pos A V -78; pos V A -78; pos A W -64; pos W A -64;
+  pos A Y -88; pos Y A -88; pos A T -92; pos T A -92;
+  pos V Y -32; pos Y V -32; pos W Y -30; pos Y W -30;
+  pos L T -96; pos L V -92; pos L W -80; pos L Y -98; pos L Yacute -98;
+
+  # flat-to-round and round-to-flat: a straight stem beside a curve needs less
+  pos @FLAT @ROUND -16;
+  pos @ROUND @FLAT -16;
+  pos @ROUND @ROUND -22;
+  pos @UP @ROUND -34;
+  pos @ROUND @UP -34;
+
+  # the arms
+  pos T @ROUND -44; pos T @UP -46;
+  pos F @UP -58; pos P @UP -58; pos K @ROUND -30; pos R @UP -26;
+  pos F A -60; pos P A -60; pos R V -28; pos R Y -34; pos R W -22;
+  pos B @UP -20; pos D @UP -22; pos E @UP -8; pos H @UP -6;
+
+  # punctuation — the classic gaps
+  pos T @STOP -120; pos V @STOP -92; pos W @STOP -76; pos Y @STOP -106;
+  pos F @STOP -92; pos P @STOP -92; pos L @QUOTE -80; pos A @QUOTE -34;
+  pos @ROUND @STOP -26;
+  pos @QUOTE A -34;
+
+  # figures
+  pos one one -30; pos seven four -34; pos two four -22; pos four one -20;
+  pos seven @STOP -70; pos one @STOP -30;
 } kern;

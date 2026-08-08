@@ -1,0 +1,54 @@
+<!doctype html>
+<!-- engine/ui/month.html — Month screen: generate a month, watch job log, grid of posts -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Month — LOOM ENGINE</title>
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+<main>
+  <h1>Month</h1>
+  <p class="page-sub">Generate a month of posts for a client, watch the job run, then work the grid.</p>
+
+  <div class="section panel" id="controls">
+    <h2>Generate</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+      <div>
+        <label for="m-client">Client</label>
+        <select id="m-client"></select>
+      </div>
+      <div>
+        <label for="m-month">Month</label>
+        <input id="m-month" type="month" />
+      </div>
+      <div>
+        <label for="m-single">Singles</label>
+        <input id="m-single" type="number" min="0" value="14" style="width:70px;" />
+      </div>
+      <div>
+        <label for="m-carousel">Carousels</label>
+        <input id="m-carousel" type="number" min="0" value="6" style="width:70px;" />
+      </div>
+      <div>
+        <label for="m-reel">Reels</label>
+        <input id="m-reel" type="number" min="0" value="4" style="width:70px;" />
+      </div>
+      <button id="m-go" class="primary">Generate month</button>
+    </div>
+    <div id="m-job" style="margin-top:14px;"></div>
+  </div>
+
+  <div class="section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h2 style="margin:0;">Posts</h2>
+      <span class="muted num" id="m-count"></span>
+    </div>
+    <div id="m-grid" class="skeleton">loading…</div>
+  </div>
+</main>
+
+<script type="module" src="js/month.mjs"></script>
+</body>
+</html>

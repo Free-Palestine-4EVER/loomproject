@@ -1,0 +1,3 @@
+# engine/data/.gitignore — operator data is local-only, never committed.
+*.json
+!.gitignore

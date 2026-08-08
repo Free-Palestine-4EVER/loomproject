@@ -434,129 +434,115 @@ def _degree(B=380):
 
 
 # ————————————————————————————————————————————————— ornaments
-def _petal(length, wid, ang, dist):
-    """One petal: an ellipse pushed out from the centre and rotated into place."""
+def _petal(length, wid, ang, dist, taper=0.5):
+    """One petal, wide at the base and rounded to a tip."""
     from geom import xform
-    return xform(ellipse(0, 0, length / 2, wid / 2), rot=ang, dx=0, dy=0) if False else \
-        xform(ellipse(length / 2 + dist, 0, length / 2, wid / 2), rot=ang)
+    x0, x1 = dist, dist + length
+    hb, ht = wid / 2, wid / 2 * taper
+    body = poly([(x0, -hb), (x1 - ht, -ht), (x1 - ht, ht), (x0, hb)])
+    return xform(U(body, circle(x1 - ht, 0, ht), circle(x0, 0, hb * 0.92)), rot=ang)
 
 
 def _rose(r=140):
-    """An open bloom seen from above: six outer petals, five inner, a seeded
-    centre — and black gaps cut on the seams so the petals actually read as
-    petals instead of fusing into one white lump."""
-    from geom import xform
+    """A spiral rose. Four open bands winding out from a solid heart — the gaps
+    between the bands ARE the drawing, which is why it reads as a rose at any
+    size instead of as a ring of blobs."""
     s = r / 140.0
-    outer = U(*[_petal(126 * s, 92 * s, a, 30 * s) for a in range(0, 360, 60)])
-    inner = U(*[_petal(74 * s, 58 * s, a + 30, 14 * s) for a in range(0, 360, 72)])
-    heart = circle(0, 0, 30 * s)
-    body = U(outer, inner, heart)
-
-    # seams: one thin radial cut between each pair of adjacent petals
-    seams = [rcapsule((66 * s * math.cos(math.radians(a)), 66 * s * math.sin(math.radians(a))),
-                     (168 * s * math.cos(math.radians(a)), 168 * s * math.sin(math.radians(a))),
-                     14 * s) for a in range(30, 390, 60)]
-    seams += [rcapsule((30 * s * math.cos(math.radians(a)), 30 * s * math.sin(math.radians(a))),
-                      (92 * s * math.cos(math.radians(a)), 92 * s * math.sin(math.radians(a))),
-                      11 * s) for a in range(66, 396, 72)]
-    # the ring that separates the inner whorl from the outer one, and one dot
-    # of a centre — anything busier reads as a wheel, not a flower
-    seams.append(DIFF(circle(0, 0, 60 * s), circle(0, 0, 48 * s)))
-    seams.append(circle(0, 0, 14 * s))
-    return DIFF(body, U(*seams))
+    bands = []
+    for k, (rad, a0, span, w) in enumerate((
+            (44, 20, 330, 26), (74, -40, 320, 27), (104, -110, 310, 28), (132, -190, 285, 28))):
+        bands.append(rarc(0, 0, rad * s, rad * s * 0.96, a0, a0 + span, w * s))
+    return U(circle(0, 0, 22 * s), *bands)
 
 
-def _bud(r=52):
-    """A small closed bud on a neck — reads as a flower at half the size."""
-    from geom import xform
-    cup = ISECT(ellipse(0, 0, r, r * 1.15), rect(-r * 1.2, -r * 1.3, r * 1.2, r * 0.5))
-    petals = U(cup, ellipse(0, r * 0.36, r * 0.62, r * 0.62))
-    cuts = U(rcapsule((-r * 0.34, -r * 0.9), (-r * 0.2, r * 0.5), r * 0.13),
-             rcapsule((r * 0.34, -r * 0.9), (r * 0.2, r * 0.5), r * 0.13))
-    neck = rcapsule((0, -r * 1.05), (0, -r * 2.1), r * 0.24)
-    return U(DIFF(petals, cuts), neck)
+def _daisy(r=135):
+    """A daisy: eleven tapered petals and a seeded eye."""
+    s = r / 135.0
+    petals = U(*[_petal(122 * s, 46 * s, a, 26 * s, taper=0.34)
+                 for a in range(0, 360, 33)])
+    body = U(petals, circle(0, 0, 44 * s))
+    cuts = [rcapsule((46 * s * math.cos(math.radians(a)), 46 * s * math.sin(math.radians(a))),
+                     (162 * s * math.cos(math.radians(a)), 162 * s * math.sin(math.radians(a))),
+                     11 * s) for a in range(16, 376, 33)]
+    cuts.append(DIFF(circle(0, 0, 46 * s), circle(0, 0, 36 * s)))
+    cuts += [circle(20 * s * math.cos(math.radians(a)), 20 * s * math.sin(math.radians(a)), 6.5 * s)
+             for a in range(0, 360, 51)]
+    return DIFF(body, U(*cuts))
 
 
-def _leaf(length=360, wid=165, bend=0.30):
-    """A pointed leaf: two arcs meeting at both tips, a fat midrib and four ribs
-    cut back out so it reads as a leaf and not a white almond."""
+def _leaf(length=360, wid=150, bend=0.30):
+    """A smooth almond leaf with a midrib and three fine ribs. No serration —
+    teeth at this scale read as a thistle, not a leaf."""
     r = (length ** 2 / 4 + wid ** 2 / 4) / max(wid, 1)
     top = ISECT(circle(length / 2, -r + wid / 2, r), rect(-10, -wid, length + 10, wid))
     bot = ISECT(circle(length / 2, r - wid / 2, r), rect(-10, -wid, length + 10, wid))
     body = ISECT(top, bot)
     k = length / 360.0
-    vein = rcapsule((length * 0.06, 0), (length * 0.95, 0), 26 * k)
-    ribs = U(*[rcapsule((length * t, 0),
-                       (length * t + 46 * k, -34 * k if i % 2 else 34 * k), 18 * k)
-               for i, t in enumerate((0.28, 0.42, 0.56, 0.70))])
-    stem = rcapsule((-length * 0.16, 0), (length * 0.08, 0), 30 * k)
+    vein = rcapsule((length * 0.08, 0), (length * 0.93, 0), 20 * k)
+    ribs = U(*[rcapsule((length * t, 0), (length * t + 46 * k, (-1 if i % 2 else 1) * 30 * k), 12 * k)
+               for i, t in enumerate((0.30, 0.46, 0.62))])
+    stem = rcapsule((-length * 0.15, 0), (length * 0.08, 0), 22 * k)
     from geom import xform
     return xform(U(DIFF(body, U(vein, ribs)), stem), rot=math.degrees(bend))
 
 
-def _swirl(scale=1.0):
-    """A curling vine with two buds on it."""
-    from geom import xform
-    parts = [rarc(0, 0, 150, 150, 172, 20, 30),
-             rarc(150 + 96, 0, 96, 96, 200, -140, 26),
-             rarc(150 + 96 + 120, 40, 58, 58, 156, -70, 21)]
-    return xform(U(*parts), sx=scale, sy=scale)
-
-
-def _daisy(r=135):
-    """A daisy: twelve narrow petals, a seeded eye, black seams on every seam."""
-    from geom import xform
-    s = r / 135.0
-    petals = U(*[_petal(120 * s, 44 * s, a, 26 * s) for a in range(0, 360, 30)])
-    eye = circle(0, 0, 42 * s)
-    body = U(petals, eye)
-    seams = [rcapsule((44 * s * math.cos(math.radians(a)), 44 * s * math.sin(math.radians(a))),
-                      (168 * s * math.cos(math.radians(a)), 168 * s * math.sin(math.radians(a))),
-                      12 * s) for a in range(15, 375, 30)]
-    seams.append(DIFF(circle(0, 0, 44 * s), circle(0, 0, 33 * s)))
-    seams += [circle(20 * s * math.cos(math.radians(a)), 20 * s * math.sin(math.radians(a)), 8 * s)
-              for a in range(0, 360, 60)]
-    return DIFF(body, U(*seams))
-
-
 def _tulip(h=190):
-    """A tulip: a cup of three petals on a neck."""
-    from geom import xform
+    """A tulip: one smooth cup, three tips, one neck. Nothing striped."""
     s = h / 190.0
-    cup = ISECT(ellipse(0, 0, 104 * s, h * 0.96), rect(-130 * s, -h, 130 * s, h * 0.50))
-    tips = U(xform(ellipse(0, 0, 40 * s, 40 * s), dx=-50 * s, dy=h * 0.44),
-             xform(ellipse(0, 0, 42 * s, 48 * s), dy=h * 0.52),
-             xform(ellipse(0, 0, 40 * s, 40 * s), dx=50 * s, dy=h * 0.44))
+    cup = ISECT(ellipse(0, 0, 100 * s, h * 0.94), rect(-130 * s, -h, 130 * s, h * 0.42))
+    tips = U(circle(-52 * s, h * 0.40, 42 * s),
+             ellipse(0, h * 0.50, 44 * s, 52 * s),
+             circle(52 * s, h * 0.40, 42 * s))
     body = U(cup, tips)
-    seams = U(rcapsule((-42 * s, -h * 0.48), (-30 * s, h * 0.52), 14 * s),
-              rcapsule((42 * s, -h * 0.48), (30 * s, h * 0.52), 14 * s))
-    neck = rcapsule((0, -h * 0.86), (0, -h * 1.9), 22 * s)
-    return U(DIFF(body, seams), neck)
+    # two thin cuts from the rim down the shoulder — enough to read as three
+    # petals without striping the whole cup
+    notch = U(rcapsule((-34 * s, h * 0.66), (-16 * s, -h * 0.02), 13 * s),
+              rcapsule((34 * s, h * 0.66), (16 * s, -h * 0.02), 13 * s))
+    neck = rcapsule((0, -h * 0.80), (0, -h * 1.85), 20 * s)
+    return U(DIFF(body, notch), neck)
 
 
 def _ivy(size=120):
-    """An ivy leaf: three lobes and a stem."""
-    from geom import xform
+    """A three-lobe ivy leaf, built from soft lobes rather than a spiked polygon
+    — at ornament scale a zig-zag outline reads as a thistle."""
     s = size / 120.0
-    lobes = U(xform(ellipse(0, 0, 62 * s, 76 * s), dy=30 * s),
-              xform(ellipse(0, 0, 56 * s, 50 * s), dx=-64 * s, dy=-14 * s),
-              xform(ellipse(0, 0, 56 * s, 50 * s), dx=64 * s, dy=-14 * s),
-              poly([(-38 * s, -34 * s), (38 * s, -34 * s), (0, -104 * s)]))
-    vein = U(rcapsule((0, -92 * s), (0, 78 * s), 10 * s),
-             rcapsule((0, -6 * s), (-52 * s, 24 * s), 8 * s),
-             rcapsule((0, -6 * s), (52 * s, 24 * s), 8 * s))
-    return U(DIFF(lobes, vein), rcapsule((0, -84 * s), (0, -150 * s), 16 * s))
+    lobes = U(ellipse(0, 30 * s, 60 * s, 66 * s),
+              ellipse(-64 * s, -14 * s, 52 * s, 46 * s),
+              ellipse(64 * s, -14 * s, 52 * s, 46 * s),
+              ISECT(ellipse(0, -30 * s, 74 * s, 96 * s),
+                    rect(-80 * s, -130 * s, 80 * s, -14 * s)))
+    vein = rcapsule((0, -100 * s), (0, 78 * s), 10 * s)
+    stem = rcapsule((0, -104 * s), (0, -176 * s), 13 * s)
+    return U(DIFF(lobes, vein), stem)
+
+
+def _swirl(scale=1.0):
+    """A tapering vine. Flat-cut ends, no bobbles."""
+    parts = [arc(0, 0, 150, 150, 174, 22, 26),
+             arc(150 + 96, 0, 96, 96, 198, -138, 20),
+             arc(150 + 96 + 118, 40, 56, 56, 154, -72, 14)]
+    from geom import xform
+    return xform(U(*parts), sx=scale, sy=scale)
+
+
+def _bud(r=52):
+    """A closed bud on a neck."""
+    cup = ISECT(ellipse(0, 0, r, r * 1.12), rect(-r * 1.2, -r * 1.3, r * 1.2, r * 0.45))
+    body = U(cup, ellipse(0, r * 0.34, r * 0.58, r * 0.58))
+    cut = ISECT(circle(0, r * 0.42, r * 0.34), rect(-r * 0.1, 0, r, r * 2))
+    neck = rcapsule((0, -r * 1.0), (0, -r * 2.0), r * 0.2)
+    return U(DIFF(body, cut), neck)
 
 
 def _sprig(n=5, spread=300, scale=1.0):
-    """A run of small leaves down a stem — filler between the big blooms."""
+    """A run of small leaves down a stem — filler between the blooms."""
     from geom import xform
-    stem = rarc(0, 0, spread * 0.9, spread * 0.5, 200, 340, 26 * scale)
+    stem = arc(0, 0, spread * 0.9, spread * 0.5, 202, 338, 22 * scale)
     leaves = []
     for i in range(n):
-        t = 200 + (140 * (i + 0.5) / n)
+        t = 202 + (136 * (i + 0.5) / n)
         px, py = arc_pt(0, 0, spread * 0.9, spread * 0.5, t)
-        leaves.append(xform(_leaf(150 * scale, 66 * scale), rot=t + 90, dx=px, dy=py))
+        leaves.append(xform(_leaf(150 * scale, 62 * scale), rot=t + 90, dx=px, dy=py))
     return U(stem, *leaves)
 
 
@@ -622,19 +608,150 @@ def _ornament_other(kind, fam):
                  xform(_tulip(120), rot=26, dx=140, dy=-80))
     # ivy — no big bloom, a dense trailing vine instead
     if k == 0:
-        return U(xform(_sprig(5, 320, 1.0), rot=10),
-                 xform(_ivy(126), rot=-14, dx=-40, dy=60),
-                 xform(_ivy(96), rot=150, dx=140, dy=-40),
-                 xform(_swirl(0.85), rot=120, dx=-60, dy=-60))
+        return U(xform(_sprig(4, 300, 0.9), rot=8),
+                 xform(_ivy(150), rot=-12, dx=-50, dy=70),
+                 xform(_ivy(120), rot=155, dx=150, dy=-50),
+                 xform(_ivy(96), rot=40, dx=40, dy=-130))
     if k == 1:
-        return U(xform(_sprig(6, 300, 0.9), rot=190),
-                 xform(_ivy(112), rot=24, dx=60, dy=-70),
-                 xform(_ivy(88), rot=-160, dx=-120, dy=50),
-                 xform(_swirl(0.75), rot=-40, dx=60, dy=70))
-    return U(xform(_sprig(5, 340, 0.95), rot=100),
-             xform(_ivy(120), rot=200, dx=-70, dy=-60),
-             xform(_ivy(90), rot=-30, dx=90, dy=90),
-             xform(_swirl(0.8), rot=210, dx=40, dy=-90))
+        return U(xform(_sprig(4, 280, 0.85), rot=192),
+                 xform(_ivy(138), rot=22, dx=70, dy=-60),
+                 xform(_ivy(112), rot=-158, dx=-130, dy=60),
+                 xform(_ivy(90), rot=100, dx=-30, dy=-140))
+    return U(xform(_sprig(4, 320, 0.9), rot=98),
+             xform(_ivy(146), rot=198, dx=-80, dy=-60),
+             xform(_ivy(116), rot=-28, dx=90, dy=90),
+             xform(_ivy(92), rot=140, dx=150, dy=-60))
+
+
+
+
+# ————————————————————————————————————————————————— spacing
+# One global sidebearing spaces a round O exactly like a flat H, which is what
+# made the first cut look gappy around O/C/S and tight around A/V/W. These are
+# left/right sidebearings in units, applied by build_glyphs.
+SB_ROUND = 30
+SB_FLAT = 46
+SB_OPEN = 26
+SIDE = {}
+for _n in 'BDEFHIKLMNPR':
+    SIDE[_n] = (SB_FLAT, SB_FLAT)
+for _n in 'COQGSU':
+    SIDE[_n] = (SB_ROUND, SB_ROUND)
+for _n in 'AVWXYZT':
+    SIDE[_n] = (SB_OPEN, SB_OPEN)
+SIDE.update({
+    'J': (SB_ROUND, SB_FLAT), 'L': (SB_FLAT, SB_OPEN), 'P': (SB_FLAT, SB_ROUND),
+    'F': (SB_FLAT, SB_OPEN), 'T': (SB_OPEN - 6, SB_OPEN - 6),
+    'zero': (SB_ROUND, SB_ROUND), 'one': (SB_FLAT, SB_FLAT),
+    'two': (SB_ROUND, SB_ROUND), 'three': (SB_ROUND, SB_ROUND),
+    'four': (SB_OPEN, SB_OPEN), 'five': (SB_ROUND, SB_ROUND),
+    'six': (SB_ROUND, SB_ROUND), 'seven': (SB_OPEN, SB_OPEN),
+    'eight': (SB_ROUND, SB_ROUND), 'nine': (SB_ROUND, SB_ROUND),
+})
+DEFAULT_SIDE = (SB_FLAT - 6, SB_FLAT - 6)
+
+
+# ————————————————————————————————————————————————— accents
+# Sarajevo is half the company, so the Bosnian set (Č Ć Ž Š Đ) is not optional.
+ACC_Y = CAP + 46          # where a mark sits above the cap
+
+
+def _acute(w=120, h=118):
+    return polystroke([(0, 0), (w, h)], W * 0.62)
+
+
+def _grave(w=120, h=118):
+    return polystroke([(0, h), (w, 0)], W * 0.62)
+
+
+def _circumflex(w=200, h=120):
+    return polystroke([(0, 0), (w / 2, h), (w, 0)], W * 0.6, miter=2.2)
+
+
+def _caron(w=200, h=120):
+    return polystroke([(0, h), (w / 2, 0), (w, h)], W * 0.6, miter=2.2)
+
+
+def _dieresis(gap=150):
+    s = W * 0.56
+    return U(rect(0, 0, s, s), rect(gap, 0, gap + s, s))
+
+
+def _tilde_acc(w=230, h=96):
+    return polystroke([(0, 0), (w * 0.34, h), (w * 0.66, 0), (w, h)], W * 0.54, miter=2.0)
+
+
+def _ring_acc(r=78):
+    # the stroke has to stay well under the radius or the ring fills in solid
+    return rring(0, 0, r * 2, r * 2, W * 0.30, r)
+
+
+def _cedilla(w=120):
+    return polystroke([(w * 0.5, 0), (w * 0.5, -66), (0, -104)], W * 0.5, miter=2.0)
+
+
+ACCENTS = {
+    'acute': (_acute, 120), 'grave': (_grave, 120), 'circumflex': (_circumflex, 200),
+    'caron': (_caron, 200), 'dieresis': (_dieresis, 150 + W * 0.56),
+    'tilde': (_tilde_acc, 230), 'ring': (_ring_acc, 152),
+}
+
+# name -> (base letter, accent, y offset)
+COMPOSITES = {
+    'Aacute': ('A', 'acute', 0), 'Agrave': ('A', 'grave', 0),
+    'Acircumflex': ('A', 'circumflex', 0), 'Adieresis': ('A', 'dieresis', 26),
+    'Atilde': ('A', 'tilde', 10), 'Aring': ('A', 'ring', 0),
+    'Cacute': ('C', 'acute', 0), 'Ccaron': ('C', 'caron', 0),
+    'Eacute': ('E', 'acute', 0), 'Egrave': ('E', 'grave', 0),
+    'Ecircumflex': ('E', 'circumflex', 0), 'Edieresis': ('E', 'dieresis', 26),
+    'Iacute': ('I', 'acute', 0), 'Igrave': ('I', 'grave', 0),
+    'Icircumflex': ('I', 'circumflex', 0), 'Idieresis': ('I', 'dieresis', 26),
+    'Ntilde': ('N', 'tilde', 10),
+    'Oacute': ('O', 'acute', 0), 'Ograve': ('O', 'grave', 0),
+    'Ocircumflex': ('O', 'circumflex', 0), 'Odieresis': ('O', 'dieresis', 26),
+    'Otilde': ('O', 'tilde', 10),
+    'Scaron': ('S', 'caron', 0),
+    'Uacute': ('U', 'acute', 0), 'Ugrave': ('U', 'grave', 0),
+    'Ucircumflex': ('U', 'circumflex', 0), 'Udieresis': ('U', 'dieresis', 26),
+    'Yacute': ('Y', 'acute', 0),
+    'Zcaron': ('Z', 'caron', 0),
+}
+
+COMPOSITE_CPS = {
+    'Aacute': 0xC1, 'Agrave': 0xC0, 'Acircumflex': 0xC2, 'Adieresis': 0xC4,
+    'Atilde': 0xC3, 'Aring': 0xC5, 'Cacute': 0x106, 'Ccaron': 0x10C,
+    'Eacute': 0xC9, 'Egrave': 0xC8, 'Ecircumflex': 0xCA, 'Edieresis': 0xCB,
+    'Iacute': 0xCD, 'Igrave': 0xCC, 'Icircumflex': 0xCE, 'Idieresis': 0xCF,
+    'Ntilde': 0xD1, 'Oacute': 0xD3, 'Ograve': 0xD2, 'Ocircumflex': 0xD4,
+    'Odieresis': 0xD6, 'Otilde': 0xD5, 'Scaron': 0x160, 'Uacute': 0xDA,
+    'Ugrave': 0xD9, 'Ucircumflex': 0xDB, 'Udieresis': 0xDC, 'Yacute': 0xDD,
+    'Zcaron': 0x17D, 'Ccedilla': 0xC7, 'Dcroat': 0x110,
+}
+
+
+def build_accented(base_paths):
+    """Composites: the base letter with a mark centred over it."""
+    from geom import xform
+    out = {}
+    for name, (base, acc, dy) in COMPOSITES.items():
+        if base not in base_paths:
+            continue
+        path, body = base_paths[base]
+        fn, aw = ACCENTS[acc]
+        mark = fn()
+        mark = xform(mark, dx=(body - aw) / 2, dy=ACC_Y - dy)
+        out[name] = (U(path, mark), body)
+
+    # Ç and Đ are not mark-over-base, so they are drawn outright
+    if 'C' in base_paths:
+        path, body = base_paths['C']
+        from geom import xform as xf
+        out['Ccedilla'] = (U(path, xf(_cedilla(), dx=body * 0.5 - 60)), body)
+    if 'D' in base_paths:
+        path, body = base_paths['D']
+        bar = rect(-W * 0.28, CAP * 0.46, W * 1.1, CAP * 0.46 + W * 0.62)
+        out['Dcroat'] = (U(path, bar), body)
+    return out
 
 
 # ————————————————————————————————————————————————— registry
@@ -674,6 +791,13 @@ for ch in LETTERS:
 for i, name in enumerate(['zero', 'one', 'two', 'three', 'four', 'five', 'six',
                           'seven', 'eight', 'nine']):
     CMAP[ord(str(i))] = name
+for _nm, _cp in COMPOSITE_CPS.items():
+    CMAP[_cp] = _nm
+    # lowercase forms type as caps, like every other letter in this face
+    _lc = chr(_cp).lower()
+    if _lc != chr(_cp):
+        CMAP[ord(_lc)] = _nm
+
 CMAP.update({
     0x2E: 'period', 0x2C: 'comma', 0x3A: 'colon', 0x3B: 'semicolon',
     0x21: 'exclam', 0x3F: 'question', 0x2D: 'hyphen', 0x2013: 'endash',
@@ -718,6 +842,8 @@ def build_glyphs():
     """name -> (Path, advance width). Space is handled by the builder."""
     import inspect
     out = {}
+    from geom import xform
+    raw = {}
     for name, fn in list(LETTERS.items()) + list(FIGURES.items()) + list(PUNCT.items()):
         sig = inspect.signature(fn)
         kw = {}
@@ -727,6 +853,16 @@ def build_glyphs():
                 kw['B'] = max(W, default * CONDENSE)
         path, body = fn(**kw)
         path = _fit(name, path, body)
+        raw[name] = (path, body)
+
+    raw.update(build_accented(raw))
+
+    for name, (path, body) in raw.items():
+        lsb, rsb = SIDE.get(name, DEFAULT_SIDE)
+        # the outline is drawn from x=0, so it has to be shifted into its own
+        # left sidebearing — otherwise every glyph sits flush against the
+        # previous one and all the air ends up on the right
+        path = xform(path, dx=lsb)
         path.simplify(fix_winding=True, keep_starting_points=False)
-        out[name] = (path, body + 2 * SB)
+        out[name] = (path, body + lsb + rsb)
     return out

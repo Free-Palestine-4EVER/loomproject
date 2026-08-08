@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "studio": "node studio/run.mjs",
+    "engine": "node engine/server.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

@@ -5,6 +5,8 @@ import { Hero, Marquee, Manifesto, Process, Stats, Studios, Contact } from './co
 import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { Solutions } from './components/Solutions.jsx'
+import { TheMachine } from './components/TheMachine.jsx'
+import { ByResult } from './components/ByResult.jsx'
 import { Crew } from './components/Crew.jsx'
 // Moon.jsx (the orthographic globe) is the previous Ascent — kept in the tree
 // for reference, but the section is now the loom climb in AscentLoom.jsx.
@@ -228,7 +230,19 @@ export default function App() {
         <AppsShowcase />
         <ToolsLab />
         <Crew />
+        {/* Straight off the crew: that section has just introduced the roster
+            as archetypes, so "and we want more of them" is the next beat. */}
         <Solutions />
+        {/* The two productised offerings, right where the pitch lands: Solutions
+            just told the visitor "the loom already knows your industry" — these
+            two sections are the concrete "here's exactly what you can buy"
+            follow-through, before the page moves on to the more emotional
+            Ascent. Deliberately NOT slotted into the 01-09 kicker sequence
+            (same reasoning as OfferPair/Work's "—" kicker in Banners.jsx /
+            Work.jsx): renumbering AscentLoom through Contact to make room
+            would touch five files this task doesn't own. */}
+        <TheMachine />
+        <ByResult />
         <AscentLoom />
         <Process />
         <Stats />

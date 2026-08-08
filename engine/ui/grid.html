@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- engine/ui/grid.html — Grid planner: 3-wide feed as the client will see it, drag to reorder -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Grid — LOOM ENGINE</title>
+<link rel="stylesheet" href="css/app.css" />
+<style>
+  .feed { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; max-width: 560px; }
+  .feed-cell { aspect-ratio: 4/5; background: var(--panel-2); border: 1px solid var(--line); position: relative; cursor: grab; overflow: hidden; }
+  .feed-cell img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+  .feed-cell.dragging { opacity: 0.4; }
+  .feed-cell.drop-target { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .feed-cell .slot-tag { position: absolute; top: 4px; left: 4px; font-family: var(--mono); font-size: 9px; background: rgba(0,0,0,.6); color: var(--ink); padding: 1px 5px; border-radius: 3px; }
+  .feed-cell .time-tag { position: absolute; bottom: 4px; left: 4px; right: 4px; font-family: var(--mono); font-size: 9px; color: var(--thread); background: rgba(0,0,0,.6); padding: 2px 5px; border-radius: 3px; }
+  .feed-cell .kind-tag { position: absolute; top: 4px; right: 4px; font-family: var(--mono); font-size: 9px; color: var(--ink); background: rgba(0,0,0,.6); padding: 1px 5px; border-radius: 3px; }
+  .layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Grid planner</h1>
+  <p class="page-sub">The 3-wide feed as the client will see it. Drag to reorder — posting times are derived from position.</p>
+
+  <div class="section" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+    <div>
+      <label for="g-client">Client</label>
+      <select id="g-client"></select>
+    </div>
+    <div>
+      <label for="g-month">Month</label>
+      <input id="g-month" type="month" />
+    </div>
+    <div>
+      <label for="g-time">First post time (UTC)</label>
+      <input id="g-time" type="time" value="09:00" />
+    </div>
+    <div>
+      <label for="g-perday">Posts per day</label>
+      <input id="g-perday" type="number" min="1" max="6" value="1" style="width:70px;" />
+    </div>
+    <button id="g-apply">Apply schedule</button>
+  </div>
+
+  <div class="layout">
+    <div id="g-feed" class="skeleton">loading grid…</div>
+    <div class="panel" id="g-detail">
+      <h2>Selected post</h2>
+      <div class="muted" style="font-size:12px;">click a tile to inspect it</div>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="js/grid.mjs"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+/* ——— The Machine (offer section) ———
+   Product pitch for LOOM's content subscription. Same section grammar as
+   Solutions/Process: ThreadDivider, .section-head (kicker/h2/lede) from
+   styles.css, then this section's own two-column panel + a native-Arabic
+   passage. `mo-` prefix throughout, scoped to this file only. */
+.mo {
+  padding-bottom: clamp(40px, 6vh, 72px);
+  position: relative;
+  isolation: isolate;
+}
+.mo::before {
+  content: '';
+  position: absolute; z-index: -1;
+  inset: clamp(40px, 8vh, 90px) 0 auto 0;
+  height: min(56vh, 600px);
+  background: radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, var(--mo-tint, var(--cyan)) 9%, transparent), transparent 72%);
+  pointer-events: none;
+}
+
+/* the Arabic name rides right beside the English one in the kicker — same
+   flex row .kicker already lays out, just one more item in it. Clash/Satoshi
+   carry no Arabic glyphs (see machine.css), so :lang(ar) needs its own stack;
+   this section repeats that same stack rather than a new one. */
+.mo-kicker-ar {
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+  color: var(--ink-faint);
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.mo-panel {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+.mo-left, .mo-right { min-width: 0; }
+
+.mo-bullets {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 13px;
+  margin-bottom: clamp(20px, 3vh, 28px);
+}
+.mo-bullets li {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  column-gap: 10px; row-gap: 2px;
+}
+.mo-stitch { width: 12px; height: 12px; margin-top: 5px; position: relative; }
+.mo-stitch::before, .mo-stitch::after {
+  content: ''; position: absolute; top: 55%; left: 45%; height: 1.4px;
+  background: var(--mo-tint, var(--cyan)); border-radius: 1px; transform-origin: left center;
+}
+.mo-stitch::before { width: 5px; transform: translate(-100%, -50%) rotate(45deg); }
+.mo-stitch::after { width: 9px; transform: translate(-3px, -50%) rotate(-50deg); }
+.mo-bullet-en { grid-column: 2; color: var(--ink); font-size: 0.98rem; line-height: 1.4; }
+/* no dir="rtl"/text-align:right here on purpose — Products.jsx already
+   recorded why: forcing RTL right-aligns a short phrase to the far edge of a
+   wide column, half a screen from the Latin line it belongs under. The
+   Unicode bidi algorithm still shapes and orders the Arabic correctly on its
+   own; only the block-level "real paragraph" (.mo-arabic, below) needs a real
+   dir="rtl". */
+.mo-bullet-ar {
+  grid-column: 2;
+  color: var(--ink-faint);
+  font-size: 0.85rem; line-height: 1.5;
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* the price — always "from", never quoted as a fixed fact. See offers.js. */
+.mo-price {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 10px;
+  padding: 15px 18px;
+  border: 1px solid var(--line); border-radius: calc(var(--radius) * 0.6);
+  background: var(--bg-3);
+  margin-bottom: clamp(18px, 2.6vh, 24px);
+}
+.mo-price-label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.mo-price-value { font-family: var(--display); font-weight: 600; font-size: 1.5rem; color: #fff; }
+.mo-price-unit { font-size: 0.88rem; font-weight: 500; color: var(--ink-dim); margin-left: 3px; }
+.mo-price-note { flex-basis: 100%; font-size: 0.78rem; color: var(--ink-faint); }
+
+.mo-cta { width: fit-content; }
+
+/* the month grid — decoration standing for "20 posts + 4 reels", never real
+   client data. Cells pop in on a stagger (JS sets --d per cell); the whole
+   thing is aria-hidden and a plain caption carries the meaning for a screen
+   reader / with animation off. */
+.mo-grid-viz {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid var(--line); border-radius: calc(var(--radius) * 0.7);
+  background: var(--bg-3);
+}
+.mo-cell {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  opacity: 0;
+  animation: mo-cell-in 0.5s var(--ease) forwards;
+  animation-delay: var(--d, 0s);
+}
+.mo-cell--reel {
+  background: var(--mo-tint, var(--cyan));
+  border-radius: 50%;
+}
+@keyframes mo-cell-in {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+.mo-grid-caption {
+  margin-top: 12px;
+  font-size: 0.8rem; line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+/* the native-Arabic pitch — its own passage, not a translated caption. Right-
+   anchored via margin-inline-start:auto so a wide viewport doesn't stretch a
+   right-aligned RTL paragraph across the whole measure. */
+.mo-arabic-wrap {
+  max-width: 1120px;
+  margin: clamp(30px, 4.5vh, 44px) auto 0;
+  padding: 0 var(--pad);
+}
+.mo-arabic {
+  max-width: 62ch;
+  margin-inline-start: auto;
+  border-inline-start: 2px solid var(--mo-tint, var(--cyan));
+  padding-inline-start: 18px;
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  line-height: 1.95;
+  color: var(--ink-dim);
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mo-cell { animation: none !important; opacity: 1; }
+}
+
+@media (max-width: 880px) {
+  .mo-panel { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .mo-grid-viz { padding: 14px; gap: 6px; }
+  .mo-price-value { font-size: 1.3rem; }
+  .mo-arabic { max-width: 100%; font-size: 1rem; line-height: 1.85; }
+}

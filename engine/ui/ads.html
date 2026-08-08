@@ -1,0 +1,62 @@
+<!doctype html>
+<!-- engine/ui/ads.html — Ads: campaigns, conversation ledger, CPC by category, creative library -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ads — LOOM ENGINE</title>
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+<main>
+  <h1>Ads</h1>
+  <p class="page-sub">By-Result: campaigns, the conversation ledger, cost per conversation by category, and the creative library the whole model depends on.</p>
+
+  <div class="section">
+    <h2>CPC by category</h2>
+    <div id="ads-cpc" class="skeleton">loading…</div>
+  </div>
+
+  <div class="grid-2 section">
+    <div>
+      <h2>Campaigns</h2>
+      <div id="ads-campaigns" class="skeleton">loading…</div>
+    </div>
+    <div>
+      <h2>Conversation ledger</h2>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <label for="conv-client">Client</label>
+          <select id="conv-client"></select>
+        </div>
+        <div>
+          <label for="conv-month">Month</label>
+          <input id="conv-month" type="month" />
+        </div>
+      </div>
+      <div id="ads-conversations" class="skeleton">loading…</div>
+      <details style="margin-top:10px;">
+        <summary class="mono muted" style="cursor:pointer;font-size:11px;">Import Meta export (paste CSV)</summary>
+        <textarea id="conv-csv" placeholder="paste Meta Ads Manager export here" style="width:100%;min-height:80px;margin-top:8px;"></textarea>
+        <button id="conv-import" style="margin-top:6px;">Import</button>
+        <div id="conv-import-result" class="mono muted" style="font-size:11px;margin-top:6px;"></div>
+      </details>
+    </div>
+  </div>
+
+  <div class="section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h2 style="margin:0;">Creative library</h2>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <label for="cr-category" style="margin:0;">Category</label>
+        <input id="cr-category" placeholder="all" style="width:140px;" />
+        <button id="cr-filter" class="ghost">Filter</button>
+      </div>
+    </div>
+    <div id="ads-creatives" class="skeleton">loading…</div>
+  </div>
+</main>
+
+<script type="module" src="js/ads.mjs"></script>
+</body>
+</html>

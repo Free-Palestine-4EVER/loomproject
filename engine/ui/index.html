@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- engine/ui/index.html — Roster screen: clients, plan chips, month progress, QA minutes to date -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Roster — LOOM ENGINE</title>
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+<main>
+  <h1>Roster</h1>
+  <p class="page-sub">Every client on the machine. Progress ring is posts approved this month; QA minutes is what it's actually costing to run them.</p>
+
+  <div class="section">
+    <button id="new-client-btn" class="primary">+ New client</button>
+  </div>
+
+  <div id="roster-body" class="skeleton">loading roster…</div>
+
+  <dialog id="new-client-dialog" style="background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:20px;min-width:360px;">
+    <form method="dialog" id="new-client-form">
+      <h2>New client</h2>
+      <label for="nc-name">Name (EN)</label>
+      <input id="nc-name" required style="width:100%;margin-bottom:10px;" />
+      <label for="nc-nameAr">Name (AR)</label>
+      <input id="nc-nameAr" dir="rtl" style="width:100%;margin-bottom:10px;" />
+      <label for="nc-handle">Handle</label>
+      <input id="nc-handle" placeholder="@client" style="width:100%;margin-bottom:10px;" />
+      <label for="nc-category">Category</label>
+      <input id="nc-category" placeholder="furniture / restaurant / clinic / retail" style="width:100%;margin-bottom:10px;" />
+      <label for="nc-city">City</label>
+      <input id="nc-city" style="width:100%;margin-bottom:14px;" />
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button type="button" id="nc-cancel" class="ghost">Cancel</button>
+        <button type="submit" class="primary">Create</button>
+      </div>
+    </form>
+  </dialog>
+</main>
+
+<script type="module" src="js/roster.mjs"></script>
+</body>
+</html>

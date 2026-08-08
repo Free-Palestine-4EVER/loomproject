@@ -9,7 +9,7 @@ import { PosterMachine } from './PosterMachine.jsx'
 import './typeface.css'
 
 const DIR = '/fonts/loom-bloom'
-const ZIP_SIZE = '930 KB'
+const ZIP_SIZE = '936 KB'
 
 // One plain cut and four planted ones. Every cut shares the Regular's metrics
 // exactly, so a line of text lines up character for character across all five.
@@ -22,11 +22,11 @@ const CUTS = [
 ]
 
 const SIZES = {
-  LOOMBloom: ['10 KB', '12 KB', '6 KB'],
-  LOOMBloomRose: ['239 KB', '241 KB', '62 KB'],
-  LOOMBloomDaisy: ['295 KB', '306 KB', '72 KB'],
-  LOOMBloomTulip: ['136 KB', '138 KB', '44 KB'],
-  LOOMBloomIvy: ['222 KB', '221 KB', '59 KB'],
+  LOOMBloom: ['13 KB', '15 KB', '7 KB'],
+  LOOMBloomRose: ['319 KB', '325 KB', '67 KB'],
+  LOOMBloomDaisy: ['425 KB', '456 KB', '78 KB'],
+  LOOMBloomTulip: ['176 KB', '181 KB', '41 KB'],
+  LOOMBloomIvy: ['191 KB', '199 KB', '44 KB'],
 }
 
 const FORMATS = [
@@ -48,6 +48,8 @@ const GLYPHS = [
   // [ and ] are drawn from the same two glyphs as ( and ), so they are not
   // listed twice here — they still type.
   ...'.,:;!?\'"()/\\-–—_&@%#+=*~°•',
+  ...'ČĆŽŠĐ',
+  ...'ÁÀÂÄÃÅÉÈÊËÍÌÎÏÓÒÔÖÕÚÙÛÜÑÇÝ',
   '❀', '✿', '❦',
 ]
 
@@ -97,11 +99,11 @@ const ANATOMY = [
 
 const FACTS = [
   ['5', 'cuts — one plain, four planted'],
-  ['67', 'glyphs per cut'],
-  ['99', 'characters mapped'],
+  ['93', 'glyphs per cut'],
+  ['156', 'characters mapped'],
+  ['31', 'accented letters — Č Ć Ž Š Đ included'],
   ['178', 'stem, at a 700 cap'],
   ['168', 'one corner radius'],
-  ['42', 'kerning pairs'],
 ]
 
 const SNIPPET = `@font-face {
@@ -155,7 +157,7 @@ export function Typeface() {
         <motion.div className="tf-hero-inner" style={{ y: heroY, opacity: heroFade }}>
           <div className="tf-hero-meta">
             <span className="tf-tag">The LOOM typeface</span>
-            <span>v1.000</span>
+            <span>v1.100</span>
             <span>Free — personal &amp; commercial</span>
           </div>
           <h1 className="tf-hero-word">
@@ -176,7 +178,9 @@ export function Typeface() {
               corner radius — drawn from scratch in our own type pipeline, not
               licensed from anyone. Five cuts: the plain face, and four planted
               ones — Rose, Daisy, Tulip and Ivy — each with a different flower
-              cut out of the letterforms.
+              cut out of the letterforms. v1.100 redraws every motif, and adds
+              per-glyph spacing, a real kerning pass, and the accents both our
+              cities need.
             </p>
             <div className="tf-hero-cta">
               <Magnetic strength={0.2}>
@@ -302,7 +306,7 @@ export function Typeface() {
       <section className="tf-section">
         <header className="tf-head">
           <h2 className="tf-h2">The character set</h2>
-          <p className="tf-note tf-note--inline">67 glyphs · 99 codepoints · showing {cutLabel}</p>
+          <p className="tf-note tf-note--inline">93 glyphs · 156 codepoints · showing {cutLabel}</p>
         </header>
         <div className="tf-grid" style={{ fontFamily: family }}>
           {GLYPHS.map((g, i) => (
@@ -376,7 +380,7 @@ export function Typeface() {
               of the typeface. Full terms ship inside the zip.
             </p>
             <p className="tf-licence-meta">
-              LOOM Bloom v1.000<br />© {new Date().getFullYear()} LOOM · Amman × Sarajevo
+              LOOM Bloom v1.100<br />© {new Date().getFullYear()} LOOM · Amman × Sarajevo
             </p>
           </div>
         </div>

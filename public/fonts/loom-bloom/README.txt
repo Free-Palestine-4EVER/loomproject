@@ -16,8 +16,10 @@ FILES
   .ttf    same face, TrueType outlines — for older apps and Windows
   .woff2  for the web
 
-CHARACTER SET
+CHARACTER SET  (v1.100)
   A–Z (lowercase types as caps by design), 0–9,
+  the Bosnian/Croatian set Č Ć Ž Š Đ, and the common Western accents
+  Á À Â Ä Ã Å  É È Ê Ë  Í Ì Î Ï  Ó Ò Ô Ö Õ  Ú Ù Û Ü  Ñ Ç Ý,
   . , : ; ! ? ' " “ ” ( ) [ ] / \ - – — _ & @ % # + = * ~ ° •
   and three ornaments: ❀ (U+2740) ✿ (U+273F) ❦ (U+2766)
   — the ornaments are drawn in each cut's own species.
@@ -31,5 +33,10 @@ ON THE WEB
   /* and the same for Rose / Daisy / Tulip / Ivy */
 
 Set the planted cuts large — 48px and up. They are poster faces, not body text.
+
+SPACING
+  Per-glyph sidebearings (round letters fit tighter than flat ones) and a
+  class-based kerning feature covering the diagonals, the arms, round/flat
+  pairs and punctuation.
 
 © 2026 LOOM. See LICENCE.txt.

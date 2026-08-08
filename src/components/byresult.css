@@ -1,0 +1,131 @@
+/* ——— By Result (offer section) ———
+   Product pitch for LOOM's results-priced ads. Mirrors machine-offer.css's
+   grammar exactly (same section shape, same .section-head from styles.css)
+   with its own `br-` prefix and its own tint (gold, not cyan) so the two
+   offer sections read as siblings, not duplicates. */
+.br {
+  padding-bottom: clamp(40px, 6vh, 72px);
+  position: relative;
+  isolation: isolate;
+}
+.br::before {
+  content: '';
+  position: absolute; z-index: -1;
+  inset: clamp(40px, 8vh, 90px) 0 auto 0;
+  height: min(56vh, 600px);
+  background: radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, var(--br-tint, var(--gold)) 10%, transparent), transparent 72%);
+  pointer-events: none;
+}
+
+.br-kicker-ar {
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+  color: var(--ink-faint);
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.br-panel {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+.br-left, .br-right { min-width: 0; }
+
+.br-bullets {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 13px;
+  margin-bottom: clamp(20px, 3vh, 28px);
+}
+.br-bullets li {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  column-gap: 10px; row-gap: 2px;
+}
+.br-stitch { width: 12px; height: 12px; margin-top: 5px; position: relative; }
+.br-stitch::before, .br-stitch::after {
+  content: ''; position: absolute; top: 55%; left: 45%; height: 1.4px;
+  background: var(--br-tint, var(--gold)); border-radius: 1px; transform-origin: left center;
+}
+.br-stitch::before { width: 5px; transform: translate(-100%, -50%) rotate(45deg); }
+.br-stitch::after { width: 9px; transform: translate(-3px, -50%) rotate(-50deg); }
+.br-bullet-en { grid-column: 2; color: var(--ink); font-size: 0.98rem; line-height: 1.4; }
+/* no dir="rtl"/text-align:right here — same reasoning as machine-offer.css's
+   .mo-bullet-ar, which mirrors Products.jsx's .stg-ar. */
+.br-bullet-ar {
+  grid-column: 2;
+  color: var(--ink-faint);
+  font-size: 0.85rem; line-height: 1.5;
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* the price — always "from", never quoted as a fixed fact. See offers.js. */
+.br-price {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 10px;
+  padding: 15px 18px;
+  border: 1px solid var(--line); border-radius: calc(var(--radius) * 0.6);
+  background: var(--bg-3);
+  margin-bottom: clamp(18px, 2.6vh, 24px);
+}
+.br-price-label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.br-price-value { font-family: var(--display); font-weight: 600; font-size: 1.5rem; color: #fff; }
+.br-price-unit { font-size: 0.88rem; font-weight: 500; color: var(--ink-dim); margin-left: 3px; }
+.br-price-note { flex-basis: 100%; font-size: 0.78rem; color: var(--ink-faint); }
+
+.br-cta { width: fit-content; }
+
+/* the worked example — dashed border on purpose, the one visual cue on the
+   page for "illustrative, not a real client count". Both languages already
+   say so in words (BY_RESULT.example) — the dash is a second, honest signal
+   rather than decoration for its own sake. */
+.br-example {
+  border: 1px dashed color-mix(in srgb, var(--br-tint, var(--gold)) 45%, var(--line));
+  border-radius: calc(var(--radius) * 0.7);
+  background: var(--bg-3);
+  padding: clamp(18px, 2.4vw, 24px);
+}
+.br-example-tag {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--br-tint, var(--gold));
+  margin-bottom: 10px;
+}
+.br-example-body {
+  font-family: var(--display); font-weight: 500;
+  font-size: clamp(1.02rem, 1.6vw, 1.2rem); line-height: 1.45;
+  color: var(--ink);
+}
+
+/* the native-Arabic pitch — its own passage, not a translated caption. */
+.br-arabic-wrap {
+  max-width: 1120px;
+  margin: clamp(30px, 4.5vh, 44px) auto 0;
+  padding: 0 var(--pad);
+}
+.br-arabic {
+  max-width: 62ch;
+  margin-inline-start: auto;
+  border-inline-start: 2px solid var(--br-tint, var(--gold));
+  padding-inline-start: 18px;
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  line-height: 1.95;
+  color: var(--ink-dim);
+  text-align: right;
+}
+
+@media (max-width: 880px) {
+  .br-panel { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .br-price-value { font-size: 1.3rem; }
+  .br-arabic { max-width: 100%; font-size: 1rem; line-height: 1.85; }
+}

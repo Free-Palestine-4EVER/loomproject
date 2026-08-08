@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- engine/ui/qa.html — QA queue: the money screen. One post at a time, honest timer, keyboard-first. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>QA Queue — LOOM ENGINE</title>
+<link rel="stylesheet" href="css/app.css" />
+<style>
+  .qa-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+  .qa-stage { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+  .qa-media { aspect-ratio: 4/5; max-height: 62vh; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; display: grid; place-items: center; overflow: hidden; margin-bottom: 16px; }
+  .qa-media img { width: 100%; height: 100%; object-fit: cover; }
+  .qa-caption { padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; margin-bottom: 10px; font-size: 13px; white-space: pre-wrap; min-height: 2.6em; }
+  .qa-caption[dir="rtl"] { text-align: right; }
+  .qa-caption textarea { width: 100%; min-height: 4.5em; background: transparent; border: none; color: var(--ink); font-family: var(--sans); font-size: 13px; resize: vertical; }
+  .qa-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .qa-timer-box { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); margin-bottom: 16px; }
+  .qa-timer-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .qa-timer-dot.running { background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent); }
+  .qa-timer-dot.paused { background: var(--warn); }
+  .qa-queue-strip { display: flex; flex-direction: column; gap: 6px; max-height: 78vh; overflow-y: auto; }
+  .qa-queue-item { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); cursor: pointer; font-size: 12px; }
+  .qa-queue-item:hover { border-color: var(--muted); }
+  .qa-queue-item.current { border-color: var(--accent); background: var(--panel-2); }
+  .qa-queue-item .thumb { width: 34px; height: 42px; background: var(--panel-2); border-radius: 3px; flex-shrink: 0; overflow: hidden; }
+  .qa-queue-item .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .kbd-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>QA Queue</h1>
+  <p class="page-sub">One post, one decision. The timer only counts real attention — it pauses when you look away.</p>
+
+  <div class="section" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+    <div>
+      <label for="q-client">Client</label>
+      <select id="q-client"></select>
+    </div>
+    <div>
+      <label for="q-month">Month</label>
+      <input id="q-month" type="month" />
+    </div>
+  </div>
+
+  <div id="qa-body" class="skeleton">loading queue…</div>
+</main>
+
+<script type="module" src="js/qa.mjs"></script>
+</body>
+</html>

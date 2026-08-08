@@ -170,6 +170,13 @@ why no anchor has to be checked against the outline. `type/preview.py` and
 `zoom.py` render contact sheets to SVG for eyeballing (`qlmanage -t` turns them
 into PNGs); `type/out/proof.html` is the same check through the real font.
 
+**The motifs are line-work, not silhouettes.** v1.100 redrew all four species:
+the rose is a spiral of four open bands (not petals round a disc), the daisy has
+eleven tapered petals and a seeded eye, the tulip is one smooth cup with two rim
+cuts, and the ivy is three soft lobes with a single midrib. Two rules learned the
+hard way: serrated leaf edges read as thistles at ornament scale and make the
+build 10x slower, and any vein that crosses another reads as an X.
+
 **Two rules decide whether a glyph comes out or not.**
 
 1. *A ring box shorter than `2*W + 60` has no counter left.* That is what killed
@@ -182,6 +189,16 @@ into PNGs); `type/out/proof.html` is the same check through the real font.
    mitred polyline each, run past the glyph box and trimmed by `TRIM`.
 
 If you edit any of them, re-render the sheet with `preview.py` and look at it.
+
+**`#typeface` has three interchangeable act-three compositions** — `a` Split,
+`b` Stage (**the shipping default**), `c` Specimen — declared in
+`src/components/bloomLayouts.js` with
+their own desktop *and* mobile numbers, and switched with `?bloom=a|b|c` or
+**shift+1/2/3** (plain 1/2/3 belongs to the flight profiles; the two switchers
+must never share a key). Same HUD rule as the flight one: dev, or after an
+explicit pick. `TypeShowcase` remounts its inner `Act` on every layout or
+breakpoint change — a `useTransform` handed new ranges mid-life keeps the old
+ones, so the remount is what actually re-derives them.
 
 Two components carry it into the site: `TypeShowcase.jsx` is the `#typeface`
 section on the long page (a cycling word that changes cut every 2.1s, gated
