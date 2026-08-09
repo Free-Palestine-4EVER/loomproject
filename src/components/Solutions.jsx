@@ -202,16 +202,64 @@ function resolveNiche(raw) {
 
 function AnswerCard({ n, reduced, onOpen }) {
   const yarn = yarnOf(n)
+  // Photographic art exists for 23 of the 30 niches so far (dental, clinic,
+  // pharmacy, school, kids, ngo, wedding are still being rendered) — rather
+  // than a hardcoded manifest, this follows Banners.jsx's own rule: reference
+  // the file unconditionally and let onLoad/onError decide, so a niche that
+  // gains art later needs no code change here at all. `loaded` resets on
+  // every niche switch because AnswerCard itself never unmounts between
+  // answers (only the inner motion.article's key changes, for the
+  // AnimatePresence crossfade) — without the reset, a photo niche's
+  // `has-photo` class would still be sitting on the very next card even if
+  // that next niche has no art yet.
+  const [loaded, setLoaded] = useState(false)
+  useEffect(() => { setLoaded(false) }, [n.key])
   return (
     <motion.article
       key={n.key}
-      className="sol-card sol-answer"
+      className={`sol-card sol-answer${loaded ? ' has-photo' : ''}`}
       style={{ '--panel-yarn': YARN_HEX[yarn] }}
       initial={reduced ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={reduced ? undefined : { opacity: 0, y: -8 }}
       transition={{ duration: reduced ? 0.01 : 0.4, ease: EASE }}
     >
+      {/* the wool-render banner — subject grouped in the right two thirds,
+          left third left calm on purpose so the card copy has somewhere to
+          sit once this becomes the card's background. `display: contents` so
+          the <picture> adds no box of its own (same reason Banners.jsx wraps
+          every img the same way) — the real img is positioned straight
+          against `.sol-answer` by `.sol-answer-bg`. Stays out of the tree
+          visually (no class swap) until it actually decodes, so a niche with
+          no art yet is still today's finished pink card, never a white hole
+          or a broken image icon. */}
+      <picture style={{ display: 'contents' }}>
+        {/* `-9x16`, not the old `-m` 4:3 derivative. The mobile card stacks —
+            the image is a band ABOVE the copy, not a backdrop behind it — so
+            the phone gets its own portrait render rather than a crop of the
+            desktop panorama. Two <source>s share this breakpoint and it must
+            stay equal to the one in solutions.css that flips overlay→stacked;
+            a source that swaps at a different width than the box it fills
+            letterboxes or gut-crops in the gap between the two. */}
+        <source media="(max-width: 719px)" type="image/avif" srcSet={`/img/niches/${n.key}-9x16.avif`} />
+        <source media="(max-width: 719px)" type="image/webp" srcSet={`/img/niches/${n.key}-9x16.webp`} />
+        <source type="image/avif" srcSet={`/img/niches/${n.key}.avif`} />
+        <img
+          className="sol-answer-bg"
+          src={`/img/niches/${n.key}.webp`}
+          alt=""
+          width={1400}
+          height={600}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={(e) => { setLoaded(false); e.currentTarget.style.display = 'none' }}
+        />
+      </picture>
+      {/* fades from the console's own paper tone on the left to transparent
+          by ~55% across — desktop-only (see the 719px query), and never a
+          filter on the artwork itself (wool.css already warns off that). */}
+      <i className="sol-answer-scrim" aria-hidden="true" />
       <motion.i
         className="sol-answer-thread"
         aria-hidden="true"

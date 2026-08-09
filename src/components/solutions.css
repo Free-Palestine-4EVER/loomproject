@@ -190,6 +190,113 @@
 }
 .sol-answer > * { position: relative; z-index: 1; }
 
+/* ——————————————————————————————————————————————
+   The answer card's photographic background — a 21:9 wool render, subject
+   grouped in its right two thirds, becomes the card's full-bleed ground the
+   instant it decodes (`.has-photo`, set from Solutions.jsx's onLoad, never
+   assumed). `.sol-answer-bg` is not caught by the `.sol-answer > *` rule
+   above: the <picture> wrapping it renders `display: contents`, so the img
+   is a grandchild, not a direct child, and gets its own absolute box here
+   instead of the relative/z:1 every real content child gets. Below the
+   `.has-photo` gate, an errored or not-yet-rendered niche paints nothing —
+   `object-fit` never runs on a display:none img — so today's plain pink
+   card is exactly what a visitor still sees. */
+.sol-answer-bg {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+/* transparent until there's actually a photo under it, so it never dims the
+   plain pink card that ships for the seven niches still without art. */
+.sol-answer-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: none;
+}
+.sol-answer.has-photo {
+  /* the render replaces the translucent-white-over-pink fill and the
+     panel-yarn radial tint (::after, below) outright — a colour wash on top
+     of a photograph is the "tint the artwork" move the brief rules out. */
+  background: none;
+}
+.sol-answer.has-photo::after { content: none; }
+
+@media (min-width: 720px) {
+  /* Desktop mock: the card becomes a wide 21:9 banner, and every piece of
+     copy — badge, name, hook, deliverables, agent note, CTA — collapses
+     into one narrow column that sits over the render's calm LEFT THIRD.
+     `.sol-answer-left`/`-right` were a 0.86fr/1.14fr GRID pair for the
+     plain card; here they stack as flex children of the same fixed-width
+     column instead, so the two-column grid never fights a right column
+     the render itself already carries the weight of. */
+  .sol-answer.has-photo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(6px, 1vw, 10px);
+    /* a floor, not a fixed ratio — a fixed aspect-ratio clipped the
+       deliverables/agent copy the instant the narrower left-third column
+       forced it onto more lines than the plain two-column card ever needed.
+       This still reads as the mock's wide 21:9 banner whenever the copy is
+       short enough to fit that box, and only grows taller than that when a
+       niche's content genuinely needs the room — never clips it. */
+    min-height: min(44vh, 420px);
+  }
+  .sol-answer.has-photo .sol-answer-thread { flex: none; }
+  .sol-answer.has-photo .sol-answer-left,
+  .sol-answer.has-photo .sol-answer-right {
+    width: 100%;
+    max-width: min(400px, 34%);
+  }
+  .sol-answer.has-photo .sol-answer-scrim {
+    background: linear-gradient(90deg,
+      #ffe4f0 0%, #ffe4f0 26%,
+      color-mix(in srgb, #ffe4f0 55%, transparent) 42%,
+      transparent 55%);
+  }
+}
+
+@media (max-width: 719px) {
+  /* Mobile mock ("just vertical and horizontal"): no overlay at all — the
+     render sits as an ordinary horizontal band above the copy, and every
+     line of copy stacks underneath it in normal document flow. The scrim
+     only exists to fight legibility over an underlying photo, so it has no
+     job here and is switched off rather than left compositing for nothing. */
+  .sol-answer.has-photo {
+    display: flex;
+    flex-direction: column;
+  }
+  .sol-answer.has-photo .sol-answer-bg {
+    position: static;
+    display: block;
+    width: 100%;
+    /* 9/16 to match the `-9x16` render exactly, so the phone shows the whole
+       portrait rather than a slice of it. Capped at 58vh because a true 9:16
+       band on a 390px screen is ~693px tall and would push the industry name,
+       the deliverables and the CTA entirely below the fold — the card would
+       read as a photo with no answer attached. object-fit: cover on the img
+       takes the crop off the top and bottom, which is where the render was
+       told to leave calm backdrop anyway. */
+    aspect-ratio: 9 / 16;
+    max-height: 58vh;
+    object-fit: cover;
+    /* 0, not a margin. The card's own row-gap already separates the band from
+       the thread rule below it; a margin here stacked on top of that gap and
+       left ~84px of dead pink between the photo and the first line of copy,
+       which read as a loading failure rather than as spacing. */
+    margin-bottom: 0;
+    order: -1;
+  }
+  /* the card is a flex column here, so ONE row-gap governs every seam in it —
+     band to thread, thread to copy, copy to CTA. Set it once, in one place. */
+  .sol-answer.has-photo { row-gap: clamp(10px, 2.5vw, 14px); }
+  .sol-answer.has-photo .sol-answer-scrim { display: none; }
+  .sol-answer.has-photo .sol-answer-left,
+  .sol-answer.has-photo .sol-answer-right {
+    max-width: none;
+  }
+}
+
 .sol-answer-thread {
   grid-column: 1 / -1;
   display: block;
