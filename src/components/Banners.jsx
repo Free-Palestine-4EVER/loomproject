@@ -12,8 +12,8 @@
 // No filter, no blur, no hue-rotate. The wool is never recoloured —
 // wool.css:174-176 already records why (hue-rotate sent violet to indigo).
 // ————————————————————————————————————————————————————————
-import { Fragment } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
+import { Fragment, useRef } from 'react'
+import { motion, useReducedMotion, useInView } from 'motion/react'
 import { BRAND, WIZARD, SERVICES } from '../data/site.js'
 import { EASE, SplitWords, Reveal, Magnetic } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
@@ -90,11 +90,20 @@ export function Counter() {
 
                        `media`, not a `w` descriptor, and that is the whole
                        point: decoded RAM is width x height x 4 and the phones
-                       this is for run at DPR 3, where a 155px box asks for
-                       465px and any srcset would happily hand back the 1264px
-                       original. A breakpoint is the only thing that puts a
-                       CEILING on the pixels. The -sm cut is 520px — 3.4x the
-                       phone box, so it is not soft, it is just not absurd.
+                       this is for run at DPR 3, so any srcset would happily
+                       hand back the full-size original. A breakpoint is the
+                       only thing that puts a CEILING on the pixels.
+
+                       The two cuts are different PICTURES, not two sizes of
+                       one — art direction, which is the only thing `media`
+                       is actually for. `-pc` is the 2:3 portrait shot for the
+                       desktop tile; `-wide` is a separately rendered 21:9
+                       panorama for the phone, where the grid drops to one
+                       column of banners. The switch is at 719px because that
+                       is exactly where banners.css changes the tile's
+                       aspect-ratio — a source that swaps at a different
+                       breakpoint than the box it fills will letterbox or
+                       gut-crop in the gap between the two.
 
                        `display: contents` so the <picture> adds no box: the
                        img is absolutely positioned against `.cnt-band` by
@@ -102,15 +111,15 @@ export function Counter() {
                        would become its containing block instead. Same reason
                        everywhere else this file wraps an img. */
                     <picture style={{ display: 'contents' }}>
-                      <source media="(max-width: 767px)" type="image/avif" srcSet={`/img/needs/${b.photo}-sm.avif`} />
-                      <source media="(max-width: 767px)" type="image/webp" srcSet={`/img/needs/${b.photo}-sm.webp`} />
-                      <source type="image/avif" srcSet={`/img/needs/${b.photo}.avif`} />
+                      <source media="(max-width: 719px)" type="image/avif" srcSet={`/img/needs/${b.photo}-wide.avif`} />
+                      <source media="(max-width: 719px)" type="image/webp" srcSet={`/img/needs/${b.photo}-wide.webp`} />
+                      <source type="image/avif" srcSet={`/img/needs/${b.photo}-pc.avif`} />
                       <img
                         className="cnt-photo"
-                        src={`/img/needs/${b.photo}.webp`}
+                        src={`/img/needs/${b.photo}-pc.webp`}
                         alt=""
-                        width={800}
-                        height={800}
+                        width={1000}
+                        height={1500}
                         loading="lazy"
                         decoding="async"
                         /* the medallion is the fallback: it only steps aside once
@@ -282,23 +291,47 @@ export function OfferPair() {
 export function Bolt() {
   const { open } = useWizard()
   const reduced = useReducedMotion()
+  const frameRef = useRef(null)
+  // watch the FRAME, not the shuttle. The shuttle's own resting position is
+  // translateX(-140%) — fully outside the felt, by design, so it isn't visible
+  // before it plays. Put whileInView on that same element and you are asking
+  // an IntersectionObserver whether an element sitting off past the left edge
+  // of the viewport is in the viewport — it never is, at rest, so it never
+  // reports entering. That was true of the ORIGINAL once-only version too: the
+  // shuttle wasn't "spent once and gone", it was firing on nobody, ever. Proved
+  // with a bare IntersectionObserver on `.bolt-weft` in a real browser before
+  // touching this — isIntersecting stayed false through a full scroll past it.
+  // The frame never moves, so it is a fair trigger for a child that does.
+  const shuttleOn = useInView(frameRef, { once: false, margin: '-12% 0px' })
   return (
     <section className="bolt" id="bolt" aria-label={BRAND.positioning}>
       <Reveal y={28}>
-        <div className="bolt-frame felt stitched">
+        <div className="bolt-frame felt stitched" ref={frameRef}>
           <i className="bolt-rail bolt-rail--top" aria-hidden="true" />
           <i className="bolt-rail bolt-rail--bot" aria-hidden="true" />
-          {/* the shuttle: ONE weft pass, transform only, once, then gone.
-              This is the only animated bar on the page — repeating it per card
-              is the trade wool.css:79 already recorded as a failure. */}
+          {/* the shuttle: ONE weft pass, transform only, replayed on every
+              crossing rather than spent once. wool.css:79's lesson was about a
+              layer left permanently compositing behind static content — a
+              blurred halo rasterised and live on 36 buttons at once, forever.
+              This is the opposite shape: idle off-frame at rest, it only
+              costs anything for the 1.25s it is actually crossing the frame,
+              and there is still exactly one of it. Retriggering on each pass
+              (instead of the fixed target the intersection bug above meant it
+              never reached) is what actually answers "fires once and is gone
+              forever" — the fix underneath is what makes it fire at all. */}
           {!reduced && (
             <motion.i
               className="bolt-weft"
               aria-hidden="true"
               initial={{ x: '-140%' }}
-              whileInView={{ x: '340%' }}
-              viewport={{ once: true, margin: '-12% 0px' }}
-              transition={{ duration: 1.25, ease: EASE, delay: 0.2 }}
+              animate={{ x: shuttleOn ? '340%' : '-140%' }}
+              // forward pass is the whole point and eases in on a delay; the
+              // reset back to the start line happens off-view while scrolling
+              // away, so it snaps rather than spending a second easing where
+              // nobody is looking
+              transition={shuttleOn
+                ? { duration: 1.25, ease: EASE, delay: 0.2 }
+                : { duration: 0 }}
             />
           )}
 
@@ -333,6 +366,20 @@ export function Bolt() {
                 <WoolIcon name="pin" size="sm" />
                 {BRAND.cities.join(' × ')}
               </p>
+            </div>
+
+            {/* the seam. A bolt of cloth is folded, not flat — this is the
+                crease, not a divider borrowed for decoration. It is what the
+                fork's seam already does between two panels (banners.css:574);
+                here it does the same job with one panel and one CTA either
+                side of it, so the felt between them reads as the fabric's
+                own fold instead of unused canvas. Desktop only — stacked on
+                a phone, copy sits directly above the CTA and there is no gap
+                left to fold. */}
+            <div className="bolt-seam" aria-hidden="true">
+              <i className="bolt-yarn" />
+              <span className="bolt-rivet" />
+              <i className="bolt-yarn" />
             </div>
 
             {/* the one CTA. Two would turn this back into a promo pair.

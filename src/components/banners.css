@@ -106,7 +106,11 @@
      looks like a white triangle printed in the corner. */
   overflow: visible;
   position: relative;
-  aspect-ratio: 4 / 5;
+  /* 2/3, matching the `-pc` still exactly. The tile used to be 4/5 and
+     crop the shot; it now IS the shot's frame, so nothing is thrown away
+     and the calm band the render reserves along the bottom is the band
+     the label pill actually sits in. */
+  aspect-ratio: 2 / 3;
   -webkit-tap-highlight-color: transparent;
   /* drop-shadow, NOT box-shadow — and this is the one place in the file
      where that is right. A box-shadow follows the border-box, so it
@@ -317,12 +321,16 @@
   .counter .cnt-label { font-size: 0.98rem; }
 }
 /* 8 items only ever form a clean rectangle — 4×2 or 2×4, never a ragged 3×3−1.
-   Never 1-up: peripheral scanning is the entire value of this shape. */
+   On a phone that rectangle is now a STACK of 21:9 banners, one per row.
+   The 2-up square grid this used to be was chosen so peripheral scanning
+   still worked; a 21:9 still cannot survive a square box (object-fit:cover
+   would throw away two thirds of a panorama shot to make it), so the shape
+   follows the art, and the scan is bought back by the banner being short —
+   a 21:9 row is ~160px tall on a 375px phone, so three still land in one
+   screenful. Anything squarer here and the eight tiles become a scroll. */
 @media (max-width: 719px) {
-  .counter .cnt-grid { grid-template-columns: repeat(2, 1fr); }
-  /* 2-up: squarer box so the still is not a letterbox and the pill keeps
-     its air. The band is inset:0 now — the TILE owns the ratio. */
-  .counter .cnt-tile { aspect-ratio: 1 / 1; }
+  .counter .cnt-grid { grid-template-columns: 1fr; }
+  .counter .cnt-tile { aspect-ratio: 21 / 9; }
   /* the die margin shrinks with the tile, so everything anchored to it
      has to come in with it — otherwise the label drifts off the print */
   .counter .cnt-tile { padding: 7px; border-radius: 22px; }
@@ -673,11 +681,29 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /* copy and the CTA both size to their own content now, not to a 1fr track —
+     the middle column is what used to be dead air between them. A wide claim
+     is short (15ch, two lines) and the button is a fixed-ish pill, so on a
+     1560px frame that void used to run past 600px. Giving it to .bolt-seam
+     instead of the copy column is the actual fix; the seam is what makes the
+     leftover width look chosen rather than left over. */
+  /* minmax(0, …) on the outer two, not bare max-content — a bare max-content
+     track never shrinks below its intrinsic size, so at ~800-900px (the claim
+     still two lines, the button still full width) the row's true width beat
+     the frame's padding box and the CTA got clipped by .bolt-frame's own
+     overflow: hidden instead of wrapping. minmax(0, …) is what lets the grid
+     actually give ground under the felt's padding instead of pushing past it */
+  grid-template-columns: minmax(0, max-content) minmax(40px, 1fr) minmax(0, max-content);
   align-items: center;
-  gap: clamp(24px, 4vw, 64px);
+  gap: clamp(20px, 3vw, 40px);
   width: 100%;
 }
+/* grid items default to an automatic minimum width of their own min-content,
+   not 0 — the same overflow the track fix above solves, one layer down. The
+   cities line is one unbroken run with no wrap point, so without this it was
+   the actual floor forcing the row wider than the frame at ~820px. */
+.bolt .bolt-copy,
+.bolt .bolt-cta { min-width: 0; }
 .bolt .bolt-lockup {
   width: clamp(140px, 14vw, 220px);
   height: auto;
@@ -710,6 +736,46 @@
 }
 .bolt .bolt-sub .wool-icon { --wool-icon: 26px; }
 
+/* the seam — the fork's vertical device (banners.css:585) reused for a
+   single fold instead of a fork between two panels. Same repeating four-yarn
+   gradient turned on its side, so it reads as the SAME fastening system as
+   the rest of the page, not a new motif invented for one band. Static: this
+   band already has its one animated element, and a second permanently-live
+   layer is exactly the mistake wool.css:79 paid for once already. */
+.bolt .bolt-seam {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 100%;
+}
+.bolt .bolt-yarn {
+  flex: 1 1 auto;
+  width: 5px;
+  min-height: 24px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    180deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px
+  );
+  opacity: 0.55;
+}
+/* the rivet holding the fold shut — felt, not knit, the same material swap
+   the fork's knot uses to read as a fastening rather than a third panel */
+.bolt .bolt-rivet {
+  flex: 0 0 auto;
+  width: 15px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 2px dashed rgba(242, 240, 247, 0.3);
+}
+
 @media (max-width: 1199px) {
   .bolt .bolt-frame { aspect-ratio: 1000 / 380; max-height: none; }
 }
@@ -722,6 +788,9 @@
   }
   .bolt .bolt-inner { grid-template-columns: 1fr; gap: 28px; }
   .bolt .bolt-cta { justify-self: start; }
+  /* stacked, copy sits directly above the CTA — there is no gap left to fold,
+     so the fastening disappears rather than floating as a stray dash */
+  .bolt .bolt-seam { display: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════
