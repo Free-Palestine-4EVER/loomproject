@@ -5,10 +5,44 @@
    screen, which on a 90vh panel means the reader has to go looking for the
    one thing the panel exists to offer. */
 
+/* ——— per-need accent lookup ———
+   NEEDS (needs.js) names seven `yarn` values: magenta, violet, blue, crimson,
+   grey, gold, felt. The site's global --yarn-* tokens (banners.css's tile
+   stripe) only ever needed FOUR at once and only ever named four: pink,
+   violet, blue, gold. `var(--yarn-crimson, var(--magenta))` and its grey/
+   magenta/felt siblings were therefore never resolving anything — they hit
+   the fallback every time, and five of the eight panels (Brand identity,
+   Social content, AI systems, Launch campaign, Not sure yet) rendered the
+   exact same plain magenta. This is the panel's own table: it borrows a
+   global token wherever one already answers to that name (pink/violet/blue/
+   gold/cream are the tile stripe's own set) and states the two hues that
+   token set never had a name for, rather than inventing a fifth naming
+   scheme to solve a four-token shortage. */
+:root {
+  --nm-accent-magenta: var(--yarn-pink);
+  --nm-accent-violet: var(--yarn-violet);
+  --nm-accent-blue: var(--yarn-blue);
+  --nm-accent-gold: var(--yarn-gold);
+  --nm-accent-felt: var(--yarn-cream);
+  --nm-accent-grey: var(--cyan); /* AI systems reads as tech-cool, not neutral-dull */
+  --nm-accent-crimson: #ef4d6b; /* the one hue with no existing token to borrow */
+}
+
 .nm-scrim {
   position: fixed;
   inset: 0;
-  z-index: 120; /* over the nav (100) and the flyer, under nothing */
+  /* 94: above the nav (80), the flyer and the floating CTAs (92) — and
+     deliberately BELOW .overlay (95) and .wmodal (96).
+
+     It was 120, on a comment that said "over the nav (100)". The nav is 80;
+     100 is the LOADER. So 120 bought nothing it needed and cost something
+     real: `start()` opens the wizard and closes this panel a frame later, so
+     the two are on screen together for the length of this panel's exit
+     animation — measured at ~800ms with two [role="dialog"] elements live —
+     and at 120 the panel spent all of it painted on top of the wizard the
+     reader had just asked for. Under it, the exit reads as the panel sliding
+     out from behind the thing that replaced it, which is what it is. */
+  z-index: 94;
   display: grid;
   place-items: center;
   padding: clamp(16px, 4vh, 48px) clamp(12px, 3vw, 40px);
@@ -29,7 +63,28 @@
   overflow: hidden;
   background: linear-gradient(168deg, #1c1026 0%, #150c1e 58%, #120a1a 100%);
   border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.85);
+  /* The plain black drop-shadow used to be the only thing separating the
+     panel from the page behind it, and both are near-black — dark-on-dark,
+     no read as a layer. The second shadow is a wide, soft cast of the
+     panel's OWN accent (now that --nm-yarn actually resolves to seven real
+     colours instead of one fallback magenta, see the lookup table above) —
+     it is what a coloured object does to the dark it sits on, not a border. */
+  box-shadow:
+    0 40px 90px -30px rgba(0, 0, 0, 0.85),
+    0 30px 100px -36px color-mix(in srgb, var(--nm-yarn, var(--magenta)) 55%, transparent);
+}
+/* A hairline of the same accent across the very top edge — the one line of
+   colour that survives even when the reader has scrolled .nm-body past the
+   hero art, so the panel never fully reverts to plain dark-on-dark once
+   they're a screen deep into the copy. */
+.nm-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 5;
+  background: linear-gradient(90deg, transparent, var(--nm-yarn, var(--magenta)), transparent);
+  pointer-events: none;
 }
 
 /* ——— the hero ——— */

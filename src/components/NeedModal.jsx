@@ -26,12 +26,21 @@ import { useBottomSheet, useIsMobile, SheetHandle, useSheetScrollHandoff } from 
 import './needmodal.css'
 
 export function NeedModal({ need, onClose }) {
-  const { open: openWizard } = useWizard()
+  const { open: openWizard, isOpen: wizardIsOpen } = useWizard()
   const reduced = useReducedMotion()
   const panelRef = useRef(null)
   const bodyRef = useRef(null)
   const isMobile = useIsMobile()
   const sheet = useBottomSheet({ onDismiss: onClose })
+  // The element that had focus the instant this panel opened — a tile,
+  // almost always. Restored on close so keyboard/screen-reader users land
+  // back where they were instead of at <body>, which is where focus goes by
+  // default once the element it was on stops being part of any active trap.
+  const triggerRef = useRef(null)
+  // Mirrors WizardModal's isOpen into a ref the overlay effect's cleanup can
+  // read synchronously — see the guard inside it for why.
+  const wizardIsOpenRef = useRef(wizardIsOpen)
+  useEffect(() => { wizardIsOpenRef.current = wizardIsOpen }, [wizardIsOpen])
   // Lets .nm-body both scroll its own content AND drag the sheet shut when a
   // downward drag starts at scrollTop 0. Without it the panel is a scroller
   // on a phone and the sheet gesture only works on the 20px handle.
@@ -59,6 +68,9 @@ export function NeedModal({ need, onClose }) {
 
   useEffect(() => {
     if (!isOpen) return
+    // Capture BEFORE anything below moves focus into the panel — this is
+    // still the tile a mouse click or Enter/Space keypress just activated.
+    triggerRef.current = document.activeElement
     const onKey = (e) => {
       if (e.key === 'Escape') { requestClose(); return }
       if (e.key !== 'Tab') return
@@ -74,9 +86,25 @@ export function NeedModal({ need, onClose }) {
     window.addEventListener('keydown', onKey)
     const t = setTimeout(() => panelRef.current?.querySelector('.nm-close')?.focus(), 60)
     return () => {
-      document.documentElement.classList.remove('overlay-open')
+      // Only release the lock if nothing else has since claimed it. `start()`
+      // below hands off to WizardModal by opening it BEFORE this panel
+      // closes, specifically so that by the time this cleanup runs,
+      // wizardIsOpenRef is already true and the unconditional remove() that
+      // used to sit here doesn't happen — that remove() was real: it dropped
+      // `.overlay-open` for a frame while the wizard was already on screen,
+      // Lenis un-paused under a modal, then the wizard's own effect put the
+      // class straight back. A flash, not a freeze, but a real one — caught
+      // with two `[role="dialog"]` elements on screen at once, mid-handoff.
+      if (!wizardIsOpenRef.current) document.documentElement.classList.remove('overlay-open')
       window.removeEventListener('keydown', onKey)
       clearTimeout(t)
+      // Return focus to whatever opened this, if it's still around. Not
+      // guarded on `document.activeElement` being inside the panel first —
+      // Escape and the close button both leave focus inside the panel right
+      // up to the moment it unmounts, so that check would never skip
+      // anything real; it would only add a way to silently do nothing.
+      const el = triggerRef.current
+      if (el && document.contains(el)) el.focus()
     }
   }, [isOpen, requestClose])
 
@@ -90,11 +118,20 @@ export function NeedModal({ need, onClose }) {
   }, [reduced])
 
   const start = useCallback(() => {
-    // close first, then open the wizard: two overlays both holding
-    // `.overlay-open` means the class survives the first one's cleanup and
-    // Lenis stays stopped after the second closes. Ordering, not timing.
-    onClose()
-    requestAnimationFrame(() => openWizard({ note: shown }))
+    // Open the wizard FIRST, close this panel a frame later — the reverse of
+    // what this used to do. Closing first reads as more correct but isn't:
+    // `.overlay-open` is a plain classList toggle, not reference-counted, so
+    // whichever effect's cleanup runs first removes it outright. Close-then-
+    // open left a real gap — measured at ~200-300ms, with TWO
+    // `[role="dialog"]` elements on screen at once (this panel mid-exit,
+    // the wizard mid-entrance) — where Lenis resumed under a modal that was
+    // still visibly there. Opening first means `.overlay-open` is already
+    // claimed by the wizard by the time this panel's own cleanup asks
+    // whether it's safe to let go (see the guard above) — it never lets go,
+    // because the wizard now owns the lock, and the class is never removed
+    // and re-added, so there is nothing left to flicker.
+    openWizard({ note: shown })
+    requestAnimationFrame(() => onClose())
   }, [onClose, openWizard, shown])
 
   const panelProps = isMobile
@@ -128,7 +165,16 @@ export function NeedModal({ need, onClose }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="nm-title"
-            style={{ ...(panelProps.style || {}), '--nm-yarn': `var(--yarn-${d.yarn}, var(--magenta))` }}
+            // NEEDS carries seven `yarn` keys (needs.js), but the site-wide
+            // --yarn-* tokens (banners.css's tile stripe) only ever named
+            // four: pink, violet, blue, gold. `--yarn-crimson` / `--yarn-
+            // grey` / `--yarn-magenta` never existed, so every need using
+            // them was silently falling back to the same plain --magenta —
+            // five of the eight tiles reading as one identical colour,
+            // measured via getComputedStyle on .nm-kicker. --nm-accent-* below
+            // is this panel's own lookup, not a second attempt at the same
+            // four tokens.
+            style={{ ...(panelProps.style || {}), '--nm-yarn': `var(--nm-accent-${d.yarn}, var(--magenta))` }}
           >
             {isMobile && <SheetHandle bind={sheet.bind} />}
 
