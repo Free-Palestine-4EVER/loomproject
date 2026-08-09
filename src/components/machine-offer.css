@@ -198,59 +198,117 @@
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 0.72rem; color: var(--ink-faint);
 }
-.mo-key { width: 10px; height: 10px; }
+.mo-key { width: 10px; height: 10px; display: inline-block; }
 .mo-key--post { border-radius: 3px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
-.mo-key--reel { border-radius: 50%; background: var(--mo-tint, var(--cyan)); margin-left: 8px; }
+.mo-key--reel { border-radius: 50%; background: var(--mo-tint, var(--cyan)); }
+
+/* the filter — three real buttons, not a static colour key. Same shape
+   language as the offer switch (Banners.jsx's .offer-toggle): a felt track,
+   one active state, never a hover-only affordance a touchscreen can't reach. */
+.mo-filter {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.mo-filter-opt {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px;
+  border: 0; border-radius: 999px;
+  background: transparent;
+  font: inherit; font-size: 0.74rem; font-weight: 650; letter-spacing: 0.01em;
+  color: var(--ink-faint);
+  cursor: pointer;
+  transition: background-color 0.3s var(--ease), color 0.3s var(--ease);
+}
+.mo-filter-opt:hover { color: var(--ink); }
+.mo-filter-opt.is-active {
+  background: color-mix(in srgb, var(--mo-tint, var(--cyan)) 22%, var(--bg-3));
+  color: #fff;
+}
+.mo-filter-opt:focus-visible { outline: 2px solid var(--mo-tint, var(--cyan)); outline-offset: 2px; }
+.mo-filter-n {
+  font-family: var(--display); font-weight: 640; font-size: 0.72rem;
+  color: inherit; opacity: 0.75;
+}
 
 .mo-grid-viz {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: clamp(7px, 0.9vw, 11px);
+  min-height: 60px;
+}
+.mo-grid-empty {
+  grid-column: 1 / -1;
+  padding: 28px 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--ink-faint);
 }
 .mo-cell {
   position: relative;
+  display: block;
   aspect-ratio: 1;
+  overflow: hidden;
   border-radius: 5px;
   background-color: color-mix(in srgb, var(--ink) 11%, transparent);
-  /* the woven grain — the cells are cloth, not swatches */
+  /* the woven grain — visible under a photo until it decodes, so a slow
+     connection still shows finished cloth, never a blank hole */
   background-image: repeating-linear-gradient(
     45deg,
     rgba(255, 255, 255, 0.05) 0 1px,
     transparent 1px 4px
   );
   opacity: 0;
-  transition: background-color 0.4s var(--ease), transform 0.4s var(--ease);
+  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
 }
 .mo-grid-viz.is-in .mo-cell {
   animation: mo-cell-in 0.5s var(--ease) forwards;
   animation-delay: var(--d, 0s);
 }
+.mo-cell-photo {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+}
+/* the client credit — bottom-left, only present when the tile actually
+   carries one (data/machineWork.js's `client` field); never invented */
+.mo-cell-tag {
+  position: absolute; left: 5px; bottom: 5px; z-index: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(8, 4, 14, 0.62);
+  backdrop-filter: blur(2px);
+  font-size: 0.56rem; font-weight: 700; letter-spacing: 0.01em;
+  color: #fff;
+  pointer-events: none;
+}
+/* reels: visually distinct from a still — round, tinted, with a play mark,
+   never just a differently-cropped version of the same square */
 .mo-cell--reel {
-  background-color: var(--mo-tint, var(--cyan));
-  background-image: none;
   border-radius: 50%;
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--mo-tint, var(--cyan)) 40%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mo-tint, var(--cyan)) 55%, transparent);
   transition: box-shadow 0.45s var(--ease), transform 0.4s var(--ease);
 }
-/* the play mark — a reel is a film, so say so */
 .mo-cell--reel::after {
   content: '';
-  position: absolute; inset: 0; margin: auto;
+  position: absolute; inset: 0; margin: auto; z-index: 1;
   width: 0; height: 0;
   border-style: solid;
-  border-width: 5px 0 5px 8px;
-  border-color: transparent transparent transparent rgba(8, 4, 14, 0.72);
+  border-width: 6px 0 6px 10px;
+  border-color: transparent transparent transparent rgba(255, 255, 255, 0.92);
+  filter: drop-shadow(0 1px 3px rgba(8, 4, 14, 0.8));
   transform: translateX(1px);
 }
 /* one ripple of light across the month on hover — the delay is the same
    per-cell stagger the entry uses, so it reads as the loom running */
 .mo-grid-viz:hover .mo-cell {
   transition-delay: var(--d, 0s);
-  background-color: color-mix(in srgb, var(--ink) 20%, transparent);
   transform: translateY(-2px);
 }
 .mo-grid-viz:hover .mo-cell--reel {
-  background-color: var(--mo-tint, var(--cyan));
   box-shadow: 0 0 18px -2px color-mix(in srgb, var(--mo-tint, var(--cyan)) 65%, transparent);
 }
 @keyframes mo-cell-in {
@@ -306,6 +364,7 @@
   .mo-cell { animation: none !important; opacity: 1; transition: none; }
   .mo-grid-viz:hover .mo-cell { transform: none; transition-delay: 0s; }
   .mo-bullets li { transition: none; }
+  .mo-filter-opt { transition: none; }
 }
 
 @media (max-width: 880px) {
