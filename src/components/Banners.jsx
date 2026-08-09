@@ -12,12 +12,14 @@
 // No filter, no blur, no hue-rotate. The wool is never recoloured —
 // wool.css:174-176 already records why (hue-rotate sent violet to indigo).
 // ————————————————————————————————————————————————————————
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion, useInView } from 'motion/react'
 import { BRAND, WIZARD, SERVICES } from '../data/site.js'
 import { EASE, SplitWords, Reveal, Magnetic } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
 import { WoolButton, WoolIcon } from './Wool.jsx'
+import { NeedModal } from './NeedModal.jsx'
+import { hasNeedDetail } from '../data/needs.js'
 
 import './banners.css'
 
@@ -45,6 +47,16 @@ const NEED_BLOCK = {
 
 export function Counter({ children = null }) {
   const { open } = useWizard()
+  // Which need's panel is showing, or null. The tile used to call open()
+  // straight through to the contact wizard; it now opens the detail panel and
+  // the panel's own CTA carries the same seed on to the wizard. A need with
+  // no entry in NEEDS still goes direct, so the panel is an upgrade rather
+  // than a gate on the eight tiles.
+  const [openNeed, setOpenNeed] = useState(null)
+  const pick = useCallback((need) => {
+    if (hasNeedDetail(need)) setOpenNeed(need)
+    else open({ note: need })
+  }, [open])
   return (
     <section className="counter" id="counter">
       <div className="section-head">
@@ -72,8 +84,9 @@ export function Counter({ children = null }) {
               <button
                 type="button"
                 className="cnt-tile"
-                onClick={() => open({ note: need })}
-                aria-label={`Start a brief — ${need}`}
+                onClick={() => pick(need)}
+                aria-haspopup="dialog"
+                aria-label={`${need} — what LOOM delivers`}
               >
                 <span className={`cnt-band blk blk--${b.dye}`}>
                   {/* the four yarns — the same stripe .kicker::after and
@@ -157,6 +170,8 @@ export function Counter({ children = null }) {
           the quote button has to close BOTH of them rather than land between
           them. Nothing else is ever passed here. */}
       {children}
+
+      <NeedModal need={openNeed} onClose={() => setOpenNeed(null)} />
 
       <Reveal delay={0.1} className="cnt-foot">
         {/* 'Request a quote' is one of the 21 photographed spools and is unused

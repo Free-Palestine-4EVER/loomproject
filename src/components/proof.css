@@ -1,0 +1,139 @@
+/* ——— PROOF ———
+   One section where Marquee + Stats used to be two. The structure is
+   deliberately three bands with no boxes anywhere: head, wall, summary. The
+   old Stats section drew a divider cross between every cell, which meant four
+   rules of chrome around four numbers — more lines on screen than content. */
+
+.proof {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip; /* the backdrop is 120% wide and drifts; never let it open a scrollbar */
+  padding: clamp(64px, 9vh, 116px) 0 clamp(64px, 9vh, 120px);
+  border-block: 1px solid var(--line);
+}
+
+/* the weave photograph the old Stats band carried, kept — it is the one
+   texture on the page that reads as real cloth rather than as a gradient */
+.proof-bg {
+  position: absolute;
+  inset: -12% 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.proof-bg img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0.16;
+}
+/* a veil, so the names stay legible over the weave without dimming the
+   texture into a flat grey */
+.proof::after {
+  content: '';
+  position: absolute; inset: 0; z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 60% at 50% 0%, rgba(242, 28, 140, 0.09), transparent 70%),
+    linear-gradient(to bottom, rgba(13, 7, 22, 0.86), rgba(13, 7, 22, 0.72) 45%, rgba(13, 7, 22, 0.9));
+}
+
+.proof-head { padding: 0 var(--pad) clamp(26px, 3.4vw, 40px); }
+.proof-h2 { max-width: 20ch; }
+
+/* ——— the wall ———
+   One flowing paragraph of names, not a grid. A grid forces every name into
+   the same box regardless of length ("MAC" and "United Colors of Benetton"
+   are not the same word), and the ragged right edge of real flowed text is
+   what makes it read as a colophon rather than as a table of logos. */
+.proof-wall {
+  padding: 0 var(--pad);
+  max-width: 1180px;
+  margin: 0 auto clamp(44px, 6vw, 72px);
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.15rem, 2.5vw, 2.05rem);
+  line-height: 1.28;
+  letter-spacing: 0;
+  color: var(--ink-faint);
+  /* the spans are inline-block for the transform; the separators between them
+     are real text nodes, so the line still breaks anywhere it needs to */
+  text-wrap: pretty;
+}
+.proof-name {
+  display: inline-block;
+  transition: color 0.35s var(--ease);
+}
+/* the three a stranger already knows. Brighter, not bigger — a size jump
+   would break the line rhythm and make the other sixteen look like a
+   footnote to them. */
+.proof-name.is-anchor { color: #fff; }
+.proof-name:hover { color: var(--ink); }
+.proof-name.is-anchor:hover { color: var(--magenta); }
+
+.proof-sep {
+  display: inline-block;
+  margin: 0 0.42em;
+  font-style: normal;
+  font-size: 0.5em;
+  vertical-align: 0.32em;
+  color: var(--magenta);
+  opacity: 0.55;
+}
+
+/* ——— the summary rail ——— */
+.proof-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(20px, 3vw, 44px);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(30px, 4vw, 44px) var(--pad) 0;
+  border-top: 1px solid var(--line);
+}
+.proof-stat {
+  position: relative;
+  padding-top: 18px;
+}
+/* one short yarn stub per stat, in that stat's own colour — the whole of the
+   chrome budget for this row, replacing the old divider cross */
+.proof-stat::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 34px; height: 3px;
+  border-radius: 2px;
+  background: var(--yarn, var(--magenta));
+}
+.proof-value {
+  font-family: var(--bloom);
+  font-weight: 560;
+  /* the number is the loudest thing in the section and it was previously
+     smaller than the section headline above it, which is backwards for a
+     band whose entire job is the figures */
+  font-size: clamp(2.8rem, 6.5vw, 4.6rem);
+  line-height: 0.94;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.proof-label {
+  margin: 12px 0 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--yarn, var(--magenta));
+}
+.proof-clause {
+  margin: 8px 0 0;
+  font-size: clamp(0.86rem, 1vw, 0.94rem);
+  line-height: 1.5;
+  color: var(--ink-dim);
+  max-width: 26ch;
+}
+
+@media (max-width: 1000px) {
+  .proof-stats { grid-template-columns: repeat(2, 1fr); gap: clamp(26px, 5vw, 40px); }
+}
+@media (max-width: 520px) {
+  .proof-stats { grid-template-columns: 1fr; }
+  .proof-clause { max-width: none; }
+}

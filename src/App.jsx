@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
 import { Loader, Nav, Cursor, ScrollProgress, Footer } from './components/Chrome.jsx'
-import { Hero, Marquee, Manifesto, Process, Stats, Studios, Contact } from './components/Sections.jsx'
+import { Hero, Manifesto, Process, Studios, Contact } from './components/Sections.jsx'
+import { Proof } from './components/Proof.jsx'
 import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
 import { OwnApps } from './components/OwnApps.jsx'
@@ -14,6 +15,7 @@ import { Counter, OfferPair, Bolt } from './components/Banners.jsx'
 import { MobileChrome } from './components/MobileChrome.jsx'
 import { Flyer } from './components/Flyer.jsx'
 import { WhatsAppFab } from './components/WhatsAppFab.jsx'
+import { StartProject } from './components/StartProject.jsx'
 import { WizardProvider } from './lib/wizard.jsx'
 import { WizardModal } from './components/WizardModal.jsx'
 import { mountInteractions } from './lib/interactions.js'
@@ -230,14 +232,14 @@ export default function App() {
             drove all of it: nothing that cannot be bought today may sit above
             something that can. */}
         <Hero />
-        {/* PROOF. Nineteen client names — Benetton, UNICEF, Vodafone — are the
-            cheapest credibility on the page and cost the reader one second.
-            They now run before anything asks for attention. */}
-        <Marquee />
-        {/* Stats came up from slot 17. 28 brands / 7 countries / 12 tools is
-            the sentence a sceptic wants BEFORE reading sixteen case studies,
-            not after every ask on the page has already been made. */}
-        <Stats />
+        {/* PROOF — one section where Marquee and Stats used to be two.
+            The marquee slid the most valuable words on the page (UNICEF,
+            Vodafone, Benetton) past at a speed nobody reads them at, and the
+            numbers band under it was four CountUps with no claim attached.
+            They are now the evidence and the summary of one argument; see
+            Proof.jsx. Marquee and Stats are still exported from Sections.jsx
+            and mounted by nothing. */}
+        <Proof />
         {/* Work came up from slot 7. It was behind the typeface, the manifesto
             and two "start here" modules — the visitor was asked to choose a
             service before being shown a single thing LOOM had finished. */}
@@ -324,6 +326,11 @@ export default function App() {
       {/* the butterfly rides the whole page, above the copy and under the nav */}
       <Flyer />
       <MobileChrome />
+      {/* The persistent CTA. MobileChrome already carries an identical pill
+          below 768px, so this one mounts only above it — one per viewport.
+          Bottom-centre, because WhatsAppFab owns the right corner and the
+          client asked for both to stay. */}
+      <StartProject />
       <WhatsAppFab />
       <WizardModal />
     </WizardProvider>
