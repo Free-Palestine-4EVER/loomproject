@@ -357,184 +357,180 @@
 /* ═══════════════════════════════════════════════════════════
    2 · THE FORK — the switch
 
-   Two full-height woven panels butted against one yarn seam. At rest they are
-   1fr : 1fr; hover or focus either one and it takes the room while the other
-   gives it up. The interaction IS the argument — the section asks which of two
-   you are, and the layout commits to your answer before you have clicked.
+   Third rebuild. V1 was two knitted panels on the near-black page. V2 was
+   paper wish tags flanking the bloom tree on a pink sky, legible only because
+   the tree stood between them — it has since moved to the footer, so that
+   ground is gone. V3 kept the section on `--bg` but not the shape: two
+   full-bleed woven panels on a yarn seam, `1fr 1fr` expanding to 1.34:0.66 on
+   `:has(:hover)`/`:has(:focus-within)`. Rejected a third time.
 
-   THE WHOLE MECHANIC IS `:has()` AND ONE `flex-grow` TRANSITION.
-   No state, no JS on hover, no resize observer, and `:focus-within` is written
-   into the same selector list so a keyboard walks the identical design. Two
-   properties animate — `flex-grow` on the cell and `opacity` on the far panel's
-   scrim — and the section is otherwise static paint.
+   All three put up TWO COLOURED BLOCKS and asked the visitor to pick a side
+   of the page — a hallway, not a question — and the material each was cut
+   from (knit, paper, knit) never changed that shape. This version has ONE
+   panel on screen at a time. `.offer-toggle` is a small physical switch
+   (`role="radiogroup"`, two `role="radio"` buttons, one decorative thumb) set
+   by `onClick` in Banners.jsx, not `:hover` — a tap is real click-driven
+   state, so there is nothing for a touchscreen to leave stuck the way
+   `:hover` did in V3. `.offer-stage` holds a single `.offer-card`, swapped
+   with Motion's `AnimatePresence mode="wait"` (opacity + a 14px settle — the
+   same crossfade idiom Solutions.jsx already uses for its search answer).
 
-   WHY THE SKY IS GONE. The pink watercolour and the bloom tree that stood on it
-   moved to the footer, where the tree closes the page instead of dividing one.
-   A pale band with nothing standing in it is just a stripe, so the ground came
-   off with the tree and this section is back on `--bg` with the rest of the
-   site — which is also what lets the knit come back. `.offer-sky`, `.wish`,
-   `.wish-cord`, `.wish-eye`, `.wish-eyebrow`, `.wish-h`, `.wish-body`,
-   `.wish-foot`, `.wish-cta`, `.wish-link`, `@keyframes wish-sway`, the seam
-   blooms and the `main > section.offer::before` rail override are all DELETED,
-   not overridden. fx.css's section rail is therefore live on `.offer` again,
-   which is correct now that it has an ordinary dark edge to mark.
+   `.offer-sky`, `.wish-*`, `.fork-*`, `@keyframes wish-sway` and the
+   `main > section.offer::before` rail override are all DELETED here, not
+   overridden — fx.css's section rail is live on `.offer` again.
+
+   MATERIAL: staying IN the wool language, not departing from it. `.felt` on
+   the toggle track (hardware, like the counter's medallions or the bolt's
+   rivet) and `.blk` dye on the answer card (the same paint recipe the fork's
+   panels used) are unchanged; what changed is the SHAPE around them — one
+   centred object instead of a full-bleed pair.
    ═══════════════════════════════════════════════════════════ */
-.offer {
+.offer { position: relative; padding: 0 0 clamp(80px, 11vh, 140px); }
+
+.offer .offer-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(28px, 4.5vh, 44px);
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+}
+
+/* ── the toggle ──────────────────────────────────────────────
+   A felt track the width of its own content (not the section) — this is a
+   control, not a banner, and sizing it like one would put the section's
+   loudest object where the least text lives. */
+.offer .offer-toggle {
   position: relative;
   isolation: isolate;
-  /* the ordinals bleed past their panels' top corners; clip X so nothing can
-     open a horizontal scrollbar. Y stays visible for the medallion's shadow.
-     ORDER IS `overflow: <x> <y>` and is easy to write backwards. */
-  overflow: clip visible;
-  /* no horizontal padding: the fork is full-bleed. `.section-head` carries its
-     own `var(--pad)` (styles.css:223), so the head still aligns with every
-     other section's copy while the panels run edge to edge. */
-  padding: 0 0 clamp(80px, 11vh, 140px);
+  display: inline-flex;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 999px;
 }
-
-/* ── the row ─────────────────────────────────────────────────
-   Flex, not grid: `flex-grow` is the one length that transitions smoothly
-   between two children without either of them being given an explicit width,
-   and a `grid-template-columns` transition would have to name both tracks — so
-   every state would need its own rule and the seam would be a third track that
-   changes size with them. */
-.offer .fork {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
+/* the thumb: one flat dye pill under whichever option is active. `--i` (0 or
+   1, set inline from React state) is the only value JS ever hands CSS —
+   `translateX(calc(var(--i) * 100%))` is the entire mechanic, same shape as
+   the fork's old `flex-grow` transition but on ONE element instead of a pair
+   racing each other. Width is exactly one option's share of the track, so it
+   never overshoots the felt on either side. */
+.offer .offer-toggle-thumb {
+  position: absolute;
+  z-index: 0;
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
+  width: calc(50% - 8px);
+  border-radius: 999px;
+  transform: translateX(calc(var(--i, 0) * 100%));
+  transition: transform 0.5s var(--ease);
 }
-.offer .fork-cell {
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;                  /* Reveal's div must pass its height down */
-  transition: flex-grow 0.75s var(--ease);
-}
-/* THE SWITCH. `:has()` on the cell for the panel that is being addressed, and
-   `:not(:has())` on the container's other child for the one that is not. Both
-   halves of the pair are stated, so the two always sum to 2 and the seam never
-   moves off the join.
-   1.34 : 0.66 is a real commitment — 0.55 read as a wobble, and anything past
-   1.5 pushed the far panel's copy into a wrap it never recovers from. */
-.offer .fork-cell:has(.fork-half:hover),
-.offer .fork-cell:has(.fork-half:focus-within) { flex-grow: 1.34; }
-.offer .fork:has(.fork-half:hover) .fork-cell:not(:has(.fork-half:hover)),
-.offer .fork:has(.fork-half:focus-within) .fork-cell:not(:has(.fork-half:focus-within)) { flex-grow: 0.66; }
-
-/* ── the panel ───────────────────────────────────────────────
-   `.blk` supplies the material: flat dye as the paint-in and value floor, the
-   real knit photograph over it, and one flat tint rect that compresses the
-   photograph's ±25% swing into a readable field. No filter, no hue-rotate —
-   wool.css:174 already records why. */
-.offer .fork-half {
+.offer .offer-toggle-thumb--magenta { background: #b3126a; }
+.offer .offer-toggle-thumb--violet { background: #4a1b78; }
+.offer .offer-toggle-opt {
   position: relative;
-  flex: 1 1 auto;
-  display: flex;
-  align-items: flex-end;          /* copy sits on the hem, ordinal at the head */
-  min-width: 0;
-  min-height: clamp(400px, 56vh, 580px);
-  padding: clamp(30px, 3.4vw, 58px);
-  /* left at the 240px default. 300 was tried and is wrong here for the reason
-     banners.css:36 already records: each knit texture has a mirrored centre
-     artifact, and scaling the tile UP on a box this wide spaces those mirrors
-     far enough apart to read as one vertical seam down the panel instead of as
-     repeating rhythm. */
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 22px 11px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-dim);
+  transition: color 0.4s var(--ease);
 }
-/* the value floor for the copy. The knit is photographed, so its darkest and
-   lightest stitches are ~0.5 stops apart and white body text can land on a
-   slub. One bottom-weighted scrim guarantees the lower two-thirds — where every
-   word lives — sits at a value white clears comfortably.
-   z-index 1: over `.blk::before`'s tint (z 0), under `.fork-inner` (z 2). */
-.offer .fork-half::after {
+.offer .offer-toggle-opt.is-active { color: #fff; }
+.offer .offer-toggle-opt:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.offer .offer-toggle-icon { --wool-icon: 26px; }
+
+/* ── the stage + card ────────────────────────────────────────
+   `.offer-stage` reserves nothing itself — `min-height` on the card keeps the
+   crossfade from jumping the layout height between a two-line and a
+   three-line answer. `.blk` is the fork's own paint recipe: flat dye as the
+   value floor, the real knit photograph over it, one tint rect compressing
+   its swing — wool.css:174 already records why no filter/hue-rotate. */
+.offer .offer-stage { width: 100%; }
+.offer .offer-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100%;
+  min-height: clamp(300px, 40vh, 400px);
+  border-radius: var(--radius);
+  padding: clamp(30px, 4vw, 52px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;      /* copy sits on the hem, ordinal at the head */
+  gap: 12px;
+  box-shadow: 0 26px 60px -30px rgba(0, 0, 0, 0.75);
+}
+/* the value floor for the copy — same job `.fork-half::after` did: the knit
+   is photographed, so its darkest and lightest stitches are ~0.5 stops apart
+   and white text can land on a slub. One bottom-weighted scrim over the
+   `.blk` tint (z 0) and under the copy (z 2) guarantees the lower half, where
+   every word lives, sits at a value white clears comfortably. Static — the
+   old version's ONLY reason to animate this was the two-panel "step back"
+   dim, which no longer exists now that there is one card, not two. */
+.offer .offer-card::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(to top,
-    rgba(9, 4, 16, 0.78) 0%,
-    rgba(9, 4, 16, 0.52) 34%,
-    rgba(9, 4, 16, 0.16) 66%,
-    rgba(9, 4, 16, 0.06) 100%);
-  /* held under 1 at rest so the "stepped back" state has somewhere to go —
-     opacity clamps at 1 and a default of 1 would make the dim state a no-op */
-  opacity: 0.84;
-  transition: opacity 0.75s var(--ease);
+    rgba(9, 4, 16, 0.74) 0%,
+    rgba(9, 4, 16, 0.42) 40%,
+    rgba(9, 4, 16, 0.1) 72%,
+    rgba(9, 4, 16, 0) 100%);
 }
-/* the panel you are NOT on steps back — the scrim thickens rather than a filter
-   being added, because a `filter` on a box with children promotes the whole
-   subtree and costs a layer per panel for a value change one gradient can make */
-.offer .fork:has(.fork-half:hover) .fork-half:not(:hover)::after,
-.offer .fork:has(.fork-half:focus-within) .fork-half:not(:focus-within)::after { opacity: 1; }
-
-/* the ordinal — outlined Bloom, bled off the top-right corner. The only thing
-   in the panel allowed to be huge, which is what stops two dense text blocks
-   from reading as one wall. Outline, not fill: a filled numeral this size is a
-   second focal point competing with the headline under it. */
-.offer .fork-ord {
+/* the ordinal — small now, a corner mark rather than the panel's one huge
+   object. The fork's version bled off the edge because it had a whole panel
+   to counterweight; a centred card this size would have the numeral crowding
+   the headline instead of sitting behind it. */
+.offer .offer-card-ord {
   position: absolute;
-  z-index: 1;
-  top: -0.22em;
-  right: 0.06em;
+  z-index: 2;                     /* above the ::after scrim (z 1) */
+  top: clamp(20px, 3vw, 30px);
+  right: clamp(24px, 3.4vw, 40px);
   font-family: var(--bloom);
   font-weight: 560;
-  font-size: clamp(7rem, 15vw, 16rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: transparent;
-  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.22);
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  color: rgba(255, 255, 255, 0.28);
   pointer-events: none;
   user-select: none;
 }
-
-.offer .fork-inner {
+.offer .offer-card-h {
   position: relative;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  /* the copy holds a comfortable measure while the PANEL grows — the expansion
-     is meant to read as the panel taking the room, not as the paragraph
-     stretching to fill it */
-  max-width: 46ch;
-}
-/* the felted medallion: a maker's stamp above the eyebrow, same anatomy the
-   counter tiles use */
-.offer .fork-medal { --wool-icon: 54px; margin-bottom: 6px; }
-.offer .fork-eyebrow {
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.82);
-}
-.offer .fork-h {
   font-family: var(--bloom);
   font-weight: 560;
-  font-size: clamp(1.7rem, 3vw, 3rem);
-  line-height: 1.04;
-  letter-spacing: 0;
+  font-size: clamp(1.7rem, 3vw, 2.7rem);
+  line-height: 1.06;
   color: #fff;
-  /* NO line clamp and no reserved rows. The wish tags needed both because two
-     objects hanging beside a tree had to be identical heights; two panels in a
-     stretch row are the same height by construction, so the copy is free. */
+  max-width: 18ch;
 }
-.offer .fork-body {
-  font-size: clamp(0.95rem, 1.1vw, 1.08rem);
+.offer .offer-card-body {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.88);
-  max-width: 42ch;
+  max-width: 46ch;
 }
-.offer .fork-foot {
+.offer .offer-card-foot {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 14px 26px;
-  margin-top: 12px;
+  margin-top: 4px;
 }
-/* white pill on a saturated dye — the highest-contrast object in the panel, so
-   the eye finds the action before it finishes the paragraph */
-.offer .fork-cta {
+.offer .offer-card-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -551,10 +547,10 @@
   box-shadow: 0 16px 30px -16px rgba(0, 0, 0, 0.8);
   transition: background-color 0.35s var(--ease), transform 0.35s var(--ease);
 }
-.offer .fork-cta:hover { background: #fff; transform: translateY(-2px); }
-.offer .fork-cta:active { transform: translateY(0); }
-.offer .fork-cta:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
-.offer .fork-link {
+.offer .offer-card-cta:hover { background: #fff; transform: translateY(-2px); }
+.offer .offer-card-cta:active { transform: translateY(0); }
+.offer .offer-card-cta:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.offer .offer-card-link {
   font-weight: 700;
   font-size: 0.88rem;
   color: rgba(255, 255, 255, 0.9);
@@ -562,54 +558,8 @@
   padding-bottom: 3px;
   transition: border-color 0.3s;
 }
-.offer .fork-link:hover { border-color: rgba(255, 255, 255, 0.9); }
-
-/* ── the seam ────────────────────────────────────────────────
-   A real flex item BETWEEN the two panels, not a centre line pinned to 50%:
-   the halves change width, and anything positioned against the container would
-   slide off the join the moment one of them grows. The four yarns run vertical
-   here — the same repeating gradient `.blk-rail` and `.kicker::after` paint
-   horizontally, turned on its side, so the seam is the section's own stripe
-   rather than a new device. */
-.offer .fork-seam {
-  position: relative;
-  z-index: 3;
-  flex: 0 0 clamp(34px, 4vw, 58px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  background: var(--bg);
-}
-.offer .fork-yarn {
-  flex: 1 1 auto;
-  width: 5px;
-  border-radius: 3px;
-  background: repeating-linear-gradient(180deg,
-    var(--yarn-pink) 0 7px,
-    var(--yarn-violet) 7px 14px,
-    var(--yarn-blue) 14px 21px,
-    var(--yarn-gold) 21px 28px);
-}
-/* the knot in the middle of the seam. Felt, not knit: the one place in the
-   section where the material changes, so it reads as a fastening rather than
-   as a third panel. */
-.offer .fork-or {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: clamp(34px, 4vw, 46px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--bg-2);
-  border: 1px solid var(--line);
-  color: var(--ink-dim);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
+.offer .offer-card-link:hover { border-color: rgba(255, 255, 255, 0.9); }
+.offer .offer-card-link:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 /* ═══════════════════════════════════════════════════════════
    3 · THE BOLT — the one full-width claim
@@ -817,70 +767,40 @@
   .counter .cnt-peel,
   .counter .cnt-tile:hover .cnt-peel { transform: none; }
 
-  /* the switch holds still. The panels keep their resting widths and the far
-     scrim keeps its resting value — a layout that jumps between two widths with
-     no transition is worse than one that does not move at all. */
-  .offer .fork-cell { transition: none; }
-  .offer .fork-cell:has(.fork-half:hover),
-  .offer .fork-cell:has(.fork-half:focus-within) { flex-grow: 1; }
-  .offer .fork:has(.fork-half:hover) .fork-cell:not(:has(.fork-half:hover)),
-  .offer .fork:has(.fork-half:focus-within) .fork-cell:not(:has(.fork-half:focus-within)) { flex-grow: 1; }
-  .offer .fork-half::after { transition: none; }
-  .offer .fork-cta { transition: none; }
-  .offer .fork-cta:hover { transform: none; }
+  /* the switch holds still — the thumb keeps its resting slot, no glide
+     between options — and the card crossfade's own duration already drops to
+     0.01s in Banners.jsx (`reduced ? 0.01 : 0.45`), so this block only has to
+     freeze the CSS transitions the JS crossfade doesn't touch. */
+  .offer .offer-toggle-thumb { transition: none; }
+  .offer .offer-toggle-opt { transition: none; }
+  .offer .offer-card-cta { transition: none; }
+  .offer .offer-card-cta:hover { transform: none; }
+  .offer .offer-card-link { transition: none; }
 }
 
-/* ═══ THE FORK, STACKED — must stay LAST in this file ═══
-   Equal-specificity rules above would otherwise win on source order and try to
-   fit two 46ch panels across 390px.
-
-   The switch is DELETED here, not shrunk. `flex-grow` is meaningless in a
-   column where both children already own the full width, and on a touch screen
-   `:hover` is a state that sticks after a tap — an expanding panel would stay
-   expanded until you touched the other one. Stacked, both panels are simply
-   open. */
-@media (max-width: 900px) {
-  .offer .fork { flex-direction: column; }
-  .offer .fork-cell,
-  .offer .fork-cell:has(.fork-half:hover),
-  .offer .fork-cell:has(.fork-half:focus-within) { flex-grow: 1; transition: none; }
-  .offer .fork:has(.fork-half:hover) .fork-cell:not(:has(.fork-half:hover)),
-  .offer .fork:has(.fork-half:focus-within) .fork-cell:not(:has(.fork-half:focus-within)) { flex-grow: 1; }
-  .offer .fork:has(.fork-half:hover) .fork-half:not(:hover)::after,
-  .offer .fork:has(.fork-half:focus-within) .fork-half:not(:focus-within)::after { opacity: 0.84; }
-
-  .offer .fork-half {
-    min-height: 0;
-    padding: clamp(28px, 7vw, 44px) var(--pad) clamp(34px, 8vw, 48px);
-  }
-  /* wider than the desktop measure — the panel is full-bleed here, and 46ch
-     inside a 780px box leaves a ragged column against a full-width headline.
-     NOT `none`: released, the body ran ~100 characters at 820px, which is twice
-     a readable line. */
-  .offer .fork-inner { max-width: 56ch; }
-  .offer .fork-body { max-width: 56ch; }
-  /* the seam turns with the stack: a short horizontal rule between the two,
-     with the knot still in the middle of it */
-  .offer .fork-seam {
-    flex: 0 0 clamp(46px, 11vw, 66px);
-    flex-direction: row;
-    padding-inline: var(--pad);
-    gap: 16px;
-  }
-  .offer .fork-yarn {
-    width: auto;
-    height: 5px;
-    background: repeating-linear-gradient(90deg,
-      var(--yarn-pink) 0 7px,
-      var(--yarn-violet) 7px 14px,
-      var(--yarn-blue) 14px 21px,
-      var(--yarn-gold) 21px 28px);
-  }
-  /* the ordinal loses its bleed — off the top of a short panel it would sit
-     over the medallion instead of over empty knit */
-  .offer .fork-ord { font-size: clamp(5rem, 22vw, 9rem); top: -0.16em; right: 0.1em; }
+/* ═══ THE FORK, SMALL SCREENS — must stay LAST in this file ═══
+   No layout to un-stack any more — one card was already the mobile-first
+   shape, not a fallback bolted onto a two-panel desktop one, so there is
+   nothing here to delete the way the old `:hover`-driven expansion was. This
+   block only resizes the same objects for a narrower box: the toggle's two
+   labels ("Already trading" / "Starting out") are content-sized on desktop,
+   and at 390px two content-sized pills plus an icon each do not reliably fit
+   the felt track — so under 480px the track goes `width: 100%` and both
+   options become equal flex children instead of racing their own text width
+   for room, which is the one thing this section learned NOT to do twice. */
+@media (max-width: 600px) {
+  .offer .offer-card { min-height: clamp(320px, 52vh, 420px); }
+  .offer .offer-card-h { max-width: 100%; }
 }
 @media (max-width: 480px) {
-  .offer .fork-medal { --wool-icon: 44px; }
-  .offer .fork-foot { gap: 14px 18px; }
+  .offer .offer-toggle { width: 100%; }
+  .offer .offer-toggle-opt {
+    flex: 1 1 0;
+    justify-content: center;
+    padding: 11px 8px;
+    gap: 6px;
+    font-size: 0.7rem;
+  }
+  .offer .offer-toggle-icon { --wool-icon: 20px; }
+  .offer .offer-card-ord { font-size: clamp(1.3rem, 5vw, 1.7rem); }
 }

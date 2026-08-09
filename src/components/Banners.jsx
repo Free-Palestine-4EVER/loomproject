@@ -12,8 +12,8 @@
 // No filter, no blur, no hue-rotate. The wool is never recoloured —
 // wool.css:174-176 already records why (hue-rotate sent violet to indigo).
 // ————————————————————————————————————————————————————————
-import { Fragment, useRef } from 'react'
-import { motion, useReducedMotion, useInView } from 'motion/react'
+import { useRef, useState } from 'react'
+import { motion, AnimatePresence, useReducedMotion, useInView } from 'motion/react'
 import { BRAND, WIZARD, SERVICES } from '../data/site.js'
 import { EASE, SplitWords, Reveal, Magnetic } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
@@ -172,27 +172,47 @@ export function Counter() {
 
 /* ═══════════════════ 2 · THE FORK ═══════════════════ */
 
-/* Rebuilt from nothing, twice over.
+/* Third full rebuild — rejected twice before this, and the note below records
+   why neither fix was actually a different idea.
 
-   V1 was two knitted panels on the near-black page. V2 replaced them with paper
-   wish tags flanking the bloom tree on a pink sky — a composition that worked
-   only because the tree was in it. The tree has moved to the footer, where it
-   is the last thing on the page instead of a divider in the middle of one, and
-   a pink watercolour with nothing standing on it is just a pale stripe. So the
-   sky went with the tree and this section is back on the site's own ground.
+   V1 was two knitted panels on the near-black page. V2 replaced them with
+   paper wish tags flanking the bloom tree on a pink sky — legible only
+   because the tree stood between them. The tree has since moved to the
+   footer, where it closes the page instead of dividing one, so that ground
+   is gone. V3 kept the sky's lesson (put the section back on the site's own
+   dark) but not its shape: two full-bleed woven panels on a yarn seam,
+   `1fr 1fr` at rest, one taking the room on `:hover`/`:focus-within` while
+   the other gave it up. Rejected a third time.
 
-   What it is now is a SWITCH, not a pair of cards. Two full-height woven
-   panels butted against one yarn seam, sized `1fr 1fr` until you touch one —
-   then the one under the pointer takes the room and the other gives it up. The
-   interaction IS the content: the section asks which of two you are, and the
-   layout answers by physically committing to your choice before you have
-   clicked anything. A pair of equal cards can only ask; this can respond.
+   All three are the SAME complaint answered three different ways: every
+   version put up two coloured blocks and asked the visitor to pick a side of
+   the page. That is a shape (a fork in a literal hallway), not a question,
+   and changing the material each panel is cut from — knit, then paper, then
+   knit again — never changed the shape being rejected. So this version does
+   not have two of anything on screen at once.
 
-   Everything is CSS. The expansion is one `flex-grow` transition driven by
-   `:has()`, so there is no state, no resize observer, no JS on hover — and
-   `:focus-within` gets the identical treatment, so a keyboard walks the same
-   design a pointer does. Content and function are unchanged from both previous
-   versions: same two choices, same wizard, same secondary links. */
+   It's a SWITCH: one small toggle, two felt lozenges on a stitched track,
+   sitting above ONE answer card. Press a side and the thumb sews itself
+   across the track; the card below crossfades to that answer (opacity + a
+   14px settle, `AnimatePresence mode="wait"` — the same crossfade idiom
+   Solutions.jsx already uses for its search answer). There is exactly one
+   panel in the layout at any moment, so there is nothing for two panels to
+   compete over and no hover-driven width to get stuck mid-tap on a phone.
+
+   State is real React state (`active`), set by `onClick`, not `:hover` or
+   `:focus-within` — V3's actual bug wasn't 1.34:0.66, it was building the
+   whole mechanic on a pseudo-class that a touchscreen cannot release. A tap
+   here is a normal click on a normal `role="radio"` button; both answers stay
+   permanently reachable as buttons, never revealed only by touching the
+   other one first.
+
+   MATERIAL: staying IN the wool language on purpose, not departing from it —
+   a physical two-position toggle is exactly the kind of small hardware object
+   the site already owns (the counter's felted medallions, the bolt's dashed
+   rivet), so the felt track and `.blk` dye on the answer card read as the
+   same material family the rest of the page is cut from. What's actually new
+   is the SHAPE: one modest, centred object instead of a full-bleed pair —
+   the section finally looks like a question being asked, not a hallway. */
 const OFFER = [
   {
     id: 'studio',
@@ -202,9 +222,6 @@ const OFFER = [
     mark: 'tag',
     eyebrow: 'Already trading',
     title: 'I have a business already.',
-    // The panel is tall and wide enough for three lines now, so the body no
-    // longer has to be cut to fit a 340px tag. It still stops well short of a
-    // brief — the wizard this opens is where detail belongs.
     body: `It runs — it just doesn’t land. We take what already sells and rebuild the brand, the site and the campaign around it, in one frame.`,
     cta: 'Book a call',
     note: 'I have a business already',
@@ -229,59 +246,77 @@ const OFFER = [
 
 export function OfferPair() {
   const { open } = useWizard()
+  const reduced = useReducedMotion()
+  const [active, setActive] = useState(0)
+  const current = OFFER[active]
+
   return (
     <section className="offer" id="offer" aria-label="Already trading, or starting from an idea">
-      {/* This one DOES take a section head, where the wish-tag version did not.
-          Two objects floating beside a tree were legible as a choice on their
-          own; two full-bleed panels are a piece of furniture and need to be
-          told what they are before the eye starts reading either one. */}
       <div className="section-head">
         <p className="kicker"><span>—</span> Two ways in</p>
         <SplitWords as="h2" className="h2" text="Which one is you?" />
       </div>
 
-      <div className="fork">
-        {OFFER.map((o, i) => (
-          <Fragment key={o.id}>
-            {/* the seam. A real flex item between the two panels rather than an
-                absolutely-positioned centre line — the halves change width on
-                hover, and anything pinned to 50% would slide off the join. */}
-            {i === 1 && (
-              <div className="fork-seam" aria-hidden="true">
-                <i className="fork-yarn" />
-                <span className="fork-or">or</span>
-                <i className="fork-yarn" />
+      <Reveal y={30} className="offer-wrap">
+        {/* the toggle. Two real buttons in a `radiogroup` — a switch is
+            mutually exclusive, which `radio` states rather than `tab` does —
+            plus one thumb that is purely decorative (`aria-hidden`) and never
+            the thing a screen reader or a keyboard lands on. `--i` is the
+            only hook the thumb needs; sliding it is one `translateX`. */}
+        <div className="offer-toggle felt" role="radiogroup" aria-label="Which one is you?">
+          <i
+            className={`offer-toggle-thumb offer-toggle-thumb--${current.dye}`}
+            style={{ '--i': active }}
+            aria-hidden="true"
+          />
+          {OFFER.map((o, i) => (
+            <button
+              key={o.id}
+              type="button"
+              role="radio"
+              aria-checked={active === i}
+              className={`offer-toggle-opt${active === i ? ' is-active' : ''}`}
+              onClick={() => setActive(i)}
+            >
+              <WoolIcon name={o.mark} className="offer-toggle-icon" />
+              {o.eyebrow}
+            </button>
+          ))}
+        </div>
+
+        {/* the stage. One card at a time — `mode="wait"` lets the leaving
+            answer finish its exit before the next one starts in, so the two
+            never cross-fade INTO each other and read as a flash of both
+            colours at once. */}
+        <div className="offer-stage" aria-live="polite">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.article
+              key={current.id}
+              className={`offer-card blk blk--${current.dye}`}
+              data-cursor
+              initial={reduced ? false : { opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduced ? undefined : { opacity: 0, y: -10 }}
+              transition={{ duration: reduced ? 0.01 : 0.45, ease: EASE }}
+            >
+              {/* the four yarns — the shared `.blk-rail` stripe every dyed
+                  shape on this page paints with, not a new one for this card */}
+              <i className="blk-rail" aria-hidden="true" />
+              <span className="offer-card-ord" aria-hidden="true">{current.ord}</span>
+              <h3 className="offer-card-h">{current.title}</h3>
+              <p className="offer-card-body">{current.body}</p>
+              <div className="offer-card-foot">
+                <Magnetic>
+                  <button type="button" className="offer-card-cta" onClick={() => open({ note: current.note })}>
+                    {current.cta}
+                  </button>
+                </Magnetic>
+                <a className="offer-card-link" href={current.link.href}>{current.link.label} →</a>
               </div>
-            )}
-            <Reveal delay={i * 0.1} y={30} className="fork-cell">
-              <article className={`fork-half blk blk--${o.dye}`} data-cursor>
-                {/* the four yarns, the same stripe .kicker::after and .progress
-                    already run — one static gradient, never animated */}
-                <i className="blk-rail" aria-hidden="true" />
-                {/* the ordinal, cut in outlined Bloom and bled off the top-right
-                    corner. It is the only thing in the panel that is allowed to
-                    be huge, which is what stops two dense text blocks reading
-                    as one wall. */}
-                <span className="fork-ord" aria-hidden="true">{o.ord}</span>
-                <div className="fork-inner">
-                  <WoolIcon name={o.mark} className="fork-medal" />
-                  <p className="fork-eyebrow">{o.eyebrow}</p>
-                  <h3 className="fork-h">{o.title}</h3>
-                  <p className="fork-body">{o.body}</p>
-                  <div className="fork-foot">
-                    <Magnetic>
-                      <button type="button" className="fork-cta" onClick={() => open({ note: o.note })}>
-                        {o.cta}
-                      </button>
-                    </Magnetic>
-                    <a className="fork-link" href={o.link.href}>{o.link.label} →</a>
-                  </div>
-                </div>
-              </article>
-            </Reveal>
-          </Fragment>
-        ))}
-      </div>
+            </motion.article>
+          </AnimatePresence>
+        </div>
+      </Reveal>
     </section>
   )
 }
