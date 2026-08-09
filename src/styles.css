@@ -330,9 +330,35 @@ html.cursor-hot .cursor-ring {
    untouched. */
 .nav-links { display: flex; gap: clamp(14px, 2.4vw, 40px); }
 .nav-links a { white-space: nowrap; }
-@media (max-width: 1360px) {
+/* 1560, not 1360: LINKS has grown from eight tabs to ten (MCP, AI Search) and
+   at the wide gap the row ran under the "Get started" pill at 1440 — CONTACT
+   was sitting behind it. The tight gap has to start before that happens, not
+   80px after. Re-check this number if an eleventh tab is ever added. */
+@media (max-width: 1560px) {
   .nav-links { gap: clamp(8px, 1.3vw, 20px); }
   .nav-links a { font-size: 0.72rem; }
+}
+/* One more step. Ten tabs still touch the pill at 1280 on the rule above, and
+   the burger does not take over until 1100 — so 1100–1400 needs its own,
+   tighter setting rather than 300px of overlap. */
+@media (max-width: 1400px) {
+  .nav-links { gap: clamp(6px, 0.85vw, 13px); }
+  .nav-links a { font-size: 0.66rem; letter-spacing: 0.06em; }
+}
+/* Below 1360 even the tight setting cannot hold ten labels, so the one tab
+   marked `extra` in LINKS steps out of the bar. It is still in the burger menu
+   and the footer at every width — see the note beside it in Chrome.jsx. */
+@media (max-width: 1360px) {
+  .nav-links a.is-extra { display: none; }
+}
+/* The last 100px before the burger. Even at ten labels the row still ran into
+   the pill at 1101–1180 (this predates the AI Search tab — it arrived with the
+   AI Workshops one), so the band immediately above the burger gets the
+   smallest setting rather than an overlap. */
+@media (max-width: 1200px) {
+  .nav-links { gap: 5px; }
+  .nav-links a { font-size: 0.62rem; letter-spacing: 0.04em; }
+  .nav-cta { gap: 8px; }
 }
 /* Clash Display, not the inherited Satoshi body face. The nav sat in body
    text at 540 while the wordmark beside it is Clash at 620 — the two read

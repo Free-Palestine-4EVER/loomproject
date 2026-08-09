@@ -71,7 +71,13 @@ const LINKS = [
   { href: '#lab', label: '3D Lab' },
   { href: '#own-apps', label: 'Software' },
   { href: '#mcp', label: 'MCP' },
-  { href: '#aeo', label: 'AI Search' },
+  /* `extra` = shown everywhere EXCEPT the desktop bar between 1100 and 1360.
+     Ten labels do not fit between the wordmark and the "Get started" pill until
+     ~1360px, and the burger does not take over until 1100 — so a tenth tab
+     buys 260px of a nav row sitting under the CTA. The mobile menu and the
+     footer render it unconditionally; only `.nav-links a.is-extra` drops out,
+     and only in that band. */
+  { href: '#aeo', label: 'AI Search', extra: true },
   /* A path, not a hash — go() below lets it fall through to the App-level
      route handler, which pushStates and swaps in the dedicated page. */
   { href: '/type', label: 'Typeface' },
@@ -134,7 +140,12 @@ export function Nav({ onNavigate }) {
         </a>
         <nav className="nav-links" aria-label="Primary">
           {LINKS.map((l) => (
-            <a key={l.href} href={l.href} onClick={(e) => go(e, l.href)}>
+            <a
+              key={l.href}
+              href={l.href}
+              className={l.extra ? 'is-extra' : undefined}
+              onClick={(e) => go(e, l.href)}
+            >
               <span data-text={l.label}>{l.label}</span>
             </a>
           ))}
