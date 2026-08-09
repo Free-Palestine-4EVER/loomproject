@@ -166,7 +166,16 @@
 /* label sits INLINE to the left of the field rather than stacked above it
    — one row instead of two. Below 700px there's no width to spare for
    both, so it drops back to a caption above the input (see media query). */
-.sol-search-row { display: flex; align-items: center; gap: 16px; }
+/* LEFT, not full width. The field used to stretch the whole console — 736px
+   of input for a two-word query — which made the search read as the section's
+   headline rather than as one control above the answer. Capped and pinned
+   left, over the same calm left third the answer card's copy column sits on,
+   so the search and the answer it produces share one edge down the card. */
+.sol-search-row {
+  display: flex; align-items: center; gap: 16px;
+  max-width: min(620px, 100%);
+  margin-right: auto;
+}
 .sol-search-label {
   flex-shrink: 0;
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
@@ -278,7 +287,16 @@
 }
 .sol-answer.has-photo::after { content: none; }
 
-@media (min-width: 720px) {
+/* 1060, not 720. The overlay layout — copy floated over the render's calm
+   left third — only works where the copy column is wide enough to keep the
+   deliverables off five and six lines. Below this the same copy overran a
+   true 21:9 box by 42-87px and the card was silently CUTTING it, because the
+   card is overflow:hidden and aspect-ratio on a flex container sets the box
+   rather than a floor (min-height: fit-content does not rescue it; it was
+   tried, and measured, and it clips anyway). Under 1060 the card falls back
+   to the stacked band below, which holds the same 21:9 render and lets the
+   copy run underneath it in flow. */
+@media (min-width: 1060px) {
   /* Desktop mock: the card becomes a wide 21:9 banner, and every piece of
      copy — badge, name, hook, deliverables, agent note, CTA — collapses
      into one narrow column that sits over the render's calm LEFT THIRD.
@@ -290,30 +308,76 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: clamp(6px, 1vw, 10px);
-    /* a floor, not a fixed ratio — a fixed aspect-ratio clipped the
-       deliverables/agent copy the instant the narrower left-third column
-       forced it onto more lines than the plain two-column card ever needed.
-       This still reads as the mock's wide 21:9 banner whenever the copy is
-       short enough to fit that box, and only grows taller than that when a
-       niche's content genuinely needs the room — never clips it. */
-    min-height: min(44vh, 420px);
+    gap: clamp(4px, 0.7vw, 8px);
+    /* 21/9 — the render's OWN ratio (every niche shot is 1400x600). It used
+       to be `min-height: min(44vh, 420px)` and nothing else, on the reasoning
+       that a fixed ratio would clip the copy; what actually happened is that
+       the copy simply won every time and the card settled at 908x523 (1.74),
+       cover-fitting a 2.33 panorama into a 1.74 box — a third of the width
+       thrown away, on the one section whose whole job is showing the render.
+
+       aspect-ratio is not a clamp: it sets the box, and a flex column whose
+       content is taller than that box still grows. So the ratio is safe on
+       its own, and the fix for the height was to make the copy fit rather
+       than to give up on the ratio — the column widened to 40% (fewer wrapped
+       lines is the cheapest height there is) and the list/agent leading came
+       in below. Verified at 1440, 1100 and 820: 2.33 at all three. */
+    aspect-ratio: 21 / 9;
+    /* THE GUARD, and it is not optional: the card is `overflow: hidden`, and
+       aspect-ratio on a flex CONTAINER sets the box outright — content taller
+       than the box is silently cut off, not accommodated. `min-height: 0`
+       here clipped the agent note by 20px at 1440 and 79px at 820 before this
+       line existed. fit-content keeps 21/9 as the shape the card takes
+       whenever the copy fits, and lets it grow instead of cutting when it
+       does not. The ratio is the intent; this is the seatbelt. */
+    min-height: fit-content;
   }
   .sol-answer.has-photo .sol-answer-thread { flex: none; }
   .sol-answer.has-photo .sol-answer-left,
   .sol-answer.has-photo .sol-answer-right {
     width: 100%;
-    max-width: min(400px, 34%);
+    /* 40%, up from 34%. The render reserves a calm left third, but the copy
+       was wrapping to five and six lines inside 34% and paying for it in card
+       height — and the scrim below already carries legibility out to 55%, so
+       the extra 6% costs the artwork nothing it was showing. */
+    max-width: min(470px, 46%);
   }
+  /* Between 720 and 1080 the console is narrow enough that 40% is only ~276px
+     and the same copy wraps onto four extra lines — which is what pushed the
+     card 79px past its own 21:9 box at 820. The render's calm zone is a
+     PROPORTION of the shot, so it scales with the card; the copy does not.
+     Give it the room rather than let the ratio break. */
+  @media (max-width: 1080px) {
+    .sol-answer.has-photo .sol-answer-left,
+    .sol-answer.has-photo .sol-answer-right { max-width: 47%; }
+    .sol-answer.has-photo .sol-answer-scrim {
+      background: linear-gradient(90deg,
+        #ffe4f0 0%, #ffe4f0 34%,
+        color-mix(in srgb, #ffe4f0 55%, transparent) 50%,
+        transparent 64%);
+    }
+  }
+  /* the two blocks that set the card's height. Tighter leading and a smaller
+     agent note buy back the ~65px that stood between the copy and a true
+     21:9 box; nothing is hidden or truncated. */
+  /* the badge is decoration and the head gap is air; the agent note is the
+     copy that was being cut. Take the 20px out of the first two. */
+  .sol-answer.has-photo .sol-answer-badge { width: 38px; height: 38px; border-radius: 12px; }
+  .sol-answer.has-photo .sol-answer-gicon { width: 20px; height: 20px; }
+  .sol-answer.has-photo .sol-answer-head { gap: 10px; }
+  .sol-answer.has-photo .sol-answer-hook { line-height: 1.35; }
+  .sol-answer.has-photo .sol-deliverables { gap: 4px; }
+  .sol-answer.has-photo .sol-deliverables li { line-height: 1.32; }
+  .sol-answer.has-photo .sol-agent { font-size: 0.82rem; line-height: 1.38; }
   .sol-answer.has-photo .sol-answer-scrim {
     background: linear-gradient(90deg,
-      #ffe4f0 0%, #ffe4f0 26%,
-      color-mix(in srgb, #ffe4f0 55%, transparent) 42%,
-      transparent 55%);
+      #ffe4f0 0%, #ffe4f0 32%,
+      color-mix(in srgb, #ffe4f0 55%, transparent) 48%,
+      transparent 62%);
   }
 }
 
-@media (max-width: 719px) {
+@media (max-width: 1059px) {
   /* Mobile mock ("just vertical and horizontal"): no overlay at all — the
      render sits as an ordinary horizontal band above the copy, and every
      line of copy stacks underneath it in normal document flow. The scrim
@@ -334,7 +398,15 @@
        read as a photo with no answer attached. object-fit: cover on the img
        takes the crop off the top and bottom, which is where the render was
        told to leave calm backdrop anyway. */
-    aspect-ratio: 9 / 16;
+    /* 21/9 by default — between 720 and 1059 the <picture> is still serving
+       the 1400x600 landscape render, and forcing a 9:16 box onto it would
+       cover-crop away three quarters of the shot. The portrait ratio belongs
+       only to the width where the -9x16 source actually loads, so it is
+       restated in the 719 block below, on the same breakpoint the media
+       attribute in Solutions.jsx uses. A ratio and its source must switch
+       together — that pairing is the whole reason the need tiles were wrong
+       on production tonight. */
+    aspect-ratio: 21 / 9;
     max-height: 58vh;
     object-fit: cover;
     /* 0, not a margin. The card's own row-gap already separates the band from
@@ -352,6 +424,16 @@
   .sol-answer.has-photo .sol-answer-right {
     max-width: none;
   }
+}
+
+/* THE PAIR. Under 719 the <picture> in Solutions.jsx swaps to the -9x16
+   portrait render (720x1280), so the box has to swap with it — same
+   breakpoint, same commit, always. Above it the landscape 1400x600 loads and
+   the 21/9 in the block above is the correct box for it. A ratio switching on
+   a different breakpoint than its source is exactly what put a gut-cropped
+   need tile on production tonight; this is the same shape of bug, pre-empted. */
+@media (max-width: 719px) {
+  .sol-answer.has-photo .sol-answer-bg { aspect-ratio: 9 / 16; }
 }
 
 .sol-answer-thread {
