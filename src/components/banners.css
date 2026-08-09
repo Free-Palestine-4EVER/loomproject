@@ -193,7 +193,13 @@
      eased in two stops rather than one: the label got bigger, and a scrim that
      ramps linearly leaves a visible horizon across the middle of the still. */
   inset: auto 0 0 0;
-  height: 52%;
+  /* 72%, and at EVERY width now. 52% was sized for the 2:3 portrait tile;
+     the tile is a 21:9 banner everywhere since the reorder, and a banner is
+     a third of the portrait height, so the scrim has to be a much bigger
+     fraction of it to seat the same label. This used to be overridden to 72%
+     only under 719px, back when that was the one breakpoint where the tile
+     went wide — the override is gone, because so is the distinction. */
+  height: 72%;
   border-radius: inherit;
   z-index: 2;
   pointer-events: none;
@@ -383,13 +389,10 @@
    screenful. Anything squarer here and the eight tiles become a scroll. */
 @media (max-width: 719px) {
   .counter .cnt-grid { grid-template-columns: 1fr; }
-  /* aspect-ratio is no longer restated here — 21/9 is the base value now,
-     at every width. Only the die margin and the furniture anchored to it
-     still change on a phone. */
-  /* a 21:9 banner is a third of the height of the portrait tile, so the scrim
-     has to be a bigger fraction of it to seat the same label */
+  /* Neither aspect-ratio nor the scrim height is restated here any more:
+     21/9 and 72% are the BASE values now, at every width. All that is left
+     for a phone is the radius and the furniture sitting on the banner. */
   .counter .cnt-tile { border-radius: 20px; }
-  .counter .cnt-tile::after { height: 72%; }
   .counter .cnt-strip { left: 16px; right: 68px; bottom: 14px; }
   .counter .cnt-arrow { width: 44px; height: 44px; right: 15px; top: 15px; }
 }
