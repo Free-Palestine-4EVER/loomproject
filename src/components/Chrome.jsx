@@ -304,27 +304,24 @@ function FootIcon({ name, className = '' }) {
   )
 }
 
-/* The sitemap, split into two short columns instead of one eight-item run.
-   Same `LINKS` entries, so a nav change still only has to be made once — the
-   columns are addressed by href, and an unknown href is simply skipped rather
-   than rendering an empty row. */
+/* The sitemap, split into two short columns instead of one ten-item run.
+
+   The second column is the REMAINDER, not a second hand-written list. The
+   footer is the sitemap: a tab added to `LINKS` for a new page has to turn up
+   down here without anyone having to remember to add it in two places — which
+   is exactly what did not happen the last three times a tab was added. Only
+   the first column is curated; everything else lands in `Craft`, in `LINKS`
+   order, and the two columns are `LINKS` entries themselves so a renamed label
+   or href follows automatically. */
+const EXPLORE = ['#work', '#the-machine', '#solutions', '#apps', '#contact']
 const FOOT_COLS = [
-  { title: 'Explore', hrefs: ['#work', '#the-machine', '#solutions', '#apps'] },
-  { title: 'Craft',   hrefs: ['#lab', '#own-apps', '#mcp', '#aeo', '/type', '#contact'] },
+  { title: 'Explore', links: LINKS.filter((l) => EXPLORE.includes(l.href)) },
+  { title: 'Craft', links: LINKS.filter((l) => !EXPLORE.includes(l.href)) },
 ]
-/* Nothing in `LINKS` may go unlisted down here — the footer is the sitemap.
-   Dev-only, and a log rather than a throw: a missed tab is a content bug, not
-   a reason to blank the bottom of the page in front of a client. */
-if (import.meta.env.DEV) {
-  const listed = new Set(FOOT_COLS.flatMap((c) => c.hrefs))
-  const missing = LINKS.filter((l) => !listed.has(l.href)).map((l) => l.href)
-  if (missing.length) console.warn('[Footer] LINKS entries missing from FOOT_COLS:', missing)
-}
 
 export function Footer({ onNavigate }) {
   const reduced = useReducedMotion()
   const { open: openWizard } = useWizard()
-  const byHref = Object.fromEntries(LINKS.map((l) => [l.href, l]))
   const toTop = () => {
     if (window.__lenis) window.__lenis.scrollTo(0, { duration: 1.4 })
     else window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
@@ -432,16 +429,16 @@ export function Footer({ onNavigate }) {
           <nav className="foot-col" key={col.title} aria-label={col.title}>
             <h3 className="foot-col-t">{col.title}</h3>
             <ul>
-              {col.hrefs.map((href) => byHref[href] && (
-                <li key={href}>
+              {col.links.map((l) => (
+                <li key={l.href}>
                   <a
-                    href={href}
+                    href={l.href}
                     onClick={(e) => {
-                      if (!href.startsWith('#')) return
-                      e.preventDefault(); onNavigate(href)
+                      if (!l.href.startsWith('#')) return
+                      e.preventDefault(); onNavigate(l.href)
                     }}
                   >
-                    <span>{byHref[href].label}</span>
+                    <span>{l.label}</span>
                   </a>
                 </li>
               ))}
