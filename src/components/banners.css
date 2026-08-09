@@ -78,7 +78,12 @@
 
 .counter .cnt-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* TWO columns on desktop, not four. The tiles are 21:9 panoramas now (see
+     the aspect-ratio note below); at four across, a 291px column would paint
+     the still 125px tall and the knitted set — which is the entire reason the
+     photograph is there — stops reading as objects. Two columns give it
+     ~600x257 at 1440, which is the width the 1100px file was rendered for. */
+  grid-template-columns: repeat(2, 1fr);
   /* deliberately tighter than .sol-grid's clamp(14px, 1.8vw, 24px):
      a SET must look denser than a list of cards */
   gap: clamp(12px, 1.4vw, 22px);
@@ -93,47 +98,58 @@
   padding: 0;
   border: 0;
   text-align: left;
-  /* THE DIE-CUT STICKER.
-     The tile is no longer a window onto a photograph — it is a printed
-     sticker with a white cut margin around it, and the margin is what
-     makes it read as one. `padding` is the die: 9px of white on every
-     side, and .cnt-band insets to match. */
-  background: #fff;
-  padding: 9px;
-  border-radius: 28px;
-  /* overflow VISIBLE, deliberately. The peeling corner lifts off the
-     sticker and has to cast its shadow past the edge; clipped, it just
-     looks like a white triangle printed in the corner. */
-  overflow: visible;
+  /* NO FRAME. The tile used to be a die-cut sticker: 9px of white on every
+     side plus a curling corner, which is a lot of chrome around a photograph
+     that is already the most interesting thing in the row. The white margin
+     also fought the section's own ground and made eight tiles read as eight
+     objects lying on the page rather than as one set. The art is the tile now
+     — full bleed, one radius, nothing drawn around it.
+
+     `overflow: clip` follows from that: with the peel gone nothing has to
+     escape the box any more, and clipping is what lets the still scale on
+     hover inside a rounded corner without square corners appearing under it.
+     (`clip`, not `hidden` — `hidden` would make the tile a scroll container.) */
+  background: transparent;
+  padding: 0;
+  border-radius: clamp(18px, 1.5vw, 26px);
+  overflow: clip;
   position: relative;
-  /* 2/3, matching the `-pc` still exactly. The tile used to be 4/5 and
-     crop the shot; it now IS the shot's frame, so nothing is thrown away
-     and the calm band the render reserves along the bottom is the band
-     the label pill actually sits in. */
-  aspect-ratio: 2 / 3;
+  /* 21/9 at EVERY width, matching the `-wide` still exactly (1100x471).
+     It used to be 2/3 here and 21/9 only under 719px, off two separately
+     rendered shots — one frame per breakpoint, and the media query in
+     Banners.jsx had to be pinned to this exact number or the source and the
+     box disagreed. One ratio, one file, nothing to keep in sync. The tile
+     still IS the shot's frame rather than a window onto it, so nothing is
+     cropped and the calm band the render reserves along the bottom is the
+     band the label pill sits in. */
+  aspect-ratio: 21 / 9;
   -webkit-tap-highlight-color: transparent;
-  /* drop-shadow, NOT box-shadow — and this is the one place in the file
-     where that is right. A box-shadow follows the border-box, so it
-     would draw a shadow behind the peel's missing corner as though the
-     sticker were still square. drop-shadow follows the painted alpha,
-     so the shadow lifts with the curl. It costs a filter on a parent
-     with children, which wool.css:191 warns off; it is accepted here
-     because the die-cut silhouette IS the design. */
-  filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.68));
-  box-shadow: none;
-  transition: transform 0.5s var(--ease), filter 0.4s var(--ease);
+  /* box-shadow now, not drop-shadow. The die-cut silhouette was the only
+     thing that justified a filter on a parent with children (wool.css:191
+     warns off exactly that, and eight of them are the densest screenful on
+     the page) — the tile is a plain rounded rectangle again, so the cheap
+     shadow is also the correct one. */
+  filter: none;
+  box-shadow: 0 18px 34px -18px rgba(10, 4, 18, 0.75);
+  transition: transform 0.5s var(--ease), box-shadow 0.45s var(--ease);
 }
 /* a sticker is a small object, so it gets the small-object affordance
    wool.css:69 uses — a slight rotate. On the old 290px textured box that
    made the grid unstable; on a die-cut sticker it is the whole point. */
 .counter .cnt-tile:hover {
-  transform: translateY(-6px) rotate(-1.1deg);
-  filter: drop-shadow(0 26px 34px rgba(0, 0, 0, 0.75));
+  /* the rotate goes with the sticker. A framed cut-out can sit askew on the
+     page; a full-bleed image tile tilting reads as a broken transform. */
+  transform: translateY(-6px);
+  box-shadow: 0 30px 46px -20px rgba(10, 4, 18, 0.82);
 }
 
 /* The peel. A wedge of the sticker's own white back, hinged at the
    bottom-right corner and rotating up off the face. */
-.counter .cnt-peel {
+/* THE PEEL IS GONE. Left in the DOM (it is one empty <i>) and switched off
+   here, so nothing in Banners.jsx has to change and the curl can come back by
+   deleting one line if the sticker is ever wanted again. */
+.counter .cnt-peel { display: none; }
+.counter .cnt-peel--legacy {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -149,7 +165,7 @@
   transition: transform 0.55s var(--ease);
   box-shadow: -7px -7px 15px rgba(0, 0, 0, 0.34);
 }
-.counter .cnt-tile:hover .cnt-peel { transform: rotate(-9deg) scale(1.2); }
+.counter .cnt-tile:hover .cnt-peel--legacy { transform: rotate(-9deg) scale(1.2); }
 .counter .cnt-tile:active { transform: translateY(-1px); transition-duration: 0.1s; }
 .counter .cnt-tile:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 4px; }
 
@@ -161,11 +177,11 @@
 .counter .cnt-band {
   display: block;
   position: absolute;
-  /* insets to the tile's 9px die margin. The tile no longer clips —
-     it has overflow:visible so the peel can lift — so the band has to
-     round its own corners now. 28px outer minus 9px margin = 19px. */
-  inset: 9px;
-  border-radius: 19px;
+  /* full bleed, and the radius is INHERITED rather than restated: the tile's
+     own radius is a clamp now, and two clamps kept in sync by hand is how a
+     1px pink hairline appears in a corner at one viewport width. */
+  inset: 0;
+  border-radius: inherit;
 }
 /* Reads the pill off the photo on a light still without tinting the set:
    a bottom-anchored scrim only, no blur, no filter on a parent with
@@ -173,14 +189,19 @@
 .counter .cnt-tile::after {
   content: '';
   position: absolute;
-  /* inside the die margin, and rounded to match the band — a scrim that
-     ran to the tile's edge would paint over the white cut line */
-  inset: auto 9px 9px 9px;
-  height: 44%;
-  border-radius: 0 0 19px 19px;
+  /* to the edges now — there is no white cut line left to protect. Taller and
+     eased in two stops rather than one: the label got bigger, and a scrim that
+     ramps linearly leaves a visible horizon across the middle of the still. */
+  inset: auto 0 0 0;
+  height: 52%;
+  border-radius: inherit;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(24, 12, 34, 0.62), rgba(24, 12, 34, 0) 78%);
+  background: linear-gradient(to top,
+    rgba(20, 9, 28, 0.78) 0%,
+    rgba(20, 9, 28, 0.52) 26%,
+    rgba(20, 9, 28, 0.22) 56%,
+    rgba(20, 9, 28, 0) 100%);
 }
 /* Fixed size, anchored top-left. The instant the medallion out-weighs the word
    the tile reads as clip-art. `--wool-icon` is a custom property, so it beats
@@ -239,36 +260,68 @@
      the scrim that ::after already lays down. Anything with its own
      background here immediately reads as UI sitting on top of a photo,
      which is the exact thing the die-cut is buying us out of. */
-  left: 24px;
-  /* clears the peel in the bottom-right corner */
-  right: 74px;
-  bottom: 22px;
+  /* the peel is gone, so the label gets the full width of the tile back —
+     it only ever stopped at 74px to clear a curl that no longer exists. */
+  left: 20px;
+  right: 20px;
+  bottom: 18px;
   min-height: 0;
   padding: 0;
   border-radius: 0;
   background: none;
   box-shadow: none;
   color: #fff;
+  display: block;
   transition: transform 0.5s var(--ease);
 }
-.counter .cnt-tile:hover .cnt-strip { transform: translateY(-2px); }
+.counter .cnt-tile:hover .cnt-strip { transform: translateY(-3px); }
+
+/* THE NAME.
+   It was 1.16rem of display type with a blur behind it, sitting in the corner
+   of a photograph and hoping to be read. Three changes, in order of how much
+   each one does:
+
+   1 · SIZE AND CUT. A tile's whole job is to say one word; the word should be
+       the second-biggest thing in it after the picture. Up to ~1.5rem, weight
+       700, tracking pulled in — the display face tightens as it grows, and at
+       1.16rem it was sitting at a headline's tracking on a caption's size.
+   2 · A RULE ABOVE IT, not a shadow behind it. The old text-shadow was doing
+       two jobs — legibility and separation — and doing neither well; the ::after
+       scrim under it now carries legibility, so the shadow drops to a hairline
+       and a 20px magenta rule does the separating. It grows to 44px on hover,
+       which is the whole hover state the label needs.
+   3 · IT STAYS ONE LINE. `text-wrap: balance` on the clamp, so "Social content"
+       breaks evenly if it ever has to break at all. */
 .counter .cnt-label {
-  font-family: var(--display);
-  font-weight: 580;
-  font-size: 1.05rem;             /* ONE size on every tile — the only difference
-                                     between tiles is the word */
-  line-height: 1.15;
-  letter-spacing: -0.005em;
+  position: relative;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  /* the type sits directly on the print now, so it carries its own
-     legibility instead of borrowing a plate's */
-  font-weight: 620;
-  font-size: 1.16rem;
-  text-shadow: 0 2px 10px rgba(13, 7, 22, 0.85);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.18rem, 1.15vw, 1.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+  padding-top: 13px;
+  text-shadow: 0 1px 6px rgba(13, 7, 22, 0.55);
 }
+/* the rule. On the STRIP, not the label: `-webkit-box` clips its own
+   pseudo-elements, which is why a ::before on the label itself never appears. */
+.counter .cnt-strip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--magenta, #d21f7d);
+  box-shadow: 0 1px 6px rgba(13, 7, 22, 0.5);
+  transition: width 0.45s var(--ease);
+}
+.counter .cnt-tile:hover .cnt-strip::before { width: 44px; }
 /* The CTA is a real crocheted yarn button, photographed, on alpha —
    the one saturated element on the sticker and the thing that says
    pressable rather than decorative.
@@ -318,7 +371,7 @@
 
 @media (max-width: 1000px) {
   .counter .cnt-medal { --wool-icon: 58px; left: 13px; top: 15px; }
-  .counter .cnt-label { font-size: 0.98rem; }
+  .counter .cnt-label { font-size: 1.12rem; }
 }
 /* 8 items only ever form a clean rectangle — 4×2 or 2×4, never a ragged 3×3−1.
    On a phone that rectangle is now a STACK of 21:9 banners, one per row.
@@ -330,19 +383,19 @@
    screenful. Anything squarer here and the eight tiles become a scroll. */
 @media (max-width: 719px) {
   .counter .cnt-grid { grid-template-columns: 1fr; }
-  .counter .cnt-tile { aspect-ratio: 21 / 9; }
-  /* the die margin shrinks with the tile, so everything anchored to it
-     has to come in with it — otherwise the label drifts off the print */
-  .counter .cnt-tile { padding: 7px; border-radius: 22px; }
-  .counter .cnt-band { inset: 7px; border-radius: 15px; }
-  .counter .cnt-tile::after { inset: auto 7px 7px 7px; border-radius: 0 0 15px 15px; }
-  .counter .cnt-strip { left: 17px; right: 58px; bottom: 16px; }
+  /* aspect-ratio is no longer restated here — 21/9 is the base value now,
+     at every width. Only the die margin and the furniture anchored to it
+     still change on a phone. */
+  /* a 21:9 banner is a third of the height of the portrait tile, so the scrim
+     has to be a bigger fraction of it to seat the same label */
+  .counter .cnt-tile { border-radius: 20px; }
+  .counter .cnt-tile::after { height: 72%; }
+  .counter .cnt-strip { left: 16px; right: 68px; bottom: 14px; }
   .counter .cnt-arrow { width: 44px; height: 44px; right: 15px; top: 15px; }
-  .counter .cnt-peel { width: 58px; height: 58px; border-radius: 0 0 22px 0; }
 }
 @media (max-width: 400px) {
   .counter .cnt-medal { --wool-icon: 44px; left: 11px; top: 12px; }
-  .counter .cnt-label { font-size: 0.9rem; }
+  .counter .cnt-label { font-size: 1.02rem; padding-top: 11px; }
 }
 
 

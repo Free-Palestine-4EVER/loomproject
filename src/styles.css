@@ -1544,7 +1544,10 @@ html.cursor-hot .cursor-ring {
    Nothing here animates anything but transform and opacity.
    ═══════════════════════════════════════════════════════════ */
 .footer--bloom {
-  --seam: clamp(80px, 11vh, 150px);
+  /* a LONGER seam than before. The join used to happen inside ~150px, which is
+     short enough that the eye finds the place where the dark stops even when
+     no single pixel is a hard edge. Over ~260px there is no place to find. */
+  --seam: clamp(110px, 17vh, 260px);
   /* ink for a light ground. #33243d is the house ink on paper (see .cnt-strip
      and the old wish tags) — a brand hue is not used for body copy because the
      sky is speckled and saturated hues drop under 4.5:1 in the flecks. */
@@ -1581,20 +1584,29 @@ html.cursor-hot .cursor-ring {
   object-position: center 62%;
   pointer-events: none;
   user-select: none;
-  /* eased, not linear: a two-stop ramp is C1-discontinuous at its ends and the
-     kink shows as a mach band exactly where the fade "starts". Only the TOP
-     fades — the bottom of the page is the end of the document, there is
-     nothing below to dissolve into. */
+  /* A SAMPLED SMOOTHSTEP, not a two-stop ramp and not the nine-stop eyeball
+     curve this used to be. Both of those are C1-discontinuous where they meet
+     0 and 1, and the kink reads as a mach band at exactly the height the fade
+     is supposed to be invisible. These twenty stops are 3t²-2t³ evaluated on an
+     even grid over 0–72%, so the derivative goes to zero at both ends and there
+     is no band to find. Only the TOP fades — the bottom of the page is the end
+     of the document, there is nothing below to dissolve into. */
   -webkit-mask-image: linear-gradient(180deg,
-    rgba(0, 0, 0, 0) 0%,     rgba(0, 0, 0, 0.02) 3%,  rgba(0, 0, 0, 0.09) 6%,
-    rgba(0, 0, 0, 0.21) 9%,  rgba(0, 0, 0, 0.38) 12%, rgba(0, 0, 0, 0.58) 15%,
-    rgba(0, 0, 0, 0.76) 18%, rgba(0, 0, 0, 0.9) 21%,  rgba(0, 0, 0, 0.98) 24%,
-    rgba(0, 0, 0, 1) 27%, rgba(0, 0, 0, 1) 100%);
+    rgba(0, 0, 0, 0) 0%,      rgba(0, 0, 0, 0.006) 4%,  rgba(0, 0, 0, 0.024) 8%,
+    rgba(0, 0, 0, 0.055) 12%, rgba(0, 0, 0, 0.098) 16%, rgba(0, 0, 0, 0.155) 20%,
+    rgba(0, 0, 0, 0.226) 24%, rgba(0, 0, 0, 0.309) 28%, rgba(0, 0, 0, 0.402) 32%,
+    rgba(0, 0, 0, 0.5) 36%,   rgba(0, 0, 0, 0.598) 40%, rgba(0, 0, 0, 0.691) 44%,
+    rgba(0, 0, 0, 0.774) 48%, rgba(0, 0, 0, 0.845) 52%, rgba(0, 0, 0, 0.902) 56%,
+    rgba(0, 0, 0, 0.945) 60%, rgba(0, 0, 0, 0.976) 64%, rgba(0, 0, 0, 0.994) 68%,
+    rgba(0, 0, 0, 1) 72%,     rgba(0, 0, 0, 1) 100%);
   mask-image: linear-gradient(180deg,
-    rgba(0, 0, 0, 0) 0%,     rgba(0, 0, 0, 0.02) 3%,  rgba(0, 0, 0, 0.09) 6%,
-    rgba(0, 0, 0, 0.21) 9%,  rgba(0, 0, 0, 0.38) 12%, rgba(0, 0, 0, 0.58) 15%,
-    rgba(0, 0, 0, 0.76) 18%, rgba(0, 0, 0, 0.9) 21%,  rgba(0, 0, 0, 0.98) 24%,
-    rgba(0, 0, 0, 1) 27%, rgba(0, 0, 0, 1) 100%);
+    rgba(0, 0, 0, 0) 0%,      rgba(0, 0, 0, 0.006) 4%,  rgba(0, 0, 0, 0.024) 8%,
+    rgba(0, 0, 0, 0.055) 12%, rgba(0, 0, 0, 0.098) 16%, rgba(0, 0, 0, 0.155) 20%,
+    rgba(0, 0, 0, 0.226) 24%, rgba(0, 0, 0, 0.309) 28%, rgba(0, 0, 0, 0.402) 32%,
+    rgba(0, 0, 0, 0.5) 36%,   rgba(0, 0, 0, 0.598) 40%, rgba(0, 0, 0, 0.691) 44%,
+    rgba(0, 0, 0, 0.774) 48%, rgba(0, 0, 0, 0.845) 52%, rgba(0, 0, 0, 0.902) 56%,
+    rgba(0, 0, 0, 0.945) 60%, rgba(0, 0, 0, 0.976) 64%, rgba(0, 0, 0, 0.994) 68%,
+    rgba(0, 0, 0, 1) 72%,     rgba(0, 0, 0, 1) 100%);
 }
 /* light rising out of the pink into the dark above, so the two zones interlock
    rather than meet. Same move `.offer` used, and the same specificity trick:
@@ -1605,16 +1617,48 @@ html.cursor-hot .cursor-ring {
   content: '';
   position: absolute;
   left: 50%;
-  top: calc(-1 * var(--seam));
+  /* twice the seam: the glow has to START above the point where the sky has
+     already faded out, or the top of the glow is itself an edge. */
+  top: calc(-2 * var(--seam));
   z-index: 1;
-  width: min(1700px, 132%);
-  height: clamp(240px, 30vh, 420px);
+  width: min(2100px, 148%);
+  height: clamp(360px, 46vh, 720px);
   transform: translateX(-50%);
   pointer-events: none;
-  background: radial-gradient(58% 108% at 50% 100%,
-    rgba(247, 176, 202, 0.40) 0%,
-    rgba(196, 116, 172, 0.17) 44%,
-    rgba(13, 7, 22, 0) 76%);
+  /* THREE lobes, not one. A single radial is a perfect ellipse and the eye
+     finds an ellipse; overlapping a tall narrow core, a wide low haze and a
+     warm off-centre bloom gives the light an irregular silhouette that reads
+     as air. All three land on transparent, never on a colour, so nothing has
+     to be kept in sync with whatever section sits above. */
+  background:
+    radial-gradient(42% 68% at 50% 100%,
+      rgba(255, 214, 233, 0.42) 0%,
+      rgba(247, 176, 202, 0.24) 38%,
+      rgba(13, 7, 22, 0) 72%),
+    radial-gradient(78% 52% at 50% 100%,
+      rgba(232, 150, 196, 0.26) 0%,
+      rgba(180, 104, 168, 0.13) 46%,
+      rgba(13, 7, 22, 0) 78%),
+    radial-gradient(34% 40% at 63% 96%,
+      rgba(255, 226, 214, 0.2) 0%,
+      rgba(13, 7, 22, 0) 70%);
+}
+/* the counter-light: a thin warm lip ALONG the join itself, drawn on top of
+   the sky's own fade. Without it the dissolve is clean but flat — a horizon
+   with no sun behind it. 1px of nothing, 40px of light, gone. */
+.footer--bloom::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(-1 * var(--seam));
+  height: clamp(180px, 24vh, 340px);
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(255, 205, 228, 0) 0%,
+    rgba(255, 205, 228, 0.05) 34%,
+    rgba(255, 214, 233, 0.11) 62%,
+    rgba(255, 214, 233, 0) 100%);
 }
 
 /* ── the tree ────────────────────────────────────────────────
@@ -1622,17 +1666,20 @@ html.cursor-hot .cursor-ring {
    hem behind the copy. It is the last object on the page; the copy is arranged
    around it rather than on top of it (see the grid's empty middle column). */
 .footer--bloom .foot-bloom {
-  /* IN FLOW, AT THE TOP. The tree is the first thing in the footer and the copy
-     sits under it — which is also why this file no longer needs the empty
-     middle grid column, the bottom anchor, the min-height or the mobile
-     `order` swap that the earlier bottom-anchored version all needed to keep
-     text off the canopy. Nothing is over the tree, so nothing has to be kept
-     off it. DOM order is already sky · tree · copy · hem, so being a plain flow
-     item puts it exactly where it belongs with no reordering. */
+  /* THE MIDDLE GRID CELL. Not a flow item above the copy, not an absolutely
+     positioned backdrop behind it — a real column, with the two text columns
+     beside it. That is what keeps a link off the canopy without a scrim: the
+     grid does it, so nothing has to be nudged, faded or z-indexed to stay
+     readable. `align-self: center` rather than `end`: the two side columns are
+     different heights, and hanging the tree off either of their baselines
+     makes the taller one look like a mistake. */
+  grid-column: 2;
   position: relative;
   z-index: 1;
-  width: min(560px, 42vw);
-  margin: 0 auto clamp(26px, 4vh, 48px);
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 620px;
   display: grid;
   place-items: end center;
   pointer-events: none;
@@ -1724,21 +1771,38 @@ html.cursor-hot .cursor-ring {
   100% { transform: translate3d(var(--dx), 112vh, 0) rotate(var(--rot));     opacity: 0; }
 }
 
-/* ── the copy, under the tree ────────────────────────────────
-   FOUR TRACKS: brand · Explore · Craft · contact card. The brand column is the
-   widest and the card is the second widest; the two link lists are deliberately
-   narrow, because a link column wider than its longest label ("Solutions") is
-   just a gap with text down one edge of it. */
+/* ── the copy, AROUND the tree ───────────────────────────────
+   THREE TRACKS: words · blossom · contact. The middle track is sized in its
+   own right (not `1fr`) so the tree keeps its scale while the two side columns
+   take whatever is left — a `1fr 1fr 1fr` split shrinks the tree on a laptop
+   to pay for two columns of short links, which is backwards. */
 .footer--bloom .footer-grid {
-  grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.75fr) minmax(0, 0.75fr) minmax(0, 1.25fr);
-  align-items: start;
-  gap: clamp(24px, 3.2vw, 60px);
-  max-width: 1560px;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 30vw, 620px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(20px, 2.6vw, 52px);
+  max-width: 1660px;
   margin-inline: auto;
   width: 100%;
   z-index: 2;
 }
-.footer--bloom .foot-brand { grid-column: 1; max-width: 34ch; }
+/* the two side stacks. `justify-content: center` on the vertical axis, so each
+   side is centred against the trunk rather than hanging off the top of it. */
+.footer--bloom .foot-side {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(26px, 4vh, 44px);
+  min-width: 0;
+}
+.footer--bloom .foot-side--l { grid-column: 1; }
+.footer--bloom .foot-side--r { grid-column: 3; align-items: stretch; }
+/* the two link lists sit side by side INSIDE the left column: a single ten-item
+   run down one side of the tree is taller than the tree. */
+.footer--bloom .foot-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 34px);
+}
+.footer--bloom .foot-brand { max-width: 34ch; }
 .footer--bloom .footer-mark { color: #33243d; width: 38px; height: 38px; }
 .footer--bloom .footer-grid p { color: var(--ink-dim); }
 .footer--bloom .foot-tag { line-height: 1.55; }
@@ -1796,7 +1860,6 @@ html.cursor-hot .cursor-ring {
    two WebGL layers and a rasterised blur at the bottom of a long scroll is a
    permanent cost for a decoration. */
 .footer--bloom .footer-contact {
-  grid-column: 4;
   display: flex; flex-direction: column; gap: 8px;
   padding: clamp(18px, 1.6vw, 24px);
   border-radius: 20px;
@@ -1860,6 +1923,45 @@ html.cursor-hot .cursor-ring {
 .footer--bloom .foot-cta:hover { transform: translateY(-2px); filter: saturate(1.08); box-shadow: 0 18px 34px -14px rgba(160, 24, 100, 0.9); }
 .footer--bloom .foot-cta:active { transform: translateY(0); }
 
+/* ── share ──
+   Outside the card, not in it: the card is "reach the studio", this is "pass
+   the studio on", and putting a share button next to a phone number invites
+   a misclick between two very different intentions. */
+.footer--bloom .foot-share .foot-col-t { margin-bottom: 10px; }
+.footer--bloom .foot-share-row { display: flex; flex-wrap: wrap; gap: 9px; }
+.footer--bloom .foot-sh {
+  display: inline-grid; place-items: center;
+  position: relative;
+  width: 42px; height: 42px;
+  border-radius: 50%; cursor: pointer;
+  color: #6d3a63;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(96, 40, 76, 0.16);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease,
+              background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.footer--bloom .foot-sh:hover {
+  transform: translateY(-3px);
+  color: #d21f7d;
+  background: rgba(255, 255, 255, 0.86);
+  border-color: rgba(210, 31, 125, 0.4);
+  box-shadow: 0 12px 22px -14px rgba(140, 30, 90, 0.8);
+}
+.footer--bloom .foot-sh .foot-i { width: 18px; height: 18px; }
+.footer--bloom .foot-sh--copy.is-copied { color: #1f8a5b; border-color: rgba(31, 138, 91, 0.45); background: rgba(255, 255, 255, 0.9); }
+/* the confirmation floats ABOVE the button rather than widening it — a pill
+   that grows on click shoves the four buttons beside it sideways. */
+.footer--bloom .foot-sh-say {
+  position: absolute; bottom: calc(100% + 7px); left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  color: #fff; background: #1f8a5b;
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity 0.25s ease;
+}
+.footer--bloom .foot-sh--copy.is-copied .foot-sh-say { opacity: 1; }
+
 .footer--bloom .footer-base {
   z-index: 2;
   /* the hem. A fixed gap, not `margin-top: auto` — auto was pushing this to the
@@ -1921,19 +2023,40 @@ html.cursor-hot .cursor-ring {
   border-radius: 8px;
 }
 
-@media (max-width: 1100px) {
-  /* three tracks: the card drops to a full-width row under the other three, so
-     the phone number keeps its own line instead of being squeezed to ~200px
-     between two link columns. */
-  .footer--bloom .footer-grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.85fr) minmax(0, 0.85fr); }
-  .footer--bloom .footer-contact { grid-column: 1 / -1; }
+@media (max-width: 1180px) {
+  /* the tree gives up its column first. Below ~1180 the three-up leaves each
+     side stack under ~300px, which breaks "+962 79 179 2129" onto two lines —
+     and a phone number that wraps is worse than a smaller tree. One column of
+     copy, the tree back on top of it, full width. */
+  .footer--bloom .footer-grid { grid-template-columns: minmax(0, 1fr); gap: clamp(26px, 4vh, 44px); }
+  .footer--bloom .foot-bloom {
+    grid-column: 1;
+    grid-row: 1;
+    max-width: min(560px, 100%);
+    margin-inline: auto;
+  }
+  .footer--bloom .foot-side--l,
+  .footer--bloom .foot-side--r { grid-column: 1; }
+  /* the two halves run side by side under the tree rather than stacking into
+     one very long column */
+  .footer--bloom .footer-grid { grid-template-areas: 'tree' 'l' 'r'; }
+  .footer--bloom .foot-bloom { grid-area: tree; }
+  .footer--bloom .foot-side--l { grid-area: l; }
+  .footer--bloom .foot-side--r { grid-area: r; }
 }
-@media (max-width: 1100px) and (min-width: 601px) {
-  /* the card is the full width of the page here, and a stacked column inside a
-     1000px-wide box is two short rows with 700px of empty card beside them.
-     Two-up instead, with the hem of the card carrying the timezone and the CTA
-     on one line — and the CTA sized to its label, not to the box: a
-     700px-wide pill is a banner, not a button. */
+@media (max-width: 1180px) and (min-width: 861px) {
+  /* two-up under the tree while there is width for it */
+  .footer--bloom .footer-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-areas: 'tree tree' 'l r';
+    column-gap: clamp(24px, 4vw, 56px);
+  }
+}
+@media (max-width: 1180px) and (min-width: 601px) {
+  /* the card is wide here, and a stacked column inside a 900px box is two short
+     rows with half a card of air beside them. Two-up instead, with the timezone
+     and the CTA sharing the last line — and the CTA sized to its label, not to
+     the box: a 700px-wide pill is a banner, not a button. */
   .footer--bloom .footer-contact { display: grid; grid-template-columns: 1fr 1fr; align-items: center; column-gap: clamp(16px, 3vw, 40px); row-gap: 10px; }
   .footer--bloom .footer-contact .foot-col-t { grid-column: 1 / -1; }
   .footer--bloom .foot-hours { grid-column: 1; margin: 2px 0 0; }
@@ -1942,21 +2065,16 @@ html.cursor-hot .cursor-ring {
 
 @media (max-width: 900px) {
   /* the seam is a proportion of a much taller, narrower box here — the desktop
-     clamp would put ~150px of empty pink above the tree before anything is
+     clamp would put a screenful of empty pink above the tree before anything is
      read. Shortened, and the top padding with it. */
-  .footer--bloom { --seam: clamp(50px, 7vh, 90px); padding-bottom: 26px; }
-  /* TWO tracks, not one. The two link lists are four short words each — stacked
-     they cost a whole screen of scrolling for eight links, side by side they
-     cost one block. The brand line and the card each span both. */
-  .footer--bloom .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px clamp(18px, 5vw, 40px); }
-  .footer--bloom .foot-brand { grid-column: 1 / -1; max-width: none; }
-  .footer--bloom .footer-contact { grid-column: 1 / -1; justify-self: stretch; text-align: left; }
-  /* Capped through the tablet range rather than bled. A percentage bleed is a
-     PHONE move (see the 600px block below) and does not survive being scaled
-     up: 122% made the tree 911x845 at 820px, which is not a crowning image,
-     it is a wallpaper. */
-  .footer--bloom .foot-bloom { width: min(560px, 100%); }
+  .footer--bloom { --seam: clamp(60px, 9vh, 120px); padding-bottom: 26px; }
   .footer--bloom .footer-base { margin-top: clamp(20px, 3vh, 30px); }
+}
+@media (max-width: 860px) {
+  /* one column all the way down, but the two LINK lists stay two-up inside it:
+     ten stacked links is most of a phone screen for a sitemap. */
+  .footer--bloom .footer-grid { grid-template-areas: 'tree' 'l' 'r'; }
+  .footer--bloom .foot-side { gap: clamp(22px, 3.4vh, 34px); }
 }
 @media (max-width: 767px) {
   /* ten lanes, not eighteen. The layer is the full footer now rather than the
@@ -1967,6 +2085,8 @@ html.cursor-hot .cursor-ring {
   /* the hem stacks: three items on one 360px line put four words per row */
   .footer--bloom .footer-base { flex-wrap: wrap; font-size: 0.8rem; }
   .footer--bloom .foot-edge { margin-left: 0; margin-right: 0; order: 3; flex: 1 1 100%; }
+  /* full-width tap targets for the share row on a phone */
+  .footer--bloom .foot-sh { width: 46px; height: 46px; }
 }
 @media (max-width: 600px) {
   /* THE PHONE BLEED. The cutout carries transparent margins on every side, so
@@ -1976,7 +2096,7 @@ html.cursor-hot .cursor-ring {
      and puts the BLOSSOM at the screen edges, which is the measurement that
      matters. Nothing is cropped but air, and `.footer--bloom` clips X so this
      cannot open a scrollbar. */
-  .footer--bloom .foot-bloom { width: 122%; margin-inline: -11%; }
+  .footer--bloom .foot-bloom { max-width: none; width: 122%; margin-inline: -11%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .footer--bloom .foot-tree,

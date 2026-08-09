@@ -61,12 +61,16 @@ export function ScrollProgress() {
 // One array, three renderers (desktop header, mobile menu, footer).
 // dedicated route. `go` below leaves non-hash hrefs to the App-level handler,
 // which pushStates and swaps the page.
+/* The tab order MIRRORS the page order (see the band comments in App.jsx) —
+   a nav that lists sections in a different sequence than the scroll does
+   makes every tab feel like a jump backwards. Proof, then the qualifier,
+   then the three things a visitor can buy, then capability. */
 const LINKS = [
   { href: '#work', label: 'Work' },
+  { href: '#solutions', label: 'Solutions' },
   /* The Machine took the Crew slot on the page, so it takes the tab too —
      Crew and Ascent are gone, and #crew/#ascent no longer resolve. */
   { href: '#the-machine', label: 'Machine' },
-  { href: '#solutions', label: 'Solutions' },
   { href: '#apps', label: 'Apps' },
   { href: '#lab', label: '3D Lab' },
   { href: '#own-apps', label: 'Software' },
@@ -285,6 +289,25 @@ const FOOT_ICONS = {
   arrowUp: <path d="M12 19.5v-15m0 0-6.2 6.2M12 4.5l6.2 6.2" />,
   arrowUpRight: <path d="M7 17 17 7m0 0H8.6M17 7v8.4" />,
   spark: <path d="M12 3.2 13.9 9 20 10.9 13.9 12.8 12 18.6 10.1 12.8 4 10.9 10.1 9 12 3.2Z" />,
+  /* the share set. Brand glyphs are FILLED paths on `currentColor` with the
+     stroke switched off — a logo drawn as a 1.7px outline stops being the logo,
+     and these three are recognised by their silhouette or not at all. */
+  linkedin: (
+    <path fill="currentColor" stroke="none" d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13Zm1.78 13.02H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z" />
+  ),
+  x: (
+    <path fill="currentColor" stroke="none" d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z" />
+  ),
+  facebook: (
+    <path fill="currentColor" stroke="none" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.96h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07Z" />
+  ),
+  link: (
+    <>
+      <path d="M10.5 13.5a4 4 0 0 0 5.66 0l2.55-2.55a4 4 0 1 0-5.66-5.66l-1.27 1.28" />
+      <path d="M13.5 10.5a4 4 0 0 0-5.66 0l-2.55 2.55a4 4 0 1 0 5.66 5.66l1.27-1.28" />
+    </>
+  ),
+  check: <path d="m4.8 12.6 4.7 4.7L19.2 7" />,
 }
 
 function FootIcon({ name, className = '' }) {
@@ -319,6 +342,79 @@ const FOOT_COLS = [
   { title: 'Craft', links: LINKS.filter((l) => !EXPLORE.includes(l.href)) },
 ]
 
+/* SHARE, not follow. LOOM has no social handles anywhere in the repo, and a
+   footer that links to an Instagram account nobody has typed in is a broken
+   promise on the last row of the page. These four hand the CURRENT url to a
+   share intent instead — they need no account to exist, and they are the thing
+   a visitor who liked the work actually wants. `url()` is read at click time,
+   not at module scope, so a share from `/type` shares `/type`. */
+const SHARE = [
+  { id: 'whatsapp', label: 'Share on WhatsApp', to: (u, t) => `https://wa.me/?text=${encodeURIComponent(`${t} ${u}`)}` },
+  { id: 'linkedin', label: 'Share on LinkedIn', to: (u) => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(u)}` },
+  { id: 'x', label: 'Share on X', to: (u, t) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}` },
+  { id: 'facebook', label: 'Share on Facebook', to: (u) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}` },
+]
+
+function FootShare() {
+  const [copied, setCopied] = useState(false)
+  // the timeout is cleared on unmount: a 1.8s state write into a footer the
+  // reader has already routed away from is a React warning and a real leak.
+  useEffect(() => {
+    if (!copied) return
+    const t = setTimeout(() => setCopied(false), 1800)
+    return () => clearTimeout(t)
+  }, [copied])
+
+  const url = () => window.location.href
+  const title = `${BRAND.name} — ${BRAND.positioning}. ${BRAND.tagline}`
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url())
+      setCopied(true)
+    } catch {
+      // clipboard is permission-gated and absent over plain http on a phone.
+      // Falling back to the OS sheet is better than a button that does nothing.
+      if (navigator.share) navigator.share({ title, url: url() }).catch(() => {})
+    }
+  }
+
+  return (
+    <div className="foot-share">
+      <h3 className="foot-col-t">Share the studio</h3>
+      <div className="foot-share-row">
+        {SHARE.map((s) => (
+          <a
+            key={s.id}
+            className="foot-sh"
+            href={s.to('https://www.loomstudio-jo.com/', title)}
+            aria-label={s.label}
+            title={s.label}
+            target="_blank"
+            rel="noreferrer"
+            /* the href carries the canonical url so the link is real with JS
+               off and on a middle-click; the click swaps in the page the reader
+               is actually on before the tab opens. */
+            onClick={(e) => { e.currentTarget.href = s.to(url(), title) }}
+          >
+            <FootIcon name={s.id} />
+          </a>
+        ))}
+        <button
+          type="button"
+          className={`foot-sh foot-sh--copy ${copied ? 'is-copied' : ''}`}
+          onClick={copy}
+          aria-label={copied ? 'Link copied' : 'Copy link'}
+          title={copied ? 'Link copied' : 'Copy link'}
+        >
+          <FootIcon name={copied ? 'check' : 'link'} />
+          <span className="foot-sh-say" aria-live="polite">{copied ? 'Copied' : ''}</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function Footer({ onNavigate }) {
   const reduced = useReducedMotion()
   const { open: openWizard } = useWizard()
@@ -344,28 +440,6 @@ export function Footer({ onNavigate }) {
           aria-hidden="true"
         />
       </picture>
-
-      {/* the tree. `aria-hidden` and no alt: it carries no information the copy
-          beside it does not already state. One <img> and composited transforms
-          only — the page already runs two WebGL layers and the footer does not
-          get to open a third context to be pretty. */}
-      <div className="foot-bloom" aria-hidden="true">
-        <i className="foot-halo" />
-        <picture style={{ display: 'contents' }}>
-          <source media="(max-width: 767px)" type="image/avif" srcSet="/img/tree/bloom-tree-sm.avif" />
-          <source media="(max-width: 767px)" type="image/webp" srcSet="/img/tree/bloom-tree-sm.webp" />
-          <source type="image/avif" srcSet="/img/tree/bloom-tree.avif" />
-          <img
-            className="foot-tree"
-            src="/img/tree/bloom-tree.webp"
-            alt=""
-            width={1860}
-            height={1723}
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
-      </div>
 
       {/* THE DRIFT — petals over the WHOLE footer, not just the canopy.
           They used to live inside `.foot-bloom`, which is a 560px box in the
@@ -405,47 +479,81 @@ export function Footer({ onNavigate }) {
         </div>
       )}
 
-      {/* FOUR COLUMNS: brand · Explore · Craft · the contact card.
-
-          The old two-up put eight stacked links under the brand line and three
-          bare rows opposite them, which is a sitemap, not a footer: nothing
-          told you what the two groups WERE, and the contact details — the only
-          part of this block anybody actually came for — had the same weight as
-          a jump link. Named columns give the links a reason to be grouped, and
-          the contact block is now a card so the phone number is the heaviest
-          object below the tree. */}
+      {/* THREE COLUMNS, THE TREE IN THE MIDDLE: words left, blossom centre,
+          contact right. The tree is the reason this footer exists, and stacking
+          it above a four-up row of copy made it a header for a table. Standing
+          it between the two halves puts it back where the eye ends and gives
+          both columns a reason to be short. */}
       <div className="footer-grid">
-        <div className="foot-brand">
-          <LoomMark className="footer-mark" />
-          <p className="foot-tag">The AI-native creative agency.<br />We weave brands on the edge of creativity.</p>
-          <p className="foot-cities">
-            <FootIcon name="pin" />Amman × Sarajevo
-          </p>
+        <div className="foot-side foot-side--l">
+          <div className="foot-brand">
+            <LoomMark className="footer-mark" />
+            <p className="foot-tag">The AI-native creative agency.<br />We weave brands on the edge of creativity.</p>
+            <p className="foot-cities">
+              <FootIcon name="pin" />Amman × Sarajevo
+            </p>
+          </div>
+
+          {/* same rule as Nav's go(): only hash links are scroll targets, path
+              links bubble to the App-level route handler */}
+          <div className="foot-cols">
+            {FOOT_COLS.map((col) => (
+              <nav className="foot-col" key={col.title} aria-label={col.title}>
+                <h3 className="foot-col-t">{col.title}</h3>
+                <ul>
+                  {col.links.map((l) => (
+                    <li key={l.href}>
+                      <a
+                        href={l.href}
+                        onClick={(e) => {
+                          if (!l.href.startsWith('#')) return
+                          e.preventDefault(); onNavigate(l.href)
+                        }}
+                      >
+                        <span>{l.label}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
+          </div>
         </div>
 
-        {/* same rule as Nav's go(): only hash links are scroll targets, path
-            links bubble to the App-level route handler */}
-        {FOOT_COLS.map((col) => (
-          <nav className="foot-col" key={col.title} aria-label={col.title}>
-            <h3 className="foot-col-t">{col.title}</h3>
-            <ul>
-              {col.links.map((l) => (
-                <li key={l.href}>
-                  <a
-                    href={l.href}
-                    onClick={(e) => {
-                      if (!l.href.startsWith('#')) return
-                      e.preventDefault(); onNavigate(l.href)
-                    }}
-                  >
-                    <span>{l.label}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))}
+        {/* THE TREE, IN THE MIDDLE COLUMN. It was a full-width flow item above
+            the copy; it is a grid cell now, standing between the two columns
+            with the brand on its left and the contact on its right. Being a
+            CELL rather than a background is the whole trick — the columns sit
+            beside it by the grid's own maths, so no text can ever land on the
+            canopy and nothing needs a scrim to stay readable.
 
+            `aria-hidden`, no alt: it says nothing the copy beside it does not.
+            One <img> and composited transforms only — the page already runs two
+            WebGL layers and the footer does not open a third to be pretty.
+
+            `-hq` art, re-exported from the 1860px original: the shipped pair was
+            downscaled to 1600 and encoded for a 560px slot, and this column
+            shows it larger. New filenames, because the bytes changed and the
+            caches would otherwise keep serving the small ones. */}
+        <div className="foot-bloom" aria-hidden="true">
+          <i className="foot-halo" />
+          <picture style={{ display: 'contents' }}>
+            <source media="(max-width: 767px)" type="image/avif" srcSet="/img/tree/bloom-tree-hq-sm.avif" />
+            <source media="(max-width: 767px)" type="image/webp" srcSet="/img/tree/bloom-tree-hq-sm.webp" />
+            <source type="image/avif" srcSet="/img/tree/bloom-tree-hq.avif" />
+            <img
+              className="foot-tree"
+              src="/img/tree/bloom-tree-hq.webp"
+              alt=""
+              width={1860}
+              height={1723}
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
+        </div>
+
+        <div className="foot-side foot-side--r">
         <div className="footer-contact">
           <h3 className="foot-col-t">Start a project</h3>
           <a className="foot-c-row is-lead" href={BRAND.whatsapp} target="_blank" rel="noreferrer">
@@ -468,6 +576,8 @@ export function Footer({ onNavigate }) {
           <button type="button" className="foot-cta" onClick={() => openWizard({})}>
             <FootIcon name="spark" />Get started
           </button>
+        </div>
+        <FootShare />
         </div>
       </div>
 
