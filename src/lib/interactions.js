@@ -7,7 +7,7 @@ const REDUCED = () => window.matchMedia('(prefers-reduced-motion: reduce)').matc
 
 /** Cards lit by a cursor-following radial highlight + subtle 3D tilt. */
 function spotlightAndTilt() {
-  const SEL = '.case-card, .process-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent'
+  const SEL = '.case-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent'
   // The rect used to be read on EVERY mousemove — a forced full-document layout
   // measured at 2.0ms median on this page. Cache it per card and invalidate only
   // on the events that can actually move it, so onMove does writes only.

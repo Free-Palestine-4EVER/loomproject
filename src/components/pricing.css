@@ -1,0 +1,243 @@
+/* ——— PRICING — the rate card (redesigned 10 Aug 2026) ———
+   Six rows, not six boxes. See Pricing.jsx for why: a price list is read down
+   its price column, and a grid puts the six numbers at six different x
+   positions. As rows every figure lands in the same column, so the
+   cheapest-to-dearest read costs the eye nothing.
+
+   The only chrome is one hairline between rows and one yarn stub per row. No
+   card borders — the section is one object, not six. */
+
+.price {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  padding: clamp(46px, 6.5vh, 84px) 0 clamp(42px, 5.5vh, 72px);
+  border-block: 1px solid var(--line);
+}
+/* the band's own wash — magenta at the top edge only, so the section reads as
+   a shelf lit from above rather than as a tinted box */
+.price::before {
+  content: '';
+  position: absolute; inset: 0; z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 44% at 50% 0%, rgba(242, 28, 140, 0.10), transparent 72%),
+    linear-gradient(to bottom, var(--bg-2), var(--bg));
+}
+
+.price-head {
+  padding: 0 var(--pad) clamp(20px, 2.6vw, 32px);
+  max-width: 1180px;
+  margin: 0 auto;
+}
+/* a step down from the global .h2: this headline ran to two lines of ~62px,
+   which is 180px of head on a section that has six rows to get through */
+.price-h2 {
+  max-width: 18ch;
+  font-size: clamp(1.9rem, 3.6vw, 3rem);
+  line-height: 1.02;
+}
+.price-sub { margin-top: 12px; color: var(--ink-dim); max-width: 52ch; }
+
+.price-card {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+  border-top: 1px solid var(--line);
+}
+.price-row-wrap { display: block; }
+
+/* ——— a row ———
+   Grid, five areas. The price column is a FIXED track rather than auto, so a
+   four-digit figure and a two-digit one start at the same x — with `auto` the
+   column width follows the widest cell and the shorter numbers sit ragged,
+   which is the exact scanning problem the grid layout had. */
+.price-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) clamp(150px, 15vw, 190px) auto;
+  grid-template-areas:
+    'n what fig cta'
+    'n note note note';
+  align-items: start;
+  gap: 4px clamp(14px, 2vw, 28px);
+  padding: clamp(13px, 1.5vw, 18px) 0;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.35s var(--ease);
+}
+.price-row:hover { background: rgba(255, 255, 255, 0.022); }
+/* the yarn stub, same chrome budget as Proof's stat rail */
+.price-row::before {
+  content: '';
+  position: absolute;
+  left: 0; top: clamp(13px, 1.5vw, 18px);
+  width: 3px; height: 26px;
+  border-radius: 2px;
+  background: var(--accent, var(--magenta));
+  opacity: 0;
+  transition: opacity 0.35s var(--ease);
+}
+.price-row:hover::before { opacity: 1; }
+
+.price-n {
+  grid-area: n;
+  font-family: var(--display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--accent, var(--magenta));
+  padding-top: 6px;
+  width: 2.4em;
+}
+
+.price-what { grid-area: what; min-width: 0; }
+.price-name {
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.3rem, 2.2vw, 1.85rem);
+  line-height: 1.02;
+  color: #fff;
+}
+.price-lede {
+  margin-top: 4px;
+  font-size: clamp(0.82rem, 0.95vw, 0.9rem);
+  line-height: 1.4;
+  color: var(--ink-dim);
+  max-width: 46ch;
+}
+/* the includes, inline. Twenty-four bullets across six rows would make this
+   the tallest section on the page; as one dotted run they read as a spec line
+   under the name, which is what they are. */
+.price-list {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ink-faint);
+  max-width: 60ch;
+}
+.price-list i {
+  font-style: normal;
+  margin: 0 7px;
+  color: var(--accent, var(--magenta));
+  opacity: 0.7;
+}
+
+/* ——— the price column ——— */
+.price-fig {
+  grid-area: fig;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 7px;
+  padding-top: 2px;
+}
+/* FIXED MEASURE, not auto. `from` is a baseline flex item, so without a set
+   width the numeral after it starts wherever that word happens to end — and
+   at these sizes that is a 15px stagger between "750" and "1,900", which is
+   exactly the ragged price column the grid layout was replaced to fix. */
+.price-from {
+  min-width: 3.1em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.price-val {
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.7rem, 2.9vw, 2.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.price-unit {
+  font-family: var(--display);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--accent, var(--magenta));
+}
+.price-period {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.price-cta { grid-area: cta; padding-top: 6px; }
+.price-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--body);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.3s var(--ease);
+}
+.price-link i {
+  font-style: normal;
+  color: var(--accent, var(--magenta));
+  transition: transform 0.35s var(--ease);
+}
+.price-link:hover { color: var(--accent, var(--magenta)); }
+.price-link:hover i { transform: translateX(5px); }
+.price-link:focus-visible { outline: 2px solid var(--accent, var(--magenta)); outline-offset: 4px; border-radius: 4px; }
+
+.price-note {
+  grid-area: note;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  opacity: 0.85;
+  max-width: 74ch;
+}
+
+/* ——— the caveat + one last CTA ——— */
+.price-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(20px, 3vw, 44px);
+  max-width: 1180px;
+  margin: clamp(26px, 3.4vw, 40px) auto 0;
+  padding: 0 var(--pad);
+}
+.price-foot-note {
+  max-width: 62ch;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+
+@media (max-width: 900px) {
+  /* the price and the CTA drop under the name rather than beside it — a
+     150px price track next to a 40ch lede is two columns of four words each */
+  .price-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'n what'
+      '. fig'
+      '. cta'
+      '. note';
+    gap: 10px clamp(12px, 3vw, 18px);
+  }
+  .price-fig { padding-top: 0; }
+  .price-foot { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 520px) {
+  .price-lede, .price-list, .price-note { max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .price-row, .price-row::before, .price-link, .price-link i { transition: none; }
+}

@@ -321,7 +321,33 @@
    just the word and the copy in one static screen. */
 @media (prefers-reduced-motion: reduce) {
   .ts { height: auto; }
-  .ts-sticky { position: static; height: auto; padding-block: clamp(60px, 10vh, 120px); gap: 32px; }
+  /* `relative`, NEVER `static`. .ts-sticky is the `overflow: hidden` box, and
+     .ts-word-anchor below is absolutely placed — so the moment this drops out
+     of the positioning chain it stops being the anchor's containing block and
+     its clip stops applying to it. The scaled word then escaped the section
+     entirely and pushed the DOCUMENT sideways: measured 497 vs 390 at 390x844
+     (the word box ran -107 → 497, the B cut off the left and the M off the
+     right) and 1685 vs 1440 at 1440x900. Chrome's Battery Saver forces this
+     media query on, so that was ordinary laptop visitors. */
+  .ts-sticky { position: relative; height: auto; padding-block: clamp(60px, 10vh, 120px); gap: 32px; }
+  /* Nothing is pinned here, so the word has no reason to be taken out of flow
+     — and an absolute word inside an auto-height box reserves no height for
+     itself, which is what left a void where the pinned copy used to be and
+     collapsed the section to 646px. In flow it simply sits above the copy. */
+  .ts-word-anchor { position: static; transform: none; }
+  /* The scrubbed transforms themselves. motion writes these as INLINE styles
+     off the scroll progress, so nothing but `!important` can outrank them —
+     and the whole premise of this block is that there is no scrubbed sequence
+     here. Left live they undid the two rules above from the other side:
+     measured at 390x844, the word still translated 50vh down ONTO the copy
+     and scaled to 1.55 (cropped left and right — it is the same 604px box
+     that used to push the document to 497px wide), and .ts-copy sat at
+     opacity 0 for 31 of 56 scroll samples, so the "static screen" was blank
+     for over half of it. Pinned, the section is what the comment above says
+     it is: the word, then the copy, once. */
+  .ts-word-shift, .ts-word { transform: none !important; }
+  .ts-word-shift { opacity: 1 !important; filter: none !important; }
+  .ts-copy { transform: none !important; opacity: 1 !important; }
   .ts-bands { display: none; }
   /* nothing is pinned any more, so the copy joins the flow under the word
      instead of being placed over it — in every layout. */

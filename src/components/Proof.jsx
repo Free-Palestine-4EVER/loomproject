@@ -1,23 +1,26 @@
 // ————————————————————————————————————————————————————————
 // PROOF — slot 3, and the section that has to survive a sceptic.
 //
-// It replaces two weak neighbours with one strong one:
+// It already replaced two weak neighbours (a marquee sliding the most valuable
+// words on the page past at a speed nobody reads them at, and four CountUps
+// with no claim attached). REDESIGNED AGAIN 10 Aug 2026, for the four faults
+// the client named across the page:
 //
-//   Marquee  — nineteen client names sliding past at a speed nobody reads
-//              them at. A scrolling strip is a decoration that happens to
-//              contain the most valuable words on the page: UNICEF, Vodafone,
-//              Benetton. Motion was doing the opposite of its job.
-//   Stats    — four CountUps in a row over a weave photograph. The numbers
-//              were true and said nothing: "7" over the word "Countries
-//              shipped to" is a fact with no claim attached, and the client's
-//              verdict on it was blunt.
+//   Weak hierarchy — head, then wall, then a four-column stat rail: three
+//                    stacked blocks of equal weight, so nothing led. The
+//                    headline says "these names already said yes" and then
+//                    the eye landed on a row of numbers.
+//   Templated      — a four-across stat rail is the same shape as every other
+//                    four-across row on the page.
+//   Too tall       — three full-width bands stacked is the tallest possible
+//                    arrangement of this much content.
+//   Flat           — a weave photograph at 0.16 opacity behind flat type.
 //
-// The fix is not a third row of chrome. It is to make the two halves argue
-// with each other: the names are the evidence, the numbers are the summary,
-// and each number now carries the clause that says why it matters. Nothing
-// here is a new claim — every value still comes from STATS and CLIENT_WALL in
-// data/site.js, so the "verify every number" rule has exactly one place to
-// check, as before.
+// NOW: one split. The names take the left and stay the hero — they are what
+// the headline points at — and the four numbers become a narrow right-hand
+// rail read as a column, not a row. Side by side instead of stacked is most of
+// the height saving; the rest is that the rail no longer needs its own
+// full-width band of air above and below it.
 //
 // THE THREE ANCHORS. Benetton, UNICEF and Vodafone are set brighter than the
 // other sixteen. Not favouritism — they are the three names a stranger in
@@ -25,6 +28,10 @@
 // bright is a wall where none of them lands. The rest are not dimmed to hide
 // them; they are the volume, and volume is a different argument from
 // recognition.
+//
+// NOTHING HERE IS A NEW CLAIM — every value still comes from STATS and
+// CLIENT_WALL in data/site.js, so the "verify every number" rule has exactly
+// one place to check, as before.
 // ————————————————————————————————————————————————————————
 import { useRef } from 'react'
 import { motion, useInView, useReducedMotion, useScroll, useTransform } from 'motion/react'
@@ -55,11 +62,9 @@ export function Proof() {
 
   // A slow counter-drift on the backdrop only — the weave photograph the old
   // Stats section already carried, kept because it is the one texture on the
-  // page that reads as actual cloth. `once: false` is deliberate elsewhere on
-  // this page; here the parallax is scroll-linked, so there is nothing to
-  // re-trigger.
+  // page that reads as actual cloth.
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-10%', '10%'])
+  const y = useTransform(scrollYProgress, [0, 1], reduced ? ['0%', '0%'] : ['-8%', '8%'])
 
   return (
     <section className="proof" id="proof" aria-label="Clients and studio in numbers" ref={ref}>
@@ -77,37 +82,44 @@ export function Proof() {
         <SplitWords as="h2" className="h2 proof-h2" text="These names already said yes." />
       </div>
 
-      {/* THE WALL. Real, wrappable, selectable text set as one block — not a
-          marquee track, not a logo grid. Nobody has the logos cleared for use
-          and a wall of mismatched PNGs would look worse than the words do;
-          the names in the studio's own display face read as a colophon, which
-          is the honest form for "here is who we have worked with". */}
-      <div className="proof-wall" ref={wallRef}>
-        {CLIENT_WALL.map((name, i) => (
-          <motion.span
-            key={name}
-            className={`proof-name${ANCHORS.has(name) ? ' is-anchor' : ''}`}
-            initial={reduced ? false : { opacity: 0, y: 14 }}
-            animate={wallIn ? { opacity: 1, y: 0 } : undefined}
-            transition={{ duration: reduced ? 0.01 : 0.5, delay: reduced ? 0 : i * 0.035, ease: EASE }}
-          >
-            {name}
-            {i < CLIENT_WALL.length - 1 && <i className="proof-sep" aria-hidden="true">✳</i>}
-          </motion.span>
-        ))}
-      </div>
+      {/* ——— THE SPLIT ———
+          Names left (the hero — the headline points at them), numbers right
+          (the summary). Two columns instead of three stacked bands. */}
+      <div className="proof-split">
+        {/* THE WALL. Real, wrappable, selectable text set as one block — not a
+            marquee track, not a logo grid. Nobody has the logos cleared for
+            use and a wall of mismatched PNGs would look worse than the words
+            do; the names in the studio's own display face read as a colophon,
+            which is the honest form for "here is who we have worked with". */}
+        <div className="proof-wall" ref={wallRef}>
+          {CLIENT_WALL.map((name, i) => (
+            <motion.span
+              key={name}
+              className={`proof-name${ANCHORS.has(name) ? ' is-anchor' : ''}`}
+              initial={reduced ? false : { opacity: 0, y: 12 }}
+              animate={wallIn ? { opacity: 1, y: 0 } : undefined}
+              transition={{ duration: reduced ? 0.01 : 0.5, delay: reduced ? 0 : i * 0.03, ease: EASE }}
+            >
+              {name}
+              {i < CLIENT_WALL.length - 1 && <i className="proof-sep" aria-hidden="true">✳</i>}
+            </motion.span>
+          ))}
+        </div>
 
-      {/* THE SUMMARY. Same four numbers, given the clause that turns each one
-          from a fact into a claim, and set as a rail rather than four boxed
-          cells — the dividers were doing more work than the content. */}
-      <div className="proof-stats">
-        {STATS.map((s, i) => (
-          <Reveal key={s.label} delay={i * 0.08} y={20} className="proof-stat" style={{ '--yarn': STAT_YARN[i % 4] }}>
-            <div className="proof-value"><CountUp value={s.value} suffix={s.suffix} /></div>
-            <p className="proof-label">{s.label}</p>
-            {STAT_CLAUSE[s.label] && <p className="proof-clause">{STAT_CLAUSE[s.label]}</p>}
-          </Reveal>
-        ))}
+        {/* THE RAIL. The same four numbers, read as a column. Each keeps the
+            clause that turns it from a fact into a claim, and its own yarn
+            stub — the whole chrome budget, replacing the old divider cross. */}
+        <div className="proof-rail">
+          {STATS.map((s, i) => (
+            <Reveal key={s.label} delay={i * 0.07} y={16} className="proof-stat" style={{ '--yarn': STAT_YARN[i % 4] }}>
+              <div className="proof-value"><CountUp value={s.value} suffix={s.suffix} /></div>
+              <div className="proof-stat-copy">
+                <p className="proof-label">{s.label}</p>
+                {STAT_CLAUSE[s.label] && <p className="proof-clause">{STAT_CLAUSE[s.label]}</p>}
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   )

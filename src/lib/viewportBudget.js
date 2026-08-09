@@ -22,6 +22,13 @@
 //    evict deliberately: an image outside the band drops its src and gets it
 //    back before it can be seen again.
 //
+//    …and, since Aug 2026, a second pass that eviction structurally cannot do:
+//    DOWNSCALING. Distance-based eviction only helps images that are off
+//    screen. It is powerless against a screenful of bitmaps that are all
+//    correctly on screen and individually enormous, which is exactly the shape
+//    of the crash that was still being reported after the eviction pass
+//    shipped. See the DOWNSCALE block below for the measurement.
+//
 // Both are idempotent and fully torn down by the returned cleanup.
 // ————————————————————————————————————————————————————————
 
@@ -180,8 +187,41 @@ export function imageBudget({ force = false } = {}) {
       ? img.parentElement.querySelectorAll('source')
       : []
 
+  // Nothing is safe to blank until the browser is actually DONE with it, and
+  // "done" turned out to be three questions, not one. `currentSrc` alone
+  // answers none of them: it is set the moment a candidate is CHOSEN, so a
+  // request still in flight has one and a request that 404'd has one too.
+  //
+  // MEASURED BUG, both halves of it, on the industry cards in Solutions.jsx.
+  // That card references `/img/niches/<key>.avif` unconditionally and lets
+  // onError/onLoad decide, so the seven niches whose desktop render does not
+  // exist yet 404, and onError hides the <img>:
+  //
+  //   - a FAILED image keeps its currentSrc and reports naturalWidth 0. A
+  //     display:none img can never intersect, so the evict observer fired on
+  //     it immediately, this guard let it through, and `img.src = BLANK`
+  //     pointed it at the 1x1 gif. The gif decoded, `load` fired, and the
+  //     card put its photo layout back on — `.has-photo` with no photo and,
+  //     because that class drops the card's plate, no background either. Copy
+  //     on the bare console. Silent, because this whole pass is touch-only:
+  //     the same card on a non-touch desktop was perfect.
+  //   - an image still IN FLIGHT has a currentSrc as well, and writing `src`
+  //     over it ABORTS the pending request — which fires `error`. So eviction
+  //     could manufacture that same broken card out of a render that was
+  //     merely slow. Reproduced on a cold cache with two niches that DO have
+  //     art, which is what makes this the more dangerous half.
+  //
+  // `complete` covers in flight; `naturalWidth` covers failed (it stays 0
+  // where any decoded bitmap is at least 1 — the blank gif included, which is
+  // why re-eviction is checked by dataset rather than by size).
+  //
+  // …and that dataset check is `!== undefined`, matching `oversized` and the
+  // sweep: an image with no `src` attribute at all (a pure <picture>/srcset
+  // one) parks the empty string, which the old truthiness test read as "not
+  // evicted" and would have evicted a second time, over the blank gif.
   const evict = (img) => {
-    if (pinned.has(img) || img.dataset.budgetSrc || !img.currentSrc) return
+    if (pinned.has(img) || img.dataset.budgetSrc !== undefined) return
+    if (!img.currentSrc || !img.complete || img.naturalWidth === 0) return
     const before = img.getBoundingClientRect()
     const src = img.getAttribute('src')
     const srcset = img.getAttribute('srcset')
@@ -211,6 +251,283 @@ export function imageBudget({ force = false } = {}) {
     const srcset = img.dataset.budgetSrcset
     if (srcset) { img.setAttribute('srcset', srcset); delete img.dataset.budgetSrcset }
     if (src) img.setAttribute('src', src)
+  }
+
+  /* ——————————————————— 2b · DOWNSCALE ———————————————————
+     MEASURED BUG, and the one the tab was actually dying of.
+
+     Eviction is a rule about DISTANCE, so the most it can ever promise is
+     "nothing far away is resident". It says nothing about what one screenful
+     costs, and a screenful is not free. Measured on the built page at 390x844
+     with DPR 3, walking every image on the route and recording its natural
+     size against the box it is painted in:
+
+       section        imgs   decoded   needed@DPR3
+       the-machine      20   111.8 MB      1.6 MB
+       work             23    55.3 MB     58.6 MB
+       counter          15    20.3 MB     19.6 MB
+       whole page       86   213.2 MB
+
+     Everything on the page is sized for its box except one section, where
+     twenty full case renders — 1312x1968, 1400x1750, 1680x1260 — are painted
+     into 48x48 thumbnails. Each one is 5-10 MB of RAM for 2,304 CSS pixels,
+     they are all on screen together, and the eviction pass cannot touch a
+     single one of them: `gap` is 0 for every one, and the sweep deliberately
+     stops at `gap <= vh` because blanking an image the reader can see is worse
+     than the memory. Peak resident bitmaps measured 115 MB in Chromium and
+     113 MB in WebKit at that section, on top of ~30 MB of JS heap and ~24 MB
+     of layer backing. That is the iOS Safari tab kill.
+
+     So: an image whose decoded bitmap is far larger than the pixels its own
+     box can show is redrawn ONCE, at the size it actually needs, and its src
+     is swapped for the small result. 1312x1968 -> 144x216 is 10 MB -> 0.12 MB
+     for a thumbnail that is pixel-identical at DPR 3. Nothing is hidden,
+     nothing pops, and it is a property of the image rather than of where the
+     reader is, so it survives any future scroll.
+
+     Rules that keep it safe:
+     - Aspect ratio is PRESERVED and the target COVERS the box, so `object-fit:
+       cover` crops exactly as it did. Squashing to the box's own ratio would
+       silently restyle every cropped thumbnail on the page.
+     - Same-origin only (a tainted canvas cannot be read back), and only above
+       DOWNSCALE_MIN_BYTES, so the pass never spends a draw on an image that
+       was never a problem.
+     - The ORIGINAL src/srcset (and every <picture><source>) is kept, and put
+       straight back if the box ever grows past what the small copy can serve —
+       a rotation, a breakpoint change, an overlay that opens the same <img>
+       bigger. That check runs on resize.
+     - The before/after box is compared exactly the way `evict` does it: if
+       swapping the bitmap moved the layout at all, it is reverted and the
+       image is pinned forever after.
+     - Encoding is async and rate-limited (see DOWNSCALE_CONCURRENCY). A draw
+       plus an encode is real work and a burst of twenty of them inside one
+       scroll callback is the same stall the restore queue exists to avoid. */
+  const DOWNSCALE_MIN_BYTES = 512 * 1024 // never bother below half a megabyte
+  const DOWNSCALE_RATIO = 4              // …or below 4x more pixels than needed
+  const origOf = new WeakMap()           // img -> { src, srcset, sizes, sources: [[el, srcset]] }
+  const smallOf = new WeakMap()          // img -> { url, w, h } (h/w = px of the SMALL bitmap)
+  const madeUrls = new Set()             // every object URL we minted, for teardown
+  const dsQueue = []
+  let dsDraining = false
+  let dsBusy = 0
+
+  const dpr = () => Math.min(window.devicePixelRatio || 1, 3)
+
+  // Pixels this image's own box can actually show, at this device's DPR, with
+  // the aspect ratio left alone (so `cover` still crops rather than squashing).
+  const targetSize = (img) => {
+    const r = img.getBoundingClientRect()
+    if (r.width < 1 || r.height < 1) return null
+    const k = dpr()
+    const scale = Math.min(1, Math.max((r.width * k) / img.naturalWidth, (r.height * k) / img.naturalHeight))
+    return {
+      w: Math.max(1, Math.round(img.naturalWidth * scale)),
+      h: Math.max(1, Math.round(img.naturalHeight * scale)),
+    }
+  }
+
+  const sameOrigin = (url) => {
+    try { return new URL(url, location.href).origin === location.origin } catch (e) { return false }
+  }
+
+  // Is this element still showing the small copy we made for it?
+  //
+  // MEASURED BUG, and the reason this exists at all. The swap is invisible to
+  // React: it writes `src` from its own vdom, so any later render that touches
+  // that prop — a filter changing which case a tile shows, a list reusing a
+  // node under the same key — puts a full-size image back on an element the
+  // WeakMap still believes is 141 KB. Measured at the month grid: 20 tiles
+  // shrunk to 4.0 MB total, then a re-render put every original back and the
+  // section sat at 97.0 MB with the pass convinced there was nothing to do.
+  // So the bookkeeping is verified against the DOM before it is trusted, and
+  // dropped the moment it stops matching — the sweep then judges whatever is
+  // on the element now on its own merits, and shrinks that instead.
+  const syncSmall = (img) => {
+    const small = smallOf.get(img)
+    if (!small) return false
+    // An EVICTED image is holding the blank gif; the real src is parked in the
+    // dataset, and that is what has to match. Otherwise prefer `currentSrc`,
+    // which is what the browser ACTUALLY chose — a <picture> whose <source>
+    // was rewritten from outside would leave our blob sitting in the `src`
+    // attribute while a full-size candidate is what is really decoded.
+    // `currentSrc` is empty for the frame or two before the small copy has
+    // loaded, so the attribute is the fallback, not the other way round.
+    const cur = img.dataset.budgetSrc !== undefined
+      ? img.dataset.budgetSrc
+      : (img.currentSrc || img.getAttribute('src'))
+    if (cur === small.url) return true
+    smallOf.delete(img)
+    origOf.delete(img)
+    delete img.dataset.budgetSmall
+    URL.revokeObjectURL(small.url)
+    madeUrls.delete(small.url)
+    return false
+  }
+
+  // …and the other half of that: an element whose src is rewritten from
+  // outside on EVERY render would be re-encoded forever. Four swaps is enough
+  // for a tile that legitimately changes which case it shows; past that we
+  // stop and let the image cost what it costs, which is exactly the behaviour
+  // before this pass existed. A bounded amount of memory is worth more than an
+  // unbounded amount of CPU on a phone.
+  const DOWNSCALE_MAX_TRIES = 4
+  const dsTries = new WeakMap()
+
+  const oversized = (img) => {
+    if (pinned.has(img) || syncSmall(img) || img.dataset.budgetSrc !== undefined) return false
+    if ((dsTries.get(img) || 0) >= DOWNSCALE_MAX_TRIES) return false
+    if (!img.complete || img.naturalWidth <= 2) return false
+    if (img.naturalWidth * img.naturalHeight * 4 < DOWNSCALE_MIN_BYTES) return false
+    if (!sameOrigin(img.currentSrc || img.src)) return false
+    const t = targetSize(img)
+    if (!t) return false
+    return img.naturalWidth * img.naturalHeight > t.w * t.h * DOWNSCALE_RATIO
+  }
+
+  // Blob, not a data: URL — base64 is a third bigger again and it is the
+  // STRING that would then be retained for the life of the document.
+  const encode = (canvas) => new Promise((resolve) => {
+    let settled = false
+    const done = (b) => { if (!settled) { settled = true; resolve(b) } }
+    try {
+      canvas.toBlob((b) => {
+        // Safari only grew canvas WebP export in 16.4; older ones hand back a
+        // PNG (or null) and we take it rather than shipping nothing.
+        if (b) return done(b)
+        try { canvas.toBlob(done, 'image/png') } catch (e) { done(null) }
+      }, 'image/webp', 0.86)
+    } catch (e) { done(null) }
+  })
+
+  const downscale = async (img) => {
+    if (!oversized(img)) return
+    const t = targetSize(img)
+    if (!t) return
+    let blob
+    try {
+      const canvas = document.createElement('canvas')
+      canvas.width = t.w
+      canvas.height = t.h
+      const cx = canvas.getContext('2d', { alpha: true })
+      if (!cx) return
+      cx.imageSmoothingQuality = 'high'
+      cx.drawImage(img, 0, 0, t.w, t.h)
+      blob = await encode(canvas)
+      // Drop the 2D context's own backing store immediately rather than
+      // waiting for GC — on a phone it is the same order of magnitude as the
+      // bitmap we are here to reclaim.
+      canvas.width = canvas.height = 1
+    } catch (e) { return }
+    if (!blob) return
+    // The page moved under the encode; re-check rather than trusting the
+    // decision we made a few frames ago.
+    if (!oversized(img)) return
+
+    const before = img.getBoundingClientRect()
+    const sources = []
+    for (const s of sourcesOf(img)) {
+      const ss = s.getAttribute('srcset')
+      if (ss != null) { sources.push([s, ss]); s.removeAttribute('srcset') }
+    }
+    origOf.set(img, {
+      src: img.getAttribute('src'),
+      srcset: img.getAttribute('srcset'),
+      sizes: img.getAttribute('sizes'),
+      sources,
+    })
+    img.removeAttribute('srcset')
+    img.removeAttribute('sizes')
+    const url = URL.createObjectURL(blob)
+    madeUrls.add(url)
+    dsTries.set(img, (dsTries.get(img) || 0) + 1)
+    smallOf.set(img, { url, w: t.w, h: t.h })
+    // A DOM marker as well as the WeakMap: the swap is invisible to React,
+    // which will happily write its own `src` prop back over ours on any later
+    // render, and the attribute is how `syncSmall` notices that happened.
+    img.dataset.budgetSmall = `${t.w}x${t.h}`
+    img.src = url
+
+    const after = img.getBoundingClientRect()
+    if (Math.abs(after.width - before.width) > 0.5 || Math.abs(after.height - before.height) > 0.5) {
+      pinned.add(img)
+      restoreFull(img)
+    }
+  }
+
+  // Put the original bytes back — either because the small copy is no longer
+  // big enough for the box, or because we are tearing down.
+  const restoreFull = (img) => {
+    const small = smallOf.get(img)
+    if (!small) return
+    const o = origOf.get(img)
+    smallOf.delete(img)
+    origOf.delete(img)
+    delete img.dataset.budgetSmall
+    URL.revokeObjectURL(small.url)
+    madeUrls.delete(small.url)
+    if (!o) return
+    for (const [el, ss] of o.sources) el.setAttribute('srcset', ss)
+    if (o.srcset != null) img.setAttribute('srcset', o.srcset)
+    if (o.sizes != null) img.setAttribute('sizes', o.sizes)
+    // An evicted image is holding the BLANK gif in its src attribute and the
+    // real one in dataset.budgetSrc; write there instead, or restore() would
+    // put the dead blob URL back on the way in.
+    if (img.dataset.budgetSrc !== undefined) img.dataset.budgetSrc = o.src ?? ''
+    else if (o.src != null) img.setAttribute('src', o.src)
+    // …and if it never had one (a pure srcset/<picture> image), do not leave a
+    // revoked blob URL sitting in an attribute we invented.
+    else img.removeAttribute('src')
+  }
+
+  // Concurrency, not a per-frame count. The expensive half of a downscale is
+  // the ENCODE, which the browser runs off the main thread; the main-thread
+  // half is one drawImage blit into a ~250px canvas, which is sub-millisecond.
+  // Measured end to end on the heavy section (20 images, warm cache, 390x844
+  // DPR 3): ~25 ms per image, so draining one at a time took 5 s and left the
+  // peak at 89 MB, four at a time took 690 ms, and eight takes ~350 ms — which
+  // is short enough that a full-speed flick no longer holds the whole 112 MB
+  // at once. Past eight the encodes queue behind each other anyway and only
+  // the blits pile up, so this is where it stops.
+  const DOWNSCALE_CONCURRENCY = 8
+  const dsDrain = () => {
+    while (dsBusy < DOWNSCALE_CONCURRENCY && dsQueue.length) {
+      // BIGGEST FIRST. The queue arrives in DOM order, which is meaningless
+      // here: a 10 MB image and a 0.6 MB image cost the same ~25 ms to
+      // replace. Taking the largest one still waiting drops the resident total
+      // as fast as it can possibly fall, and the area under that curve is
+      // exactly what the tab is killed for.
+      let at = 0
+      for (let i = 1; i < dsQueue.length; i++) {
+        const a = dsQueue[i], b = dsQueue[at]
+        if (a.naturalWidth * a.naturalHeight > b.naturalWidth * b.naturalHeight) at = i
+      }
+      const img = dsQueue.splice(at, 1)[0]
+      dsBusy++
+      downscale(img).catch(() => {}).then(() => {
+        dsBusy--
+        requestAnimationFrame(dsDrain)
+      })
+    }
+    if (!dsQueue.length && !dsBusy) dsDraining = false
+  }
+  const queueDownscale = (img) => {
+    if (dsQueue.includes(img)) return
+    dsQueue.push(img)
+    if (!dsDraining) { dsDraining = true; requestAnimationFrame(dsDrain) }
+  }
+
+  // A box that has GROWN — rotation, a breakpoint, an overlay showing the same
+  // <img> large — must get its real bytes back, or the reader is looking at a
+  // thumbnail blown up. Cheap: only images we actually shrank are checked.
+  const recheckSizes = () => {
+    for (const img of document.images) {
+      if (!syncSmall(img)) continue
+      const small = smallOf.get(img)
+      const r = img.getBoundingClientRect()
+      if (r.width < 1 || r.height < 1) continue
+      const k = dpr()
+      if (r.width * k > small.w + 1 || r.height * k > small.h + 1) restoreFull(img)
+    }
   }
 
   // A fast scroll through an image-dense section (the Work mosaic is the worst
@@ -305,6 +622,13 @@ export function imageBudget({ force = false } = {}) {
       // A pinned image still costs its bytes and still has to be paid for out
       // of the budget — it just cannot be the one we evict to get back under.
       total += bytes
+      // Grossly oversized bitmaps are queued for the downscale pass here,
+      // whether or not we are currently over budget: the waste is a property
+      // of the image, not of where the reader happens to be, and paying for it
+      // once is strictly cheaper than measuring it again on every sweep.
+      // Guarded by the byte floor first so the rect read only happens for the
+      // handful of images that could possibly qualify.
+      if (bytes >= DOWNSCALE_MIN_BYTES && !pinned.has(img) && oversized(img)) queueDownscale(img)
       if (!pinned.has(img)) live.push([img, bytes, 0])
     }
     if (total <= BUDGET_BYTES) return
@@ -334,6 +658,22 @@ export function imageBudget({ force = false } = {}) {
     setTimeout(sweep, 150)
   }
 
+  // The moment an oversized bitmap exists is the moment to start replacing it,
+  // and waiting for the coalesced sweep is 150ms of holding 10 MB for a 48px
+  // thumbnail. That matters most in exactly the case that crashes: a hard
+  // flick spends well under a second inside the heavy section and every image
+  // in it decodes at once, so the queue has to be moving before the sweep
+  // would even have run. Measured: peak resident bitmaps through a full-speed
+  // flick fell from 79 MB to the number in the report by starting here
+  // instead. One getBoundingClientRect per large image, and only for images
+  // already past the byte floor, so this is not the sweep in disguise.
+  const onImgLoad = (e) => {
+    const img = e.currentTarget
+    if (img.naturalWidth > 2 && img.naturalWidth * img.naturalHeight * 4 >= DOWNSCALE_MIN_BYTES
+        && !pinned.has(img) && oversized(img)) queueDownscale(img)
+    scheduleSweep()
+  }
+
   const seen = new WeakSet()
   const scan = () => {
     for (const img of document.images) {
@@ -342,12 +682,22 @@ export function imageBudget({ force = false } = {}) {
       restoreIO.observe(img)
       evictIO.observe(img)
       // a newly decoded bitmap is the only thing that can put us over
-      img.addEventListener('load', scheduleSweep)
+      img.addEventListener('load', onImgLoad)
+      // …and one that is ALREADY decoded when we get here (the hero, anything
+      // above the fold) never fires another load event, so it would otherwise
+      // wait for a scroll to be judged.
+      if (img.complete) onImgLoad({ currentTarget: img })
     }
   }
   scan()
 
   window.addEventListener('scroll', scheduleSweep, { passive: true })
+
+  // A rotation or a breakpoint change can make a downscaled bitmap too small
+  // for its own box; recheck before the next sweep would notice.
+  const onResize = () => { recheckSizes(); scheduleSweep() }
+  window.addEventListener('resize', onResize, { passive: true })
+  window.addEventListener('orientationchange', onResize, { passive: true })
 
   const mo = new MutationObserver(scan)
   mo.observe(document.body, { childList: true, subtree: true })
@@ -357,11 +707,17 @@ export function imageBudget({ force = false } = {}) {
     restoreIO.disconnect()
     evictIO.disconnect()
     window.removeEventListener('scroll', scheduleSweep)
-    // leave nothing blanked behind us
+    window.removeEventListener('resize', onResize)
+    window.removeEventListener('orientationchange', onResize)
+    dsQueue.length = 0
+    // leave nothing blanked, nothing shrunk and no object URL behind us
     for (const img of document.images) {
-      img.removeEventListener('load', scheduleSweep)
+      img.removeEventListener('load', onImgLoad)
+      restoreFull(img)
       restore(img)
     }
+    for (const url of madeUrls) URL.revokeObjectURL(url)
+    madeUrls.clear()
   }
 }
 

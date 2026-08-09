@@ -188,6 +188,32 @@ function damp(cur, target, rate, dt) {
   return dt > 0 ? THREE.MathUtils.damp(cur, target, rate, dt) : target
 }
 
+// Is this a device that cannot afford a full-fat GL context?
+//
+// This is deliberately NOT `innerWidth < 768`, which is the LAYOUT breakpoint
+// and is the wrong question twice over. A phone held in landscape reports
+// innerWidth 956 and would take the desktop branch — antialias on (a 4x
+// multisampled colour + depth renderbuffer for the whole viewport, which on
+// iOS is the single largest allocation this file makes), pixel ratio 1.5, and
+// a 'high-performance' hint asking a driver already under a memory ceiling for
+// the expensive config. Rotating a phone is not a change of device.
+//
+// `screen` is orientation-stable on iOS (a 17 Pro Max reports 440x956 either
+// way), so the SHORT edge of the screen is what identifies a phone. `hover:
+// none` is what keeps a touchscreen laptop — coarse pointer, but a real GPU
+// and no memory ceiling — out of this branch. `deviceMemory` is not exposed by
+// Safari at all, so it can only ever add devices to the set, never remove one.
+export function deviceIsConstrained() {
+  try {
+    const touch = matchMedia('(pointer: coarse)').matches && matchMedia('(hover: none)').matches
+    const shortEdge = Math.min(screen?.width || Infinity, screen?.height || Infinity)
+    const lowRam = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 4
+    return (touch && shortEdge < 820) || lowRam
+  } catch (e) {
+    return false
+  }
+}
+
 export class Companion {
   constructor(canvas, { reduced = false } = {}) {
     this.canvas = canvas
@@ -195,7 +221,13 @@ export class Companion {
     this.running = false
     this.disposed = false
     this.time = 0
+    // Two different questions, and they used to share one answer.
+    // `isMobile` is the LAYOUT breakpoint — how big the creature should be on
+    // screen — and it follows the viewport, so it flips when the phone is
+    // rotated (as it should). `constrained` is the DEVICE's GPU budget and
+    // must not: see deviceIsConstrained() above.
     this.isMobile = window.innerWidth < 768
+    this.constrained = deviceIsConstrained()
 
     this.pathAt = waypointSampler(PATH)
     this.scrollTarget = 0     // live scroll progress, 0..1
@@ -210,7 +242,10 @@ export class Companion {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
-      antialias: !this.isMobile,
+      // MSAA allocates a multisampled colour AND depth renderbuffer the size of
+      // the whole viewport — on a phone that is several times the framebuffer
+      // itself, for a creature that is ~120px across.
+      antialias: !this.constrained,
       // No stencil buffer is ever used — nothing here masks, clips or outlines.
       // Asking for one costs a full extra byte per pixel of the default
       // framebuffer for the whole life of the context (and on iOS the
@@ -221,11 +256,9 @@ export class Companion {
       // On a phone there is only one GPU, so the hint buys nothing and only
       // signals "give me the expensive context" to a driver already under a
       // memory ceiling. Desktop keeps it.
-      powerPreference: this.isMobile ? 'default' : 'high-performance',
+      powerPreference: this.constrained ? 'default' : 'high-performance',
     })
-    // 1.0 on phones: this layer is the only WebGL context there now, and on a
-    // 3x display even 1.25 quadruples the framebuffer for a decorative flyer.
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.0 : 1.5))
+    this._applyPixelRatio()
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 1.15
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
@@ -293,14 +326,21 @@ export class Companion {
     this._onContextLost = (e) => {
       e.preventDefault()
       this._contextLost = true
+      this.contextLost = true
       this.stop()
       cancelAnimationFrame(this.raf)
     }
     this._onContextRestored = () => {
       this._contextLost = false
+      this.contextLost = false
       if (!this.disposed && this.flyer && !this.reduced) this.start()
     }
     this._contextLost = false
+    // Public mirror of the same flag: Flyer.jsx runs its OWN rAF loop next to
+    // this one (the projection + the duck's DOM scan), and a lost context has
+    // to stop that too — otherwise the layer is invisible and the page is
+    // still paying for a viewport-wide text scan 7.5 times a second.
+    this.contextLost = false
     canvas.addEventListener('webglcontextlost', this._onContextLost, false)
     canvas.addEventListener('webglcontextrestored', this._onContextRestored, false)
 
@@ -343,10 +383,24 @@ export class Companion {
   // World-space extent of the z = 0 plane, which is how xNorm/yNorm become
   // positions and how the butterfly keeps a constant share of the viewport
   // instead of ballooning on a wide monitor.
+  // 1.0 on phones: this layer is the only WebGL context there, and on a 3x
+  // display even 1.25 quadruples the framebuffer for a decorative flyer.
+  //
+  // Re-applied on every resize, not set once in the constructor. `setSize`
+  // multiplies by whatever ratio the renderer is currently holding, so a
+  // stale one is not cosmetic: a phone that first painted in landscape (where
+  // the old innerWidth test called it a desktop) kept a 1.5x buffer for the
+  // rest of the session, including after it was rotated back to portrait.
+  _applyPixelRatio() {
+    const want = Math.min(window.devicePixelRatio || 1, this.constrained ? 1.0 : 1.5)
+    if (this.renderer.getPixelRatio() !== want) this.renderer.setPixelRatio(want)
+  }
+
   resize() {
     const w = window.innerWidth, h = window.innerHeight
     if (!w || !h) return
     this.isMobile = w < 768
+    this._applyPixelRatio()
     this.renderer.setSize(w, h, false)
     this.camera.aspect = w / h
     this.camera.updateProjectionMatrix()

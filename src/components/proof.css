@@ -1,14 +1,15 @@
-/* ——— PROOF ———
-   One section where Marquee + Stats used to be two. The structure is
-   deliberately three bands with no boxes anywhere: head, wall, summary. The
-   old Stats section drew a divider cross between every cell, which meant four
-   rules of chrome around four numbers — more lines on screen than content. */
+/* ——— PROOF (re-split 10 Aug 2026) ———
+   Was three stacked full-width bands: head, wall, four-across stat rail. Now
+   head, then ONE split — names left, numbers as a column right. Side by side
+   is most of the height saving; the rest is that the numbers no longer need
+   their own band of air. Still no boxes anywhere: the only chrome in the
+   section is one yarn stub per number and one hairline between the columns. */
 
 .proof {
   position: relative;
   isolation: isolate;
   overflow-x: clip; /* the backdrop is 120% wide and drifts; never let it open a scrollbar */
-  padding: clamp(64px, 9vh, 116px) 0 clamp(64px, 9vh, 120px);
+  padding: clamp(52px, 7.5vh, 96px) 0 clamp(52px, 7.5vh, 96px);
   border-block: 1px solid var(--line);
 }
 
@@ -36,8 +37,27 @@
     linear-gradient(to bottom, rgba(13, 7, 22, 0.86), rgba(13, 7, 22, 0.72) 45%, rgba(13, 7, 22, 0.9));
 }
 
-.proof-head { padding: 0 var(--pad) clamp(26px, 3.4vw, 40px); }
+.proof-head {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--pad) clamp(22px, 3vw, 36px);
+}
 .proof-h2 { max-width: 20ch; }
+
+/* ——— the split ———
+   1.55fr / 1fr, not 2/1: the rail carries a four-digit numeral AND a clause,
+   and under ~300px the clause wraps to four lines and the column gets taller
+   than the wall beside it, which is the one arrangement that would make this
+   TALLER than the stacked version it replaced. */
+.proof-split {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: clamp(26px, 4vw, 60px);
+  align-items: start;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+}
 
 /* ——— the wall ———
    One flowing paragraph of names, not a grid. A grid forces every name into
@@ -45,13 +65,10 @@
    are not the same word), and the ragged right edge of real flowed text is
    what makes it read as a colophon rather than as a table of logos. */
 .proof-wall {
-  padding: 0 var(--pad);
-  max-width: 1180px;
-  margin: 0 auto clamp(44px, 6vw, 72px);
   font-family: var(--bloom);
   font-weight: 560;
-  font-size: clamp(1.15rem, 2.5vw, 2.05rem);
-  line-height: 1.28;
+  font-size: clamp(1.05rem, 2vw, 1.75rem);
+  line-height: 1.26;
   letter-spacing: 0;
   color: var(--ink-faint);
   /* the spans are inline-block for the transform; the separators between them
@@ -79,61 +96,73 @@
   opacity: 0.55;
 }
 
-/* ——— the summary rail ——— */
-.proof-stats {
+/* ——— the rail ———
+   A column now, not a row. The hairline on its inside edge is the only thing
+   dividing the two halves — a border box around either would put four rules
+   on screen to separate two things. */
+.proof-rail {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(20px, 3vw, 44px);
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: clamp(30px, 4vw, 44px) var(--pad) 0;
-  border-top: 1px solid var(--line);
+  gap: clamp(16px, 2vw, 26px);
+  padding-left: clamp(20px, 3vw, 40px);
+  border-left: 1px solid var(--line);
 }
 .proof-stat {
   position: relative;
-  padding-top: 18px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0 clamp(10px, 1.2vw, 16px);
+  padding-top: 12px;
 }
-/* one short yarn stub per stat, in that stat's own colour — the whole of the
-   chrome budget for this row, replacing the old divider cross */
+/* one short yarn stub per stat, in that stat's own colour */
 .proof-stat::before {
   content: '';
   position: absolute;
   left: 0; top: 0;
-  width: 34px; height: 3px;
+  width: 28px; height: 3px;
   border-radius: 2px;
   background: var(--yarn, var(--magenta));
 }
 .proof-value {
   font-family: var(--bloom);
   font-weight: 560;
-  /* the number is the loudest thing in the section and it was previously
-     smaller than the section headline above it, which is backwards for a
-     band whose entire job is the figures */
-  font-size: clamp(2.8rem, 6.5vw, 4.6rem);
-  line-height: 0.94;
+  /* smaller than the old four-across rail on purpose: in a column the numbers
+     are read one under another, so they no longer need to be big enough to
+     hold a full-width row on their own — and the wall beside them is the
+     section's hero. */
+  font-size: clamp(1.9rem, 3.2vw, 2.9rem);
+  line-height: 0.9;
   letter-spacing: -0.01em;
   color: #fff;
 }
+.proof-stat-copy { min-width: 0; }
 .proof-label {
-  margin: 12px 0 0;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  line-height: 1.3;
   color: var(--yarn, var(--magenta));
 }
 .proof-clause {
-  margin: 8px 0 0;
-  font-size: clamp(0.86rem, 1vw, 0.94rem);
-  line-height: 1.5;
+  margin: 5px 0 0;
+  font-size: clamp(0.78rem, 0.9vw, 0.86rem);
+  line-height: 1.45;
   color: var(--ink-dim);
-  max-width: 26ch;
 }
 
-@media (max-width: 1000px) {
-  .proof-stats { grid-template-columns: repeat(2, 1fr); gap: clamp(26px, 5vw, 40px); }
+@media (max-width: 900px) {
+  /* back to stacked below the split's useful width — two columns at 380px
+     each turns the wall into a ladder of one-word lines */
+  .proof-split { grid-template-columns: 1fr; gap: clamp(24px, 5vw, 36px); }
+  .proof-rail {
+    grid-template-columns: repeat(2, 1fr);
+    padding-left: 0;
+    padding-top: clamp(20px, 4vw, 28px);
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
 }
-@media (max-width: 520px) {
-  .proof-stats { grid-template-columns: 1fr; }
-  .proof-clause { max-width: none; }
+@media (max-width: 560px) {
+  .proof-rail { grid-template-columns: 1fr; }
 }

@@ -58,23 +58,39 @@ export function ScrollProgress() {
   return <motion.div className="progress" style={{ scaleX }} />
 }
 
-// One array, three renderers (desktop header, mobile menu, footer).
-// dedicated route. `go` below leaves non-hash hrefs to the App-level handler,
-// which pushStates and swaps the page.
+// One array, three renderers (desktop header, mobile menu, footer). A hash is
+// a section on the long page; a path is a dedicated route. `go` below leaves
+// non-hash hrefs to the App-level handler, which pushStates and swaps the page.
 /* The tab order MIRRORS the page order (see the band comments in App.jsx) —
    a nav that lists sections in a different sequence than the scroll does
    makes every tab feel like a jump backwards. Proof, then the qualifier,
-   then the three things a visitor can buy, then capability. */
+   then the three things a visitor can buy, then capability.
+
+   RE-SYNCED 9 Aug 2026 after the reorder. Two tabs had been left behind by it
+   and read as jumps backwards: "AI Search" (#aeo) sat last-but-three while its
+   section is the eighth thing on the page, so clicking it after MCP threw the
+   reader 13,000px back UP; and "Typeface" (/type) sat above "AI Workshops"
+   while `TypeShowcase` moved down to the R&D band and `WorkshopsPromo` closes
+   the sell band. Verified against the rendered DOM — the long page's ordered
+   ids are (re-verified 10 Aug 2026, after Pricing/Voices/FAQ landed and
+   Process moved up): top, work, process, counter(#solutions), offer,
+   pricing, the-machine, aeo, ai-workshops, apps, lab, mcp,
+   typeface, studio, voices, bolt, faq, contact, hiring. This list is that
+   sequence, filtered to the tabs. #voices has no tab on purpose — a
+   testimonial is not a destination, it is something you scroll past on the
+   way to the form. */
 const LINKS = [
   { href: '#work', label: 'Work' },
   { href: '#solutions', label: 'Solutions' },
+  /* Added 10 Aug 2026 with the section. Not `extra`: of the thirteen tabs
+     this is the one a stranger is most likely to be hunting for, and the
+     whole argument for the section was that a visitor who cannot find a
+     floor assumes the ceiling — burying its tab in the burger between 1100
+     and 1360 would re-open exactly that hole for laptop traffic. */
+  { href: '#pricing', label: 'Pricing' },
   /* The Machine took the Crew slot on the page, so it takes the tab too —
      Crew and Ascent are gone, and #crew/#ascent no longer resolve. */
   { href: '#the-machine', label: 'Machine' },
-  { href: '#apps', label: 'Apps' },
-  { href: '#lab', label: '3D Lab' },
-  { href: '#own-apps', label: 'Software' },
-  { href: '#mcp', label: 'MCP' },
   /* `extra` = shown everywhere EXCEPT the desktop bar between 1100 and 1360.
      Ten labels do not fit between the wordmark and the "Get started" pill until
      ~1360px, and the burger does not take over until 1100 — so a tenth tab
@@ -83,9 +99,25 @@ const LINKS = [
      and only in that band. */
   { href: '#aeo', label: 'AI Search', extra: true },
   /* A path, not a hash — go() below lets it fall through to the App-level
-     route handler, which pushStates and swaps in the dedicated page. */
-  { href: '/type', label: 'Typeface' },
+     route handler, which pushStates and swaps in the dedicated page. The home
+     page's own `WorkshopsPromo` (#ai-workshops) sits exactly here in the
+     scroll, which is why the tab does too. */
   { href: '/ai-workshops', label: 'AI Workshops' },
+  { href: '#apps', label: 'Apps' },
+  { href: '#lab', label: '3D Lab' },
+  /* Demoted to `extra` on 10 Aug, when Pricing and FAQ took the list from
+     eleven tabs to thirteen. Something had to leave the 1100–1360 bar and
+     this is the most niche label on it — a private-beta developer protocol,
+     addressed to an audience that arrives by link rather than by scanning a
+     nav. It still renders in the burger and in the footer sitemap. */
+  { href: '#mcp', label: 'MCP', extra: true },
+  /* Same: a route, sitting where `#typeface` sits in the scroll. */
+  { href: '/type', label: 'Typeface' },
+  /* Sits between #bolt and #contact in the scroll, which is where it sits
+     here. `extra` because a visitor who wants the FAQ is already reading the
+     page and will reach it; the tab is for the one who came back looking for
+     the ownership answer specifically. */
+  { href: '#faq', label: 'FAQ', extra: true },
   { href: '#contact', label: 'Contact' },
 ]
 
@@ -129,10 +161,10 @@ export function Nav({ onNavigate }) {
     }
   }, [open])
   const go = (e, href) => {
-    // Every LINKS entry is a hash today, but the guard stays: a path link is
-    // not a scroll target, and onNavigate would hand querySelector a string
-    // like '/pricing' and throw on the invalid selector. Close the menu and
-    // let a non-hash click bubble as an ordinary navigation.
+    // `/type` and `/ai-workshops` are paths, not scroll targets: onNavigate
+    // would hand querySelector a string like '/type' and throw on the invalid
+    // selector. Close the menu and let a non-hash click bubble as an ordinary
+    // navigation — App.jsx's route interceptor picks it up from the document.
     if (!href.startsWith('#')) { setOpen(false); return }
     e.preventDefault(); setOpen(false); onNavigate(href)
   }
@@ -171,6 +203,7 @@ export function Nav({ onNavigate }) {
         {open && (
           <motion.div
             className="menu"
+            data-lenis-prevent
             ref={menuRef}
             role="dialog"
             aria-modal="true"
@@ -336,7 +369,7 @@ function FootIcon({ name, className = '' }) {
    the first column is curated; everything else lands in `Craft`, in `LINKS`
    order, and the two columns are `LINKS` entries themselves so a renamed label
    or href follows automatically. */
-const EXPLORE = ['#work', '#the-machine', '#solutions', '#apps', '#contact']
+const EXPLORE = ['#work', '#pricing', '#the-machine', '#solutions', '#apps', '#contact']
 const FOOT_COLS = [
   { title: 'Explore', links: LINKS.filter((l) => EXPLORE.includes(l.href)) },
   { title: 'Craft', links: LINKS.filter((l) => !EXPLORE.includes(l.href)) },

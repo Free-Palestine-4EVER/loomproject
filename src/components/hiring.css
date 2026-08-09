@@ -448,6 +448,16 @@
   padding-bottom: 3px;
   overflow-wrap: anywhere;
   transition: color 0.3s, border-color 0.3s;
+  position: relative;
+}
+/* TOUCH TARGET — 151 x 27. Same reasoning as `.mcp-mail`: the underline is the
+   design, so the box cannot grow downward. An invisible centred 44px band
+   takes the tap; `.hire-strip-cta` is a flex ROW, so the only neighbour is
+   beside it, never above or below. */
+.hire .hire-mail::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%);
 }
 .hire .hire-mail:hover { color: var(--ink); border-color: var(--magenta); }
 .hire .hire-mail:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 4px; border-radius: 4px; }

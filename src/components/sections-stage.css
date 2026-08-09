@@ -51,15 +51,7 @@
 }
 
 /* ——— Process: the line ——— */
-.process-stage { position: relative; }
-.process-stage > .process-grid { position: relative; z-index: 1; }
-.process-linewrap {
-  position: absolute; top: 0; left: 0;
-  pointer-events: none; z-index: 0;
-  overflow: visible;
-}
-.process-linewrap--h { display: none; }
-.process-linewrap--v { display: none; }
+
 .pt-node {
   fill: var(--ink-faint);
   transition: fill 0.4s, filter 0.4s;
@@ -71,11 +63,8 @@
 .pt-line { transition: stroke 0.4s; }
 
 @media (min-width: 1000px) {
-  .process-stage { padding-top: 38px; }
-  .process-linewrap--h { display: block; }
 }
 @media (max-width: 639px) {
-  .process-linewrap--v { display: block; }
 }
 
 /* ——— Studios: the thread between cities ——— */

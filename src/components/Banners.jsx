@@ -273,77 +273,77 @@ const OFFER = [
   },
 ]
 
+/* ——— THE FORK (redesigned 10 Aug 2026) ———
+
+   WHAT WAS WRONG. A radio toggle above a stage that showed ONE of the two
+   answers at a time. Four faults, and the first is the fatal one:
+
+     It hid half the question. "Which one is you?" is a fork, and a fork with
+     one branch behind a click is not a fork — it is a quiz. The visitor who
+     was the OTHER option had to guess that there was another option and go
+     looking for it. Meanwhile the single card floated in the middle of a
+     full-width band with dead space either side of it, so the section read as
+     half-empty AND as too tall for what it said.
+
+     Weak hierarchy — the toggle (chrome) sat above the card (content) at
+     similar visual weight, so the eye landed on the switch, not the choice.
+     Templated — a rounded card on a dark band, again.
+     Flat — the whole craft budget was a sliding thumb nobody saw slide,
+     because you only see it if you click the thing you already skipped.
+
+   NOW: both branches, side by side, filling the band. The visitor does not
+   operate a control — they read two sentences and pick the one that is them,
+   which is the actual job. Hovering or focusing a branch grows it and dims the
+   other, so the choosing is felt rather than administered; the seam between
+   them is the loom thread, which is the one place this page's motif belongs.
+
+   NO AnimatePresence, NO active state, NO aria-live. There is nothing to swap
+   any more — two static articles, each with its own heading and its own CTA,
+   which is also two landmarks for a screen reader instead of one live region
+   announcing replacements. */
 export function OfferPair() {
   const { open } = useWizard()
-  const reduced = useReducedMotion()
-  const [active, setActive] = useState(0)
-  const current = OFFER[active]
 
   return (
-    <section className="offer" id="offer" aria-label="Already trading, or starting from an idea">
-      <div className="section-head">
+    <section className="ofk" id="offer" aria-label="Already trading, or starting from an idea">
+      <div className="ofk-head">
         <p className="kicker"><span>—</span> Two ways in</p>
-        <SplitWords as="h2" className="h2" text="Which one is you?" />
+        <SplitWords as="h2" className="h2 ofk-h2" text="Which one is you?" />
       </div>
 
-      <Reveal y={30} className="offer-wrap">
-        {/* the toggle. Two real buttons in a `radiogroup` — a switch is
-            mutually exclusive, which `radio` states rather than `tab` does —
-            plus one thumb that is purely decorative (`aria-hidden`) and never
-            the thing a screen reader or a keyboard lands on. `--i` is the
-            only hook the thumb needs; sliding it is one `translateX`. */}
-        <div className="offer-toggle felt" role="radiogroup" aria-label="Which one is you?">
-          <i
-            className={`offer-toggle-thumb offer-toggle-thumb--${current.dye}`}
-            style={{ '--i': active }}
-            aria-hidden="true"
-          />
+      <Reveal y={26} className="ofk-wrap">
+        <div className="ofk-fork">
           {OFFER.map((o, i) => (
-            <button
-              key={o.id}
-              type="button"
-              role="radio"
-              aria-checked={active === i}
-              className={`offer-toggle-opt${active === i ? ' is-active' : ''}`}
-              onClick={() => setActive(i)}
-            >
-              <WoolIcon name={o.mark} className="offer-toggle-icon" />
-              {o.eyebrow}
-            </button>
-          ))}
-        </div>
-
-        {/* the stage. One card at a time — `mode="wait"` lets the leaving
-            answer finish its exit before the next one starts in, so the two
-            never cross-fade INTO each other and read as a flash of both
-            colours at once. */}
-        <div className="offer-stage" aria-live="polite">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.article
-              key={current.id}
-              className={`offer-card blk blk--${current.dye}`}
-              data-cursor
-              initial={reduced ? false : { opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduced ? undefined : { opacity: 0, y: -10 }}
-              transition={{ duration: reduced ? 0.01 : 0.45, ease: EASE }}
-            >
-              {/* the four yarns — the shared `.blk-rail` stripe every dyed
-                  shape on this page paints with, not a new one for this card */}
+            <article key={o.id} className={`ofk-branch blk blk--${o.dye}`} data-cursor>
+              {/* the shared four-yarn stripe every dyed shape on this page
+                  paints with — not a new one for this section */}
               <i className="blk-rail" aria-hidden="true" />
-              <span className="offer-card-ord" aria-hidden="true">{current.ord}</span>
-              <h3 className="offer-card-h">{current.title}</h3>
-              <p className="offer-card-body">{current.body}</p>
-              <div className="offer-card-foot">
+
+              <header className="ofk-top">
+                <span className="ofk-mark"><WoolIcon name={o.mark} /></span>
+                <span className="ofk-eyebrow">{o.eyebrow}</span>
+                <span className="ofk-ord" aria-hidden="true">{o.ord}</span>
+              </header>
+
+              <h3 className="ofk-h">{o.title}</h3>
+              <p className="ofk-body">{o.body}</p>
+
+              <div className="ofk-foot">
                 <Magnetic>
-                  <button type="button" className="offer-card-cta" onClick={() => open({ note: current.note })}>
-                    {current.cta}
+                  <button type="button" className="ofk-cta" onClick={() => open({ note: o.note })}>
+                    {o.cta}
                   </button>
                 </Magnetic>
-                <a className="offer-card-link" href={current.link.href}>{current.link.label} →</a>
+                <a className="ofk-link" href={o.link.href}>{o.link.label} <span aria-hidden="true">→</span></a>
               </div>
-            </motion.article>
-          </AnimatePresence>
+            </article>
+          ))}
+
+          {/* THE SEAM. One thread down the join, and the only thing between
+              the two branches — a border would make them two boxes, which is
+              what the card layout already was. Decorative and pointer-events
+              none so it never eats a click meant for a branch. */}
+          <i className="ofk-seam" aria-hidden="true" />
         </div>
       </Reveal>
     </section>

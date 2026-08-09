@@ -223,6 +223,61 @@ If you change the font files, update the sizes quoted in `Typeface.jsx`
 (`FILES`, `ZIP_SIZE`) and the counts in `FACTS` — they are
 hardcoded, not measured.
 
+## Sections added 10 Aug 2026 — Pricing, Voices, FAQ
+
+Three holes a stranger fell through, closed. `App.jsx`'s band comment is the
+authority on where each one sits and why; this is what a future session needs
+to know before editing them.
+
+**`#pricing` (`Pricing.jsx` + `data/pricing.js`)** opens the SELL band. The page
+previously named a number in exactly two places — 89 JOD inside The Machine's
+own pitch and a live per-seat figure behind `/ai-workshops` — and none at all
+for a site, an app or a piece of software. **Every figure is a floor and must
+render as "from X".** The word `from` is in the JSX, not the data, so a copied
+card cannot lose it. The subscription and workshop floors are **imported** from
+`offers.js` / `workshops.js`, never retyped. The card grid is **two levels of
+`subgrid`** (`.price-grid` → `.price-cell` → `.price-card`) so all six cards
+share one set of row heights — without it a card whose title wraps to two lines
+drops its price row a line below its neighbours'.
+
+**`#voices` (`Voices.jsx` + `data/voices.js`)** — testimonials, deliberately
+placed between Studios and Bolt rather than high on the page: a testimonial is
+addressed to a visitor who has already decided they want the thing.
+
+> **The quotes are DRAFTED, not collected**, and attributed by role + sector +
+> city, never to a named person or company. `data/voices.js` explains at length
+> why: the client wall on this same page carries UNICEF, Vodafone and Benetton,
+> and a drafted quote under a real organisation's name is that organisation
+> making a statement it never made. To make one real, fill in `name` / `org` and
+> drop `drafted` — the component renders whatever attribution is present, so
+> real and drafted can sit side by side while they are collected. `VOICES_NOTE`
+> must NOT offer to connect a visitor with any of them until they are real.
+
+No avatars, no star rows, no logo slots — each is a slot that looks broken empty
+and lies when filled with something invented. The card's anchor is the ghosted
+`shout` instead. **Keep shouts to two words**; the box is sized for the longest
+current one ("Overnight") and a longer one clips at the card's overflow edge.
+
+**`#faq` (`Faq.jsx` + `data/faq.js`)** is the last section before Contact.
+`data/faq.js` **forbids new facts** — every number in it already exists
+elsewhere on the page, because an FAQ is the last place a stray invented figure
+gets caught. Built on native `<details>`, not a state hook, so find-in-page can
+open a closed answer; a div-based accordion silently hides it. It emits its own
+`FAQPage` JSON-LD generated from the same array it renders — `#aeo` above sells
+exactly that markup, and the studio should not fail its own pitch on its own
+home page.
+
+**Numbered kickers are gone.** Seven sections carried `01`–`06`, and after the
+9 Aug reorder they read `03, 01, 01, 02, 04, 05, 06` down the page with `01`
+used twice. All seven now use the `—` form the other sixteen already used. Do
+not reintroduce a number: it cannot survive the next reorder.
+
+**The nav bar is at its limit — 13 tabs.** `.nav-links a.is-extra` now drops out
+below **1860px**, not 1360: thirteen labels overlapped the "Get started" pill at
+*every* width from 1380 to 1820. Ten is the count the bar is verified at.
+`qa-nav-fit.mjs` walks the viewport and prints the gap between the last visible
+tab and the pill — **run it, do not nudge the breakpoint by eye.**
+
 ## Removed sections — Crew and the Ascent
 
 Both are **gone from the page and deleted from the tree** (Aug 2026). `Crew.jsx`

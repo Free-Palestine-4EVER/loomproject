@@ -1,0 +1,280 @@
+/* ——— PROCESS — "one line, four knots" (redesigned 10 Aug 2026) ———
+
+   WHAT IT REPLACED, and why none of it was salvageable. Four outlined boxes in
+   a 4-up grid, each with an icon, a number, a title and three lines of body,
+   joined by a thin SVG line measured across their centres. Four faults, all
+   structural rather than cosmetic:
+
+     Weak hierarchy   — icon, number, title and body all sat at similar
+                        weight in every card, so nothing led the eye and the
+                        section had no focal point at all.
+     Templated        — it was the same rounded-box grid as Studios, the Lab,
+                        Apps and Solutions. Five sections, one layout.
+     Too tall         — four columns of body copy set the section's height to
+                        the longest one, times a mobile stack.
+     Flat             — a 1.6px straight line between four boxes was the
+                        entire craft budget, on the section whose own copy
+                        promises "no templates, no shortcuts".
+
+   THE IDEA IS THE COPY, TAKEN LITERALLY. "Four stations on one line. Your
+   brand enters as raw thread and leaves wearing itself." So the section IS
+   one line: a single thread strung across the band, sagging under its own
+   weight between four knots, entering at the left in undyed grey and leaving
+   at the right in full magenta. The gradient is not decoration — it is the
+   sentence.
+
+   Stations alternate ABOVE and BELOW the thread. That zig-zag is what stops
+   it reading as a grid: four cells in a row are a table no matter what is in
+   them, four stations pinned alternately to a line are a machine.
+
+   THE THREAD STRETCHES, THE STROKE DOES NOT. The path is drawn in a fixed
+   1000x120 viewBox with `preserveAspectRatio="none"` so the sag scales to any
+   width, and `vector-effect: non-scaling-stroke` keeps the thread exactly
+   2px no matter how far it is stretched. The knots are HTML, not <circle>s,
+   for the same reason: a circle in a non-uniformly scaled viewBox is an
+   ellipse. */
+
+.proc {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  /* Tighter than the page's usual section rhythm on purpose. The whole point
+     of the redesign was that four columns of body copy made this the tallest
+     low-information section on the page; leaving the old padding on a band
+     half the height would have given the saving straight back as air. */
+  padding: clamp(40px, 5.5vh, 68px) 0 clamp(36px, 5vh, 60px);
+}
+
+.proc-head {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--pad) clamp(22px, 3vw, 38px);
+}
+/* Narrower measure AND a smaller cut than the page default. The global .h2
+   set this headline at two lines of ~62px, which is 180px of head on a
+   section whose whole redesign was about height — and this is a supporting
+   section under the case studies, not a hero. */
+.proc-h2 {
+  max-width: 16ch;
+  font-size: clamp(1.9rem, 3.6vw, 3rem);
+  line-height: 1.02;
+}
+.proc-lede { margin-top: 14px; color: var(--ink-dim); max-width: 46ch; }
+
+/* ——— the band ———
+   One grid, four columns, three rows: above / thread / below. Stations are
+   placed into row 1 or row 3 by nth-child, so the zig-zag is layout, not a
+   per-item class the JSX has to keep in sync. */
+.proc-band {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr auto 1fr;
+  align-items: end;
+  /* COLUMN GAP MUST BE ZERO, and this is geometry, not taste. The path puts
+     its vertices at (i + 0.5)/4 of the SVG's width; a grid column's centre
+     only lands on that fraction when the tracks are contiguous. With a gap g
+     the centres drift by 0.375g at the first knot and -0.375g at the last —
+     measured at 8.6px each way with the 23px gap this used to have, i.e. the
+     thread visibly missed its own knots at both ends.
+     The stations get their breathing room from padding-inline instead, which
+     is inside the track and therefore moves nothing. */
+  gap: 0;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+  min-height: clamp(230px, 30vh, 310px);
+}
+
+/* the thread lives in the middle row, spanning every column */
+.proc-thread {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: block;
+  width: 100%;
+  /* 44, not 76. The sag only needs enough box to hang in — the rest of that
+     height was dead air between the two station rows, and this band is
+     measured against the fold. `overflow: visible` lets the knot halos spill
+     past it anyway. */
+  height: 44px;
+  overflow: visible;
+}
+.proc-thread path { vector-effect: non-scaling-stroke; }
+/* the undyed thread, always fully drawn — the dyed one is drawn over it by
+   scroll, so the reader sees raw thread waiting to be worked rather than an
+   empty gap */
+.proc-thread .proc-raw {
+  stroke: var(--ink-faint);
+  opacity: 0.28;
+}
+.proc-thread .proc-dyed { stroke: url(#proc-dye); }
+
+/* ——— the knots ———
+   HTML, positioned on the thread's own row so they ride it exactly. Column
+   centres are (i + 0.5) / 4, which is where the SVG path puts its vertices —
+   the two are kept in step by PROC_X in Sections.jsx, the single source for
+   both. */
+.proc-knot {
+  grid-row: 2;
+  align-self: center;
+  justify-self: center;
+  position: relative;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--ink-faint);
+  opacity: 0.5;
+  transition: border-color 0.5s var(--ease), opacity 0.5s var(--ease), transform 0.5s var(--ease);
+}
+/* the knot the thread has reached: dyed, bigger, and wearing the halo. The
+   sequence is what makes the line read as running rather than as drawn. */
+.proc-knot.is-lit {
+  border-color: var(--knot, var(--magenta));
+  opacity: 1;
+  transform: scale(1.25);
+}
+.proc-knot.is-lit::after {
+  content: '';
+  position: absolute; inset: -9px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--knot, var(--magenta)) 45%, transparent), transparent 70%);
+}
+
+/* ——— the stations ———
+   Zig-zag: odd stations hang above the thread, even ones below, each pinned
+   to the thread edge so the copy reads as tied ON to it.
+
+   EXPLICIT CLASSES, NOT nth-child. The knots and the stations are siblings in
+   one grid — `.proc-st:nth-child(2n)` counts the <svg> and all four knots
+   too, so it selects stations 1 and 3 rather than 2 and 4. And placement
+   cannot go in an inline style either: inline wins over the media query below,
+   which is where the whole layout has to be re-placed for narrow screens. So
+   the column is a class. */
+.proc-c1 { grid-column: 1; }
+.proc-c2 { grid-column: 2; }
+.proc-c3 { grid-column: 3; }
+.proc-c4 { grid-column: 4; }
+
+/* the air the column gap used to provide, moved inside the track where it
+   cannot move the track's centre — see the gap note on .proc-band */
+.proc-st { padding-inline: clamp(5px, 0.8vw, 12px); }
+
+.proc-st.is-up {
+  grid-row: 1;
+  align-self: end;
+  padding-bottom: clamp(12px, 1.5vw, 18px);
+}
+.proc-st.is-down {
+  grid-row: 3;
+  align-self: start;
+  padding-top: clamp(12px, 1.5vw, 18px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* the number is the section's focal point and the only thing set big — it is
+   also the one element that can be large without adding a line of reading */
+.proc-n {
+  display: block;
+  font-family: var(--bloom);
+  font-weight: 560;
+  /* still the focal point, but 4.2rem was competing with the section
+     headline directly above it — the number leads the BAND, not the page */
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+  line-height: 0.84;
+  letter-spacing: -0.02em;
+  color: var(--knot, var(--magenta));
+  opacity: 0.22;
+  transition: opacity 0.6s var(--ease);
+}
+.proc-st.is-lit .proc-n { opacity: 1; }
+
+.proc-t {
+  margin-top: 6px;
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
+  line-height: 1.05;
+  color: #fff;
+}
+.proc-b {
+  margin-top: 8px;
+  font-size: clamp(0.8rem, 0.9vw, 0.88rem);
+  line-height: 1.46;
+  color: var(--ink-dim);
+  /* 33ch, not 28 — a wider measure is FEWER lines, and lines are the height
+     this band actually spends. The track is 1/4 of 1180 minus padding, so
+     nothing here can run long enough to hurt the read. */
+  max-width: 33ch;
+  text-wrap: pretty;
+}
+/* the short vertical tie from the copy down to its knot — the thing that
+   makes a station read as attached to the line rather than floating near it */
+.proc-tie {
+  display: block;
+  width: 1px;
+  height: clamp(10px, 1.4vw, 16px);
+  margin-top: 10px;
+  background: linear-gradient(to bottom, var(--knot, var(--magenta)), transparent);
+  opacity: 0.5;
+}
+/* the tie belongs UNDER the copy above the line and OVER it below, so in a
+   down station it is reordered to the top of the flex column */
+.proc-st.is-down .proc-tie {
+  order: -1;
+  margin: 0 0 10px;
+  background: linear-gradient(to top, var(--knot, var(--magenta)), transparent);
+}
+
+/* ——— tablet: two knots per row is a grid again, so the line breaks up ———
+   Under 900 the four columns are ~180px each and the body copy wraps to six
+   lines. The zig-zag stops being legible before that, so the whole thing
+   turns into a vertical run: one thread down the left, stations to its right.
+   Same idea, rotated — not a different design. */
+@media (max-width: 900px) {
+  .proc-band {
+    grid-template-columns: 22px 1fr;
+    grid-template-rows: none;
+    align-items: start;
+    gap: clamp(20px, 4vw, 30px) clamp(14px, 3vw, 20px);
+    min-height: 0;
+  }
+  /* the horizontal thread is replaced by a plain vertical rule in the gutter:
+     a sagging catenary makes no sense rotated, and a straight fall is what a
+     hanging thread actually does */
+  .proc-thread { display: none; }
+  .proc-band::before {
+    content: '';
+    grid-column: 1;
+    grid-row: 1 / -1;
+    justify-self: center;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--ink-faint), var(--magenta));
+    opacity: 0.45;
+  }
+  /* the column class becomes the ROW here — same four classes, rotated. This
+     is why placement had to stay in CSS rather than an inline style. */
+  .proc-knot { grid-column: 1; align-self: start; margin-top: 6px; }
+  .proc-knot.proc-c1, .proc-st.proc-c1 { grid-row: 1; }
+  .proc-knot.proc-c2, .proc-st.proc-c2 { grid-row: 2; }
+  .proc-knot.proc-c3, .proc-st.proc-c3 { grid-row: 3; }
+  .proc-knot.proc-c4, .proc-st.proc-c4 { grid-row: 4; }
+  .proc-st.is-up,
+  .proc-st.is-down {
+    grid-column: 2;
+    align-self: start;
+    padding: 0;
+    display: block;
+  }
+  .proc-tie { display: none; }
+  .proc-n { font-size: clamp(1.8rem, 7vw, 2.4rem); }
+  .proc-b { max-width: 46ch; }
+}
+
+/* Nothing here animates at rest, so reduced motion only has to stop the
+   scroll-linked draw — which Sections.jsx does by pinning pathLength to 1 and
+   lighting every station. This block is only for the hover/lit transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .proc-knot, .proc-n { transition: none; }
+}

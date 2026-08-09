@@ -134,7 +134,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   .loom-bg-warp,
-  .loom-bg-dye i,
+  /* The three blooms have to be reset through the SAME `:nth-child()`
+     selectors that declared them. A bare `.loom-bg-dye i` is (0,1,1) and
+     `.loom-bg-dye i:nth-child(1)` is (0,2,1) — the reset simply lost the
+     cascade, and all three kept reporting animation-name loom-dye-a/b/c with
+     playState `running` under reduce. Matching the specificity is the fix;
+     `!important` would only have papered over it. */
+  .loom-bg-dye i:nth-child(1),
+  .loom-bg-dye i:nth-child(2),
+  .loom-bg-dye i:nth-child(3),
   .loom-bg-weft { animation: none; }
   /* the dye blooms stay — they are the room's colour, not its motion */
   .loom-bg-weft { opacity: 0; }

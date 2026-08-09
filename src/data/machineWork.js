@@ -26,15 +26,36 @@
 // intrinsic pixel sizes, not editorial content, so it stays a plain data
 // table rather than something that could drift from the truth.
 //
-// AVIF. Coverage is uneven across the case folders (checked with `find
-// public/img/cases -name '*.avif'`): only 12 of the 32 star frames and 6 of
-// the 16 covers have an avif sibling. <picture> does NOT fall back to the
-// next <source> when the chosen one 404s — that only happens on a
-// type/media mismatch — so emitting an avif <source> for a file that
-// doesn't exist would silently blank the tile for every avif-capable
-// browser. AVIF_FILES below is read from disk via import.meta.glob at
-// build time (Vite resolves globs statically), so "does this frame have an
-// avif" is verified, never guessed.
+// AVIF. Coverage is uneven across the case folders: only 12 of the 32 star
+// frames and 6 of the 16 covers have an avif sibling. <picture> does NOT
+// fall back to the next <source> when the chosen one 404s — that only
+// happens on a type/media mismatch — so emitting an avif <source> for a
+// file that doesn't exist would silently blank the tile for every
+// avif-capable browser. AVIF_FILES below is therefore a measured lookup,
+// exactly like DIMS: it says which frames HAVE an avif, and nothing here
+// imports one.
+//
+// DO NOT GO BACK TO import.meta.glob FOR THIS. It used to read
+// '/public/img/cases/*/*.avif' with { eager: true, query: '?url' }. Globbing
+// anything under public/ makes Vite bundle those files a SECOND time into
+// dist/assets/ — 61 files, 3.3 MB, byte-identical to the copies already at
+// dist/img/cases/ that the page actually fetches, none of them ever
+// requested — and prints a "Assets in the public directory are served at the
+// root path" warning per file on every dev boot. Only Object.keys() was ever
+// read, so every one of those bytes was dead weight in the deploy.
+// { eager: false } does not help: the lazy form still emits all 61 assets and
+// adds 61 stub chunks on top (measured, 12 Aug 2026). There is no glob mode
+// that yields filenames without importing the files, so the list is written
+// out. Regenerate it after dropping new avifs into a case folder with:
+//
+//   find public/img/cases -name '*.avif' \
+//     | sed 's|public/img/cases/||;s|\.avif$||' \
+//     | grep -E '/(star-[0-9]+|cover)$' | sort
+//
+// (Only star-*/cover frames can ever reach this grid — those are the only
+// files the round-robin below picks — so board-* and screen-mobile avifs are
+// deliberately not listed. A frame missing from this set simply serves its
+// webp, which is the safe direction to be wrong in.)
 import { CASES } from './site.js'
 
 const DIMS = {
@@ -61,10 +82,20 @@ const DIMS = {
   'zen2fit/cover': [960, 540],
 }
 
-const avifModules = import.meta.glob('/public/img/cases/*/*.avif', { eager: true, query: '?url', import: 'default' })
-const AVIF_FILES = new Set(
-  Object.keys(avifModules).map((p) => p.replace('/public/img/cases/', '').replace(/\.avif$/, ''))
-)
+// Keyed "slug/file", same shape as DIMS. Verified against disk 12 Aug 2026
+// with the find above: 12 star frames + 6 covers.
+const AVIF_FILES = new Set([
+  'auraa/star-1', 'auraa/star-2',
+  'benetton/cover',
+  'bezdrob/cover',
+  'boccapiena/star-1', 'boccapiena/star-2',
+  'ellie/cover',
+  'herbas/star-2',
+  'modulart/cover', 'modulart/star-0',
+  'ojar/cover', 'ojar/star-0', 'ojar/star-2',
+  'shteq/cover', 'shteq/star-0', 'shteq/star-1', 'shteq/star-2',
+  'weitnauer/star-2',
+])
 
 // How many tiles the grid tries to fill. Real client work only, spread
 // across as many distinct clients as the round-robin can reach — with 16
@@ -111,18 +142,16 @@ const MACHINE_CLIENT_WORK = picked.map(({ case: c, path }) => {
   }
 })
 
-// Optional real client work — populated only if the files actually exist at
-// build time. import.meta.glob is resolved by Vite at build, so this stays
-// an empty array (never a 404) until public/img/work/evora/*.webp lands.
-// Harmless probe, left in place: Evora already appears in MACHINE_CLIENT_WORK
-// above via its case folder (public/img/cases/evorahome/), so nothing here
-// needs to feed MACHINE_WORK today — this only exists so a future drop of
-// real Evora carousel/reel frames at that path has somewhere to slot in.
-const evoraFiles = import.meta.glob(
-  '/public/img/work/evora/*.webp',
-  { eager: true, query: '?url', import: 'default' }
-)
-void evoraFiles // referenced so the glob isn't flagged as dead code by linters
+// A probe for future real Evora carousel/reel frames at
+// public/img/work/evora/*.webp used to live here, as a second eager
+// import.meta.glob over public/. It fed nothing — Evora already appears in
+// MACHINE_CLIENT_WORK above via its case folder
+// (public/img/cases/evorahome/) — and it was the same trap as the avif glob,
+// disarmed only because that directory does not exist yet: the day someone
+// drops frames there, every one of them would have been bundled into
+// dist/assets/ a second time. Removed. When those frames land, add them the
+// way MACHINE_CLIENT_WORK does it: a plain '/img/work/evora/<file>' path
+// string plus its measured dimensions, no glob.
 
 // No reel-shaped or video asset exists anywhere in this static build
 // (checked: zero .mp4/.webm/.mov under public/). MACHINE_REELS stays a

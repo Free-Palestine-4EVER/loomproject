@@ -74,7 +74,7 @@ export function MachineChat({ state, lang, onLang, reduced }) {
 
       {/* polite, not assertive: the machine narrates alongside the form, it does not
           interrupt what a screen reader is already saying about the current field. */}
-      <div className="machine-rail" ref={railRef} role="log" aria-live="polite" aria-label={ui.transcript}>
+      <div className="machine-rail" data-lenis-prevent ref={railRef} role="log" aria-live="polite" aria-label={ui.transcript}>
         <AnimatePresence initial={false}>
           {log.map((entry, i) => (
             <motion.p

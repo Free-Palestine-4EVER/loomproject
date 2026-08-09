@@ -275,6 +275,12 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   position: fixed; top: 0; left: 0; right: 0; height: 2px;
   background: linear-gradient(90deg, var(--magenta), var(--violet), var(--cyan));
   transform-origin: left; z-index: 90;
+  /* z-index 90 puts this ABOVE the nav (80) across the full width of the
+     viewport. Without this line the read-out swallowed every tap landing in
+     the top two pixels of the screen — `document.elementFromPoint(x, 1)`
+     returned `.progress`, not the nav link underneath it. It is a read-out,
+     it must never be a target. */
+  pointer-events: none;
 }
 .cursor { position: fixed; inset: 0; pointer-events: none; z-index: 300; }
 .cursor-dot, .cursor-ring { position: absolute; top: 0; left: 0; border-radius: 50%; }
@@ -320,7 +326,12 @@ html.cursor-hot .cursor-ring {
      default shrink is basis-weighted), collapsing to ~8px wide and
      vanishing rather than the row overflowing visibly. Fixed size, always. */
   flex: none;
+  /* the wordmark is 34-46px tall depending on width; on a phone it is 38, so
+     the home link was a 38px target. The bar is already 49px tall (the "Get
+     started" pill sets it), so this buys the target without moving anything. */
+  min-height: 44px;
 }
+.nav-logo:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; border-radius: 6px; }
 /* 9 items now (Software joined the original 8) — the old fixed
    clamp fit 8 comfortably up to 1440 but let WORK collide with the wordmark
    and 3D LAB wrap to two lines in the 1150-1360 laptop range once two more
@@ -345,10 +356,18 @@ html.cursor-hot .cursor-ring {
   .nav-links { gap: clamp(6px, 0.85vw, 13px); }
   .nav-links a { font-size: 0.66rem; letter-spacing: 0.06em; }
 }
-/* Below 1360 even the tight setting cannot hold ten labels, so the one tab
-   marked `extra` in LINKS steps out of the bar. It is still in the burger menu
-   and the footer at every width — see the note beside it in Chrome.jsx. */
-@media (max-width: 1360px) {
+/* 1860, not 1360 — and this number is MEASURED, not chosen.
+   LINKS went from eleven tabs to thirteen on 10 Aug 2026 (Pricing, FAQ), and
+   thirteen labels do not fit beside the "Get started" pill at ANY width below
+   ~1855: walking the viewport in 40px steps, the gap between the last tab and
+   the pill was exactly 0 from 1380 all the way to 1820, i.e. every ordinary
+   desktop had CONTACT sitting behind the pill. Ten is the count this bar has
+   actually been verified at, so the three `extra` tabs now step out until
+   there is real room for them. They stay in the burger menu and in the footer
+   sitemap at every width — see the notes beside them in Chrome.jsx.
+   Re-measure with qa-nav-fit.mjs if a fourteenth tab is ever added; do not
+   nudge this by eye. */
+@media (max-width: 1860px) {
   .nav-links a.is-extra { display: none; }
 }
 /* The last 100px before the burger. Even at ten labels the row still ran into
@@ -359,6 +378,16 @@ html.cursor-hot .cursor-ring {
   .nav-links { gap: 5px; }
   .nav-links a { font-size: 0.62rem; letter-spacing: 0.04em; }
   .nav-cta { gap: 8px; }
+}
+/* The 100px immediately above the burger was measuring a 3px gap to the pill —
+   not an overlap, but inside the margin where a font swap or a slightly wider
+   label makes it one, and this band was already the tightest setting the bar
+   has. Tracking is what gives here rather than size: 10 caps labels at 0.62rem
+   are still legible with 0.02em, and dropping the tracking buys ~20px across
+   the row where dropping another 0.02rem of size buys 6px and costs more. */
+@media (max-width: 1160px) {
+  .nav-links { gap: 4px; }
+  .nav-links a { letter-spacing: 0.02em; }
 }
 /* Clash Display, not the inherited Satoshi body face. The nav sat in body
    text at 540 while the wordmark beside it is Clash at 620 — the two read
@@ -371,6 +400,18 @@ html.cursor-hot .cursor-ring {
   font-size: 0.82rem; letter-spacing: 0.10em; text-transform: uppercase;
   color: var(--ink-dim);
   position: relative; overflow: hidden; display: inline-block;
+  /* TOUCH TARGET. These measured 34 x 21 — under even the 24px WCAG 2.2 AA
+     floor, let alone 44. The height CANNOT be bought with padding here: the
+     scramble copy is `span::after { top: 100% }` clipped by this box's own
+     `overflow: hidden`, so the reveal distance is the box height and padding
+     would desynchronise the two. `line-height` grows the box AND the span's
+     line box together, which keeps `top: 100%` and `translateY(-100%)`
+     measuring the same 44px. Text position is unchanged (half-leading).
+     `min-width` only bites on the one short label (MCP, 43.1px) so the row
+     grows by under a pixel — the 1101-1560px collision notes above still
+     hold. */
+  line-height: 44px;
+  min-width: 44px; text-align: center;
 }
 .nav-links a span { display: inline-block; transition: transform 0.45s var(--ease); }
 .nav-links a span::after {
@@ -387,10 +428,33 @@ html.cursor-hot .cursor-ring {
 .burger.is-open span:first-child { transform: translateY(3.5px) rotate(45deg); }
 .burger.is-open span:last-child { transform: translateY(-3.5px) rotate(-45deg); }
 
+/* THE BURGER DRAWER. Three things were wrong with it on a phone, and they
+   compounded into the worst tap failure on the site.
+
+   1. The drawer is z-index 75, the fixed `.nav` is 80. That ordering is
+      deliberate — the burger doubles as the close button and has to stay on
+      top — but nothing kept the drawer's own CONTENT out from under the bar.
+   2. Eleven links at clamp(2.6rem, 9vw) plus the meta block measure ~863px
+      against an 844px viewport, so `justify-content: center` pushed the list
+      off BOTH ends: measured, WORK sat at y = 0.6 and SOLUTIONS at y = 58.5,
+      both under an 81px-tall nav. `document.elementFromPoint` at their
+      centres returned `header.nav`. The first two items of the site's only
+      mobile navigation could not be tapped at all.
+   3. There was no `overflow`, so the overflow was simply unreachable.
+
+   `safe center` keeps the centred composition whenever the list fits and
+   falls back to start-alignment the moment it does not, which is exactly the
+   case that was broken; browsers that do not parse it keep the plain `center`
+   on the line above. The padding clears the tallest state of the bar (81px
+   unscrolled: 16px x2 plus the 49px "Get started" pill) plus the notch. */
 .menu {
   position: fixed; inset: 0; z-index: 75;
   background: linear-gradient(160deg, var(--bg-2), var(--bg-3));
   display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8vh;
+  justify-content: safe center;
+  padding: calc(env(safe-area-inset-top, 0px) + 92px) var(--pad)
+           calc(env(safe-area-inset-bottom, 0px) + 28px);
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   text-align: center;
 }
 .menu-links { display: flex; flex-direction: column; gap: 10px; }
@@ -399,7 +463,15 @@ html.cursor-hot .cursor-ring {
   font-size: clamp(2.6rem, 9vw, 4.6rem); line-height: 1.15;
 }
 .menu-links a:hover { color: var(--magenta); }
+.menu-links a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; border-radius: 8px; }
 .menu-meta { display: flex; flex-direction: column; gap: 8px; color: var(--ink-dim); font-size: 0.95rem; }
+/* the phone number and the address at the foot of the drawer measured
+   210 x 24.3 — the two smallest targets inside the mobile navigation. */
+.menu-meta a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; min-width: 44px;
+}
+.menu-meta a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
 
 /* ——— hero ——— */
 .hero {
@@ -831,7 +903,6 @@ html.cursor-hot .cursor-ring {
 .svc-body p { color: var(--ink-dim); max-width: 62ch; }
 .svc-tags { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 0 0; }
 .svc-visual { width: clamp(150px, 18vw, 210px); flex-shrink: 0; }
-.process-glyph { width: 76px; margin-bottom: 14px; }
 .svc-tags span {
   font-size: 0.82rem; font-weight: 600; color: var(--ink-dim);
   border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px;
@@ -913,8 +984,15 @@ html.cursor-hot .cursor-ring {
 .filter {
   padding: 9px 20px; border-radius: 999px; font-weight: 620; font-size: 0.9rem;
   border: 1px solid var(--line); color: var(--ink-dim);
+  /* mobilechrome.css already floored these at 44 — but only inside
+     `@media (max-width: 767px)`, so a 768px tablet (a touch device) got the
+     43px desktop pill. A touch target is not a width breakpoint; the floor
+     belongs on the base rule. */
+  min-height: 44px; min-width: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
   transition: all 0.3s;
 }
+.filter:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
 .filter:hover { border-color: var(--magenta); color: var(--ink); }
 .filter.is-active { background: var(--magenta); border-color: var(--magenta); color: #fff; }
 .work-grid {
@@ -1230,7 +1308,12 @@ html.cursor-hot .cursor-ring {
   display: inline-flex; align-items: center; gap: 8px;
   font-size: 0.82rem; font-weight: 640; color: var(--ink-faint);
   padding: 7px 12px; border-radius: 999px; transition: color 0.3s;
+  /* same story as .filter: the 44px floor lived only under `max-width: 767px`,
+     so the wizard's four step chips were 35px tall on a tablet and on a
+     laptop with a touchscreen. */
+  min-height: 44px; min-width: 44px; justify-content: center;
 }
+.wstep:focus-visible { outline: 2px solid var(--magenta); outline-offset: 2px; }
 .wstep i {
   font-style: normal; width: 21px; height: 21px; border-radius: 50%;
   display: grid; place-items: center; font-size: 0.68rem;
@@ -1309,8 +1392,17 @@ html.cursor-hot .cursor-ring {
   margin-top: 34px; display: flex; gap: 12px; align-items: center; justify-content: center;
   flex-wrap: wrap; color: var(--ink-faint); font-size: 0.92rem;
 }
-.contact-direct a { color: var(--ink-dim); font-weight: 640; transition: color 0.3s; }
+/* the phone number and the address are real `tel:`/`mailto:` links, and they
+   measured 23.5px tall — the shortest targets in the section. This is a
+   centred wrap row with a 12px gap, so an inline-flex box with its own
+   min-height grows the target and leaves the baseline where it was. */
+.contact-direct a {
+  color: var(--ink-dim); font-weight: 640; transition: color 0.3s;
+  display: inline-flex; align-items: center;
+  min-height: 44px; min-width: 44px; justify-content: center;
+}
 .contact-direct a:hover { color: var(--magenta); }
+.contact-direct a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
 
 /* ——— press feedback (feel layer) ——— */
 .btn:active { transform: scale(0.97); transition: transform 120ms ease-out; }
@@ -1332,7 +1424,7 @@ html.cursor-hot .cursor-ring {
 @property --rx { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 @property --ry { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 @property --lift { syntax: '<length>'; inherits: false; initial-value: 0px; }
-.case-card, .process-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent {
+.case-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent {
   --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg; --lift: 0px;
   position: relative;
   /* hover lift travels via --lift so it composes with the pointer tilt instead
@@ -1341,14 +1433,14 @@ html.cursor-hot .cursor-ring {
   transform-style: preserve-3d;
   transition: --rx 140ms ease-out, --ry 140ms ease-out, --lift 0.5s var(--ease), border-color 0.4s, box-shadow 0.5s;
 }
-.process-card::before, .studio-card::before, .lab-card::before,
+.studio-card::before, .lab-card::before,
 .app-card::before, .sol-card::before, .wintent::before {
   content: ''; position: absolute; inset: 0; border-radius: inherit;
   background: radial-gradient(340px circle at var(--mx) var(--my), rgba(242, 28, 140, 0.14), transparent 62%);
   opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 0;
 }
 .is-lit::before { opacity: 1; }
-.process-card > *, .studio-card > *, .lab-card > *, .app-card > *, .sol-card > * { position: relative; z-index: 1; }
+.studio-card > *, .lab-card > *, .app-card > *, .sol-card > * { position: relative; z-index: 1; }
 .nav-links a.is-current span { color: var(--ink); }
 .nav-links a::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1.5px;
@@ -1358,7 +1450,7 @@ html.cursor-hot .cursor-ring {
 }
 .nav-links a.is-current::after { transform: scaleX(1); }
 @media (prefers-reduced-motion: reduce) {
-  .case-card, .process-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent { transform: none; }
+  .case-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent { transform: none; }
 }
 
 /* ——— site-wide contact modal ——— */
@@ -1387,36 +1479,27 @@ html.cursor-hot .cursor-ring {
 .wmodal-scroll .wizard { margin-top: 0; border: 0; background: none; }
 .wmodal-scroll .wizard-stage { min-height: 320px; padding: clamp(18px, 3vw, 30px) 4px; }
 .wmodal-direct { text-align: center; color: var(--ink-faint); font-size: 0.9rem; padding: 4px 0 8px; }
-.wmodal-direct a { color: var(--ink-dim); font-weight: 640; }
+/* "Rather talk now? WhatsApp +962…" — the escape hatch out of the wizard, and
+   at 191 x 18 the smallest target inside the modal. It sits mid-sentence, so
+   the box has to stay inline: an invisible centred 44px band, not padding. */
+.wmodal-direct a { color: var(--ink-dim); font-weight: 640; position: relative; }
+.wmodal-direct a::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%);
+}
 .wmodal-direct a:hover { color: var(--magenta); }
+.wmodal-direct a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
 .wizard-seed {
   padding: 12px clamp(14px, 3vw, 26px); border-bottom: 1px solid var(--line);
   color: var(--ink-dim); font-size: 0.9rem;
 }
 .wizard-seed strong { color: var(--magenta); font-weight: 700; }
 
-/* ——— process ——— */
-.process-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: clamp(14px, 2vw, 26px); padding: 0 var(--pad);
-}
-.process-card {
-  border: 1px solid var(--line); border-radius: var(--radius);
-  padding: clamp(22px, 3vw, 34px);
-  height: 100%; position: relative; overflow: hidden;
-  background: rgba(26, 16, 41, 0.5);
-  transition: border-color 0.4s, transform 0.5s var(--ease);
-}
-.process-card:hover { border-color: rgba(242, 28, 140, 0.5); --lift: -6px; }
-.process-n { font-family: var(--display); color: var(--magenta); font-size: 1rem; font-weight: 600; }
-.process-card h3 { font-family: var(--display); font-weight: 560; font-size: clamp(1.4rem, 2.4vw, 2rem); margin: 12px 0 12px; }
-.process-card p { color: var(--ink-dim); font-size: 0.96rem; }
-.process-thread {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
-  background: linear-gradient(90deg, var(--magenta), var(--violet));
-  transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--ease);
-}
-.process-card:hover .process-thread { transform: scaleX(1); }
+/* ——— process ———
+   Redesigned 10 Aug 2026 and moved out to components/process.css. The old
+   4-up card grid (.process-grid/.process-card/.process-n/.process-thread) is
+   gone from the DOM, so its rules are gone from here. */
 
 /* ——— stats ——— */
 .stats {
@@ -1468,8 +1551,18 @@ html.cursor-hot .cursor-ring {
   margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line);
   color: var(--ink-dim); font-size: 0.95rem;
 }
-.studio-card footer a { color: var(--ink); font-weight: 640; transition: color 0.3s; }
+/* "WhatsApp us →" / "Email the studio →" are the only controls on these two
+   cards and they measured 24.3px tall. The footer is a `space-between` flex
+   row with a 10px gap and the phone number opposite, so vertical padding here
+   grows the target without moving the label or the row. */
+.studio-card footer a {
+  color: var(--ink); font-weight: 640; transition: color 0.3s;
+  display: inline-flex; align-items: center;
+  min-height: 44px; min-width: 44px;
+  margin-block: -10px;
+}
 .studio-card footer a:hover { color: var(--magenta); }
+.studio-card footer a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
 
 /* ——— contact ——— */
 .contact {
@@ -1834,7 +1927,12 @@ html.cursor-hot .cursor-ring {
 .footer--bloom .foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .footer--bloom .foot-col a {
   display: inline-flex; align-items: center; gap: 9px;
-  padding: 5px 0;
+  /* was `padding: 5px 0` -> a 34px-tall row, and the two-up sitemap on a phone
+     put ten of those inside one thumb's reach. The padding does the growing
+     rather than a min-height so the thread pseudo stays vertically centred on
+     the label; `min-width` catches the three-letter labels (MCP, 43.1px). */
+  padding: 10px 0;
+  min-height: 44px; min-width: 44px;
   color: var(--ink-dim);
   font-weight: 640;
   font-size: 0.94rem;
@@ -1932,7 +2030,9 @@ html.cursor-hot .cursor-ring {
 .footer--bloom .foot-sh {
   display: inline-grid; place-items: center;
   position: relative;
-  width: 42px; height: 42px;
+  /* 42 -> 44. The `@media (max-width: 767px)` rule below already lifted these
+     to 46 on a phone; a tablet is a touch device too and was left at 42. */
+  width: 44px; height: 44px;
   border-radius: 50%; cursor: pointer;
   color: #6d3a63;
   background: rgba(255, 255, 255, 0.5);
@@ -2000,7 +2100,8 @@ html.cursor-hot .cursor-ring {
      exists for. */
   order: -1;
   display: grid; place-items: center; flex: none;
-  width: 40px; height: 40px;
+  /* 40 -> 44. The one control on the hem, and the smallest thing on the page. */
+  width: 44px; height: 44px;
   border-radius: 50%; cursor: pointer;
   color: #7a3a60;
   background: rgba(255, 255, 255, 0.55);
@@ -2106,7 +2207,6 @@ html.cursor-hot .cursor-ring {
 /* ————— responsive ————— */
 @media (max-width: 1000px) {
   .work-grid { grid-template-columns: repeat(2, 1fr); }
-  .process-grid { grid-template-columns: repeat(2, 1fr); }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 40px 20px; }
   .manifesto-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
@@ -2129,7 +2229,6 @@ html.cursor-hot .cursor-ring {
 }
 @media (max-width: 640px) {
   .work-grid { grid-template-columns: 1fr; }
-  .process-grid { grid-template-columns: 1fr; }
   .studios-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .svc-row { grid-template-columns: 44px 1fr auto; }

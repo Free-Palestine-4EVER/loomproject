@@ -7,9 +7,10 @@ import { ContactWizard } from './ContactWizard.jsx'
 import { LoomHead } from './LoomHead.jsx'
 import { MachineChat, useMachineLang } from './MachineChat.jsx'
 import { useWizard } from '../lib/wizard.jsx'
-import { ProcessGlyph, ThreadDivider } from './Rich.jsx'
+import { ThreadDivider } from './Rich.jsx'
 import { WoolButton, WoolIcon } from './Wool.jsx'
 import './sections-stage.css'
+import './process.css'
 import './stats.css'
 import './studios.css'
 
@@ -338,7 +339,7 @@ export function Manifesto() {
     <section className="manifesto" ref={ref}>
       <div className="manifesto-grid">
         <div className="manifesto-copy">
-          <p className="kicker"><span>04</span> Manifesto</p>
+          <p className="kicker"><span>—</span> Manifesto</p>
           <ManifestoHeadline
             text="Trends don’t lead our work. Thinking does."
             progress={inkProgress}
@@ -407,126 +408,149 @@ export function Manifesto() {
   )
 }
 
-/** Measures the four .process-card stations relative to the grid that holds
- *  them and hands back the exact points a connecting thread needs — a top
- *  node for the desktop horizontal line, a left node for the mobile vertical
- *  one. Real DOM measurement beats a guessed percentage split because the
- *  gap between cards is a clamp(), not a fixed value. */
-function useProcessThread(count, reduced) {
-  const gridRef = useRef(null)
-  const cardRefs = useRef([])
-  const [pts, setPts] = useState(null)
+/* ——— PROCESS: the thread geometry ———
+   ONE source for where a knot sits, used by both the SVG path and the CSS
+   grid. The knots are HTML in grid column i+1, whose centre is at
+   (i + 0.5) / 4 of the band; the path's vertices have to land on exactly the
+   same fractions or the thread misses its own knots. Expressed against the
+   1000-unit viewBox below.
 
-  useEffect(() => {
-    const grid = gridRef.current
-    if (!grid) return
-    const measure = () => {
-      const gRect = grid.getBoundingClientRect()
-      const next = cardRefs.current.slice(0, count).map((el) => {
-        if (!el) return null
-        const r = el.getBoundingClientRect()
-        return {
-          top: r.top - gRect.top,
-          left: Math.max(0, r.left - gRect.left),
-          cx: r.left - gRect.left + r.width / 2,
-          cy: r.top - gRect.top + r.height / 2,
-        }
-      })
-      if (next.every(Boolean)) setPts({ w: gRect.width, h: gRect.height, cards: next })
-    }
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(grid)
-    window.addEventListener('resize', measure)
-    return () => { ro.disconnect(); window.removeEventListener('resize', measure) }
-  }, [count])
+   The band is padded by var(--pad) and the SVG spans only the padded box, so
+   both agree without either knowing what --pad currently resolves to. */
+const PROC_X = (i, n) => ((i + 0.5) / n) * 1000
 
-  const { scrollYProgress } = useScroll({ target: gridRef, offset: ['start 0.85', 'end 0.45'] })
-  const [lit, setLit] = useState(() => (reduced ? count : 0))
-  useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    if (reduced) return
-    const n = Math.max(0, Math.min(count, Math.round(p * count)))
-    setLit((prev) => (prev === n ? prev : n))
-  })
-
-  return { gridRef, cardRefs, pts, scrollYProgress, lit }
+/* The sag. A thread strung between two points hangs; a straight line between
+   them is a wire. Each span is one quadratic curve dipping SAG units below
+   the chord, which is a catenary closely enough at this size and costs one
+   control point instead of a solver. The ends run out past the first and last
+   knot so the thread reads as continuing off the section rather than starting
+   and stopping at the copy. */
+// centred in the 44-unit viewBox the CSS now gives the thread
+const PROC_MID = 22
+const PROC_SAG = 11
+function procPath(n) {
+  const y = PROC_MID
+  let d = `M 0 ${y - 2}`
+  // lead-in to the first knot
+  d += ` Q ${PROC_X(0, n) / 2} ${y + PROC_SAG} ${PROC_X(0, n)} ${y}`
+  for (let i = 1; i < n; i++) {
+    const a = PROC_X(i - 1, n), b = PROC_X(i, n)
+    d += ` Q ${(a + b) / 2} ${y + PROC_SAG} ${b} ${y}`
+  }
+  // run-out past the last
+  const last = PROC_X(n - 1, n)
+  d += ` Q ${(last + 1000) / 2} ${y + PROC_SAG} 1000 ${y - 2}`
+  return d
 }
 
-const STRIP = 38 // .process-stage padding-top, desktop only — see sections-stage.css
+/* One knot colour per station, in dye order — the thread arrives undyed and
+   picks up a colour at each station it passes. Same four yarns Proof's stat
+   rail uses, so the two sections read as the same studio. */
+const PROC_YARN = ['var(--yarn-blue)', 'var(--yarn-violet)', 'var(--yarn-pink)', 'var(--yarn-gold)']
 
 export function Process() {
   const reduced = useReducedMotion()
   const count = PROCESS.length
-  const { gridRef, cardRefs, pts, scrollYProgress, lit } = useProcessThread(count, reduced)
+  const bandRef = useRef(null)
 
-  const hD = pts && pts.cards.length === count
-    ? `M ${pts.cards[0].cx} ${STRIP / 2} ` + pts.cards.slice(1).map((c) => `L ${c.cx} ${STRIP / 2}`).join(' ')
-    : ''
-  const vX = pts && pts.cards[0] ? pts.cards[0].left / 2 : 0
-  const vD = pts && pts.cards.length === count
-    ? `M ${vX} ${pts.cards[0].cy} ` + pts.cards.slice(1).map((c) => `L ${vX} ${c.cy}`).join(' ')
-    : ''
+  /* Ends at 'end 0.75' rather than at the section's end: the thread should
+     finish dyeing while the band is still comfortably on screen, not on the
+     frame it leaves. A draw that completes off-screen is a draw nobody sees. */
+  const { scrollYProgress } = useScroll({ target: bandRef, offset: ['start 0.9', 'end 0.75'] })
+
+  const [lit, setLit] = useState(() => (reduced ? count : 0))
+  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+    if (reduced) return
+    // A knot lights once the thread has actually REACHED it. Knot i sits at
+    // (i + 0.5)/count along the path, so that fraction — not i/count — is the
+    // threshold, or every knot lights half a span early.
+    const n = PROC_X(0, count) / 1000 <= p
+      ? Math.min(count, Math.floor(p * count + 0.5))
+      : 0
+    setLit((prev) => (prev === n ? prev : n))
+  })
+
+  const d = procPath(count)
 
   return (
-    <section className="process">
+    /* id added 10 Aug 2026 when this moved up under Work: it is now the
+       "how is that possible?" answer to the case studies, which is a thing
+       worth linking someone straight to. No nav tab — the sequence up top is
+       already thirteen labels. */
+    <section className="proc" id="process">
       <ThreadDivider />
-      <div className="section-head">
-        <p className="kicker"><span>03</span> Process</p>
-        <SplitWords as="h2" className="h2" text="One process. No templates. No shortcuts." />
+      <div className="proc-head">
+        <p className="kicker"><span>—</span> Process</p>
+        <SplitWords as="h2" className="h2 proc-h2" text="One process. No templates. No shortcuts." />
         <Reveal delay={0.15}>
-          <p className="lede" style={{ marginTop: 22 }}>
+          <p className="lede proc-lede">
             Four stations on one line. Your brand enters as raw thread and leaves wearing itself.
           </p>
         </Reveal>
       </div>
-      <div className="process-stage">
-        {pts && (
-          <svg
-            className="process-linewrap process-linewrap--h"
-            width={pts.w} height={STRIP} viewBox={`0 0 ${pts.w} ${STRIP}`}
+
+      <div className="proc-band" ref={bandRef}>
+        {/* THE THREAD. Two copies of one path: the raw one always fully
+            drawn, the dyed one drawn over it by scroll. Stretched with
+            preserveAspectRatio="none" so the sag spans any width, which is
+            why the stroke needs `vector-effect: non-scaling-stroke` (in the
+            CSS) and why the knots are HTML rather than <circle>s — a circle
+            in a non-uniformly scaled viewBox renders as an ellipse. */}
+        <svg
+          className="proc-thread"
+          viewBox="0 0 1000 44"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            {/* raw grey in, full magenta out — the lede, drawn */}
+            <linearGradient id="proc-dye" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor="var(--ink-faint)" />
+              <stop offset="0.35" stopColor="var(--yarn-violet)" />
+              <stop offset="1" stopColor="var(--magenta)" />
+            </linearGradient>
+          </defs>
+          <path className="proc-raw" d={d} fill="none" strokeWidth="2" strokeLinecap="round" />
+          <motion.path
+            className="proc-dyed"
+            d={d}
+            fill="none"
+            strokeWidth="2"
+            strokeLinecap="round"
+            style={{ pathLength: reduced ? 1 : scrollYProgress }}
+          />
+        </svg>
+
+        {/* Knots and stations are siblings in one grid — the knot rides the
+            thread's row, the station hangs above or below it by nth-child.
+            Rendered as two runs rather than interleaved so `nth-child(2n)`
+            addresses stations, not knot/station pairs. */}
+        {PROCESS.map((p, i) => (
+          <span
+            key={`knot-${p.n}`}
+            className={`proc-knot proc-c${i + 1} ${i < lit ? 'is-lit' : ''}`}
+            style={{ '--knot': PROC_YARN[i % 4] }}
             aria-hidden="true"
+          />
+        ))}
+
+        {PROCESS.map((p, i) => (
+          <Reveal
+            key={p.n}
+            delay={i * 0.07}
+            /* rises from below for a station that hangs below the thread and
+               drops from above for one that hangs over it — the entry runs
+               outward from the line rather than all four sliding the same way */
+            y={i % 2 ? 24 : -24}
+            className={`proc-st proc-c${i + 1} ${i % 2 ? 'is-down' : 'is-up'} ${i < lit ? 'is-lit' : ''}`}
+            style={{ '--knot': PROC_YARN[i % 4] }}
           >
-            <motion.path
-              className="pt-line" d={hD} fill="none" stroke="var(--violet)" strokeWidth="1.6" strokeLinecap="round"
-              style={{ pathLength: reduced ? 1 : scrollYProgress }}
-            />
-            {pts.cards.map((c, i) => (
-              <circle key={i} className={`pt-node ${i < lit ? 'is-lit' : ''}`} cx={c.cx} cy={STRIP / 2} r="4.5" />
-            ))}
-          </svg>
-        )}
-        {pts && (
-          <svg
-            className="process-linewrap process-linewrap--v"
-            width={Math.max(vX * 2, 1)} height={pts.h} viewBox={`0 0 ${Math.max(vX * 2, 1)} ${pts.h}`}
-            aria-hidden="true"
-          >
-            <motion.path
-              className="pt-line" d={vD} fill="none" stroke="var(--violet)" strokeWidth="1.6" strokeLinecap="round"
-              style={{ pathLength: reduced ? 1 : scrollYProgress }}
-            />
-            {pts.cards.map((c, i) => (
-              <circle key={i} className={`pt-node ${i < lit ? 'is-lit' : ''}`} cx={vX} cy={c.cy} r="4.5" />
-            ))}
-          </svg>
-        )}
-        <div className="process-grid" ref={gridRef}>
-          {PROCESS.map((p, i) => (
-            <Reveal key={p.n} delay={i * 0.08} className="process-cell">
-              <div
-                className={`process-card ${i < lit ? 'is-lit' : ''}`}
-                ref={(el) => { cardRefs.current[i] = el }}
-                data-cursor
-              >
-                <div className="process-glyph"><ProcessGlyph n={p.n} /></div>
-                <span className="process-n">{p.n}</span>
-                <h3>{p.title}</h3>
-                <p>{p.body}</p>
-                <i className="process-thread" aria-hidden="true" />
-              </div>
-            </Reveal>
-          ))}
-        </div>
+            <span className="proc-n">{p.n}</span>
+            <h3 className="proc-t">{p.title}</h3>
+            <p className="proc-b">{p.body}</p>
+            <i className="proc-tie" aria-hidden="true" />
+          </Reveal>
+        ))}
       </div>
     </section>
   )
@@ -739,7 +763,7 @@ export function Studios() {
   return (
     <section className="studios" id="studio">
       <div className="section-head">
-        <p className="kicker"><span>05</span> Studios</p>
+        <p className="kicker"><span>—</span> Studios</p>
         <SplitWords as="h2" className="h2" text="Two cities. One loom." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
@@ -841,7 +865,7 @@ export function Contact() {
 
   return (
     <section className="contact" id="contact">
-      <p className="kicker kicker--center"><span>06</span> Contact</p>
+      <p className="kicker kicker--center"><span>—</span> Contact</p>
       <h2 className="contact-h2">
         <SplitWords text="Ready to push" />
         <br />

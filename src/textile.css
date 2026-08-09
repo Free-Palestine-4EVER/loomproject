@@ -57,13 +57,12 @@
 
 /* ============================================================
    3. CARDS — fabric-frame treatment
-   Group A: process-card / studio-card / lab-card / app-card / sol-card
+   Group A: studio-card / lab-card / app-card / sol-card
    already use ::before for the pointer-spotlight (see styles.css
    .process-card::before etc.) and already promote direct children to
    z-index:1 — so texture lives on ::after at z-index:0, safely under
    content, and needs no extra stacking-context work.
    ============================================================ */
-.process-card,
 .studio-card,
 .lab-card,
 .app-card,
@@ -72,7 +71,6 @@
   outline-offset: -10px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 30px rgba(0, 0, 0, 0.35);
 }
-.process-card::after,
 .studio-card::after,
 .lab-card::after,
 .app-card::after,

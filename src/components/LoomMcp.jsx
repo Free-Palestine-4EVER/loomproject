@@ -54,6 +54,7 @@ const SERVERS = [
       ['asset.find', 'the right lockup for the placement'],
       ['copy.check', 'flags a line that is off-brand, and why'],
     ],
+    photo: 'atelier',
     accent: 'var(--yarn-pink)',
     yarn: 'magenta',
   },
@@ -70,6 +71,7 @@ const SERVERS = [
       ['post.render', 'the frame, at the brand’s art direction'],
       ['queue.release', 'ships only what an editor approved'],
     ],
+    photo: 'machine',
     accent: 'var(--yarn-violet)',
     yarn: 'violet',
   },
@@ -86,6 +88,7 @@ const SERVERS = [
       ['ar.link', 'a shareable AR view, no app'],
       ['catalogue.sync', 'pushes the set to the store'],
     ],
+    photo: 'room',
     accent: 'var(--yarn-blue)',
     yarn: 'blue',
   },
@@ -247,6 +250,18 @@ const ROW = {
 // arrive in order, they just fade rather than rise.
 const flat = (v) => ({ ...v, hidden: { ...v.hidden, y: 0 } })
 
+/* ——— A RACK UNIT (redesigned 10 Aug 2026) ———
+   Was one of three identical outlined cards in a 3-up grid — the same shape as
+   Studios, the Lab, Apps and the old Process, and the reason this section read
+   as templated. Now each server is a full-width unit in a rack: a photographed
+   plate, the name at display scale, and its four tools as a real monospace
+   list rather than a bulleted one. Units alternate which side the plate sits
+   on, so three of them read as a stack rather than as a repeated row.
+
+   EVERYTHING FUNCTIONAL IS UNTOUCHED — ConfigBlock, AccessForm, the three gate
+   states and their AnimatePresence swap all keep their markup and class names,
+   so the honesty rules at the top of this file (redacted host, private-beta
+   label, no endpoint) survive the redesign exactly as written. */
 function ServerCard({ s, i }) {
   const [state, setState] = useState('shut') // shut → form → sent
   const [email, setEmail] = useState('')
@@ -256,49 +271,49 @@ function ServerCard({ s, i }) {
   const row = reduced ? flat(ROW) : ROW
 
   return (
-    <motion.div
-      className="mcp-cell"
+    <motion.article
+      className={`mcp-unit is-${state} ${i % 2 ? 'is-flipped' : ''}`}
+      style={{ '--accent': s.accent }}
       variants={card}
       custom={i}
       initial="hidden"
       whileInView="in"
       viewport={{ once: true, margin: '-12% 0px' }}
     >
-      <article className={`mcp-card is-${state}`} style={{ '--accent': s.accent }}>
-        <motion.header className="mcp-card-head" variants={row}>
-          <span className="mcp-index">{s.n}</span>
-          <div className="mcp-titles">
-            <h3 className="mcp-name">
-              <span className="mcp-name-pre">LOOM</span> {s.name}
-            </h3>
-            <p className="mcp-role">{s.role}</p>
-          </div>
+      {/* THE PLATE. The photograph is the redesign's answer to "this needs
+          photos", and it degrades honestly: the plate carries a dyed gradient
+          of the server's own accent underneath, so a missing or still-loading
+          render reads as a coloured plate rather than as a broken box. */}
+      <motion.div className="mcp-plate" variants={row}>
+        <picture>
+          <source media="(max-width: 720px)" srcSet={`/img/mcp/${s.photo}-sm.webp`} />
+          <img
+            className="mcp-plate-img"
+            src={`/img/mcp/${s.photo}.webp`}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+        <span className="mcp-plate-n" aria-hidden="true">{s.n}</span>
+      </motion.div>
+
+      <div className="mcp-main">
+        <motion.header className="mcp-unit-head" variants={row}>
+          <h3 className="mcp-name">
+            <span className="mcp-name-pre">LOOM</span> {s.name}
+          </h3>
+          <p className="mcp-role">{s.role}</p>
           <span className="mcp-beta">Private beta</span>
         </motion.header>
 
         <motion.p className="mcp-line" variants={row}>{s.line}</motion.p>
-
-        <ul className="mcp-tools">
-          {s.tools.map(([t, d]) => (
-            <motion.li key={t} variants={row}>
-              <code>{t}</code>
-              <span>{d}</span>
-            </motion.li>
-          ))}
-        </ul>
 
         <motion.div variants={row}>
           <ConfigBlock s={s} />
         </motion.div>
 
         <motion.div className="mcp-gate" variants={row}>
-          {/* The gate is the one place in this card that keeps changing after
-              the entry sequence settles, so it is the one place the "cards
-              that respond" ask lands — a swap on every state change, never a
-              loop. `mode="wait"` so the outgoing panel clears before the next
-              one arrives; on 390px the button and the four-field form both
-              claim close to the card's full width and a cross-fade without
-              the wait reads as double vision for a frame. */}
           <AnimatePresence mode="wait" initial={false}>
             {state === 'shut' && (
               <motion.button
@@ -348,8 +363,21 @@ function ServerCard({ s, i }) {
             )}
           </AnimatePresence>
         </motion.div>
-      </article>
-    </motion.div>
+      </div>
+
+      {/* the tools, as a rack label rather than a bulleted list */}
+      <motion.div className="mcp-toolwrap" variants={row}>
+        <p className="mcp-tools-label">Tools</p>
+        <ul className="mcp-tools">
+          {s.tools.map(([t, d]) => (
+            <motion.li key={t} variants={row}>
+              <code>{t}</code>
+              <span>{d}</span>
+            </motion.li>
+          ))}
+        </ul>
+      </motion.div>
+    </motion.article>
   )
 }
 
@@ -369,9 +397,13 @@ export function LoomMcp() {
         </Reveal>
       </div>
 
-      <Connector />
-
-      <div className="mcp-grid">
+      {/* The <Connector> branch diagram was removed with the redesign: it
+          existed to picture "your agent branches into three servers" in place
+          of a paragraph the earlier rework cut. The rack does that on its own
+          — three units, each with its own endpoint line — and keeping both
+          meant two diagrams of one idea stacked on each other. `Connector` is
+          still defined above, mounted by nothing. */}
+      <div className="mcp-rack">
         {SERVERS.map((s, i) => <ServerCard key={s.id} s={s} i={i} />)}
       </div>
 

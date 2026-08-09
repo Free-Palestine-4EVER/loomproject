@@ -103,9 +103,16 @@
   border-radius: 999px;
   padding: 5px 11px;
   cursor: pointer;
+  /* the sound and language toggles measured 57.6 x 30.9 — the two smallest
+     buttons in the machine's header. The pill keeps its 11px side padding;
+     only the box floor moves. */
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
   transition: color 0.3s, border-color 0.3s, background-color 0.3s;
 }
 .machine-btn:hover { color: var(--ink); border-color: var(--magenta); }
+.machine-btn:focus-visible { outline: 2px solid var(--magenta); outline-offset: 2px; }
 .machine-btn.is-on { color: var(--ink); border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); }
 .machine-dot {
   width: 6px;

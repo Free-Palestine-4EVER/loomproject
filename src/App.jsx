@@ -5,7 +5,6 @@ import { Hero, Manifesto, Process, Studios, Contact } from './components/Section
 import { Proof } from './components/Proof.jsx'
 import { Work } from './components/Work.jsx'
 import { AppsShowcase, ToolsLab } from './components/Products.jsx'
-import { OwnApps } from './components/OwnApps.jsx'
 import { LoomMcp } from './components/LoomMcp.jsx'
 import { AnswerEngine } from './components/AnswerEngine.jsx'
 import { Solutions } from './components/Solutions.jsx'
@@ -25,6 +24,9 @@ import { Typeface } from './components/Typeface.jsx'
 import { TypeShowcase } from './components/TypeShowcase.jsx'
 import { Workshops } from './components/Workshops.jsx'
 import { WorkshopsPromo } from './components/WorkshopsPromo.jsx'
+import { Pricing } from './components/Pricing.jsx'
+import { Voices } from './components/Voices.jsx'
+import { Faq } from './components/Faq.jsx'
 
 // firebase.json rewrites ** -> /index.html, so every path already boots this
 // SPA. A real URL therefore costs one pathname check, not a router dependency
@@ -33,6 +35,20 @@ import { WorkshopsPromo } from './components/WorkshopsPromo.jsx'
 // Trailing slash tolerated (cleanUrls is on). PAGES is also the allow-list
 // for the in-page link interceptor below.
 const PAGES = ['/type', '/ai-workshops']
+
+// index.html carries exactly one <title>, and firebase.json serves that same
+// file for every path — so before this table, /type and /ai-workshops both
+// announced themselves as the home page: wrong tab, wrong bookmark, wrong
+// history entry, wrong first thing a screen reader reads, and a WCAG 2.4.2
+// (level A) failure on every sub-page. One entry per route in PAGES, plus '/'
+// which must stay byte-identical to index.html's <title> so returning home
+// restores it exactly. No helmet, no dependency — the title of an SPA is one
+// assignment in an effect keyed on the route.
+const TITLES = {
+  '/': 'LOOM — AI-Native Creative Agency · Amman × Sarajevo',
+  '/type': 'LOOM Bloom — a free display typeface by LOOM',
+  '/ai-workshops': 'AI Workshops for Teams — LOOM',
+}
 
 const currentRoute = () => {
   if (typeof window === 'undefined') return '/'
@@ -51,6 +67,10 @@ export default function App() {
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
+  // Runs on first paint too, not just on a hop, because a sub-page reached by
+  // typing the URL or following an external link never changes `route` at all
+  // — it simply mounts at it.
+  useEffect(() => { document.title = TITLES[route] || TITLES['/'] }, [route])
   // Read live, not just at mount — a user who flips reduced-motion mid-session
   // (OS setting or Chrome's Battery Saver) must lose Lenis/FX immediately, not
   // just on next reload. Mirrors useIsMobile in lib/sheet.jsx.
@@ -116,12 +136,25 @@ export default function App() {
   // scrolled, and the mobile bar is a different size again. A hardcoded -70
   // left five of the eight nav targets landing with their kicker and the top of
   // their h2 tucked behind a 96px header. Measure it at click time instead, and
-  // keep a small breath below it. `--nav-anchor-gap` mirrors this for the
-  // CSS-only path (scroll-margin-top, used by the reduced-motion fallback and
-  // by a hash typed straight into the address bar).
-  const anchorOffset = () => {
+  // keep a small breath below it. `styles.css:221` mirrors this for the
+  // CSS-only path (`section[id] { scroll-margin-top: 114px }`, used by the
+  // reduced-motion fallback and by a hash typed straight into the address bar).
+  //
+  // LENIS ALREADY READS `scroll-margin-top` — DO NOT ADD IT TWICE.
+  // Since lenis 1.3 `scrollTo(element)` subtracts the target's own computed
+  // `scroll-margin-top` before it scrolls, and styles.css:221 gives every
+  // `section[id]` 114px (92px under 900px) for exactly the CSS-only path
+  // above. Handing it the measured header gap on top of that applied the inset
+  // twice: every <section> anchor parked ~114px too low, so the kicker landed
+  // in the middle of the viewport under a header-sized hole. Measured on the
+  // real page: eight of the nine nav anchors landed at rect.top 228 with an
+  // 86px header; the ninth, `#solutions`, is a DIV (merged mode) with no
+  // scroll-margin and was the only one landing correctly at 114. Add the
+  // element's own scroll-margin back so both paths agree at one gap.
+  const anchorOffset = (el) => {
     const h = document.querySelector('header')?.getBoundingClientRect().height || 70
-    return -(Math.round(h) + 18)
+    const sm = el?.nodeType === 1 ? parseFloat(getComputedStyle(el).scrollMarginTop) || 0 : 0
+    return -(Math.round(h) + 18) + sm
   }
 
   const navigate = useCallback((href) => {
@@ -134,7 +167,7 @@ export default function App() {
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const t = href === '#top' ? document.body : document.querySelector(href)
         if (!t) return
-        if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : t, { offset: anchorOffset(), duration: 1.2 })
+        if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : t, { offset: href === '#top' ? 0 : anchorOffset(t), duration: 1.2 })
         else t.scrollIntoView({ behavior: 'smooth' })
       }))
       return
@@ -142,7 +175,7 @@ export default function App() {
     const el = href === '#top' ? document.body : document.querySelector(href)
     if (!el) return
     const run = () => {
-      if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : el, { offset: anchorOffset(), duration: 1.4 })
+      if (lenisRef.current) lenisRef.current.scrollTo(href === '#top' ? 0 : el, { offset: href === '#top' ? 0 : anchorOffset(el), duration: 1.4 })
       else el.scrollIntoView({ behavior: 'smooth' })
     }
     // The menu/overlay lock is released in the SAME commit as this click, and
@@ -218,19 +251,24 @@ export default function App() {
           <Workshops />
         ) : (
         <>
-        {/* ORDER IS A CONVERSION DECISION, NOT A TASTE ONE (reordered 9 Aug 2026).
-            The page runs in five bands, and nothing may be inserted without
-            picking one:
+        {/* ORDER IS A CONVERSION DECISION, NOT A TASTE ONE (reordered 9 Aug
+            2026, extended 10 Aug). The page runs in five bands, and nothing
+            may be inserted without picking one:
 
-              PROOF     hero → client wall → numbers → cases
+              PROOF     hero → client wall → numbers → cases → how it is done
               QUALIFY   the eight needs → the fork → thirty industries
-              SELL      the three things a visitor can actually buy
+              SELL      the floor, then everything a visitor can actually buy
               CAPABLE   what LOOM builds, including for itself
-              CLOSE     process → why → where → offer → contact
+              CLOSE     why → where → what clients say → offer → FAQ → contact
 
-            What moved and why is annotated at each seam below. The rule that
+            What moved and why is annotated at each seam below. Two rules
             drove all of it: nothing that cannot be bought today may sit above
-            something that can. */}
+            something that can, and no claim sits above its own evidence.
+
+            The three sections added on 10 Aug each close a hole a stranger
+            fell through — Pricing (there was no floor anywhere on the page),
+            Voices (no client had ever spoken on it), FAQ (every objection was
+            answered on a call or not at all). */}
         <Hero />
         {/* PROOF — one section where Marquee and Stats used to be two.
             The marquee slid the most valuable words on the page (UNICEF,
@@ -244,6 +282,16 @@ export default function App() {
             and two "start here" modules — the visitor was asked to choose a
             service before being shown a single thing LOOM had finished. */}
         <Work />
+        {/* Process came UP from the CLOSE band (10 Aug 2026). It is the
+            "why AI-native" argument — brief, weave, craft, perform — and as
+            the last thing before Contact it was answering a question the
+            visitor had already stopped asking. Directly under the case
+            studies it does the job it is actually for: the reader has just
+            seen work that should not have been possible at that speed, and
+            this is the paragraph that says how. Note this is the ONE claim
+            allowed above its evidence, and only because the evidence is the
+            section immediately above it. */}
+        <Process />
         {/* QUALIFY. Now that the proof has landed, the visitor places
             themselves: eight needs, then the fork ("I have a business" / "I
             have an idea"), then their own industry. Three self-selection
@@ -263,10 +311,19 @@ export default function App() {
             fork is the fallback for the visitor who found themselves in
             neither the eight needs nor the thirty industries. */}
         <OfferPair />
-        {/* SELL — the three offerings with a price and a way in, ranked by
-            what LOOM actually wants sold. The Machine is the recurring
-            subscription and now opens the band instead of arriving at 13,
-            under two things nobody can buy. */}
+        {/* SELL — the offerings with a price and a way in, ranked by what
+            LOOM actually wants sold. */}
+        {/* Pricing opens the band (10 Aug 2026). The page previously named a
+            number in exactly two places — 89 JOD inside The Machine's own
+            pitch, and a live per-seat figure behind the /ai-workshops route —
+            and named none at all for the three things LOOM is asked for most:
+            a site, an app, a piece of software. In this market a visitor who
+            cannot find a floor assumes the ceiling. This band states the floor
+            once, up front, and two of its six cards point down at the
+            sections below rather than replacing them. */}
+        <Pricing />
+        {/* The Machine is the recurring subscription and opens the pitches
+            instead of arriving at 13, under two things nobody can buy. */}
         <TheMachine />
         {/* Same shelf, one step lighter: the Protocol puts LOOM inside the
             client's AI; this puts the CLIENT inside everyone else's. Four
@@ -281,14 +338,15 @@ export default function App() {
             then the things that are honestly not for sale yet. */}
         <AppsShowcase />
         <ToolsLab />
-        {/* OwnApps and the Protocol came DOWN from 10 and 11. OwnApps says in
-            its own lede that nothing is live yet and the Protocol is private
-            beta issued by hand — the two lowest-intent sections on the page
-            were sitting in its highest-intent real estate, between the case
-            studies and the offers. The old note claiming the Protocol must
-            precede The Machine is retired with this move: a dev-tool waitlist
-            does not outrank the subscription. */}
-        <OwnApps />
+        {/* OwnApps ("We build our own products too" — four in-development
+            iOS apps) was REMOVED FROM THE PAGE on 10 Aug 2026 at the client's
+            request. `components/OwnApps.jsx` and its CSS are still in the
+            tree, mounted by nothing — same treatment as ByResult and Agents.
+            `#own-apps` no longer resolves and its "Software" nav tab is gone.
+
+            The Protocol came DOWN from slot 11: it is private beta issued by
+            hand, and a dev-tool waitlist does not outrank the subscription.
+            The old note claiming it must precede The Machine is retired. */}
         <LoomMcp />
         {/* TypeShowcase came down from slot 2 — it was the second thing a
             buyer saw, before one client name. A free typeface is the purest
@@ -300,18 +358,34 @@ export default function App() {
         {/* CLOSE — an unbroken ramp to the ask. How it works, why it works,
             who does it, one last offer, then the form. Nothing new is
             introduced past this point. */}
-        <Process />
         {/* Manifesto came down from slot 4. "Trends don't lead our work.
             Thinking does." is a claim, and a claim only pays once there is
             evidence behind it — it now reads as the conclusion of the page
             rather than its opening assertion. */}
         <Manifesto />
         <Studios />
+        {/* Testimonials, at the decision point and nowhere else. Placed high
+            on a page a testimonial is decoration — it is addressed to a
+            visitor who has not yet decided they want the thing. Here it is
+            the last push for one who has and is looking for a reason to
+            leave. NOTE the quotes are drafted composites attributed by role,
+            sector and city, never to a named client: data/voices.js explains
+            at length why a drafted quote under a real logo is the one thing
+            on this page that could cost LOOM a client. */}
+        <Voices />
         {/* BY RESULT (1.75 JOD per WhatsApp conversation) was retired 8 Aug 2026:
             LOOM cannot promise an outcome that depends on the client's own
             replies and market. `components/ByResult.jsx` is still in the tree,
             mounted by nothing. */}
         <Bolt />
+        {/* Last section before the ask. The only band on the page whose job
+            is removing reasons to leave rather than adding reasons to stay —
+            timelines, who owns the AI output, which language, how payment
+            works. It introduces no new fact (data/faq.js forbids it) and
+            carries its own FAQPage JSON-LD, because #aeo above sells exactly
+            that markup and the studio should not fail its own pitch on its
+            own home page. */}
+        <Faq />
         <Contact />
         {/* Last section on the page, just above the footer — the client asked
             for this literally ("just above the footer"). Contact carries the

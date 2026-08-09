@@ -217,7 +217,7 @@ function AnswerCard({ n, reduced, onOpen }) {
   return (
     <motion.article
       key={n.key}
-      className={`sol-card sol-answer${loaded ? ' has-photo' : ''}`}
+      className={`sol-panelcard sol-answer${loaded ? ' has-photo' : ''}`}
       style={{ '--panel-yarn': YARN_HEX[yarn] }}
       initial={reduced ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -233,33 +233,13 @@ function AnswerCard({ n, reduced, onOpen }) {
           visually (no class swap) until it actually decodes, so a niche with
           no art yet is still today's finished pink card, never a white hole
           or a broken image icon. */}
-      <picture style={{ display: 'contents' }}>
-        {/* `-9x16`, not the old `-m` 4:3 derivative. The mobile card stacks —
-            the image is a band ABOVE the copy, not a backdrop behind it — so
-            the phone gets its own portrait render rather than a crop of the
-            desktop panorama. Two <source>s share this breakpoint and it must
-            stay equal to the one in solutions.css that flips overlay→stacked;
-            a source that swaps at a different width than the box it fills
-            letterboxes or gut-crops in the gap between the two. */}
-        <source media="(max-width: 719px)" type="image/avif" srcSet={`/img/niches/${n.key}-9x16.avif`} />
-        <source media="(max-width: 719px)" type="image/webp" srcSet={`/img/niches/${n.key}-9x16.webp`} />
-        <source type="image/avif" srcSet={`/img/niches/${n.key}.avif`} />
-        <img
-          className="sol-answer-bg"
-          src={`/img/niches/${n.key}.webp`}
-          alt=""
-          width={1400}
-          height={600}
-          loading="lazy"
-          decoding="async"
-          onLoad={() => setLoaded(true)}
-          onError={(e) => { setLoaded(false); e.currentTarget.style.display = 'none' }}
-        />
-      </picture>
-      {/* fades from the console's own paper tone on the left to transparent
-          by ~55% across — desktop-only (see the 719px query), and never a
-          filter on the artwork itself (wool.css already warns off that). */}
-      <i className="sol-answer-scrim" aria-hidden="true" />
+      {/* The photograph and its scrim moved OUT of this card on 10 Aug 2026 —
+          they belong to `.sol-stage` now, one level up. The card used to BE
+          the photo with copy floated over it; the client's mock puts the
+          search box and the copy in two white cards on the left of a single
+          wide photo instead, so the photo has to outlive the card that swaps
+          inside it. Keeping it here made every industry change re-decode the
+          backdrop and flash. */}
       <motion.i
         className="sol-answer-thread"
         aria-hidden="true"
@@ -304,11 +284,36 @@ function AnswerCard({ n, reduced, onOpen }) {
   )
 }
 
+/* THE STAGE PHOTO. One 21:9 render behind the whole console, swapped when the
+   resolved industry changes — not re-mounted per answer card, which is what
+   made the backdrop flash on every keystroke. `display: contents` on the
+   <picture> so it adds no box; the <img> is positioned against `.sol-stage`. */
+function StagePhoto({ n }) {
+  if (!n) return null
+  return (
+    <picture style={{ display: 'contents' }} key={n.key}>
+      <source media="(max-width: 719px)" type="image/avif" srcSet={`/img/niches/${n.key}-9x16.avif`} />
+      <source media="(max-width: 719px)" type="image/webp" srcSet={`/img/niches/${n.key}-9x16.webp`} />
+      <source type="image/avif" srcSet={`/img/niches/${n.key}.avif`} />
+      <img
+        className="sol-stage-bg"
+        src={`/img/niches/${n.key}.webp`}
+        alt=""
+        width={1400}
+        height={600}
+        loading="lazy"
+        decoding="async"
+        onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
+      />
+    </picture>
+  )
+}
+
 function NoMatchCard({ query, reduced, onOpen }) {
   return (
     <motion.article
       key="no-match"
-      className="sol-card sol-answer sol-answer--empty"
+      className="sol-panelcard sol-answer sol-answer--empty"
       initial={reduced ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={reduced ? undefined : { opacity: 0, y: -8 }}
@@ -399,7 +404,7 @@ export function Solutions({ merged = false } = {}) {
         </div>
       ) : (
         <div className="section-head">
-          <p className="kicker"><span>01</span> Solutions</p>
+          <p className="kicker"><span>—</span> Solutions</p>
           <SplitWords as="h2" className="h2" text="Thirty industries. One loom." />
           <Reveal delay={0.15}>
             <p className="lede" style={{ marginTop: 10 }}>
@@ -410,43 +415,56 @@ export function Solutions({ merged = false } = {}) {
       )}
 
       <Reveal delay={0.05} className="sol-console">
-        <div className="sol-console-panel">
-          <div className="sol-search-row">
-            <label className="sol-search-label" htmlFor="sol-search">Find your industry</label>
-            <div className="sol-search-field">
-              <svg className="sol-search-glass" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                <circle cx="10.3" cy="10.3" r="6.3" />
-                <path d="M19.5 19.5l-4.7-4.7" />
-              </svg>
-              <input
-                id="sol-search"
-                className="sol-search"
-                type="text"
-                autoComplete="off"
-                spellCheck="false"
-                placeholder={placeholder}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                list="sol-search-list"
-                aria-describedby="sol-answer"
-              />
-              <span className="sol-search-arrow" aria-hidden="true" />
-              <datalist id="sol-search-list">
-                {NICHES.map((n) => <option key={n.key} value={n.name} />)}
-              </datalist>
-            </div>
-          </div>
+        {/* THE STAGE — one wide 21:9 photograph, and everything else sits ON
+            it. This is the client's mock: a search box and a content card as
+            two white panels down the left of a single image, rather than a
+            pink console with a search row stacked above a separate card. It
+            also buys back the search row's height, which is most of why the
+            section now clears the fold. */}
+        <div className="sol-stage">
+          <StagePhoto n={noMatch ? null : shown} />
+          <i className="sol-stage-scrim" aria-hidden="true" />
 
-          <div id="sol-answer" role="region" aria-live="polite" aria-label="Selected industry" className="sol-answer-slot">
-            <AnimatePresence mode="wait" initial={false}>
-              {noMatch ? (
-                <NoMatchCard query={query} reduced={reduced} onOpen={(niche) => open({ niche })} />
-              ) : (
-                <AnswerCard n={shown} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
-              )}
-            </AnimatePresence>
+          <div className="sol-ov">
+            {/* white card one: the search box */}
+            <div className="sol-searchbox">
+              <label className="sol-search-label" htmlFor="sol-search">Find your industry</label>
+              <div className="sol-search-field">
+                <svg className="sol-search-glass" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <circle cx="10.3" cy="10.3" r="6.3" />
+                  <path d="M19.5 19.5l-4.7-4.7" />
+                </svg>
+                <input
+                  id="sol-search"
+                  className="sol-search"
+                  type="text"
+                  autoComplete="off"
+                  spellCheck="false"
+                  placeholder={placeholder}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  list="sol-search-list"
+                  aria-describedby="sol-answer"
+                />
+                <span className="sol-search-arrow" aria-hidden="true" />
+                <datalist id="sol-search-list">
+                  {NICHES.map((n) => <option key={n.key} value={n.name} />)}
+                </datalist>
+              </div>
+            </div>
+
+            {/* white card two: the resolved answer */}
+            <div id="sol-answer" role="region" aria-live="polite" aria-label="Selected industry" className="sol-answer-slot">
+              <AnimatePresence mode="wait" initial={false}>
+                {noMatch ? (
+                  <NoMatchCard query={query} reduced={reduced} onOpen={(niche) => open({ niche })} />
+                ) : (
+                  <AnswerCard n={shown} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </Reveal>

@@ -77,7 +77,7 @@ export function WizardModal() {
               <span className="wmodal-brand">LOOM — Start a project</span>
               <button className="wmodal-close" onClick={requestClose} aria-label="Close">✕</button>
             </header>
-            <div className="wmodal-scroll">
+            <div className="wmodal-scroll" data-lenis-prevent>
               <ContactWizard key={seed?._t} seed={seed} />
               <p className="wmodal-direct">
                 Rather talk now? <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>

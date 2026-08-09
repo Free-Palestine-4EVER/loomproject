@@ -184,7 +184,7 @@ export function NeedModal({ need, onClose }) {
               </svg>
             </button>
 
-            <div className="nm-body" ref={bodyRef} {...(isMobile ? handoff : {})}>
+            <div className="nm-body" data-lenis-prevent ref={bodyRef} {...(isMobile ? handoff : {})}>
               {/* The hero is the same 21:9 the tile itself wears, so the panel
                   reads as that tile enlarged rather than as a new place —
                   1400x600, the ratio the whole need set is rendered at.

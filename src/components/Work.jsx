@@ -759,7 +759,7 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
             <button ref={closeRef} className="overlay-close" onClick={requestClose} aria-label="Close case study">✕</button>
           </div>
         </header>
-        <div className="overlay-scroll" ref={scrollRef} {...(isMobile ? scrollBind : null)}>
+        <div className="overlay-scroll" data-lenis-prevent ref={scrollRef} {...(isMobile ? scrollBind : null)}>
           {/* keyed fade bridges prev/next case switches (content used to teleport) */}
           <motion.div
             key={c.slug}

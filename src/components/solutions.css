@@ -118,9 +118,50 @@
    (::before) plus a gradient fill inside it, both using the footer's own
    pink values so the two surfaces read as the same decision, not two. */
 .sol-console {
-  max-width: 1120px;
-  margin: 0 auto clamp(28px, 4vh, 44px);
-  padding: 0 var(--pad);
+  /* ——— THE SECTION FITS ONE SCREEN, INCLUDING A SHORT ONE (10 Aug 2026) ———
+     The card was already a true 21:9, but the card is not the section: head +
+     search console + card + the thirty-industry index still ran past the fold
+     on any window under ~700px of viewport, which is an ordinary laptop with
+     a tab strip and a bookmarks bar.
+
+     The card's width is set by THIS element, and its height follows from the
+     ratio — so capping the console's width by the height available is what
+     actually shortens the card. The subtrahend is the section's other height:
+     head (~165) + search row (57) + panel padding (~48) + index (~130) + the
+     section's own margins. Everything else in the section is already sized in
+     cqw against the card (see the has-photo block below), so it all comes
+     down together.
+
+     svh, not vh — on iOS vh is the LARGER viewport and would put the index
+     back under the toolbar. */
+  /* clamp, not min: a bare `min()` collapsed the console to 222px on a 525px
+     viewport — the formula went negative-ish and every line inside wrapped,
+     making the section TALLER than before. The floor is the narrowest card
+     this layout still reads at; below that the height has to come from the
+     section's own chrome instead, which is what the max-height block at the
+     bottom of this file does. */
+  /* FULL-BLEED, EDGE TO EDGE (client, 10 Aug 2026: "make this element's width
+     full screen, from left to right"). The width cap that used to live here —
+     a height-derived clamp that kept the stage narrow so the section cleared
+     the fold — is gone; the fold is now held by `max-height` on `.sol-stage`
+     instead, which lets the photograph crop rather than forcing the box to
+     shrink. `margin-inline: calc(50% - 50vw)` breaks it out of the centred
+     column without needing a different wrapper.
+
+     50vw, not 50%, and no `100vw` width: vw includes the scrollbar on Windows,
+     so `width: 100vw` on a page that scrolls opens a horizontal scrollbar.
+     Negative margins on both sides let the element take exactly the viewport
+     the layout actually has. */
+  /* `calc(50% - 50vw)` alone is not enough: the 50% resolves against the
+     PARENT's content box, which already has the page gutter taken out of it,
+     so the stage came out 40px narrower than the viewport. Setting the width
+     to 100vw as well pins it to the viewport exactly. Safe against a
+     scrollbar because `.solutions` is `overflow-x: clip` (see the top of this
+     file) — verified: no horizontal scrollbar at 1000/1280/1440/1920. */
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0 calc(50% - 50vw) clamp(18px, 2.6vh, 32px);
+  padding: 0;
   position: relative;
 }
 .sol-console::before {
@@ -275,16 +316,39 @@
 }
 /* transparent until there's actually a photo under it, so it never dims the
    plain pink card that ships for the seven niches still without art. */
-.sol-answer-scrim {
+/* `.sol-answer .sol-answer-scrim`, not `.sol-answer-scrim`. The card carries
+   BOTH classes (`sol-card sol-answer`), and styles.css:1426 ends with
+   `.sol-card > * { position: relative; z-index: 1 }` — same (0,1,0)
+   specificity as a bare `.sol-answer-scrim`, in a stylesheet that lands after
+   this one, so it won on source order and computed the scrim to
+   `position: relative`. A relative <i> with no content is a 0px-tall box:
+   measured 854x0 at 1440, i.e. the scrim has never painted a single pixel on
+   this card, which is why the copy column read straight off the render. The
+   descendant selector takes it to (0,2,0) and out of that collision. */
+.sol-answer .sol-answer-scrim {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: none;
 }
-.sol-answer.has-photo {
-  /* the render replaces the translucent-white-over-pink fill and the
-     panel-yarn radial tint (::after, below) outright — a colour wash on top
-     of a photograph is the "tint the artwork" move the brief rules out. */
-  background: none;
-}
+/* THE PLATE IS THE FLOOR, and it stays down. `background: none` used to live
+   here, on the reasoning that the render replaces the translucent-white fill
+   outright — which is only true while `.has-photo` is a reliable proxy for
+   "a bitmap is actually painting behind this copy". It is not. That class is
+   set from the img's own `load`, and a 1x1 blank gif fires `load` too: the
+   touch-only eviction pass in viewportBudget.js used to swap a 404'd render
+   for one, the gif decoded, the class came back, and the card was left with
+   no photo AND no plate — copy sitting on the bare console. That specific
+   route is closed in viewportBudget.js now; this is the belt to its braces,
+   and it costs nothing, because where the render really is a full-bleed
+   backdrop (>=1060, `.sol-answer-bg` absolute at inset 0 with object-fit:
+   cover) it covers the plate completely and nothing of it is visible.
+
+   Below 1060 the render is a BAND in flow rather than a backdrop, so the
+   plate is what the copy underneath it sits on — the same plate the seven
+   niches still awaiting art already show at that width. The two cases now
+   match instead of diverging, which is the point.
+
+   The panel-yarn radial tint is still dropped, though: that one genuinely
+   would wash colour over the artwork, which is the move the brief rules out. */
 .sol-answer.has-photo::after { content: none; }
 
 /* 1060, not 720. The overlay layout — copy floated over the render's calm
@@ -296,7 +360,7 @@
    tried, and measured, and it clips anyway). Under 1060 the card falls back
    to the stacked band below, which holds the same 21:9 render and lets the
    copy run underneath it in flow. */
-@media (min-width: 1060px) {
+@media (min-width: 940px) {
   /* Desktop mock: the card becomes a wide 21:9 banner, and every piece of
      copy — badge, name, hook, deliverables, agent note, CTA — collapses
      into one narrow column that sits over the render's calm LEFT THIRD.
@@ -323,15 +387,53 @@
        lines is the cheapest height there is) and the list/agent leading came
        in below. Verified at 1440, 1100 and 820: 2.33 at all three. */
     aspect-ratio: 21 / 9;
-    /* THE GUARD, and it is not optional: the card is `overflow: hidden`, and
-       aspect-ratio on a flex CONTAINER sets the box outright — content taller
-       than the box is silently cut off, not accommodated. `min-height: 0`
-       here clipped the agent note by 20px at 1440 and 79px at 820 before this
-       line existed. fit-content keeps 21/9 as the shape the card takes
-       whenever the copy fits, and lets it grow instead of cutting when it
-       does not. The ratio is the intent; this is the seatbelt. */
-    min-height: fit-content;
+
+    /* ——— A TRUE 21:9, AND THE WHOLE SECTION ON ONE SCREEN (10 Aug 2026) ———
+       `min-height: fit-content` used to sit here as a seatbelt against the
+       card clipping its own copy. It worked, and that was the problem: the
+       copy never fitted, so the belt was engaged permanently and the card
+       settled ~134px taller than its own ratio (measured 908x523 = 1.74 at
+       1440, cover-fitting a 2.33 panorama into a 1.74 box). Head + lede +
+       search console + that card came to more than one viewport, so its
+       bottom edge sat on the fold.
+
+       THE CARD'S WIDTH IS NOT NEGOTIABLE — the console panel sets it (908px
+       at 1440), so `width: auto` cannot derive a narrower card from a capped
+       height; it only makes the box FATTER than 21:9. Driving `height` from
+       the viewport was tried and measured: 2.05 at 1440, 2.18 at 1100. The
+       only lever that keeps the ratio is the copy.
+
+       So the copy shrinks instead, and the ratio is left to do its job
+       unassisted. This is the "smaller but nicer" trade, made explicitly. */
+    container-type: inline-size;
   }
+
+  /* ——— copy sized against the CARD, not the viewport ———
+     `cqw` against the card's own inline size, so the copy holds its
+     proportion of the card at every width instead of being a fixed rem that
+     the ratio has to make room for. The coefficients are ~0.8x of the rem
+     sizes they replaced, which is what buys back the 134px the card was
+     overrunning its box by; each keeps a rem floor so the type cannot go
+     unreadable on the narrowest card that still uses this layout.
+
+     If a floor ever starts winning, the card has got too small for the
+     overlay and the stacked layout below 1060 is the right answer — do not
+     shave the coefficients further. Verify with qa-solutions-fit.mjs: it
+     fails on BOTH a broken ratio and a clipped card, which is the pair that
+     has to hold together. */
+  .sol-answer.has-photo .sol-answer-name { font-size: max(1rem, 1.85cqw); }
+  .sol-answer.has-photo .sol-answer-hook { font-size: max(0.8rem, 1.14cqw); }
+  .sol-answer.has-photo .sol-deliverables li { font-size: max(0.7rem, 0.86cqw); }
+  .sol-answer.has-photo .sol-agent-copy { font-size: max(0.7rem, 0.86cqw); }
+  .sol-answer.has-photo .sol-answer-kicker,
+  .sol-answer.has-photo .sol-answer-label { font-size: max(0.58rem, 0.72cqw); }
+  .sol-answer.has-photo .sol-agent-kicker { font-size: max(0.54rem, 0.66cqw); }
+  /* the gaps go with the type — leading and spacing are most of the height a
+     six-line column spends, not the glyphs */
+  .sol-answer.has-photo .sol-answer-hook { line-height: 1.3; }
+  .sol-answer.has-photo .sol-deliverables { gap: 3px; }
+  .sol-answer.has-photo .sol-deliverables li { line-height: 1.28; }
+  .sol-answer.has-photo .sol-cta { padding-top: 4px; }
   .sol-answer.has-photo .sol-answer-thread { flex: none; }
   .sol-answer.has-photo .sol-answer-left,
   .sol-answer.has-photo .sol-answer-right {
@@ -350,11 +452,14 @@
   @media (max-width: 1080px) {
     .sol-answer.has-photo .sol-answer-left,
     .sol-answer.has-photo .sol-answer-right { max-width: 47%; }
+    /* the copy column is 47% of the card in this band, so the plate is solid
+       to 47% and only starts giving the render back after it. */
     .sol-answer.has-photo .sol-answer-scrim {
       background: linear-gradient(90deg,
-        #ffe4f0 0%, #ffe4f0 34%,
-        color-mix(in srgb, #ffe4f0 55%, transparent) 50%,
-        transparent 64%);
+        #ffe4f0 0%, #ffe4f0 47%,
+        color-mix(in srgb, #ffe4f0 86%, transparent) 55%,
+        color-mix(in srgb, #ffe4f0 42%, transparent) 65%,
+        transparent 78%);
     }
   }
   /* the two blocks that set the card's height. Tighter leading and a smaller
@@ -369,15 +474,27 @@
   .sol-answer.has-photo .sol-deliverables { gap: 4px; }
   .sol-answer.has-photo .sol-deliverables li { line-height: 1.32; }
   .sol-answer.has-photo .sol-agent { font-size: 0.82rem; line-height: 1.38; }
+  /* The plate, and it has to reach as far as the COPY does, not as far as the
+     render's calm zone happens to go. `.sol-answer-left/-right` are
+     `min(470px, 46%)` wide, so the last words of the longest deliverable sit
+     at 46% of the card — under the old 32%/48% ramp they were landing on bare
+     artwork. Three of the 23 renders are dark enough for that to be
+     unreadable: measured against the card's own ink, jewelry 2.14:1, law
+     2.43:1 and fine-dining 3.39:1 over the copy column at 1440.
+
+     Solid to 42%, still 86% at 50%, gone by 74% — no filter on the artwork
+     (wool.css:191) and no tint over the render as a whole, just an opaque
+     paper plate under the column that is actually read. */
   .sol-answer.has-photo .sol-answer-scrim {
     background: linear-gradient(90deg,
-      #ffe4f0 0%, #ffe4f0 32%,
-      color-mix(in srgb, #ffe4f0 55%, transparent) 48%,
-      transparent 62%);
+      #ffe4f0 0%, #ffe4f0 42%,
+      color-mix(in srgb, #ffe4f0 86%, transparent) 50%,
+      color-mix(in srgb, #ffe4f0 42%, transparent) 60%,
+      transparent 74%);
   }
 }
 
-@media (max-width: 1059px) {
+@media (max-width: 939px) {
   /* Mobile mock ("just vertical and horizontal"): no overlay at all — the
      render sits as an ordinary horizontal band above the copy, and every
      line of copy stacks underneath it in normal document flow. The scrim
@@ -621,4 +738,238 @@
      glow crowding the headline above it at 390px. */
   .sol-console-panel { padding: 18px 18px 22px; border-radius: calc(var(--radius) * 1.1); }
   .sol-console::before { top: -8%; height: 122%; }
+}
+
+
+/* ——— SHORT WINDOWS ———
+   A laptop with a tab strip and a bookmarks bar leaves ~520-700px of viewport,
+   and on those the console alone cannot give back enough height (it has a
+   floor — see .sol-console). So the section's own chrome compresses instead:
+   the act-two head, the seam rule, the lede and the index all step down.
+
+   Keyed on height, not width, because this is a height problem — a 1512px-wide
+   window 700px tall has exactly the same fold as a 1100px one. */
+@media (max-height: 820px) and (min-width: 940px) {
+  .sol-act2 { padding-top: clamp(22px, 3vh, 38px); padding-bottom: 4px; }
+  .sol-act2-rule { margin-bottom: clamp(10px, 1.4vh, 16px); }
+  .sol-act2-h { font-size: clamp(1.3rem, 2.4vw, 1.85rem); }
+  .sol-act2-lede { margin-top: 8px; font-size: 0.94rem; line-height: 1.45; }
+  .sol-console { margin-bottom: clamp(10px, 1.6vh, 18px); }
+  .sol-console-panel { padding: clamp(12px, 1.6vw, 18px); }
+  .sol-search-row { margin-bottom: clamp(10px, 1.4vh, 14px); }
+
+  /* THE CARD'S COPY STOPS SHRINKING HERE, so the card sheds a line instead.
+     Below ~865px of card width the `cqw` sizes fall under their rem floors and
+     the type cannot get smaller without becoming unreadable — at which point a
+     21:9 box that is `overflow: hidden` starts CUTTING the copy (measured:
+     138px cut on a 525px viewport). The agent note is what goes: it is the
+     only line in the card whose claim is repeated verbatim in the need panel
+     the CTA opens, so nothing is lost that the visitor cannot reach in one
+     click. Everything above it — name, hook, the four deliverables, the CTA —
+     stays. */
+  .sol-answer.has-photo .sol-agent { display: none; }
+  /* and the deliverables with it. At this height the 21:9 box is ~250px tall
+     and the copy has already hit its rem floors, so the choice is a card that
+     CUTS four bullets mid-word or a card that does not carry them. What is
+     left — the industry, the one-line promise and the CTA — is the whole
+     argument; the four deliverables and the agent note are both in the need
+     panel that CTA opens, one click away. Measured before/after: 76px of
+     silently cut copy, then none. */
+  .sol-answer.has-photo .sol-deliverables { display: none; }
+  .sol-answer.has-photo .sol-answer-right { display: none; }
+}
+@media (max-height: 660px) and (min-width: 940px) {
+  /* the last thing to go is the lede — it is the only element in the block
+     whose sentence is already carried by the search field's placeholder */
+  .sol-act2 { padding-top: clamp(14px, 2vh, 24px); }
+  .sol-act2-lede { display: none; }
+  .sol-act2-h { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+  /* and the fourth deliverable, on the shortest windows only — four lines of
+     list is the single biggest block left inside the card */
+  .sol-console { margin-bottom: 8px; }
+  .sol-search-row { margin-bottom: 8px; }
+  .sol-index { font-size: 0.78rem; line-height: 1.5; }
+  /* The rem floors come down one last step here and ONLY here. Everywhere
+     above they exist to stop the card's copy going unreadable; on a 525px
+     viewport the alternative is not bigger type, it is type that gets cut in
+     half by the card's own overflow. Small and whole beats large and sliced. */
+  .sol-answer.has-photo .sol-answer-name { font-size: max(0.86rem, 1.85cqw); }
+  .sol-answer.has-photo .sol-answer-hook { font-size: max(0.72rem, 1.14cqw); }
+  .sol-answer.has-photo .sol-answer-kicker { font-size: max(0.5rem, 0.72cqw); }
+}
+
+
+/* ——— THE EXTREME CASE: under ~580px of viewport ———
+   A window this short (a laptop with a tab strip, a bookmarks bar and a
+   downloads shelf) cannot hold the head, the console AND the thirty-industry
+   index. The index is what goes, and it goes rather than the card because the
+   card is the section's demonstration while the index is its appendix — every
+   name in it is reachable by typing two letters into the search field
+   immediately above.
+
+   Dropping it frees ~110px, which is then spent WIDENING the console: a wider
+   card is a taller card at a fixed 21:9, and the copy inside had run out of
+   room to shrink. That is the trade — fewer elements, each whole. */
+@media (max-height: 580px) and (min-width: 940px) {
+  .sol-index { display: none; }
+  .sol-act2 { padding-top: 10px; padding-bottom: 2px; }
+  .sol-act2-rule { display: none; }
+}
+
+/* ═══════════ THE STAGE — one 21:9 photo, two white cards on it ═══════════
+   Built to the client's Photopea mock (10 Aug 2026): a wide crocheted render
+   with the search box and the resolved-industry card as two white panels down
+   its LEFT, characters visible on the right. Replaces the pink console that
+   stacked a search ROW above a separate photo card — that stack was most of
+   the height that kept this section past the fold, and it read as two objects
+   where the mock has one.
+
+   The ratio lives here now, not on the card. `.sol-console` still sets the
+   width (and is still capped by viewport height above), so the stage's height
+   follows from it and the whole section stays on one screen. */
+.sol-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* HEIGHT IS COMPUTED, NOT A RATIO + max-height. `aspect-ratio: 21/9` with a
+     `max-height` does not crop — it shrinks the WIDTH to preserve the ratio,
+     which is exactly what kept the stage 110px narrower than the viewport
+     after it was made full-bleed (measured 1330/1440). Stating the height
+     directly keeps the width at 100vw unconditionally: 21:9 whenever there is
+     room, and capped by the fold when there is not, with the photograph
+     cropping via object-fit rather than the box narrowing. */
+  height: min(calc(100vw * 9 / 21), calc(100svh - 330px));
+  border-radius: 0;
+  background: var(--bg-3);
+  container-type: inline-size;
+}
+.sol-stage-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  /* the renders leave their LEFT third calm on purpose — that is where the
+     two white cards land */
+  object-position: 62% center;
+}
+/* a soft wash from the left so a white card never sits on a busy stitch —
+   much lighter than the old scrim because the cards are opaque now */
+.sol-stage-scrim {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 228, 240, 0.55) 0%, rgba(255, 228, 240, 0.18) 38%, transparent 62%);
+}
+
+/* the left column of cards */
+.sol-ov {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1cqw, 12px);
+  /* the page gutter, restored INSIDE the stage — the stage is now edge to
+     edge, so without this the white cards would touch the viewport edge */
+  padding: clamp(12px, 1.4cqw, 26px) var(--pad);
+  width: min(48%, 680px);
+}
+
+/* ——— white card one: the search box ——— */
+.sol-searchbox {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1cqw, 14px);
+  padding: clamp(8px, 0.9cqw, 13px) clamp(10px, 1.1cqw, 16px);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 6px 22px rgba(60, 20, 50, 0.14);
+}
+.sol-searchbox .sol-search-label {
+  flex: 0 0 auto;
+  font-size: max(0.5rem, 0.72cqw);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6b5273;
+  margin: 0;
+}
+.sol-searchbox .sol-search-field { flex: 1 1 auto; min-width: 0; position: relative; }
+.sol-searchbox .sol-search {
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 2px 0 2px 20px;
+  font-family: var(--display);
+  font-size: max(0.72rem, 1.15cqw);
+  color: #33243d;
+}
+.sol-searchbox .sol-search:focus-visible { outline: 2px solid #c474ac; outline-offset: 4px; border-radius: 6px; }
+.sol-searchbox .sol-search-glass {
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: max(11px, 1.1cqw); height: max(11px, 1.1cqw);
+  color: #6b5273;
+}
+.sol-searchbox .sol-search-arrow { display: none; }
+
+/* ——— white card two: the answer ——— */
+.sol-answer-slot { flex: 1 1 auto; min-height: 0; display: flex; }
+.sol-panelcard {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 1.3cqw, 20px) clamp(12px, 1.4cqw, 22px);
+  border-radius: clamp(12px, 1.2vw, 18px);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 30px rgba(60, 20, 50, 0.16);
+  /* ink on paper, exactly as the old pink panel re-pointed it */
+  --ink: #33243d;
+  --ink-dim: #4a3652;
+  --ink-faint: #6b5273;
+  --line: rgba(96, 40, 76, 0.2);
+  color: var(--ink);
+  overflow: hidden;
+}
+.sol-panelcard .sol-answer-left,
+.sol-panelcard .sol-answer-right { max-width: none; width: 100%; }
+/* NOT `margin-top: auto`. Pinning the deliverables to the bottom of the card
+   left a hole between the CTA and them whenever the hook ran short — the copy
+   should sit as one block under the heading, and the card's own height is
+   already fixed by the stage. */
+.sol-panelcard .sol-answer-right { margin-top: clamp(8px, 0.9cqw, 14px); }
+.sol-panelcard .sol-answer-left { flex: 0 0 auto; }
+.sol-panelcard .sol-cta { margin-top: clamp(6px, 0.8cqw, 12px); }
+
+/* everything inside is sized against the STAGE, so it scales with the photo
+   rather than with the viewport — same technique the card used before, moved
+   up one level now that the stage owns the ratio */
+.sol-panelcard .sol-answer-name { font-size: max(0.9rem, 1.5cqw); }
+.sol-panelcard .sol-answer-hook { font-size: max(0.72rem, 1cqw); line-height: 1.3; }
+.sol-panelcard .sol-answer-kicker { font-size: max(0.48rem, 0.62cqw); }
+.sol-panelcard .sol-deliverables { gap: 2px; }
+.sol-panelcard .sol-deliverables li { font-size: max(0.62rem, 0.78cqw); line-height: 1.25; }
+.sol-panelcard .sol-agent { display: none; }
+.sol-panelcard .sol-answer-badge { width: max(22px, 2cqw); height: max(22px, 2cqw); border-radius: 8px; }
+.sol-panelcard .sol-cta { transform-origin: left center; }
+
+/* the old scrim/thread belonged to the photo card and have no job here */
+.sol-panelcard .sol-answer-scrim { display: none; }
+
+@media (max-width: 939px) {
+  /* stacked: the stage becomes a plain band and the two cards sit under it in
+     normal flow, which is what the phone mock shows */
+  .sol-stage { aspect-ratio: auto; container-type: normal; background: none; overflow: visible; }
+  .sol-stage-bg { position: static; aspect-ratio: 21 / 9; border-radius: 14px; }
+  .sol-stage-scrim { display: none; }
+  .sol-ov { position: static; width: 100%; padding: 12px 0 0; gap: 10px; }
+  .sol-searchbox { background: rgba(255, 255, 255, 0.96); }
+  .sol-searchbox .sol-search-label { font-size: 0.6rem; }
+  .sol-searchbox .sol-search { font-size: 0.95rem; }
+  .sol-searchbox .sol-search-glass { width: 15px; height: 15px; }
+  .sol-panelcard .sol-answer-name { font-size: 1.25rem; }
+  .sol-panelcard .sol-answer-hook { font-size: 0.95rem; }
+  .sol-panelcard .sol-answer-kicker { font-size: 0.62rem; }
+  .sol-panelcard .sol-deliverables li { font-size: 0.82rem; line-height: 1.4; }
+  .sol-panelcard .sol-agent { display: block; }
 }

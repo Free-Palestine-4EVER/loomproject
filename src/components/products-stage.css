@@ -682,6 +682,11 @@
   display: flex; align-items: baseline; gap: 10px;
   padding: 9px 12px; border: 0; background: none; cursor: pointer; text-align: left;
   border-left: 2px solid transparent; border-radius: 0 6px 6px 0;
+  /* the six module tabs measured 33.4px tall on a phone. `align-items:
+     baseline` is what keeps the mono number and the display name on one
+     baseline, so the height is bought with a min-height and the text stays
+     top-aligned inside it rather than being re-centred. */
+  min-height: 44px; min-width: 44px;
   transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
 }
 .dk-mod .n { font-family: var(--mono); font-size: 0.62rem; color: #5c4d78; flex: none; }

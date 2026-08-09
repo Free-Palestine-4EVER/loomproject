@@ -338,6 +338,16 @@ function coverArea(x, y, w, h, rects) {
   return sum
 }
 
+// A device that has told us outright it cannot afford a decorative WebGL
+// layer. Deliberately does NOT include "is a phone": see the call site.
+function isTooSmallToFly() {
+  try {
+    if (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 2) return true
+    if (navigator.connection && navigator.connection.saveData === true) return true
+  } catch (e) { /* neither API exists here; that is not a reason to bail */ }
+  return false
+}
+
 export function Flyer() {
   const canvasRef = useRef(null)
   const layerRef = useRef(null)
@@ -347,6 +357,17 @@ export function Flyer() {
   useEffect(() => {
     // Reduced-motion readers never download any of it.
     if (reduced) return
+    // …and neither do the two kinds of device that genuinely cannot afford it.
+    // This is a NARROW gate on purpose. The butterfly is not what makes this
+    // page expensive (measured: 1.3 MB of framebuffer at the mobile clamp,
+    // against ~115 MB of decoded bitmaps at the page's worst section), so
+    // deleting it from every phone would cost the site its signature and buy
+    // almost nothing. What it does buy is the last resort for a device that
+    // has SAID it is in trouble: `saveData` is the reader asking not to be
+    // sent 700 KB of decorative JS, and `deviceMemory <= 2` is a browser
+    // reporting a 2 GB phone. Safari reports neither, so an iPhone still gets
+    // the companion — correctly, because an iPhone is not the problem.
+    if (isTooSmallToFly()) return
     let cancelled = false
     let teardown = null
     let idle = 0
@@ -670,9 +691,33 @@ export function Flyer() {
           cancelAnimationFrame(raf); raf = 0
         } else {
           if (!locked) field.start()
-          if (!raf) { lastFrame = 0; raf = requestAnimationFrame(measure) }
+          // A dead context means there is nothing on screen to measure — see
+          // onGlLost below. Coming back to the tab must not restart the scan.
+          if (!raf && !field.contextLost) { lastFrame = 0; raf = requestAnimationFrame(measure) }
         }
       }
+
+      // ── surviving a context eviction, this file's half ──
+      // Under memory pressure iOS Safari drops the oldest live WebGL context
+      // and carries on silently. Companion.js already stops its render loop
+      // when that happens (see its own handlers), but THIS file's loop is a
+      // separate one and knows nothing about it: it would keep projecting a
+      // butterfly that is no longer drawn and keep running the duck's
+      // viewport-wide text scan over a 39,000px document 7.5 times a second,
+      // for the rest of the visit, for nothing. Stop, and pick it back up if
+      // the browser hands the context back.
+      const onGlLost = () => {
+        if (ducking) setDuck(false, performance.now())
+        hideSay(performance.now())
+        cancelAnimationFrame(raf); raf = 0
+        delete window.__loomFlyerBBox
+      }
+      const onGlRestored = () => {
+        if (!raf && !document.hidden) { lastFrame = 0; raf = requestAnimationFrame(measure) }
+      }
+      canvasRef.current.addEventListener('webglcontextlost', onGlLost, false)
+      canvasRef.current.addEventListener('webglcontextrestored', onGlRestored, false)
+
       window.addEventListener('scroll', onScroll, { passive: true })
       window.addEventListener('resize', onResize, { passive: true })
       document.addEventListener('visibilitychange', onVis)
@@ -693,9 +738,12 @@ export function Flyer() {
       // the instance instead of inferring it from pixels. Never in a build.
       if (import.meta.env.DEV) window.__loomFlyer = field
 
+      const canvasEl = canvasRef.current
       teardown = () => {
         lockObs.disconnect()
         cancelAnimationFrame(raf)
+        canvasEl?.removeEventListener('webglcontextlost', onGlLost, false)
+        canvasEl?.removeEventListener('webglcontextrestored', onGlRestored, false)
         delete window.__loomFlyerBBox
         delete window.__loomFlyerSay
         delete window.__loomFlyerSayBox
@@ -731,7 +779,9 @@ export function Flyer() {
     }
   }, [reduced])
 
-  if (reduced) return null
+  // Nothing is going to be drawn into it, and an empty full-viewport <canvas>
+  // is still a compositor layer the size of the screen — so don't render one.
+  if (reduced || isTooSmallToFly()) return null
   return (
     <>
       <div className="flyer-layer" ref={layerRef} aria-hidden="true">
