@@ -455,7 +455,7 @@ export function AppsShowcase() {
   return (
     <section className="apps" id="apps">
       <div className="section-head">
-        <p className="kicker"><span>02</span> Apps we built</p>
+        <p className="kicker"><span>01</span> Apps we built</p>
         <SplitWords as="h2" className="h2" text="We don’t just market software. We ship it." />
         <Reveal delay={0.15}>
           <p className="lede" style={{ marginTop: 22 }}>
@@ -885,7 +885,7 @@ export function ToolsLab() {
           element for an effect nobody could name. */}
       <div className="lab-bg" aria-hidden="true" />
       <div className="section-head">
-        <p className="kicker kicker--light"><span>03</span> The 3D Lab</p>
+        <p className="kicker kicker--light"><span>02</span> The 3D Lab</p>
         <SplitWords as="h2" className="h2 h2--light" text="We built our own tools. Then we built yours." />
         <Reveal delay={0.15}>
           <p className="lede lede--light" style={{ marginTop: 22 }}>

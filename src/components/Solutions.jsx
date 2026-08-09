@@ -339,7 +339,11 @@ function NoMatchCard({ query, reduced, onOpen }) {
   )
 }
 
-export function Solutions() {
+export function Solutions({ merged = false } = {}) {
+  // A section may not nest a section and keep its outline meaning, and the
+  // merged copy lives INSIDE .counter — so the tag itself is the switch.
+  const Tag = merged ? "div" : "section"
+
   const reduced = useReducedMotion()
   const { open } = useWizard()
   const [query, setQuery] = useState('')
@@ -370,16 +374,40 @@ export function Solutions() {
   const sectionAccent = YARN_HEX[GROUP_YARN[shown.group]]
 
   return (
-    <section className="solutions" id="solutions" style={{ '--sol-tint': sectionAccent }}>
-      <div className="section-head">
-        <p className="kicker"><span>04</span> Solutions</p>
-        <SplitWords as="h2" className="h2" text="Thirty industries. One loom." />
-        <Reveal delay={0.15}>
-          <p className="lede" style={{ marginTop: 10 }}>
-            Type your industry — the loom already knows it.
-          </p>
-        </Reveal>
-      </div>
+    /* `merged` = this is act two of the Counter section, not a section of its
+       own (App.jsx mounts it as <Solutions merged />). Two full section heads
+       back to back — "pick what you need", then "pick your industry" — read as
+       two separate asks when they are one qualifier, and the second big
+       headline made the first one feel answered and closed. Merged, the tag
+       renders as a DIV and the head drops to a rule-and-sub-head: same words,
+       one beat. Standalone still works and is what /studio previews. */
+    <Tag
+      className={`solutions${merged ? ' solutions--merged' : ''}`}
+      id="solutions"
+      style={{ '--sol-tint': sectionAccent }}
+      {...(merged ? { 'aria-label': 'Solutions by industry' } : {})}
+    >
+      {merged ? (
+        <div className="sol-act2">
+          <span className="sol-act2-rule" aria-hidden="true" />
+          <SplitWords as="h3" className="sol-act2-h" text="Or start from your industry." />
+          <Reveal delay={0.12}>
+            <p className="sol-act2-lede">
+              Thirty of them, and the loom already knows yours — type it in.
+            </p>
+          </Reveal>
+        </div>
+      ) : (
+        <div className="section-head">
+          <p className="kicker"><span>01</span> Solutions</p>
+          <SplitWords as="h2" className="h2" text="Thirty industries. One loom." />
+          <Reveal delay={0.15}>
+            <p className="lede" style={{ marginTop: 10 }}>
+              Type your industry — the loom already knows it.
+            </p>
+          </Reveal>
+        </div>
+      )}
 
       <Reveal delay={0.05} className="sol-console">
         <div className="sol-console-panel">
@@ -457,6 +485,6 @@ export function Solutions() {
           })}
         </p>
       </nav>
-    </section>
+    </Tag>
   )
 }

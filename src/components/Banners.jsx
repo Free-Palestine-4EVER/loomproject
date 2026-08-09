@@ -43,7 +43,7 @@ const NEED_BLOCK = {
   'Not sure yet': { dye: 'felt', mark: 'search', photo: 'not-sure' },
 }
 
-export function Counter() {
+export function Counter({ children = null }) {
   const { open } = useWizard()
   return (
     <section className="counter" id="counter">
@@ -66,8 +66,9 @@ export function Counter() {
         {WIZARD.needs.filter((n) => NEED_BLOCK[n]).map((need, i) => {
           const b = NEED_BLOCK[need]
           return (
-            // modulo stagger — row 2 restarts at 0 instead of waiting on row 1
-            <Reveal key={need} delay={(i % 4) * 0.06} y={22} className="cnt-cell">
+            // modulo stagger by COLUMN COUNT — each row restarts at 0 instead
+            // of waiting on the one above it. Two columns now, not four.
+            <Reveal key={need} delay={(i % 2) * 0.06} y={22} className="cnt-cell">
               <button
                 type="button"
                 className="cnt-tile"
@@ -83,27 +84,31 @@ export function Counter() {
                       has not been shot yet is still a finished LOOM tile. */}
                   <WoolIcon name={b.mark} className="cnt-medal" />
                   {b.photo && (
-                    /* Eight of these mount together, and the stills are
-                       1264px wide for a box that is 155px on a phone and
-                       291px at 1440 — 4.09 MB of decoded bitmap each, 32.7 MB
-                       for the grid, the densest screenful on the page.
+                    /* Eight of these mount together and they are the densest
+                       screenful on the page, so the decode budget is the
+                       thing being managed here, not the file size. Decoded
+                       RAM is width x height x 4 regardless of codec, and the
+                       phones this is for run at DPR 3 — which is exactly why
+                       there is no srcset: a `w` descriptor lets a DPR-3
+                       phone ask for, and get, the largest cut on offer. A
+                       single fixed source is the only thing that puts a hard
+                       CEILING on the pixels. 1100x471 is 2.07 MB decoded,
+                       16.6 MB for the grid.
 
-                       `media`, not a `w` descriptor, and that is the whole
-                       point: decoded RAM is width x height x 4 and the phones
-                       this is for run at DPR 3, so any srcset would happily
-                       hand back the full-size original. A breakpoint is the
-                       only thing that puts a CEILING on the pixels.
+                       ONE cut at every width now: the 21:9 `-wide` panorama.
+                       The tile used to swap art direction at 719px — a 2:3
+                       `-pc` portrait above it, the panorama below — and the
+                       media query had to sit exactly on banners.css's
+                       aspect-ratio switch or the source would letterbox in
+                       the gap. Desktop went 21:9 too (2 columns instead of
+                       4), so the switch has nothing left to switch and the
+                       whole class of mismatch bugs goes with it. The `-pc`
+                       portraits stay on disk, referenced by nothing.
 
-                       The two cuts are different PICTURES, not two sizes of
-                       one — art direction, which is the only thing `media`
-                       is actually for. `-pc` is the 2:3 portrait shot for the
-                       desktop tile; `-wide` is a separately rendered 21:9
-                       panorama for the phone, where the grid drops to one
-                       column of banners. The switch is at 719px because that
-                       is exactly where banners.css changes the tile's
-                       aspect-ratio — a source that swaps at a different
-                       breakpoint than the box it fills will letterbox or
-                       gut-crop in the gap between the two.
+                       1100x471 for a box that is ~600px at 1440 and the full
+                       column on a phone — one file, no srcset, and therefore
+                       no way for a DPR-3 phone to talk itself into a bigger
+                       decode than the ceiling.
 
                        `display: contents` so the <picture> adds no box: the
                        img is absolutely positioned against `.cnt-band` by
@@ -111,15 +116,13 @@ export function Counter() {
                        would become its containing block instead. Same reason
                        everywhere else this file wraps an img. */
                     <picture style={{ display: 'contents' }}>
-                      <source media="(max-width: 719px)" type="image/avif" srcSet={`/img/needs/${b.photo}-wide.avif`} />
-                      <source media="(max-width: 719px)" type="image/webp" srcSet={`/img/needs/${b.photo}-wide.webp`} />
-                      <source type="image/avif" srcSet={`/img/needs/${b.photo}-pc.avif`} />
+                      <source type="image/avif" srcSet={`/img/needs/${b.photo}-wide.avif`} />
                       <img
                         className="cnt-photo"
-                        src={`/img/needs/${b.photo}-pc.webp`}
+                        src={`/img/needs/${b.photo}-wide.webp`}
                         alt=""
-                        width={1000}
-                        height={1500}
+                        width={1100}
+                        height={471}
                         loading="lazy"
                         decoding="async"
                         /* the medallion is the fallback: it only steps aside once
@@ -148,6 +151,13 @@ export function Counter() {
         })}
       </div>
 
+      {/* Act two, mounted by App.jsx as <Counter><Solutions merged /></Counter>.
+          It sits between the grid and the CTA on purpose: "pick what you need"
+          and "pick your industry" are the same question asked two ways, and
+          the quote button has to close BOTH of them rather than land between
+          them. Nothing else is ever passed here. */}
+      {children}
+
       <Reveal delay={0.1} className="cnt-foot">
         {/* 'Request a quote' is one of the 21 photographed spools and is unused
             elsewhere on the site. It sits on bare --bg, so it cannot clash with
@@ -156,7 +166,11 @@ export function Counter() {
         <Magnetic>
           <WoolButton label="Request a quote" size="big" onClick={() => open({})} />
         </Magnetic>
-        <a className="cnt-foot-link" href="#work">or see the work →</a>
+        {/* Points DOWN, not back up. Work used to sit below this section, so
+            "see the work" was the forward move; since the reorder the cases
+            are already read by the time anyone gets here, and sending them
+            back up is a leak. The Machine is the next thing to sell. */}
+        <a className="cnt-foot-link" href="#the-machine" data-scroll>or see what we sell →</a>
       </Reveal>
     </section>
   )

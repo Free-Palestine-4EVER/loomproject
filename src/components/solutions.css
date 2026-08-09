@@ -48,6 +48,63 @@
 }
 
 /* ——————————————————————————————————————————————
+   MERGED MODE — act two of the Counter, not a section (App.jsx mounts it as
+   <Counter><Solutions merged /></Counter>). It keeps every rule above; all
+   this does is take the section furniture off, because the block already sat
+   under "We can help you in any phase of your business journey."
+
+   The seam is the whole job here. Two stacked sections each paid their own
+   vertical padding, so the join read as a gap with nothing in it — and the
+   bloom, anchored 60-110px down from the top of a section that no longer
+   starts there, was blooming over the tail of the needs grid.
+   —————————————————————————————————————————————— */
+.solutions--merged {
+  /* it is a div inside .counter now; the section's own bottom air is the
+     counter's job, and the counter's CTA follows immediately below */
+  padding-bottom: 0;
+}
+/* re-anchor the bloom to act two's own head rather than to a section top
+   that is now 900px further up the page */
+.solutions--merged::before { inset: 0 0 auto 0; height: min(46vh, 480px); }
+
+.sol-act2 {
+  padding: clamp(46px, 6vh, 78px) var(--pad) clamp(4px, 0.6vh, 8px);
+}
+/* the seam made visible instead of left as dead air: one hairline that says
+   "same section, next move" where a second kicker used to say "new section" */
+.sol-act2-rule {
+  display: block;
+  width: min(180px, 30%);
+  height: 2px;
+  margin-bottom: clamp(20px, 2.6vh, 30px);
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--sol-tint, var(--magenta)), transparent);
+}
+/* an h3, and it has to LOOK like one: a step under .h2 so the merged block
+   still reads as one section with one headline. Same display face, same
+   confidence, smaller. */
+.sol-act2-h {
+  /* --bloom, the same token .h2 uses (styles.css:183) — LOOM's own display
+     face, not `--display`. An h3 that drops to the body face stops reading as
+     the same section's voice, which is the one thing this merge is for. */
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+  line-height: 1.06;
+  letter-spacing: 0;
+  color: var(--ink);
+  max-width: 24ch;
+  margin: 0;
+}
+.sol-act2-lede {
+  margin-top: 12px;
+  max-width: 46ch;
+  color: var(--ink-dim);
+  font-size: clamp(0.98rem, 1.2vw, 1.08rem);
+  line-height: 1.55;
+}
+
+/* ——————————————————————————————————————————————
    The console — search field + the one resolved answer, on its own pink
    ground. This is the site's SECOND pink surface (the footer's bloom-sky
    is the first) and it borrows that surface's exact grammar rather than

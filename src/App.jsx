@@ -216,60 +216,100 @@ export default function App() {
           <Workshops />
         ) : (
         <>
+        {/* ORDER IS A CONVERSION DECISION, NOT A TASTE ONE (reordered 9 Aug 2026).
+            The page runs in five bands, and nothing may be inserted without
+            picking one:
+
+              PROOF     hero → client wall → numbers → cases
+              QUALIFY   the eight needs → the fork → thirty industries
+              SELL      the three things a visitor can actually buy
+              CAPABLE   what LOOM builds, including for itself
+              CLOSE     process → why → where → offer → contact
+
+            What moved and why is annotated at each seam below. The rule that
+            drove all of it: nothing that cannot be bought today may sit above
+            something that can. */}
         <Hero />
-        {/* Second on the page, straight off the hero. LOOM drew a whole
-            typeface from nothing and gives it away — that is the strongest
-            single proof of craft the studio has, and it asks the visitor for
-            nothing, so it earns the slot before the client wall rather than
-            after the tools. */}
-        <TypeShowcase />
+        {/* PROOF. Nineteen client names — Benetton, UNICEF, Vodafone — are the
+            cheapest credibility on the page and cost the reader one second.
+            They now run before anything asks for attention. */}
         <Marquee />
-        <Manifesto />
-        <Counter />
-        {/* Directly under the eight needs, in the slot Consultancy used to
-            hold: the visitor who did not see themselves in a deliverable is
-            the one this is for, and "I have a business" / "I have an idea"
-            is the fork that catches them. It used to sit below Work, which
-            asked them to read sixteen case studies before being offered a
-            way in. Both its cards link downward (#work, #apps), so moving it
-            up turns two dead-ends into the page's own table of contents. */}
-        <OfferPair />
+        {/* Stats came up from slot 17. 28 brands / 7 countries / 12 tools is
+            the sentence a sceptic wants BEFORE reading sixteen case studies,
+            not after every ask on the page has already been made. */}
+        <Stats />
+        {/* Work came up from slot 7. It was behind the typeface, the manifesto
+            and two "start here" modules — the visitor was asked to choose a
+            service before being shown a single thing LOOM had finished. */}
         <Work />
+        {/* QUALIFY. Now that the proof has landed, the visitor places
+            themselves: eight needs, then the fork ("I have a business" / "I
+            have an idea"), then their own industry. Three self-selection
+            beats in a row, all pointing at the SELL band under them. */}
+        {/* MERGED, 9 Aug 2026. Solutions came up from slot 15 first — a
+            qualifier is worthless after seven product pitches — and then
+            straight into the Counter, because they were never two questions.
+            "Which of these eight do you need?" and "which industry are you
+            in?" are one ask with two doors, and running them as two full
+            sections meant two kickers, two display headlines and two CTAs
+            for a single decision. One section, one quote button at the end
+            of it. See Solutions.jsx's `merged` prop for the tag swap. */}
+        <Counter>
+          <Solutions merged />
+        </Counter>
+        {/* Now AFTER the merged qualifier rather than between its halves. The
+            fork is the fallback for the visitor who found themselves in
+            neither the eight needs nor the thirty industries. */}
+        <OfferPair />
+        {/* SELL — the three offerings with a price and a way in, ranked by
+            what LOOM actually wants sold. The Machine is the recurring
+            subscription and now opens the band instead of arriving at 13,
+            under two things nobody can buy. */}
+        <TheMachine />
+        {/* Same shelf, one step lighter: the Protocol puts LOOM inside the
+            client's AI; this puts the CLIENT inside everyone else's. Four
+            deliverables, one demo, one CTA. */}
+        <AnswerEngine />
+        {/* AI LOOM runs FOR a client, then AI LOOM teaches the client's own
+            team to run. Has its own booking page with a live price, so it
+            closes the sell band rather than trailing the capability one. */}
+        <WorkshopsPromo />
+        {/* CAPABLE — everything that answers "can they actually build it?"
+            rather than "what am I buying?". Shipped work first, then tools,
+            then the things that are honestly not for sale yet. */}
         <AppsShowcase />
         <ToolsLab />
-        {/* Right off the in-house tools ("built in-house · not for sale") —
-            the same instinct pointed at a different shelf: real products LOOM
-            is building for itself, honestly labelled as in-build since none
-            of the five have shipped yet. */}
+        {/* OwnApps and the Protocol came DOWN from 10 and 11. OwnApps says in
+            its own lede that nothing is live yet and the Protocol is private
+            beta issued by hand — the two lowest-intent sections on the page
+            were sitting in its highest-intent real estate, between the case
+            studies and the offers. The old note claiming the Protocol must
+            precede The Machine is retired with this move: a dev-tool waitlist
+            does not outrank the subscription. */}
         <OwnApps />
-        {/* Straight off the software LOOM builds for itself: the same shelf,
-            one level more technical. Three MCP servers, private beta, access
-            by request — a gate, not a download (see LoomMcp.jsx's header). It
-            has to sit ABOVE The Machine, because MACHINE is that offering
-            exposed as tools and the reader needs the section to land first. */}
         <LoomMcp />
-        {/* The same idea aimed at an ordinary business rather than a dev team:
-            the Protocol puts LOOM inside the client's AI, this puts the
-            CLIENT inside everyone else's. Shorter than the Protocol on
-            purpose — four deliverables, one demo, one CTA. */}
-        <AnswerEngine />
-        {/* The Machine sits where Crew used to: straight off the products LOOM
-            builds for itself, the natural next beat is HOW it builds them. */}
-        <TheMachine />
-        {/* Straight off THE MACHINE — that section is AI LOOM runs FOR a
-            client; this is AI LOOM teaches a client's own team to run. Same
-            shelf, handed to the client's staff instead of kept in-house. */}
-        <WorkshopsPromo />
-        <Solutions />
+        {/* TypeShowcase came down from slot 2 — it was the second thing a
+            buyer saw, before one client name. A free typeface is the purest
+            craft flex LOOM has and converts nobody; it belongs with the rest
+            of the R&D, where it also stops pulling four heavy planted font
+            cuts into the top of the page. /type still carries it in the nav
+            for anyone who came for the font. */}
+        <TypeShowcase />
+        {/* CLOSE — an unbroken ramp to the ask. How it works, why it works,
+            who does it, one last offer, then the form. Nothing new is
+            introduced past this point. */}
+        <Process />
+        {/* Manifesto came down from slot 4. "Trends don't lead our work.
+            Thinking does." is a claim, and a claim only pays once there is
+            evidence behind it — it now reads as the conclusion of the page
+            rather than its opening assertion. */}
+        <Manifesto />
+        <Studios />
         {/* BY RESULT (1.75 JOD per WhatsApp conversation) was retired 8 Aug 2026:
             LOOM cannot promise an outcome that depends on the client's own
-            replies and market. The Machine — the content subscription — is the
-            single offering now, and it runs once, up in Crew's old slot.
-            `components/ByResult.jsx` is still in the tree, mounted by nothing. */}
-        <Process />
-        <Stats />
+            replies and market. `components/ByResult.jsx` is still in the tree,
+            mounted by nothing. */}
         <Bolt />
-        <Studios />
         <Contact />
         {/* Last section on the page, just above the footer — the client asked
             for this literally ("just above the footer"). Contact carries the
