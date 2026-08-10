@@ -16,10 +16,16 @@
 // Hotkeys are SHIFT+1/2/3 (not 1/2/3 — those already switch the butterfly's
 // flight profile, and the two switchers must never fight over a key).
 
+// ONE COMPOSITION, 11 Aug 2026 (client: "I want this as a variant, remove the
+// rest"). `#typeface` used to carry three interchangeable act-three
+// compositions — a Split, b Stage, c Specimen — switchable with ?bloom= or
+// shift+1/2/3, each with its own desktop AND mobile numbers to keep working.
+// The client picked Split and dropped the other two, so the switcher, the two
+// unused layouts and the HUD that advertised them are gone rather than left
+// behind as dead options nobody can reach. b and c are in git if the choice is
+// ever reopened.
 export const LAYOUTS = {
   a: { id: 'a', label: 'Split' },
-  b: { id: 'b', label: 'Stage' },
-  c: { id: 'c', label: 'Specimen' },
 }
 
 // Shipping default. STAGE, chosen by eye against the other two on both a
@@ -29,7 +35,7 @@ export const LAYOUTS = {
 // paragraph about it, which is the whole point of the act. Same rule as
 // DEFAULT_PROFILE_ID in src/three/flight/index.js: this is a design decision,
 // not a default. Look at all three before changing it.
-export const DEFAULT_LAYOUT_ID = 'b'
+export const DEFAULT_LAYOUT_ID = 'a'
 
 export const LAYOUT_STORAGE_KEY = 'loom:bloom-layout'
 
@@ -55,14 +61,6 @@ export const LAYOUT_MOTION = {
   a: {
     d: { wordScale: [1, 0.70], wordX: ['0vw', '29vw'], wordY: ['0vh', '-2vh'], wordBlur: [0, 0], wordFade: [1, 1], copyFrom: { x: -70, y: 0 }, beat: [0.72, 0.94] },
     m: { wordScale: [1, 0.98], wordX: ['0vw', '0vw'], wordY: ['0vh', '-13vh'], wordBlur: [0, 0], wordFade: [1, 1], copyFrom: { x: -24, y: 34 }, beat: [0.7, 0.92] },
-  },
-  b: {
-    d: { wordScale: [1, 1.34], wordX: ['0vw', '0vw'], wordY: ['0vh', '32vh'], wordBlur: [0, 0], wordFade: [1, 0.92], copyFrom: { x: 0, y: -54 }, beat: [0.7, 0.93] },
-    m: { wordScale: [1, 1.55], wordX: ['0vw', '0vw'], wordY: ['0vh', '50vh'], wordBlur: [0, 0], wordFade: [1, 0.92], copyFrom: { x: 0, y: -36 }, beat: [0.68, 0.91] },
-  },
-  c: {
-    d: { wordScale: [1, 1.12], wordX: ['0vw', '0vw'], wordY: ['0vh', '-8vh'], wordBlur: [0, 9], wordFade: [1, 0.34], copyFrom: { x: 0, y: 84 }, beat: [0.7, 0.93] },
-    m: { wordScale: [1, 1.02], wordX: ['0vw', '0vw'], wordY: ['0vh', '-18vh'], wordBlur: [0, 7], wordFade: [1, 0.3], copyFrom: { x: 0, y: 64 }, beat: [0.68, 0.91] },
   },
 }
 
@@ -98,29 +96,18 @@ export function setStoredLayoutId(id) {
   try { window.sessionStorage.setItem(LAYOUT_STORAGE_KEY, id) } catch { /* ignore */ }
 }
 
-// SHIFT+1/2/3 switches live. Read from e.code, not e.key — with shift held,
-// e.key is '!'/'@'/'#' on a US layout and something else entirely elsewhere,
-// while e.code stays Digit1/2/3 on every layout. Ignored while focus is in a
-// form control. Returns an unbind function.
-export function bindLayoutHotkeys(onSelect) {
-  const CODE_TO_ID = { Digit1: 'a', Digit2: 'b', Digit3: 'c' }
-  const handler = (e) => {
-    if (!e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
-    const id = CODE_TO_ID[e.code]
-    if (!id) return
-    const t = e.target
-    const tag = t && t.tagName
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || (t && t.isContentEditable)) return
-    e.preventDefault()
-    setStoredLayoutId(id)
-    onSelect(id)
-  }
-  window.addEventListener('keydown', handler)
-  return () => window.removeEventListener('keydown', handler)
+// The shift+1/2/3 switcher is gone with the layouts it switched between —
+// one composition needs no picker, and a hotkey that can only ever re-select
+// what is already showing is worse than no hotkey. `bindLayoutHotkeys` is
+// exported as a no-op so `TypeShowcase.jsx` and the lab entry points keep
+// their call sites; both immediately unbind it.
+export function bindLayoutHotkeys() {
+  return () => {}
 }
 
 export function formatLayoutHud(id) {
-  // ASCII only: the HUD is set in a monospace stack that has no ⇧ glyph, and
-  // a tofu box is worse instructions than the word.
-  return `bloom: ${id} — ${LAYOUTS[id].label}   (shift+1/2/3 to switch)`
+  // The "(shift+1/2/3 to switch)" hint went with the switcher — there is one
+  // layout now, so the line named a key combination that does nothing. A dev
+  // HUD that lies is worse than no HUD.
+  return `bloom: ${id} — ${LAYOUTS[id].label}`
 }
