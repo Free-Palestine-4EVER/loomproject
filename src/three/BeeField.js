@@ -15,7 +15,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 
-const BG = new THREE.Color('#0d0716')
+const BG = new THREE.Color('#ffe9f2')
 const MAGENTA = new THREE.Color('#f21c8c')
 const VIOLET = new THREE.Color('#7b2fbe')
 const CYAN = new THREE.Color('#59e6ff')

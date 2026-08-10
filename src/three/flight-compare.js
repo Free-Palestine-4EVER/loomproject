@@ -55,7 +55,7 @@ const SPAN_FRAC = 0.46
 // so a butterfly judged here is lit the way a visitor will see it ──
 function makeScene() {
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color('#0d0716')
+  scene.background = new THREE.Color('#ffe9f2')
   const key = new THREE.DirectionalLight(WARM, 2.8)
   key.position.set(2.5, 3.5, 4)
   scene.add(key)

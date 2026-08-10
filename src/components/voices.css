@@ -130,7 +130,7 @@
   display: block;
   font-size: 0.94rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--ink);
   margin-bottom: 4px;
 }
 .voice-role {

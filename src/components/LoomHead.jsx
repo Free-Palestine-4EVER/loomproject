@@ -30,7 +30,7 @@ function drawFrame(ctx, W, H, t, state, reduced) {
   // Cyclorama: a soft pool of light behind the figure, not a flat fill.
   const cyc = ctx.createRadialGradient(W / 2, H * 0.42, 0, W / 2, H * 0.42, W * 0.72)
   cyc.addColorStop(0, 'rgba(60,54,78,0.55)')
-  cyc.addColorStop(1, 'rgba(13,7,22,0)')
+  cyc.addColorStop(1, 'rgba(255,233,242,0)')
   ctx.fillStyle = cyc
   ctx.fillRect(0, 0, W, H)
 
@@ -62,7 +62,7 @@ function drawFrame(ctx, W, H, t, state, reduced) {
   const skin = ctx.createLinearGradient(0, neckY, 0, H)
   skin.addColorStop(0, 'rgba(206,196,208,0.34)')
   skin.addColorStop(0.55, 'rgba(150,140,166,0.26)')
-  skin.addColorStop(1, 'rgba(13,7,22,0)')
+  skin.addColorStop(1, 'rgba(255,233,242,0)')
   ctx.fillStyle = skin
   ctx.fill()
   // A rim light down the left edge of the neck, so it reads as a body and not a fill.

@@ -12,7 +12,7 @@
   container-type: inline-size;
   container-name: appscreen;
   font-family: var(--body, 'Satoshi', 'Helvetica Neue', sans-serif);
-  color: #fff;
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   isolation: isolate;
 }
@@ -32,7 +32,7 @@
   z-index: 0;
   background:
     radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--ac) 38%, transparent), transparent 60%),
-    linear-gradient(165deg, color-mix(in srgb, var(--ac2) 30%, #0d0716) 0%, #0a0612 82%);
+    linear-gradient(165deg, color-mix(in srgb, var(--ac2) 30%, #ffe9f2) 0%, #ffeef5 82%);
 }
 
 /* ——— status bar ——— */
@@ -44,7 +44,7 @@
 }
 .as-time {
   font-family: var(--display, sans-serif); font-weight: 600;
-  font-size: 6.6cqi; letter-spacing: 0.02em; color: #fff;
+  font-size: 6.6cqi; letter-spacing: 0.02em; color: var(--ink);
 }
 .as-dots { display: flex; align-items: flex-end; gap: 1.6cqi; }
 .as-dots i {
@@ -70,7 +70,7 @@
 }
 .as-lahza-word {
   font-family: var(--display); font-weight: 650; font-size: 12cqi;
-  line-height: 1; color: #fff;
+  line-height: 1; color: var(--ink);
 }
 .as-lahza-live {
   display: inline-flex; align-items: center; gap: 1.6cqi;
@@ -110,7 +110,7 @@
 .as-lahza-toast {
   position: absolute; top: 15cqi; right: 6cqi; z-index: 3;
   display: flex; align-items: center; gap: 1.8cqi;
-  background: rgba(10, 6, 18, 0.86); border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 236, 244, 0.86); border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px; padding: 1.8cqi 4cqi 1.8cqi 2.4cqi;
   font-size: 5cqi; letter-spacing: 0.02em; white-space: nowrap;
   opacity: 0; transform: translateY(-60%) scale(0.9);
@@ -150,7 +150,7 @@
 .as-ev-mesh { fill: none; stroke: color-mix(in srgb, var(--ac) 30%, transparent); stroke-width: 0.35; }
 .as-ev-ceil { fill: none; stroke: color-mix(in srgb, var(--ac) 20%, transparent); stroke-width: 0.35; stroke-dasharray: 1.6 2; }
 .as-ev-open {
-  fill: rgba(6, 4, 12, 0.72);
+  fill: rgba(255, 240, 246, 0.72);
   stroke: rgba(255, 255, 255, 0.75); stroke-width: 0.6; stroke-linejoin: round;
 }
 .as-ev-open.as-is-glass { fill: color-mix(in srgb, var(--ac) 22%, transparent); }
@@ -177,7 +177,7 @@
 .as-ev-tag, .as-ev-dim {
   font-family: var(--body, sans-serif);
   text-anchor: middle; dominant-baseline: middle;
-  paint-order: stroke; stroke: #0a0612; stroke-width: 1.6; stroke-linejoin: round;
+  paint-order: stroke; stroke: #ffeef5; stroke-width: 1.6; stroke-linejoin: round;
 }
 .as-ev-tag { font-size: 3.6px; font-weight: 600; letter-spacing: 0.04em; fill: var(--gold); }
 .as-ev-dim { font-size: 4px; font-weight: 600; fill: rgba(255, 255, 255, 0.92); }
@@ -225,22 +225,22 @@
 .as-ev-top { display: flex; align-items: center; justify-content: space-between; gap: 2cqi; }
 .as-ev-chip {
   border-radius: 999px; padding: 1.8cqi 4.2cqi;
-  background: rgba(6, 4, 12, 0.55);
+  background: rgba(255, 240, 246, 0.55);
   font-size: 3.7cqi; font-weight: 650; letter-spacing: 0.01em; white-space: nowrap;
   color: rgba(255, 255, 255, 0.94);
 }
-.as-ev-chip--saved { background: color-mix(in srgb, var(--ac) 78%, #0a0612); color: #06121a; }
+.as-ev-chip--saved { background: color-mix(in srgb, var(--ac) 78%, #ffeef5); color: #f5ecf0; }
 .as-ev-foot { display: flex; flex-direction: column; align-items: center; gap: 3cqi; }
 .as-ev-hint {
   max-width: 74cqi; text-align: center;
-  background: rgba(6, 4, 12, 0.55); border-radius: 999px;
+  background: rgba(255, 240, 246, 0.55); border-radius: 999px;
   padding: 2.2cqi 4.4cqi;
   font-size: 3.6cqi; font-weight: 550; line-height: 1.32;
   color: rgba(255, 255, 255, 0.95);
 }
 .as-ev-done {
   width: 100%; text-align: center; border-radius: 999px;
-  background: #fff; color: #0a0612;
+  background: #fff; color: #ffeef5;
   padding: 3.4cqi 0; font-size: 4.6cqi; font-weight: 750; letter-spacing: 0.005em;
 }
 
@@ -293,7 +293,7 @@
 .as-taws-row { display: flex; justify-content: space-between; font-size: 4.8cqi; padding: 1cqi 0; color: rgba(255, 255, 255, 0.85); }
 .as-taws-total {
   display: flex; justify-content: space-between; font-size: 5.2cqi; font-weight: 650;
-  margin-top: 1.6cqi; padding-top: 2cqi; border-top: 1px dashed rgba(255, 255, 255, 0.2); color: #fff;
+  margin-top: 1.6cqi; padding-top: 2cqi; border-top: 1px dashed rgba(255, 255, 255, 0.2); color: var(--ink);
 }
 
 .as-taws-stepper { display: flex; align-items: flex-start; }
@@ -339,7 +339,7 @@
   position: absolute; inset: 0; z-index: 0; overflow: hidden;
   background:
     radial-gradient(120% 55% at 50% 78%, rgba(123, 47, 190, 0.34), transparent 70%),
-    linear-gradient(180deg, #150a24 0%, #0b0614 46%, #120a1e 100%);
+    linear-gradient(180deg, #f0e4e9 0%, #ffecf4 46%, #f1e8ec 100%);
 }
 .as-ts-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 /* the AR plane fades out toward the horizon instead of ending in a hard point */
@@ -383,12 +383,12 @@
   font-size: 3.8cqi; font-weight: 600; color: rgba(255, 255, 255, 0.68);
 }
 .as-ts-seg span.is-on {
-  background: rgba(120, 108, 140, 0.92); color: #fff; font-weight: 700;
+  background: rgba(120, 108, 140, 0.92); color: var(--ink); font-weight: 700;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 .as-ts-banner {
   margin-top: 3cqi; max-width: 82cqi; text-align: center;
-  background: rgba(6, 4, 12, 0.5); border-radius: 999px;
+  background: rgba(255, 240, 246, 0.5); border-radius: 999px;
   padding: 2cqi 4cqi; font-size: 3.4cqi; font-weight: 550; line-height: 1.3;
   color: rgba(255, 255, 255, 0.95);
 }
@@ -398,9 +398,9 @@
 .as-ts-pill {
   position: absolute; transform: translate(-50%, -50%);
   display: inline-flex; align-items: baseline; gap: 0.9cqi; white-space: nowrap;
-  background: rgba(6, 4, 12, 0.72); border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 240, 246, 0.72); border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px; padding: 1.1cqi 2.6cqi;
-  font-size: 3.3cqi; font-weight: 650; color: #fff; letter-spacing: 0.01em;
+  font-size: 3.3cqi; font-weight: 650; color: var(--ink); letter-spacing: 0.01em;
 }
 .as-ts-pill b { color: var(--gold); font-weight: 750; }
 .as-ts-pill em { font-style: normal; font-weight: 500; color: rgba(255, 255, 255, 0.55); }
@@ -438,7 +438,7 @@
   flex: none; width: 14cqi; text-align: center; border-radius: 2cqi;
   background: rgba(255, 255, 255, 0.11); padding: 1.2cqi 0;
   font-family: var(--display, sans-serif); font-size: 4.2cqi; font-weight: 700;
-  font-variant-numeric: tabular-nums; color: #fff;
+  font-variant-numeric: tabular-nums; color: var(--ink);
 }
 .as-ts-row u {
   flex: none; text-decoration: none; font-size: 2.9cqi;
@@ -463,11 +463,11 @@
 .as-morph-before, .as-morph-after {
   position: absolute; inset: 0;
 }
-.as-morph-before { background: linear-gradient(150deg, #2a2138, #4a3660); }
-.as-morph-after { background: linear-gradient(150deg, color-mix(in srgb, var(--ac) 55%, #2a2138), color-mix(in srgb, var(--ac2) 55%, #4a3660)); }
+.as-morph-before { background: linear-gradient(150deg, #eec9dd, #d9b2cb); }
+.as-morph-after { background: linear-gradient(150deg, color-mix(in srgb, var(--ac) 55%, #eec9dd), color-mix(in srgb, var(--ac2) 55%, #d9b2cb)); }
 .as-morph-mask {
   position: absolute; inset: 0; width: 100%;
-  background: linear-gradient(150deg, #2a2138, #4a3660);
+  background: linear-gradient(150deg, #eec9dd, #d9b2cb);
   animation: as-sweepx 5s var(--ease, cubic-bezier(.16,1,.3,1)) infinite;
 }
 .as-morph-mask::after {

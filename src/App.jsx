@@ -252,23 +252,26 @@ export default function App() {
         ) : (
         <>
         {/* ORDER IS A CONVERSION DECISION, NOT A TASTE ONE (reordered 9 Aug
-            2026, extended 10 Aug). The page runs in five bands, and nothing
+            2026, extended 10 Aug, reorganised 10 Aug). Five bands; nothing
             may be inserted without picking one:
 
-              PROOF     hero → client wall → numbers → cases → how it is done
-              QUALIFY   the eight needs → the fork → thirty industries
-              SELL      the floor, then everything a visitor can actually buy
+              PROOF     hero → client wall → cases → what clients say → who
+                        and where the studio is
+              HOW       the four stations, answering "at that speed?"
+              QUALIFY   thirty industries (pinned tour) → the fork
+              SELL      the floor, then everything buyable
               CAPABLE   what LOOM builds, including for itself
-              CLOSE     why → where → what clients say → offer → FAQ → contact
+              CLOSE     why → offer → FAQ → contact → careers
 
-            What moved and why is annotated at each seam below. Two rules
-            drove all of it: nothing that cannot be bought today may sit above
-            something that can, and no claim sits above its own evidence.
+            Three rules drove it: nothing that cannot be bought today may sit
+            above something that can; no claim sits above its own evidence;
+            and ALL the evidence goes first. The last one is what the 10 Aug
+            reorganisation was for — Voices and Studios were stranded at slots
+            16 and 15, behind four sections of R&D, which is nobody's idea of
+            where a testimonial belongs. Moving them up also cut the close
+            from seven sections to five, so the form sits nearer the decision.
 
-            The three sections added on 10 Aug each close a hole a stranger
-            fell through — Pricing (there was no floor anywhere on the page),
-            Voices (no client had ever spoken on it), FAQ (every objection was
-            answered on a call or not at all). */}
+            What moved and why is annotated at each seam below. */}
         <Hero />
         {/* PROOF — one section where Marquee and Stats used to be two.
             The marquee slid the most valuable words on the page (UNICEF,
@@ -282,6 +285,22 @@ export default function App() {
             and two "start here" modules — the visitor was asked to choose a
             service before being shown a single thing LOOM had finished. */}
         <Work />
+        {/* VOICES AND STUDIOS CAME UP HERE (10 Aug 2026 reorganisation).
+            Both were credibility stranded in the close ramp — Voices at slot
+            16, past the Protocol and the typeface, and Studios at 15. A
+            testimonial read after four sections of R&D is addressed to
+            nobody: the visitor who needed convincing left, and the one who
+            didn't has already decided. The page now front-loads every piece
+            of evidence it owns — the names, the work, what clients say, and
+            who and where the studio actually is — before it asks the visitor
+            for anything. It also shortens the close from seven sections to
+            five, which puts the form nearer the decision. */}
+        {/* NOTE the quotes are drafted composites attributed by role, sector
+            and city, never to a named client: data/voices.js explains at
+            length why a drafted quote under a real logo is the one thing on
+            this page that could cost LOOM a client. */}
+        <Voices />
+        <Studios />
         {/* Process came UP from the CLOSE band (10 Aug 2026). It is the
             "why AI-native" argument — brief, weave, craft, perform — and as
             the last thing before Contact it was answering a question the
@@ -363,16 +382,6 @@ export default function App() {
             evidence behind it — it now reads as the conclusion of the page
             rather than its opening assertion. */}
         <Manifesto />
-        <Studios />
-        {/* Testimonials, at the decision point and nowhere else. Placed high
-            on a page a testimonial is decoration — it is addressed to a
-            visitor who has not yet decided they want the thing. Here it is
-            the last push for one who has and is looking for a reason to
-            leave. NOTE the quotes are drafted composites attributed by role,
-            sector and city, never to a named client: data/voices.js explains
-            at length why a drafted quote under a real logo is the one thing
-            on this page that could cost LOOM a client. */}
-        <Voices />
         {/* BY RESULT (1.75 JOD per WhatsApp conversation) was retired 8 Aug 2026:
             LOOM cannot promise an outcome that depends on the client's own
             replies and market. `components/ByResult.jsx` is still in the tree,

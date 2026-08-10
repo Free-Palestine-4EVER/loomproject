@@ -29,7 +29,7 @@
   /* OwnApps above closes on --bg and TheMachine below opens on it, so this
      section lifts in the middle and returns rather than butting two flat
      panels together. */
-  background: linear-gradient(180deg, var(--bg) 0%, #100a1d 42%, #120b21 64%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, #f1e9ed 42%, #f0e6ea 64%, var(--bg) 100%);
   border-block: 1px solid var(--line);
 }
 
@@ -612,7 +612,7 @@
   font-weight: 560;
   font-size: clamp(2.2rem, 4vw, 3.4rem);
   line-height: 0.9;
-  color: #fff;
+  color: var(--ink);
   opacity: 0.6;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
   pointer-events: none;
@@ -632,7 +632,7 @@
   font-weight: 560;
   font-size: clamp(1.35rem, 2.3vw, 1.9rem);
   line-height: 1;
-  color: #fff;
+  color: var(--ink);
   text-wrap: nowrap;
 }
 .mcp-name-pre { color: var(--ink-faint); margin-right: 0.24em; }

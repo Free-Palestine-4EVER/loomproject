@@ -36,8 +36,8 @@
   font: inherit; cursor: pointer; background: transparent;
   transition: border-color 280ms var(--ease), background 280ms var(--ease), color 280ms var(--ease), opacity 280ms;
 }
-.wk-btn:hover { border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); color: #fff; }
-.wk-btn--fill { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+.wk-btn:hover { border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); color: var(--ink); }
+.wk-btn--fill { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
 .wk-btn--fill:hover { background: var(--magenta-deep); border-color: var(--magenta-deep); }
 .wk-btn:disabled { opacity: 0.38; pointer-events: none; }
 
@@ -56,7 +56,7 @@
 .wk-hero-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
 .wk-hero-media::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(13, 7, 22, 0.15) 0%, var(--bg) 92%);
+  background: linear-gradient(180deg, rgba(255, 233, 242, 0.15) 0%, var(--bg) 92%);
 }
 .wk-hero-inner { position: relative; max-width: 1120px; padding: clamp(120px, 20vh, 220px) var(--pad) clamp(60px, 9vh, 100px); }
 .wk-tag { color: var(--magenta); font-size: 0.86rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; display: block; }
@@ -125,7 +125,7 @@
 }
 .wk-example-kicker { color: var(--magenta); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
 .wk-example-body { color: var(--ink); font-size: clamp(0.98rem, 1.3vw, 1.08rem); line-height: 1.7; max-width: 68ch; }
-.wk-example-total { color: #fff; }
+.wk-example-total { color: var(--ink); }
 
 /* ——————————————————————————————————————— the form */
 .wk-form-section { padding-bottom: clamp(90px, 12vw, 150px); }
@@ -136,7 +136,7 @@
 .wk-fields label { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
 .wk-fields label span { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
 .wk-fields input, .wk-fields select, .wk-fields textarea {
-  font: inherit; color: var(--ink); background: rgba(13, 7, 22, 0.7);
+  font: inherit; color: var(--ink); background: rgba(255, 233, 242, 0.7);
   border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px;
   outline: none; transition: border-color 0.3s; appearance: none; -webkit-appearance: none; width: 100%;
 }
@@ -165,7 +165,7 @@
 .wk-chip-title { font-size: 0.92rem; }
 .wk-chip-hours { font-size: 0.76rem; color: var(--ink-faint); flex: none; }
 .wk-chip:hover:not(.is-disabled) { border-color: var(--magenta); color: var(--ink); }
-.wk-chip.is-on { border-color: var(--magenta); background: rgba(242, 28, 140, 0.12); color: #fff; }
+.wk-chip.is-on { border-color: var(--magenta); background: rgba(242, 28, 140, 0.12); color: var(--ink); }
 .wk-chip.is-on .wk-chip-hours { color: rgba(255, 255, 255, 0.7); }
 .wk-chip.is-disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -173,7 +173,7 @@
 .wk-estimate {
   position: sticky; top: 100px;
   border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.2);
-  background: linear-gradient(160deg, rgba(26, 16, 41, 0.85), rgba(13, 7, 22, 0.7));
+  background: linear-gradient(160deg, rgba(248, 216, 232, 0.85), rgba(255, 233, 242, 0.7));
   padding: clamp(22px, 2.8vw, 30px);
 }
 .wk-estimate-kicker { color: var(--ink-faint); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
@@ -182,7 +182,7 @@
 .wk-estimate-perseat span { font-size: 0.9rem; color: var(--ink-faint); font-weight: 500; margin-left: 6px; }
 .wk-estimate-tier { color: var(--magenta); font-size: 0.82rem; margin-top: 6px; }
 .wk-estimate-line { color: var(--ink-faint); font-size: 0.86rem; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
-.wk-estimate-total { font-family: var(--display); font-weight: 640; font-size: clamp(1.7rem, 2.6vw, 2.2rem); color: #fff; margin-top: 8px; }
+.wk-estimate-total { font-family: var(--display); font-weight: 640; font-size: clamp(1.7rem, 2.6vw, 2.2rem); color: var(--ink); margin-top: 8px; }
 .wk-estimate-total span { font-size: 0.9rem; color: var(--ink-faint); font-weight: 500; margin-left: 6px; }
 .wk-estimate-sub { color: var(--ink-dim); font-size: 0.9rem; margin-top: 10px; line-height: 1.55; }
 .wk-send { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }

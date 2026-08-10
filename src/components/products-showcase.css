@@ -60,7 +60,7 @@
 .app-phone .app-concept {
   position: absolute; top: 46px; left: 23px; z-index: 3;
   font-size: 0.6rem; font-weight: 800; letter-spacing: 0.16em;
-  color: #fff; background: rgba(123, 47, 190, 0.28);
+  color: var(--ink); background: rgba(123, 47, 190, 0.28);
   border: 1px solid rgba(123, 47, 190, 0.6);
   border-radius: 999px; padding: 4px 9px;
   backdrop-filter: blur(4px);
@@ -93,7 +93,7 @@
 .apps-grid .app-card {
   background-color: transparent;
   background-image:
-    linear-gradient(165deg, rgba(28, 17, 44, 0.9), rgba(13, 7, 22, 0.86)),
+    linear-gradient(165deg, rgba(28, 17, 44, 0.9), rgba(255, 233, 242, 0.86)),
     var(--tex-fabric);
   background-blend-mode: normal;
   background-size: auto, 130px 14px;
@@ -366,7 +366,7 @@
   display: flex; flex-direction: column; gap: 2px;
   background-color: transparent;
   background-image:
-    linear-gradient(165deg, rgba(22, 13, 35, 0.86), rgba(10, 5, 18, 0.88)),
+    linear-gradient(165deg, rgba(22, 13, 35, 0.86), rgba(255, 236, 244, 0.88)),
     var(--tex-fabric);
   background-blend-mode: normal;
   background-size: auto, 130px 14px;
@@ -431,7 +431,7 @@
   left: 12.07%; top: 6.09%; width: 78.31%; height: 86.14%;
   margin: 0; aspect-ratio: auto;
   border: 0; border-radius: 0;
-  background: #05030a;
+  background: #fff4f9;
 }
 
 /* The window chrome — a slim titlebar pinned over every card, screenshot
@@ -443,7 +443,7 @@
   position: absolute; inset: 0 0 auto 0; width: 100%; height: auto;
   z-index: 4; display: flex; align-items: center; gap: 9px;
   padding: 9px 12px;
-  background: linear-gradient(180deg, rgba(8, 4, 14, 0.86) 0%, rgba(8, 4, 14, 0) 100%);
+  background: linear-gradient(180deg, rgba(255, 238, 245, 0.86) 0%, rgba(255, 238, 245, 0) 100%);
   pointer-events: none;
 }
 .lab-chrome-dots { display: inline-flex; gap: 4px; }
@@ -471,7 +471,7 @@
    of how the source screenshot was lit. */
 .lab-preview-wrap .lab-floor {
   position: absolute; inset: auto 0 0 0; height: 42%; z-index: 2;
-  background: linear-gradient(0deg, rgba(8, 4, 14, 0.6), transparent);
+  background: linear-gradient(0deg, rgba(255, 238, 245, 0.6), transparent);
   pointer-events: none;
 }
 
@@ -483,8 +483,8 @@
 .lab-veil {
   position: absolute; inset: 0; z-index: 2; pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 105%, rgba(13, 7, 22, 0.6), transparent 62%),
-    linear-gradient(180deg, rgba(13, 7, 22, 0.28) 0%, transparent 26%, transparent 70%, rgba(13, 7, 22, 0.4) 100%);
+    radial-gradient(120% 90% at 50% 105%, rgba(255, 233, 242, 0.6), transparent 62%),
+    linear-gradient(180deg, rgba(255, 233, 242, 0.28) 0%, transparent 26%, transparent 70%, rgba(255, 233, 242, 0.4) 100%);
   transition: opacity 0.5s var(--ease);
 }
 .lab-card:hover .lab-veil { opacity: 0; }
@@ -495,8 +495,8 @@
    not just a vignette, to sit at the same contrast as the dark-UI tools */
 .lab-preview-wrap[data-tone="light"] .lab-veil {
   background:
-    radial-gradient(120% 90% at 50% 105%, rgba(13, 7, 22, 0.68), transparent 62%),
-    linear-gradient(180deg, rgba(13, 7, 22, 0.42) 0%, rgba(13, 7, 22, 0.06) 30%, rgba(13, 7, 22, 0.1) 68%, rgba(13, 7, 22, 0.52) 100%),
+    radial-gradient(120% 90% at 50% 105%, rgba(255, 233, 242, 0.68), transparent 62%),
+    linear-gradient(180deg, rgba(255, 233, 242, 0.42) 0%, rgba(255, 233, 242, 0.06) 30%, rgba(255, 233, 242, 0.1) 68%, rgba(255, 233, 242, 0.52) 100%),
     linear-gradient(155deg, rgba(123, 47, 190, 0.22), rgba(89, 230, 255, 0.1) 60%, transparent);
 }
 
@@ -508,7 +508,7 @@
   position: absolute; bottom: 10px; right: 10px; z-index: 3;
   width: auto; height: auto;
   font-size: 0.6rem; font-weight: 800; letter-spacing: 0.16em;
-  color: #fff; background: rgba(255, 199, 64, 0.2);
+  color: var(--ink); background: rgba(255, 199, 64, 0.2);
   border: 1px solid rgba(255, 199, 64, 0.55);
   border-radius: 999px; padding: 4px 9px;
   backdrop-filter: blur(4px);

@@ -29,7 +29,7 @@
      styles.css), so this section only has to open and close on --bg to hand
      off cleanly on both sides — it lifts in the middle and returns rather
      than butting three flat panels together. */
-  background: linear-gradient(180deg, var(--bg) 0%, #14091f 45%, #150a22 62%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, #fbe2ee 45%, #f0e5ea 62%, var(--bg) 100%);
   border-block: 1px solid var(--line);
 }
 
@@ -119,7 +119,7 @@
   font-size: clamp(2.6rem, 11.5vw, 9.5rem);
   line-height: 0.9;
   letter-spacing: 0.005em;
-  color: #fff;
+  color: var(--ink);
   text-transform: uppercase;
   /* the type is lit, not glowing: one tight highlight above, one deep shadow
      below. No filter — this is a text-shadow on a leaf text node. */
@@ -139,7 +139,7 @@
   font-size: clamp(1.05rem, 1.7vw, 1.3rem);
   line-height: 1.4;
 }
-.hire .hire-ask-primary b { color: #fff; font-weight: 760; }
+.hire .hire-ask-primary b { color: var(--ink); font-weight: 760; }
 .hire .hire-ask-secondary {
   margin-top: 6px;
   color: var(--ink-dim);
@@ -172,7 +172,7 @@
   /* a POSTED role, not a person: a dashed running-stitch edge instead of
      Crew's solid hairline. Same wool vocabulary, opposite state. */
   border: 2px dashed rgba(242, 240, 247, 0.16);
-  background: linear-gradient(165deg, rgba(24, 14, 38, 0.86), rgba(13, 7, 22, 0.74));
+  background: linear-gradient(165deg, rgba(24, 14, 38, 0.86), rgba(255, 233, 242, 0.74));
   transition: border-color 0.45s var(--ease), box-shadow 0.5s var(--ease), transform 0.5s var(--ease);
 }
 .hire .hire-card:hover,
@@ -299,7 +299,7 @@
   border: 2px dashed color-mix(in srgb, var(--accent) 62%, transparent);
   background:
     radial-gradient(circle, color-mix(in srgb, var(--accent) 15%, transparent), transparent 70%),
-    rgba(9, 4, 16, 0.55);
+    rgba(255, 238, 245, 0.55);
   box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 6%, transparent);
   transition: transform 0.55s var(--ease), box-shadow 0.55s var(--ease);
 }

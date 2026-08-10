@@ -47,12 +47,12 @@
 }
 
 .blk--magenta { --blk-flat: #b3126a; --blk-knit: url('/img/wool/tex/knit-magenta.webp'); --blk-tint: rgba(179, 18, 106, 0.30); }
-.blk--violet  { --blk-flat: #4a1b78; --blk-knit: url('/img/wool/tex/knit-violet.webp');  --blk-tint: rgba(90, 34, 146, 0.32); }
+.blk--violet  { --blk-flat: #d1a6ba; --blk-knit: url('/img/wool/tex/knit-violet.webp');  --blk-tint: rgba(90, 34, 146, 0.32); }
 .blk--blue    { --blk-flat: #1f6f96; --blk-knit: url('/img/wool/tex/knit-blue.webp');    --blk-tint: rgba(40, 120, 160, 0.48); --blk-scale: 160px; }
-.blk--crimson { --blk-flat: #7a1526; --blk-knit: url('/img/wool/tex/knit-crimson.webp'); --blk-tint: rgba(122, 21, 38, 0.38); --blk-scale: 160px; }
+.blk--crimson { --blk-flat: #d4a6bc; --blk-knit: url('/img/wool/tex/knit-crimson.webp'); --blk-tint: rgba(122, 21, 38, 0.38); --blk-scale: 160px; }
 .blk--gold    { --blk-flat: #a8760f; --blk-knit: url('/img/wool/tex/knit-gold.webp');    --blk-tint: rgba(168, 118, 15, 0.28); }
-.blk--grey    { --blk-flat: #4a4553; --blk-knit: url('/img/wool/tex/knit-grey.webp');    --blk-tint: rgba(60, 55, 70, 0.42); --blk-scale: 180px; }
-.blk--felt    { --blk-flat: var(--bg-2); --blk-knit: var(--felt); --blk-scale: 260px; --blk-tint: rgba(13, 7, 22, 0.20); }
+.blk--grey    { --blk-flat: #bdb5b9; --blk-knit: url('/img/wool/tex/knit-grey.webp');    --blk-tint: rgba(60, 55, 70, 0.42); --blk-scale: 180px; }
+.blk--felt    { --blk-flat: var(--bg-2); --blk-knit: var(--felt); --blk-scale: 260px; --blk-tint: rgba(255, 233, 242, 0.20); }
 
 /* the four yarns — the identical stripe .kicker::after (wool.css:33) and
    .progress already run. One static gradient, painted once, never animated. */
@@ -204,10 +204,10 @@
   z-index: 2;
   pointer-events: none;
   background: linear-gradient(to top,
-    rgba(20, 9, 28, 0.78) 0%,
-    rgba(20, 9, 28, 0.52) 26%,
-    rgba(20, 9, 28, 0.22) 56%,
-    rgba(20, 9, 28, 0) 100%);
+    rgba(251, 226, 238, 0.78) 0%,
+    rgba(251, 226, 238, 0.52) 26%,
+    rgba(251, 226, 238, 0.22) 56%,
+    rgba(251, 226, 238, 0) 100%);
 }
 /* Fixed size, anchored top-left. The instant the medallion out-weighs the word
    the tile reads as clip-art. `--wool-icon` is a custom property, so it beats
@@ -276,7 +276,7 @@
   border-radius: 0;
   background: none;
   box-shadow: none;
-  color: #fff;
+  color: var(--ink);
   display: block;
   transition: transform 0.5s var(--ease);
 }
@@ -311,7 +311,7 @@
   letter-spacing: -0.022em;
   text-wrap: balance;
   padding-top: 13px;
-  text-shadow: 0 1px 6px rgba(13, 7, 22, 0.55);
+  text-shadow: 0 1px 6px rgba(255, 233, 242, 0.55);
 }
 /* the rule. On the STRIP, not the label: `-webkit-box` clips its own
    pseudo-elements, which is why a ::before on the label itself never appears. */
@@ -324,7 +324,7 @@
   height: 3px;
   border-radius: 3px;
   background: var(--magenta, #d21f7d);
-  box-shadow: 0 1px 6px rgba(13, 7, 22, 0.5);
+  box-shadow: 0 1px 6px rgba(255, 233, 242, 0.5);
   transition: width 0.45s var(--ease);
 }
 .counter .cnt-tile:hover .cnt-strip::before { width: 44px; }
@@ -493,7 +493,7 @@
   transition: transform 0.5s var(--ease);
 }
 .offer .offer-toggle-thumb--magenta { background: #b3126a; }
-.offer .offer-toggle-thumb--violet { background: #4a1b78; }
+.offer .offer-toggle-thumb--violet { background: #d1a6ba; }
 .offer .offer-toggle-opt {
   position: relative;
   z-index: 1;
@@ -512,7 +512,7 @@
   color: var(--ink-dim);
   transition: color 0.4s var(--ease);
 }
-.offer .offer-toggle-opt.is-active { color: #fff; }
+.offer .offer-toggle-opt.is-active { color: var(--ink); }
 .offer .offer-toggle-opt:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .offer .offer-toggle-icon { --wool-icon: 26px; }
 
@@ -552,10 +552,10 @@
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(to top,
-    rgba(9, 4, 16, 0.74) 0%,
-    rgba(9, 4, 16, 0.42) 40%,
-    rgba(9, 4, 16, 0.1) 72%,
-    rgba(9, 4, 16, 0) 100%);
+    rgba(255, 238, 245, 0.74) 0%,
+    rgba(255, 238, 245, 0.42) 40%,
+    rgba(255, 238, 245, 0.1) 72%,
+    rgba(255, 238, 245, 0) 100%);
 }
 /* the ordinal — small now, a corner mark rather than the panel's one huge
    object. The fork's version bled off the edge because it had a whole panel
@@ -580,7 +580,7 @@
   font-weight: 560;
   font-size: clamp(1.7rem, 3vw, 2.7rem);
   line-height: 1.06;
-  color: #fff;
+  color: var(--ink);
   max-width: 18ch;
 }
 .offer .offer-card-body {
@@ -608,7 +608,7 @@
   border: 0;
   border-radius: 999px;
   background: #fff7fb;
-  color: #26102b;                 /* ~15:1 */
+  color: #eadee3;                 /* ~15:1 */
   font: inherit;
   font-weight: 800;
   font-size: 0.92rem;
@@ -748,7 +748,7 @@
   font-size: clamp(1.8rem, 4.2vw, 3.6rem);
   line-height: 1.02;
   letter-spacing: -0.022em;
-  color: #fff;
+  color: var(--ink);
   max-width: 15ch;
   text-shadow: 0 2px 0 rgba(255, 255, 255, 0.12), 0 8px 26px rgba(10, 2, 16, 0.55);
 }
@@ -942,9 +942,9 @@
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    rgba(10, 5, 18, 0.18) 0%,
-    rgba(10, 5, 18, 0.52) 42%,
-    rgba(10, 5, 18, 0.66) 100%
+    rgba(255, 236, 244, 0.18) 0%,
+    rgba(255, 236, 244, 0.52) 42%,
+    rgba(255, 236, 244, 0.66) 100%
   );
 }
 /* The choosing, felt. `:has()` on the parent is what lets the OTHER branch
@@ -1004,7 +1004,7 @@
   font-weight: 560;
   font-size: clamp(1.6rem, 2.6vw, 2.2rem);
   line-height: 1;
-  color: #fff;
+  color: var(--ink);
   opacity: 0.22;
 }
 
@@ -1013,7 +1013,7 @@
   font-weight: 560;
   font-size: clamp(1.5rem, 2.9vw, 2.4rem);
   line-height: 1.02;
-  color: #fff;
+  color: var(--ink);
   max-width: 15ch;
 }
 .ofk-body {
@@ -1039,7 +1039,7 @@
   border-radius: 999px;
   padding: 13px clamp(18px, 2vw, 26px);
   background: #fff;
-  color: #14091f;
+  color: #fbe2ee;
   font-family: var(--body);
   font-size: 0.94rem;
   font-weight: 700;
@@ -1051,13 +1051,13 @@
 .ofk-link {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--ink);
   text-decoration: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.45);
   padding-bottom: 2px;
   transition: border-color 0.3s var(--ease);
 }
-.ofk-link:hover { border-color: #fff; }
+.ofk-link:hover { border-color: var(--ink); }
 
 @media (max-width: 820px) {
   /* stacked: the two branches become two full-width bands, the seam turns

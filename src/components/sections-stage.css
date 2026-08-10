@@ -117,7 +117,7 @@
      no transforms, a fully drawn rule, no spark. InkWord's `reduced` branch
      already renders plain white spans; these rules cover the case where the
      media query flips after mount, before React re-renders. */
-  .ink-word { transform: none !important; opacity: 1 !important; color: #fff !important; }
+  .ink-word { transform: none !important; opacity: 1 !important; color: var(--ink) !important; }
   .manifesto-ink-fill { transform: none !important; }
   .manifesto-ink-head { display: none; }
   .manifesto-media { transform: none !important; opacity: 1 !important; }

@@ -34,7 +34,7 @@
   pointer-events: none;
   background:
     radial-gradient(70% 60% at 50% 0%, rgba(242, 28, 140, 0.09), transparent 70%),
-    linear-gradient(to bottom, rgba(13, 7, 22, 0.86), rgba(13, 7, 22, 0.72) 45%, rgba(13, 7, 22, 0.9));
+    linear-gradient(to bottom, rgba(255, 233, 242, 0.86), rgba(255, 233, 242, 0.72) 45%, rgba(255, 233, 242, 0.9));
 }
 
 .proof-head {
@@ -82,7 +82,7 @@
 /* the three a stranger already knows. Brighter, not bigger — a size jump
    would break the line rhythm and make the other sixteen look like a
    footnote to them. */
-.proof-name.is-anchor { color: #fff; }
+.proof-name.is-anchor { color: var(--ink); }
 .proof-name:hover { color: var(--ink); }
 .proof-name.is-anchor:hover { color: var(--magenta); }
 
@@ -133,7 +133,7 @@
   font-size: clamp(1.9rem, 3.2vw, 2.9rem);
   line-height: 0.9;
   letter-spacing: -0.01em;
-  color: #fff;
+  color: var(--ink);
 }
 .proof-stat-copy { min-width: 0; }
 .proof-label {

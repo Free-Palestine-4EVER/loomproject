@@ -79,18 +79,35 @@
 }
 
 :root {
-  --bg: #0d0716;
-  --bg-2: #120a1f;
-  --bg-3: #1a1029;
-  --ink: #f2f0f7;
-  --ink-dim: #a89fc0;
-  --ink-faint: #857c9e;
+  /* THE GROUND IS ROSE-PLUM, NOT BLUE-VIOLET (10 Aug 2026).
+     Rotated from hue 268 to hue ~322 so the whole page sits in the same
+     temperature as the footer's bloom-sky (#ffe4f0 / rgb(247,176,202) /
+     rgb(196,116,172)) instead of meeting it as a different colour. Same three
+     lightness steps as before, so every panel and scrim keeps its old
+     relationship to the ground.
+     THE 65 HARDCODED COPIES OF --bg WERE MOVED WITH IT — 20 files fade TO
+     this colour by literal rgb(), including three WebGL clear colours. If this
+     is ever retuned again, grep `255, 233, 242` and `#ffe9f2` and move all of
+     them together, or the fades will end on the old blue. */
+  /* BABY PINK GROUND (10 Aug 2026). The site was a dark violet atelier; the
+     client asked for the whole page to sit on the footer's pink instead of
+     meeting it at the bottom. These are the footer sky's own tones.
+     THE INK FLIPS WITH IT — see below. A light ground with the old white ink
+     is an unreadable page, so the two must never be changed apart. */
+  --bg: #ffe9f2;
+  --bg-2: #ffdfec;
+  --bg-3: #f9d2e3;
+  /* paper ink, lifted verbatim from .footer--bloom, which has been the site's
+     one light surface all along and already had these solved against pink */
+  --ink: #33243d;
+  --ink-dim: #4a3652;
+  --ink-faint: #6b5273;
   --magenta: #f21c8c;
   --magenta-deep: #b3126a;
   --violet: #7b2fbe;
   --cyan: #59e6ff;
   --gold: #ffc740;
-  --line: rgba(242, 240, 247, 0.1);
+  --line: rgba(96, 40, 76, 0.18);
 
   /* the four yarns, at the brightness they were actually photographed —
      for wool surfaces and accents only, never for body text */
@@ -160,7 +177,7 @@ body::after {
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-::selection { background: var(--magenta); color: #fff; }
+::selection { background: var(--magenta); color: var(--ink); }
 
 html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
 
@@ -187,7 +204,7 @@ html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
   letter-spacing: 0;
   max-width: 26ch;
 }
-.h2--light { color: #fff; }
+.h2--light { color: var(--ink); }
 /* The bolt banner's claim is a `.h2 .bolt-claim`, but banners.css re-declares
    `font-family: var(--display)` at (0,2,0) from a later stylesheet — a plain
    `.bolt-claim` rule here would lose the cascade. (0,3,0) takes it back
@@ -235,7 +252,7 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   white-space: nowrap;
 }
 .btn--ghost { border-color: rgba(242, 240, 247, 0.25); color: var(--ink); }
-.btn--ghost:hover { border-color: var(--magenta); color: #fff; background: rgba(242, 28, 140, 0.08); }
+.btn--ghost:hover { border-color: var(--magenta); color: var(--ink); background: rgba(242, 28, 140, 0.08); }
 .magnetic { display: inline-block; transition: transform 0.35s var(--ease); }
 /* The pull is driven by pointermove, so a coarse pointer never moves one of
    these at all — promoting them there buys a compositor layer per button
@@ -311,7 +328,7 @@ html.cursor-hot .cursor-ring {
   transition: background 0.45s, padding 0.45s;
 }
 .nav--scrolled {
-  background: rgba(13, 7, 22, 0.72);
+  background: rgba(255, 233, 242, 0.72);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   padding: 10px var(--pad);
@@ -622,7 +639,7 @@ html.cursor-hot .cursor-ring {
        need a near-opaque plate to survive, only enough to keep the smaller
        .hero-sub legible where the clouds are brightest. */
     linear-gradient(100deg, rgba(9,4,16,0.52) 0%, rgba(9,4,16,0.3) 32%, rgba(9,4,16,0.06) 58%, rgba(9,4,16,0) 74%),
-    linear-gradient(180deg, rgba(13,7,22,0.24) 0%, rgba(13,7,22,0) 30%, rgba(13,7,22,0.1) 70%, var(--bg) 100%);
+    linear-gradient(180deg, rgba(255,233,242,0.24) 0%, rgba(255,233,242,0) 30%, rgba(255,233,242,0.1) 70%, var(--bg) 100%);
 }
 /* Same diagonal shape as desktop, just lighter — a phone's viewport is
    narrow enough that the 100deg gradient's dark zone (0-58%) spans nearly
@@ -632,7 +649,7 @@ html.cursor-hot .cursor-ring {
   .hero-vignette {
     background:
       linear-gradient(100deg, rgba(9,4,16,0.5) 0%, rgba(9,4,16,0.34) 32%, rgba(9,4,16,0.08) 58%, rgba(9,4,16,0) 74%),
-      linear-gradient(180deg, rgba(13,7,22,0.3) 0%, rgba(13,7,22,0) 30%, rgba(13,7,22,0.08) 70%, var(--bg) 100%);
+      linear-gradient(180deg, rgba(255,233,242,0.3) 0%, rgba(255,233,242,0) 30%, rgba(255,233,242,0.08) 70%, var(--bg) 100%);
   }
 }
 .hero-type { max-width: 1100px; }
@@ -709,7 +726,7 @@ html.cursor-hot .cursor-ring {
   padding: clamp(5px, 0.75vh, 8px) 0;
   overflow: hidden;
   background:
-    radial-gradient(120% 160% at 50% 50%, rgba(242, 28, 140, 0.10), rgba(18, 10, 31, 0) 62%),
+    radial-gradient(120% 160% at 50% 50%, rgba(242, 28, 140, 0.10), rgba(251, 226, 238, 0) 62%),
     rgba(14, 7, 24, 0.72);
   isolation: isolate;
 }
@@ -777,7 +794,7 @@ html.cursor-hot .cursor-ring {
      keeps the band short. */
   line-height: 0.86;
   padding-block: 0.16em 0;
-  letter-spacing: 0.10em; color: #fff;
+  letter-spacing: 0.10em; color: var(--ink);
   text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 44px; white-space: nowrap;
   /* the track's spacing lives here — see .marquee-track on why gap: 0 there */
@@ -879,7 +896,7 @@ html.cursor-hot .cursor-ring {
 }
 .svc-arrow { font-size: 1.5rem; color: var(--ink-faint); transition: transform 0.5s var(--ease), color 0.3s; }
 .svc.is-open .svc-n { color: var(--magenta); }
-.svc.is-open .svc-title { transform: translateX(14px); color: #fff; }
+.svc.is-open .svc-title { transform: translateX(14px); color: var(--ink); }
 .svc.is-open .svc-arrow { transform: rotate(45deg); color: var(--magenta); }
 .svc-body {
   display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.55s var(--ease);
@@ -932,12 +949,12 @@ html.cursor-hot .cursor-ring {
 .overlay-gallery img.is-loaded { opacity: 1; }
 .case-veil {
   position: absolute; inset: 0; display: grid; place-items: center;
-  background: linear-gradient(180deg, rgba(13, 7, 22, 0.15), rgba(13, 7, 22, 0.6));
+  background: linear-gradient(180deg, rgba(255, 233, 242, 0.15), rgba(255, 233, 242, 0.6));
 }
 .case-veil span {
   font-family: var(--display); font-weight: 560; font-size: 1.1rem;
   border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px; padding: 12px 26px;
-  backdrop-filter: blur(6px); background: rgba(13, 7, 22, 0.35);
+  backdrop-filter: blur(6px); background: rgba(255, 233, 242, 0.35);
 }
 /* `.case-devshow` lived here when the MacBook was a small chip riding on top
    of a cover photo. The device pair IS the thumbnail now, so the rule had
@@ -951,7 +968,7 @@ html.cursor-hot .cursor-ring {
 .case-reel {
   position: absolute; top: 14px; left: 14px; z-index: 2;
   font-size: 0.66rem; font-weight: 800; letter-spacing: 0.18em;
-  color: #fff; background: rgba(242, 28, 140, 0.9);
+  color: var(--ink); background: rgba(242, 28, 140, 0.9);
   border-radius: 999px; padding: 5px 11px;
   box-shadow: 0 4px 18px rgba(242, 28, 140, 0.45);
 }
@@ -994,7 +1011,7 @@ html.cursor-hot .cursor-ring {
 }
 .filter:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
 .filter:hover { border-color: var(--magenta); color: var(--ink); }
-.filter.is-active { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+.filter.is-active { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
 .work-grid {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: clamp(18px, 2.4vw, 34px);
@@ -1008,7 +1025,7 @@ html.cursor-hot .cursor-ring {
 
 /* ——— case overlay ——— */
 .overlay { position: fixed; inset: 0; z-index: 95; }
-.overlay-backdrop { position: absolute; inset: 0; background: rgba(8, 4, 14, 0.8); backdrop-filter: blur(8px); z-index: 0; }
+.overlay-backdrop { position: absolute; inset: 0; background: rgba(255, 238, 245, 0.8); backdrop-filter: blur(8px); z-index: 0; }
 .overlay-panel {
   position: absolute; inset: clamp(8px, 2vh, 28px);
   background: var(--bg-2); border: 1px solid var(--line);
@@ -1021,7 +1038,7 @@ html.cursor-hot .cursor-ring {
   display: flex; justify-content: space-between; align-items: center;
   padding: 14px clamp(16px, 3vw, 34px);
   border-bottom: 1px solid var(--line);
-  background: rgba(13, 7, 22, 0.7); backdrop-filter: blur(10px);
+  background: rgba(255, 233, 242, 0.7); backdrop-filter: blur(10px);
 }
 .overlay-brand { font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); font-weight: 700; }
 .overlay-nav { display: flex; gap: 6px; }
@@ -1031,7 +1048,7 @@ html.cursor-hot .cursor-ring {
   transition: all 0.3s; display: grid; place-items: center;
 }
 .overlay-nav button:hover { border-color: var(--magenta); color: var(--magenta); }
-.overlay-close:hover { background: var(--magenta); color: #fff !important; border-color: var(--magenta) !important; }
+.overlay-close:hover { background: var(--magenta); color: var(--ink) !important; border-color: var(--magenta) !important; }
 .overlay-scroll { overflow-y: auto; overscroll-behavior: contain; flex: 1; }
 .overlay-head { padding: clamp(34px, 6vh, 70px) clamp(20px, 5vw, 70px) 10px; max-width: 1000px; }
 .overlay-scope { color: var(--magenta); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 14px; }
@@ -1092,7 +1109,7 @@ html.cursor-hot .cursor-ring {
 .app-card {
   border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.2);
   padding: clamp(18px, 2.2vw, 26px);
-  background: rgba(26, 16, 41, 0.45);
+  background: rgba(248, 216, 232, 0.45);
   display: flex; flex-direction: column; gap: 16px;
   transition: border-color 0.4s, transform 0.5s var(--ease), box-shadow 0.5s;
   height: 100%;
@@ -1152,7 +1169,7 @@ html.cursor-hot .cursor-ring {
   position: absolute; z-index: 1; overflow: hidden;
   left: 5.71%; top: 2.39%; width: 88.52%; height: 95.19%;
   border-radius: 11.5% / 5.6%;   /* the mockup's own display corner */
-  background: #05030a;           /* nothing shows through the punched-out hole */
+  background: #fff4f9;           /* nothing shows through the punched-out hole */
 }
 /* faint edge-light, top-left, static — one confident highlight rather than
    the sheen sweep below doing all the work by itself */
@@ -1208,7 +1225,7 @@ html.cursor-hot .cursor-ring {
      is the declaration that used to be `hidden`. */
   position: relative; overflow-x: clip;
   margin-top: clamp(30px, 5vh, 60px);
-  background: linear-gradient(180deg, var(--bg) 0%, #150b26 20%, #1b0e2f 55%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, #fadeec 20%, #f7d5e6 55%, var(--bg) 100%);
   border-block: 1px solid var(--line);
   padding-bottom: clamp(60px, 9vh, 110px);
 }
@@ -1228,14 +1245,14 @@ html.cursor-hot .cursor-ring {
   position: relative; overflow: hidden; height: 100%;
   border: 1px solid rgba(242, 240, 247, 0.14); border-radius: var(--radius);
   padding: clamp(22px, 2.8vw, 34px);
-  background: rgba(13, 7, 22, 0.55); backdrop-filter: blur(6px);
+  background: rgba(255, 233, 242, 0.55); backdrop-filter: blur(6px);
   transition: border-color 0.4s, transform 0.5s var(--ease);
 }
 .lab-card:hover { border-color: rgba(89, 230, 255, 0.5); --lift: -6px; }
 .lab-preview-wrap {
   position: relative; z-index: 1;
   border-radius: calc(var(--radius) - 4px); overflow: hidden;
-  border: 1px solid var(--line); background: rgba(8, 4, 14, 0.6);
+  border: 1px solid var(--line); background: rgba(255, 238, 245, 0.6);
   margin-bottom: 18px; aspect-ratio: 16 / 10;
 }
 .lab-preview-wrap > * { width: 100%; height: 100%; }
@@ -1250,7 +1267,7 @@ html.cursor-hot .cursor-ring {
 .lab-real, .app-real {
   position: absolute; top: 10px; right: 10px; z-index: 3;
   font-size: 0.6rem; font-weight: 800; letter-spacing: 0.16em;
-  color: #fff; background: rgba(46, 230, 168, 0.22);
+  color: var(--ink); background: rgba(46, 230, 168, 0.22);
   border: 1px solid rgba(46, 230, 168, 0.55);
   border-radius: 999px; padding: 4px 9px;
   backdrop-filter: blur(4px);
@@ -1296,7 +1313,7 @@ html.cursor-hot .cursor-ring {
 .wizard {
   max-width: 880px; margin: 46px auto 0; text-align: left;
   border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.4);
-  background: linear-gradient(160deg, rgba(26, 16, 41, 0.85), rgba(13, 7, 22, 0.7));
+  background: linear-gradient(160deg, rgba(248, 216, 232, 0.85), rgba(255, 233, 242, 0.7));
   overflow: hidden;
 }
 .wizard-steps {
@@ -1320,7 +1337,7 @@ html.cursor-hot .cursor-ring {
   border: 1px solid var(--line); transition: all 0.3s;
 }
 .wstep.is-now { color: var(--ink); }
-.wstep.is-now i { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+.wstep.is-now i { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
 .wstep.is-done { color: var(--ink-dim); cursor: pointer; }
 .wstep.is-done i { border-color: var(--magenta); color: var(--magenta); }
 .wstep:disabled { cursor: default; }
@@ -1339,7 +1356,7 @@ html.cursor-hot .cursor-ring {
 .wintent {
   text-align: left; border: 1px solid var(--line); border-radius: var(--radius);
   padding: 20px; display: flex; flex-direction: column; gap: 6px;
-  background: rgba(13, 7, 22, 0.5);
+  background: rgba(255, 233, 242, 0.5);
   transition: border-color 0.3s, transform 0.4s var(--ease), background 0.3s;
 }
 .wintent:hover { border-color: var(--magenta); --lift: -4px; background: rgba(242, 28, 140, 0.07); }
@@ -1353,13 +1370,13 @@ html.cursor-hot .cursor-ring {
   border: 1px solid var(--line); color: var(--ink-dim); transition: all 0.25s;
 }
 .wchip:hover { border-color: var(--magenta); color: var(--ink); }
-.wchip.is-on { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+.wchip.is-on { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
 .wform { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0 24px; }
 .wform label { display: flex; flex-direction: column; gap: 7px; }
 .wform label span { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
 .wform input, .wform select, .wform textarea {
   font: inherit; color: var(--ink);
-  background: rgba(13, 7, 22, 0.7);
+  background: rgba(255, 233, 242, 0.7);
   border: 1px solid var(--line); border-radius: 12px;
   padding: 13px 15px; outline: none; transition: border-color 0.3s;
   appearance: none; -webkit-appearance: none;
@@ -1455,7 +1472,7 @@ html.cursor-hot .cursor-ring {
 
 /* ——— site-wide contact modal ——— */
 .wmodal { position: fixed; inset: 0; z-index: 96; display: grid; place-items: center; padding: clamp(10px, 3vh, 40px); }
-.wmodal-backdrop { position: absolute; inset: 0; background: rgba(8, 4, 14, 0.82); backdrop-filter: blur(10px); }
+.wmodal-backdrop { position: absolute; inset: 0; background: rgba(255, 238, 245, 0.82); backdrop-filter: blur(10px); }
 .wmodal-panel {
   position: relative; z-index: 1;
   width: min(940px, 100%); max-height: 92vh;
@@ -1474,7 +1491,7 @@ html.cursor-hot .cursor-ring {
   border-radius: 50%; border: 1px solid var(--line);
   display: grid; place-items: center; transition: all 0.3s;
 }
-.wmodal-close:hover { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+.wmodal-close:hover { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
 .wmodal-scroll { overflow-y: auto; overscroll-behavior: contain; padding: clamp(14px, 2.5vw, 26px); }
 .wmodal-scroll .wizard { margin-top: 0; border: 0; background: none; }
 .wmodal-scroll .wizard-stage { min-height: 320px; padding: clamp(18px, 3vw, 30px) 4px; }
@@ -1513,7 +1530,7 @@ html.cursor-hot .cursor-ring {
 .stats-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
 .stats::after {
   content: ''; position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(180deg, var(--bg) 0%, rgba(13,7,22,0.55) 40%, rgba(13,7,22,0.55) 60%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, rgba(255,233,242,0.55) 40%, rgba(255,233,242,0.55) 60%, var(--bg) 100%);
 }
 .stats-grid {
   position: relative; z-index: 2;
@@ -1537,7 +1554,7 @@ html.cursor-hot .cursor-ring {
 .studio-card {
   border: 1px solid var(--line); border-radius: var(--radius);
   padding: clamp(26px, 4vw, 44px);
-  background: linear-gradient(150deg, rgba(26, 16, 41, 0.8), rgba(18, 10, 31, 0.4));
+  background: linear-gradient(150deg, rgba(248, 216, 232, 0.8), rgba(251, 226, 238, 0.4));
   transition: border-color 0.4s, transform 0.5s var(--ease);
 }
 .studio-card:hover { border-color: rgba(242, 28, 140, 0.45); --lift: -6px; }
@@ -1727,14 +1744,14 @@ html.cursor-hot .cursor-ring {
     radial-gradient(42% 68% at 50% 100%,
       rgba(255, 214, 233, 0.42) 0%,
       rgba(247, 176, 202, 0.24) 38%,
-      rgba(13, 7, 22, 0) 72%),
+      rgba(255, 233, 242, 0) 72%),
     radial-gradient(78% 52% at 50% 100%,
       rgba(232, 150, 196, 0.26) 0%,
       rgba(180, 104, 168, 0.13) 46%,
-      rgba(13, 7, 22, 0) 78%),
+      rgba(255, 233, 242, 0) 78%),
     radial-gradient(34% 40% at 63% 96%,
       rgba(255, 226, 214, 0.2) 0%,
-      rgba(13, 7, 22, 0) 70%);
+      rgba(255, 233, 242, 0) 70%);
 }
 /* the counter-light: a thin warm lip ALONG the join itself, drawn on top of
    the sky's own fade. Without it the dissolve is clean but flat — a horizon
@@ -2013,7 +2030,7 @@ html.cursor-hot .cursor-ring {
   padding: 13px 18px;
   border: 0; border-radius: 999px;
   font: inherit; font-weight: 750; font-size: 0.95rem;
-  color: #fff; cursor: pointer;
+  color: var(--ink); cursor: pointer;
   background: linear-gradient(120deg, #d21f7d, #8d2ea8);
   box-shadow: 0 12px 26px -14px rgba(160, 24, 100, 0.85);
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, filter 0.3s ease;
@@ -2034,7 +2051,7 @@ html.cursor-hot .cursor-ring {
      to 46 on a phone; a tablet is a touch device too and was left at 42. */
   width: 44px; height: 44px;
   border-radius: 50%; cursor: pointer;
-  color: #6d3a63;
+  color: #bea6b1;
   background: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(96, 40, 76, 0.16);
   transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease,
@@ -2056,7 +2073,7 @@ html.cursor-hot .cursor-ring {
   transform: translateX(-50%);
   padding: 3px 9px; border-radius: 999px;
   font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
-  color: #fff; background: #1f8a5b;
+  color: var(--ink); background: #1f8a5b;
   white-space: nowrap; pointer-events: none;
   opacity: 0; transition: opacity 0.25s ease;
 }

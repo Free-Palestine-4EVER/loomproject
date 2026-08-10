@@ -15,7 +15,7 @@ renderer.toneMappingExposure = 1.1
 document.body.appendChild(renderer.domElement)
 
 const scene = new THREE.Scene()
-scene.background = new THREE.Color(num('bg', 0) ? '#1a1029' : '#0d0716')
+scene.background = new THREE.Color(num('bg', 0) ? '#f8d8e8' : '#ffe9f2')
 
 // simple studio env so clearcoat / transmission have something to reflect
 const w = 32, h = 16

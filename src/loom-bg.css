@@ -23,6 +23,32 @@
   background: var(--bg);
 }
 
+/* ——— the rose light ———
+   The footer's bloom-sky is the pinkest surface on the site, and the page
+   above it used to be a different temperature entirely — the join worked only
+   because the footer spends 260px of masked seam dissolving into it.
+
+   This puts the same light over the whole document: two very soft washes in
+   the footer's OWN stop colours (rgba(247,176,202) and rgba(196,116,172),
+   copied rather than re-eyeballed, exactly as .sol-console::before does), one
+   warm from the top and one from the lower right.
+
+   Deliberately weak — 0.10 and 0.055. This is a temperature, not a tint: the
+   body ink is #f2f0f7 and every section on the page was contrast-checked
+   against a near-black ground, so the wash has to stay under the level where
+   it starts lifting the floor. It sits on `.loom-bg`, which is `position:
+   fixed`, so it costs one composited layer for the whole page and scrolls
+   with nothing. */
+.loom-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 78% at 50% -10%, rgba(247, 176, 202, 0.10), rgba(196, 116, 172, 0.045) 45%, transparent 72%),
+    radial-gradient(90% 70% at 88% 108%, rgba(196, 116, 172, 0.055), transparent 68%);
+}
+
 /* ——— warp: the threads on the frame ——— */
 .loom-bg-warp {
   position: absolute;

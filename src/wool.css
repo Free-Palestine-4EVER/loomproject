@@ -176,7 +176,7 @@
   font-family: var(--body);
   font-weight: 750;
   font-size: 1rem;
-  color: #fff;
+  color: var(--ink);
   transition: transform 0.5s var(--wool-spring);
 }
 .wool-btn--css.is-big { padding: 23px 52px; font-size: 1.1rem; }
@@ -399,7 +399,7 @@ button:hover > .wool-icon {
   pointer-events: none;
 }
 .btn--ghost:hover {
-  color: #fff;
+  color: var(--ink);
   background: rgba(214, 36, 126, 0.09);
   transform: translateY(-3px);
   box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.8);

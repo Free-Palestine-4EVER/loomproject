@@ -40,7 +40,7 @@ html.menu-open .flyer-say-layer {
    backdrop blur, which is a fine look over the near-black body of the page and
    falls apart over `#offer`, where `/img/tree/bloom-sky.webp` puts a pale pink
    sky behind it: 14% of a bright background bleeding through lifted the fill
-   from ~#140b22 to ~#342640, and (with the duck fade on top) took the Arabic to
+   from ~#f0e5ea to ~#d6cad0, and (with the duck fade on top) took the Arabic to
    2.09:1. An opaque fill makes the contrast ratio a property of this file alone
    — identical over the pink sky, the near-black sections and the hero — which
    is the only version of this that cannot regress when a section changes its
@@ -54,8 +54,8 @@ html.menu-open .flyer-say-layer {
   padding: 12px 16px 13px;
   border-radius: 16px;
   border: 1px solid rgba(242, 240, 247, 0.22);
-  background: #1a1029;
-  box-shadow: 0 18px 44px rgba(9, 4, 16, 0.55), 0 0 0 1px rgba(155, 85, 201, 0.16);
+  background: #f8d8e8;
+  box-shadow: 0 18px 44px rgba(255, 238, 245, 0.55), 0 0 0 1px rgba(155, 85, 201, 0.16);
   color: var(--ink);
   display: flex;
   flex-direction: column;
@@ -96,7 +96,7 @@ html.menu-open .flyer-say-layer {
   width: 13px;
   height: 13px;
   margin-left: -6.5px;
-  background: #1a1029;
+  background: #f8d8e8;
   border-right: 1px solid rgba(242, 240, 247, 0.22);
   border-bottom: 1px solid rgba(242, 240, 247, 0.22);
   transform: rotate(45deg);

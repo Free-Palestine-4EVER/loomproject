@@ -6,8 +6,8 @@
    ———————————————————————————————————————————————————————————— */
 
 #loom-studio-root {
-  --st-bg: #0d0d0f;
-  --st-bg-2: #16161a;
+  --st-bg: #fdf3f6;
+  --st-bg-2: #f8f1f4;
   --st-line: rgba(255, 255, 255, 0.13);
   --st-ink: #f2f2f0;
   --st-dim: rgba(242, 242, 240, 0.55);
@@ -60,7 +60,7 @@ html.studio-on ::selection { background: rgba(216, 255, 74, 0.3); }
   height: 44px;
   padding: 0 14px 0 11px;
   border-radius: 999px;
-  background: rgba(13, 13, 15, 0.82);
+  background: rgba(253, 243, 246, 0.82);
   backdrop-filter: blur(14px) saturate(1.2);
   -webkit-backdrop-filter: blur(14px) saturate(1.2);
   border: 1px solid var(--st-line);
@@ -88,7 +88,7 @@ html.studio-on ::selection { background: rgba(216, 255, 74, 0.3); }
   padding: 0 4px;
   border-radius: 999px;
   background: var(--st-accent);
-  color: #10110a;
+  color: #fdf5f2;
   font-size: 10px;
   font-style: normal;
   font-weight: 600;
@@ -106,7 +106,7 @@ html.studio-on ::selection { background: rgba(216, 255, 74, 0.3); }
   gap: 10px;
   padding: 7px 9px;
   border-radius: 12px;
-  background: rgba(13, 13, 15, 0.9);
+  background: rgba(253, 243, 246, 0.9);
   backdrop-filter: blur(18px) saturate(1.2);
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
   border: 1px solid var(--st-line);
@@ -172,7 +172,7 @@ html.studio-on ::selection { background: rgba(216, 255, 74, 0.3); }
   pointer-events: none;
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(13, 13, 15, 0.72);
+  background: rgba(253, 243, 246, 0.72);
   border: 1px solid var(--st-line);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -209,7 +209,7 @@ html.studio-on ::selection { background: rgba(216, 255, 74, 0.3); }
   margin-top: 6px;
   padding: 3px 8px;
   border-radius: 999px;
-  background: rgba(13, 13, 15, 0.92);
+  background: rgba(253, 243, 246, 0.92);
   border: 1px solid var(--st-line);
   color: var(--st-dim);
   font-family: ui-sans-serif, system-ui, sans-serif;
@@ -231,14 +231,14 @@ html.studio-on ::selection { background: rgba(216, 255, 74, 0.3); }
   display: grid; place-items: center;
   border-radius: 999px 999px 999px 2px;
   background: var(--st-accent);
-  color: #10110a;
+  color: #fdf5f2;
   font-size: 11px;
   font-weight: 600;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .st-pin:hover { transform: scale(1.15); }
-.st-pin.is-done { background: rgba(255,255,255,0.35); color: #0d0d0f; }
+.st-pin.is-done { background: rgba(255,255,255,0.35); color: #fdf3f6; }
 
 .st-note {
   position: fixed;
@@ -285,7 +285,7 @@ html.studio-on ::selection { background: rgba(216, 255, 74, 0.3); }
   transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
 }
 .st-mini:hover { color: var(--st-ink); border-color: rgba(255,255,255,0.28); }
-.st-mini.is-primary { background: var(--st-accent); border-color: var(--st-accent); color: #10110a; }
+.st-mini.is-primary { background: var(--st-accent); border-color: var(--st-accent); color: #fdf5f2; }
 .st-mini.is-primary:hover { filter: brightness(1.06); }
 .st-mini:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -301,7 +301,7 @@ html.studio-on ::selection { background: rgba(216, 255, 74, 0.3); }
   display: flex;
   flex-direction: column;
   border-radius: 14px;
-  background: rgba(13, 13, 15, 0.94);
+  background: rgba(253, 243, 246, 0.94);
   backdrop-filter: blur(20px) saturate(1.2);
   -webkit-backdrop-filter: blur(20px) saturate(1.2);
   border: 1px solid var(--st-line);
@@ -353,7 +353,7 @@ html.studio-on ::selection { background: rgba(216, 255, 74, 0.3); }
   width: 17px; height: 17px; flex: none;
   display: grid; place-items: center;
   border-radius: 999px;
-  background: var(--st-accent); color: #10110a;
+  background: var(--st-accent); color: #fdf5f2;
   font-size: 10px;
 }
 .st-card-head em { font-style: normal; color: var(--st-dim); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

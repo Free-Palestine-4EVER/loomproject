@@ -515,7 +515,7 @@ export class Companion {
     Object.assign(el.style, {
       position: 'fixed', right: '10px', bottom: '10px', zIndex: '2147483647',
       font: '11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace',
-      color: 'rgba(232,224,255,0.86)', background: 'rgba(13,7,22,0.55)',
+      color: 'rgba(232,224,255,0.86)', background: 'rgba(255,233,242,0.55)',
       padding: '5px 9px', borderRadius: '7px', pointerEvents: 'none',
       letterSpacing: '0.02em', backdropFilter: 'blur(4px)', whiteSpace: 'nowrap',
     })

@@ -36,8 +36,19 @@ html.menu-open .flyer-layer {
    scroll. 0.4 still leaves every letter it crosses fully legible (verified by
    screenshot) while keeping the (freshly rebuilt) woven wings visibly there
    instead of erased. It never fully disappears and never freezes. */
+/* THE DUCK NO LONGER FADES (client, 10 Aug 2026: "make the butterfly always
+   fully visible"). The class is still toggled — `flyer-say.css` and
+   `WhatsAppFab` both read it, and Flyer.jsx's bbox measurement is what
+   publishes `window.__loomFlyerBBox` for QA — so only the opacity is
+   neutralised, not the mechanism.
+
+   THE TRADE, stated plainly because it was measured before: the duck existed
+   because the creature crosses body copy for most of the scroll (24 of 26
+   samples through `#offer` had it true). At full opacity the woven wings now
+   sit over those words instead of behind a 0.45 veil. That is the ask; if
+   legibility ever has to win again, this is the one line to change back. */
 .flyer-layer.is-ducking {
-  opacity: 0.45;
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

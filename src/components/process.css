@@ -195,7 +195,7 @@
   font-weight: 560;
   font-size: clamp(1.05rem, 1.6vw, 1.4rem);
   line-height: 1.05;
-  color: #fff;
+  color: var(--ink);
 }
 .proc-b {
   margin-top: 8px;

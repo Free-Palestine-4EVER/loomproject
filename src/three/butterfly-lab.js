@@ -19,7 +19,7 @@
 //                       freezes the flight profile — nothing animates)
 //   ?a=deg &e=deg &d=units   azimuth / elevation / distance
 //   ?spin=0            stop the turntable
-//   ?bg=#hex           backdrop colour (defaults to the page's #0d0716)
+//   ?bg=#hex           backdrop colour (defaults to the page's #ffe9f2)
 //   ?flight=a|b|c      flight profile (a=Glider, b=Flutter, c=Darter) — same
 //                       registry the real page uses (src/three/flight/),
 //                       persisted to sessionStorage; keys 1/2/3 switch live.
@@ -45,7 +45,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace
 document.body.appendChild(renderer.domElement)
 
 const scene = new THREE.Scene()
-scene.background = new THREE.Color(q.get('bg') || '#0d0716')
+scene.background = new THREE.Color(q.get('bg') || '#ffe9f2')
 
 const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.01, 100)
 const dist = num('d', 3.2)
