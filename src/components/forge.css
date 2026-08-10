@@ -215,76 +215,112 @@
 .fg-close:hover { transform: scale(1.08); background: #fff; }
 
 .fg-body {
+  /* .fg-panel is a flex column with overflow: hidden. Without flex + a
+     min-height reset, a flex child never shrinks below its own content size —
+     so when the content was taller than the panel's max-height, the panel's
+     overflow:hidden just clipped the excess instead of fg-body scrolling to
+     it. This is the actual mechanism behind "Sign in" rendering past the
+     panel bottom with scrollHeight === clientHeight. flex + min-height: 0
+     makes fg-body the one real scroller, so any future overflow is reachable
+     instead of silently invisible. */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
-/* ——— hero ——— */
+/* ——— hero ———
+   Was aspect-ratio 16/9 at full panel width — 427px tall on a 760px-wide
+   desktop panel, on its own more than half the client's reported 810px
+   popup. A pitch does not need a hero that big: capped to a short banner
+   strip via an explicit height + object-fit: cover instead of letting the
+   image dictate its own height from width. */
 
 .fg-hero { position: relative; }
 .fg-hero-img {
   display: block;
   width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
+  height: clamp(78px, 11vw, 132px);
   object-fit: cover;
+  object-position: center 38%;
   background: linear-gradient(150deg, #2a1430 0%, #3a1a44 55%, #241028 100%);
 }
 .fg-hero-ink {
   position: absolute;
   inset: auto 0 0 0;
-  padding: clamp(18px, 3vw, 30px);
-  background: linear-gradient(to top, rgba(26, 10, 30, 0.92), rgba(26, 10, 30, 0.55) 55%, transparent);
+  padding: clamp(10px, 2vw, 18px) clamp(16px, 3vw, 26px);
+  background: linear-gradient(to top, rgba(26, 10, 30, 0.94), rgba(26, 10, 30, 0.6) 60%, transparent);
   color: #f6eef4;
 }
 .fg-kicker {
-  font-size: 0.72rem;
-  letter-spacing: 0.3em;
+  font-size: 0.62rem;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--cyan);
-  margin-bottom: 8px;
+  margin-bottom: 3px;
 }
 .fg-title {
   font-family: var(--display);
-  font-size: clamp(1.5rem, 3.4vw, 2.3rem);
-  line-height: 1;
+  font-size: clamp(1.08rem, 2.6vw, 1.56rem);
+  line-height: 1.04;
   color: #fff;
 }
 
-/* ——— steps ——— */
+/* ——— steps ———
+   Was a 3-column grid with a title AND a full sentence under each number —
+   ~150-160px of the panel on its own. Compressed to one tight, centred row
+   of "01 Send one photo" chips; the full sentence (`fg-step-d`) stays in the
+   DOM for screen readers and find-in-page, just visually clipped, rather
+   than being deleted — the client's own note says this content is fine and
+   it is only the LAYOUT that needed the work. */
 
 .fg-steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(14px, 2vw, 24px);
-  padding: clamp(20px, 3vw, 30px) clamp(18px, 3vw, 30px) 4px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px clamp(14px, 2.6vw, 22px);
+  padding: clamp(10px, 1.8vw, 16px) clamp(18px, 3vw, 30px) 2px;
   list-style: none;
 }
+.fg-steps li { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 .fg-step-n {
   font-family: var(--display);
-  font-size: 0.9rem;
+  font-size: 0.72rem;
   color: var(--magenta);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
 }
 .fg-step-t {
-  font-size: 0.98rem;
+  font-size: 0.82rem;
   color: var(--ink);
-  margin: 6px 0 5px;
   font-weight: 600;
 }
-.fg-step-d { font-size: 0.85rem; line-height: 1.5; color: var(--ink-faint); }
+/* Visually hidden, not display:none — still reachable by a screen reader
+   and by browser find-in-page. */
+.fg-step-d {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 @media (max-width: 620px) {
-  .fg-steps { grid-template-columns: 1fr; gap: 14px; }
+  .fg-steps { flex-direction: column; align-items: center; gap: 4px; }
+  .fg-steps li { white-space: normal; text-align: center; }
 }
 
 /* ——— the working half ——— */
 
 .fg-tool {
-  padding: clamp(18px, 3vw, 30px);
+  padding: clamp(14px, 2.2vw, 22px);
   border-top: 1px solid rgba(51, 36, 61, 0.09);
-  margin-top: clamp(16px, 2.5vw, 24px);
+  margin-top: clamp(8px, 1.4vw, 14px);
 }
 
 .fg-note { color: var(--ink-dim); font-size: 0.92rem; }
@@ -316,19 +352,35 @@
   color: var(--ink-faint);
 }
 
-/* ——— step 1: the pitch ——— */
+/* ——— step 1: the pitch ———
+   This is the whole reason the panel got taller than the viewport: the price
+   line, the button and the sign-in link used to sit under a 427px hero and a
+   160px explainer grid, so by the time the layout reached them there was no
+   room left and they rendered off the bottom of the panel. Hero + steps are
+   now a fraction of that height (see above); what's left is tightened too,
+   and the button itself is pushed up in size/weight so it reads as the one
+   unmistakable thing on the screen rather than just another line of copy. */
 
 .fg-pitch { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .fg-pitch-price {
-  font-size: clamp(1.02rem, 1.6vw, 1.18rem);
-  color: var(--ink);
-  line-height: 1.5;
-  max-width: 42ch;
-  margin: 0 auto 22px;
+  font-size: clamp(0.92rem, 1.3vw, 1.02rem);
+  color: var(--ink-dim);
+  line-height: 1.45;
+  max-width: 38ch;
+  margin: 0 auto 18px;
+}
+.fg-pitch-price strong { color: var(--magenta-deep); font-weight: 700; }
+/* The primary CTA: bigger type, wider hit area, a glow of its own — nothing
+   else on this step competes with it for attention. */
+.fg-pitch .wool-btn { min-width: min(300px, 100%); }
+.fg-pitch .wool-btn--css {
+  padding: 20px 44px;
+  font-size: 1.08rem;
+  box-shadow: 0 18px 40px -16px color-mix(in srgb, var(--magenta) 65%, transparent);
 }
 .fg-pitch-signin {
-  margin-top: 18px;
-  font-size: 0.86rem;
+  margin-top: 14px;
+  font-size: 0.84rem;
   color: var(--ink-faint);
 }
 .fg-pitch-signin .fg-link { color: var(--ink-dim); }
@@ -618,6 +670,14 @@
     max-height: 92vh;
     border-radius: 22px 22px 0 0;
     border-bottom: 0;
+    /* THE HOME INDICATOR. As a bottom sheet this panel's last row sits on the
+       very edge of the viewport — measured, the "Already have an account?
+       Sign in" link ended 14px above it at both 390x667 and 390x844. An iPhone
+       reserves roughly 34px there for the home indicator, so the popup's
+       secondary action was landing underneath it: still inside the viewport by
+       the numbers, and still not tappable in the hand. Pad by the real inset
+       rather than a guessed constant, so a device without one loses nothing. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .fg-close { width: 38px; height: 38px; }
   .fg-qty { grid-template-columns: repeat(2, 1fr); }

@@ -470,7 +470,7 @@ function PitchStep({ onStart, onSignIn }) {
   return (
     <div className="fg-pitch">
       <p className="fg-pitch-price">
-        Make an account and your first model is on us. After that it is {PRICE_JOD} JOD each.
+        Make an account, your first model is free. After that it's <strong>{PRICE_JOD} JOD</strong> each.
       </p>
       <WoolButton label="Start now" onClick={onStart} />
       <p className="fg-pitch-signin">
