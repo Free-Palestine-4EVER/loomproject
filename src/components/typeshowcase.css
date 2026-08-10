@@ -6,6 +6,16 @@
   background:
     radial-gradient(80% 60% at 15% 10%, rgba(242, 28, 140, 0.14), transparent 60%),
     radial-gradient(70% 60% at 85% 90%, rgba(123, 47, 190, 0.18), transparent 62%);
+  /* This section exists to show off LOOM Bloom (see .ts-h2 below), so the
+     10 Aug 2026 "normal lightweight font sitewide" request does not reach in
+     here: --display/--body/--bloom are scoped back to what they were before
+     that change, so nothing in this section moved. The cycling word and the
+     drifting bands never read these tokens anyway (TypeShowcase.jsx sets
+     literal family names inline) — this override is for .ts-h2 and the
+     .ts-band fallback, the two spots in this file that do. */
+  --display: 'Clash Display', 'Avenir Next', sans-serif;
+  --body: 'Satoshi', 'Helvetica Neue', sans-serif;
+  --bloom: var(--bloom-stack);
 }
 
 .ts-sticky {

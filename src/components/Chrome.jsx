@@ -72,13 +72,20 @@ export function ScrollProgress() {
    reader 13,000px back UP; and "Typeface" (/type) sat above "AI Workshops"
    while `TypeShowcase` moved down to the R&D band and `WorkshopsPromo` closes
    the sell band. Verified against the rendered DOM — the long page's ordered
-   ids are (re-verified 10 Aug 2026, after Pricing/Voices/FAQ landed and
-   Process moved up): top, work, process, counter(#solutions), offer,
-   pricing, the-machine, aeo, ai-workshops, apps, lab, mcp,
-   typeface, studio, voices, bolt, faq, contact, hiring. This list is that
-   sequence, filtered to the tabs. #voices has no tab on purpose — a
-   testimonial is not a destination, it is something you scroll past on the
-   way to the form. */
+   ids are (re-verified 10 Aug 2026, after Voices and Process were REMOVED
+   from the page at the client's request): top, work, counter(#solutions),
+   offer, pricing, the-machine, aeo, ai-workshops, apps, mcp,
+   typeface, studio, bolt, faq, contact, hiring. This list is that
+   sequence, filtered to the tabs. Neither #voices nor #process ever had a
+   tab — a testimonial and a "how we work" argument were both things you
+   scrolled past on the way to the form, not destinations — and now neither
+   id resolves on the page at all.
+
+   #lab (ToolsLab, "3D Lab") dropped out of this sequence the same day: it
+   merged into #apps (Suite.jsx) and no longer has its own tab or its own
+   section. Twelve tabs remain, not thirteen — the counts quoted below are
+   from before that merge and still describe the live breakpoint math, since
+   removing one tab only gives the bar more room, never less. */
 const LINKS = [
   { href: '#work', label: 'Work' },
   { href: '#solutions', label: 'Solutions' },
@@ -104,7 +111,11 @@ const LINKS = [
      scroll, which is why the tab does too. */
   { href: '/ai-workshops', label: 'AI Workshops' },
   { href: '#apps', label: 'Apps' },
-  { href: '#lab', label: '3D Lab' },
+  /* AppsShowcase (#apps) and ToolsLab (#lab, "3D Lab") merged into one
+     section — Suite.jsx — on 10 Aug 2026. #lab no longer resolves, so its
+     tab is gone; #apps still resolves to the merged section and keeps its
+     slot. Ten tabs remain in the always-visible/extra split below, so the
+     1100–1360 bar math in the comment above still holds. */
   /* Demoted to `extra` on 10 Aug, when Pricing and FAQ took the list from
      eleven tabs to thirteen. Something had to leave the 1100–1360 bar and
      this is the most niche label on it — a private-beta developer protocol,

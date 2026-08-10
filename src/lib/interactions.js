@@ -70,33 +70,46 @@ function threadTrail() {
   const pts = []
   const MAX = 18
   let mx = -999, my = -999, moving = 0
-  const onMove = (e) => { mx = e.clientX; my = e.clientY; moving = 1 }
+  // MEASURED 10 Aug 2026: this rAF loop used to run forever the instant the
+  // page mounted, whether or not the cursor had ever moved — a full-viewport
+  // clearRect() every frame, unconditionally, for the entire session. A
+  // reader who scrolls with a trackpad/keyboard and never touches the mouse
+  // paid that every frame with nothing on screen to show for it. Now the loop
+  // stops itself the moment the trail is empty and nothing is moving, and a
+  // single mousemove is what wakes it back up.
+  let raf = null
+  const onMove = (e) => {
+    mx = e.clientX; my = e.clientY; moving = 1
+    if (raf == null) raf = requestAnimationFrame(loop)
+  }
   window.addEventListener('mousemove', onMove, { passive: true })
 
-  let raf
-  const loop = () => {
-    raf = requestAnimationFrame(loop)
+  function loop() {
     if (moving) { pts.push({ x: mx, y: my }); if (pts.length > MAX) pts.shift() }
     else if (pts.length) pts.shift()
     ctx.clearRect(0, 0, w, h)
-    if (pts.length < 3) return
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    for (let i = 1; i < pts.length; i++) {
-      const t = i / pts.length
-      ctx.beginPath()
-      ctx.moveTo(pts[i - 1].x, pts[i - 1].y)
-      ctx.lineTo(pts[i].x, pts[i].y)
-      ctx.strokeStyle = `rgba(242, 28, 140, ${(t * 0.5).toFixed(3)})`
-      ctx.lineWidth = t * 2.4
-      ctx.stroke()
+    if (pts.length >= 3) {
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      for (let i = 1; i < pts.length; i++) {
+        const t = i / pts.length
+        ctx.beginPath()
+        ctx.moveTo(pts[i - 1].x, pts[i - 1].y)
+        ctx.lineTo(pts[i].x, pts[i].y)
+        ctx.strokeStyle = `rgba(242, 28, 140, ${(t * 0.5).toFixed(3)})`
+        ctx.lineWidth = t * 2.4
+        ctx.stroke()
+      }
     }
     moving = 0
+    // still shrinking the tail (or a fresh point just landed) -> keep going;
+    // an empty trail with nothing moving has nothing left to animate
+    if (pts.length) raf = requestAnimationFrame(loop)
+    else raf = null
   }
-  raf = requestAnimationFrame(loop)
 
   return () => {
-    cancelAnimationFrame(raf)
+    if (raf != null) cancelAnimationFrame(raf)
     window.removeEventListener('resize', resize)
     window.removeEventListener('mousemove', onMove)
     canvas.remove()

@@ -73,7 +73,7 @@ export function Proof() {
           <source media="(max-width: 767px)" type="image/avif" srcSet="/img/weave-alt-sm.avif" />
           <source media="(max-width: 767px)" type="image/webp" srcSet="/img/weave-alt-sm.webp" />
           <source type="image/avif" srcSet="/img/weave-alt.avif" />
-          <img src="/img/weave-alt.webp" alt="" loading="lazy" />
+          <img src="/img/weave-alt.webp" alt="" loading="lazy" decoding="async" />
         </picture>
       </motion.div>
 

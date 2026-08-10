@@ -1,0 +1,92 @@
+/* Suite — the merged "what we've built" section (#apps). Replaces the old
+   AppsShowcase + ToolsLab pair, which together were the heaviest run on the
+   page. This section is deliberately plain CSS: no backdrop-filter, no large
+   repeated box-shadow blur, no looping animation — six cards on screen at
+   once is exactly the count where those get expensive. */
+
+.suite { padding: clamp(80px, 11vw, 140px) var(--pad); max-width: 1320px; margin: 0 auto; }
+
+.suite-head { max-width: 780px; margin: 0 auto clamp(40px, 6vw, 64px); text-align: left; }
+.suite-h2 { max-width: 22ch; }
+.suite-sub { margin-top: 16px; }
+
+.suite-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 2.2vw, 28px);
+}
+
+.suite-cell { min-width: 0; height: 100%; }
+
+.suite-card {
+  display: flex; flex-direction: column; height: 100%;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.02);
+  overflow: clip;
+  text-decoration: none; color: inherit;
+  /* transform/opacity only — compositor-friendly with six of these on screen */
+  transition: transform 320ms var(--ease), border-color 320ms var(--ease);
+}
+.suite-card:hover { transform: translateY(-4px); border-color: rgba(242, 28, 140, 0.35); }
+.suite-card.is-linked { cursor: pointer; }
+.suite-card:not(.is-linked) { cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  .suite-card { transition: border-color 320ms var(--ease); }
+  .suite-card:hover { transform: none; }
+}
+
+.suite-plate {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 4 / 3;
+  overflow: clip;
+}
+.suite-art { display: block; }
+.suite-art--contain {
+  height: 92%; width: auto; max-width: 74%;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 10px 22px rgba(20, 8, 24, 0.22);
+}
+.suite-art--cover {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0.94;
+}
+.suite-icon {
+  position: absolute; left: 14px; bottom: 14px;
+  width: 40px; height: 40px; border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(20, 8, 24, 0.28);
+}
+
+.suite-body { padding: clamp(18px, 2vw, 24px); display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.suite-toprow { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.suite-name { font-family: var(--display); font-weight: 620; font-size: 1.15rem; letter-spacing: -0.01em; color: var(--ink); }
+.suite-status {
+  flex: none;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+.suite-card.is-linked .suite-status { color: var(--magenta-deep); border-color: rgba(242, 28, 140, 0.4); }
+
+.suite-tag { font-size: 0.8rem; color: var(--ink-faint); letter-spacing: 0.02em; }
+.suite-blurb { font-size: 0.92rem; line-height: 1.55; color: var(--ink-dim); margin-top: 2px; }
+
+.suite-open {
+  margin-top: auto; padding-top: 12px;
+  font-size: 0.82rem; font-weight: 700; color: var(--magenta);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.suite-card.is-linked:hover .suite-open { color: var(--magenta-deep); }
+
+@media (max-width: 980px) {
+  .suite-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .suite-grid { grid-template-columns: 1fr; }
+  .suite-head { text-align: left; }
+}

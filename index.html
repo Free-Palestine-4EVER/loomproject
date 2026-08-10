@@ -12,8 +12,14 @@
     <meta property="og:description" content="We weave brands on the edge of creativity. Amman × Sarajevo." />
     <meta property="og:image" content="/img/og.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preload" href="/fonts/ClashDisplay-Variable.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/Satoshi-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- 10 Aug 2026: body/heading copy sitewide now sets in a system font
+         stack (zero bytes, nothing to preload) except the hero headline,
+         which stays on the studio's drawn face — so the preload budget moves
+         to that: the Daisy "Home" subset (.hero-h1) and the plain cut
+         (.hero-line--accent, the outlined "on the edge"). Clash Display and
+         Satoshi are no longer on the hero's critical path — see styles.css. -->
+    <link rel="preload" href="/fonts/loom-bloom/LOOMBloomDaisy-Home.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/loom-bloom/LOOMBloom-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
 import { Loader, Nav, Cursor, ScrollProgress, Footer } from './components/Chrome.jsx'
-import { Hero, Manifesto, Process, Studios, Contact } from './components/Sections.jsx'
+import { Hero, Manifesto, Studios, Contact } from './components/Sections.jsx'
 import { Proof } from './components/Proof.jsx'
 import { Work } from './components/Work.jsx'
-import { AppsShowcase, ToolsLab } from './components/Products.jsx'
+import { AppsShowcase } from './components/Products.jsx'
 import { LoomMcp } from './components/LoomMcp.jsx'
 import { AnswerEngine } from './components/AnswerEngine.jsx'
 import { Solutions } from './components/Solutions.jsx'
@@ -25,7 +25,6 @@ import { TypeShowcase } from './components/TypeShowcase.jsx'
 import { Workshops } from './components/Workshops.jsx'
 import { WorkshopsPromo } from './components/WorkshopsPromo.jsx'
 import { Pricing } from './components/Pricing.jsx'
-import { Voices } from './components/Voices.jsx'
 import { Faq } from './components/Faq.jsx'
 import { Forge } from './components/Forge.jsx'
 
@@ -253,26 +252,31 @@ export default function App() {
         ) : (
         <>
         {/* ORDER IS A CONVERSION DECISION, NOT A TASTE ONE (reordered 9 Aug
-            2026, extended 10 Aug, reorganised 10 Aug). Five bands; nothing
+            2026, extended 10 Aug, reorganised 10 Aug; Voices and Process
+            REMOVED 10 Aug 2026 at the client's request). Four bands; nothing
             may be inserted without picking one:
 
-              PROOF     hero → client wall → cases → what clients say → who
-                        and where the studio is
-              HOW       the four stations, answering "at that speed?"
+              PROOF     hero → client wall → cases → who and where the
+                        studio is
               QUALIFY   thirty industries (pinned tour) → the fork
               SELL      the floor, then everything buyable
               CAPABLE   what LOOM builds, including for itself
               CLOSE     why → offer → FAQ → contact → careers
 
-            Three rules drove it: nothing that cannot be bought today may sit
-            above something that can; no claim sits above its own evidence;
-            and ALL the evidence goes first. The last one is what the 10 Aug
-            reorganisation was for — Voices and Studios were stranded at slots
-            16 and 15, behind four sections of R&D, which is nobody's idea of
-            where a testimonial belongs. Moving them up also cut the close
-            from seven sections to five, so the form sits nearer the decision.
+            Three rules drove the 10 Aug reorganisation this comment still
+            describes: nothing that cannot be bought today may sit above
+            something that can; no claim sits above its own evidence; and ALL
+            the evidence goes first. Voices (testimonials, `#voices`) and
+            Process (`#process`, the four-station "why AI-native" argument)
+            were both part of that evidence run. Both were removed from the
+            page entirely on 10 Aug 2026 at the client's request — the HOW
+            band that Process alone made up is gone with it, folded into
+            PROOF. Neither component was deleted: `Voices.jsx` / `data/voices.js`
+            and the `Process` export in `Sections.jsx` are still in the tree,
+            mounted by nothing, same treatment as Crew/Ascent/OwnApps/ByResult.
 
-            What moved and why is annotated at each seam below. */}
+            What moved and why (as of the reorganisation that preceded the
+            10 Aug removal) is annotated at each seam below. */}
         <Hero />
         {/* PROOF — one section where Marquee and Stats used to be two.
             The marquee slid the most valuable words on the page (UNICEF,
@@ -286,41 +290,31 @@ export default function App() {
             and two "start here" modules — the visitor was asked to choose a
             service before being shown a single thing LOOM had finished. */}
         <Work />
-        {/* VOICES AND STUDIOS CAME UP HERE (10 Aug 2026 reorganisation).
-            Both were credibility stranded in the close ramp — Voices at slot
-            16, past the Protocol and the typeface, and Studios at 15. A
-            testimonial read after four sections of R&D is addressed to
-            nobody: the visitor who needed convincing left, and the one who
-            didn't has already decided. The page now front-loads every piece
-            of evidence it owns — the names, the work, what clients say, and
-            who and where the studio actually is — before it asks the visitor
-            for anything. It also shortens the close from seven sections to
-            five, which puts the form nearer the decision. */}
-        {/* NOTE the quotes are drafted composites attributed by role, sector
-            and city, never to a named client: data/voices.js explains at
-            length why a drafted quote under a real logo is the one thing on
-            this page that could cost LOOM a client. */}
-        <Voices />
+        {/* Voices (testimonials, `#voices`) used to sit here, brought up in
+            the 10 Aug 2026 reorganisation for the same reason Studios was:
+            evidence belongs before the ask, not after four sections of R&D.
+            REMOVED FROM THE PAGE on 10 Aug 2026, later the same day, at the
+            client's request. `components/Voices.jsx` and `data/voices.js`
+            are still in the tree, mounted by nothing — same treatment as
+            Crew/Ascent/OwnApps/ByResult. `#voices` no longer resolves. */}
         {/* STUDIOS WENT BACK DOWN (10 Aug 2026, later the same day). Bringing
             it up here with Voices was right about the reason and wrong about
             the slot: "who and where we are" is not evidence of the same kind
-            as a client list, a case study or a quote, and dropping it into
-            the middle of that run broke the one adjacency the section below
-            actually depends on. Process's own comment claims it sits
-            "directly under the case studies" — with Studios wedged in front
-            of it, that had stopped being true. It now sits in the close,
-            where an about-us answers a question the visitor has by then
-            started asking. */}
-        {/* Process came UP from the CLOSE band (10 Aug 2026). It is the
-            "why AI-native" argument — brief, weave, craft, perform — and as
-            the last thing before Contact it was answering a question the
-            visitor had already stopped asking. Directly under the case
-            studies it does the job it is actually for: the reader has just
-            seen work that should not have been possible at that speed, and
-            this is the paragraph that says how. Note this is the ONE claim
-            allowed above its evidence, and only because the evidence is the
-            section immediately above it. */}
-        <Process />
+            as a client list or a case study, and dropping it into the middle
+            of that run broke an adjacency Process depended on at the time
+            (Process has since been removed too — see below). It now sits in
+            the close, where an about-us answers a question the visitor has
+            by then started asking. */}
+        {/* Process (`#process`, the four-station "why AI-native" argument —
+            brief, weave, craft, perform) used to sit here, having come UP
+            from the CLOSE band on 10 Aug 2026 to sit directly under the case
+            studies it was arguing for. REMOVED FROM THE PAGE on 10 Aug 2026,
+            later the same day, at the client's request — it was the entire
+            HOW band, which is why that band is gone from the ORDER comment
+            above rather than left describing nothing. The `Process` export
+            in `components/Sections.jsx` is untouched and still exported,
+            mounted by nothing. `#process` no longer resolves and never had a
+            nav tab to clean up. */}
         {/* QUALIFY. Now that the proof has landed, the visitor places
             themselves: eight needs, then the fork ("I have a business" / "I
             have an idea"), then their own industry. Three self-selection
@@ -368,8 +362,8 @@ export default function App() {
             immediately above CAPABLE on purpose. Last, because the band is
             ranked by what LOOM wants sold and a 2 JOD self-serve tool does
             not outrank a subscription; immediately above CAPABLE, because
-            ToolsLab (#lab, the 3D Lab) is the section directly under it and
-            this is that lab with a price on it.
+            AppsShowcase (#apps) is the section directly under it and this is
+            that lab with a price on it.
 
             It is a SMALL band by instruction — the pitch and the price only.
             Every interactive step lives in the popup it owns, which also
@@ -377,10 +371,25 @@ export default function App() {
             funnel is not split across both. */}
         <Forge />
         {/* CAPABLE — everything that answers "can they actually build it?"
-            rather than "what am I buying?". Shipped work first, then tools,
-            then the things that are honestly not for sale yet. */}
+            rather than "what am I buying?". AppsShowcase (#apps, seven app
+            cards) and ToolsLab (#lab, the 3D Lab) MERGED into one section,
+            "Suite", on 10 Aug 2026 at the client's instruction: the old pair
+            was the heaviest run on the page — dozens of images plus
+            AppScreens' live animated device mockups, all painting whether or
+            not anyone scrolled to it. The client then REJECTED Suite's flat
+            card-grid design the same day ("not designed... make it change on
+            scroll like it used to do"), so `AppsShowcase` in
+            `components/Products.jsx` was rebuilt: same six honest items from
+            `data/suite.js`, but back to the scroll-driven "one product centre
+            stage, an icon rail of tabs" design — WITHOUT AppScreens' live
+            mockups or the old per-app shot cycle, since SUITE only ever
+            carries one image per item. Only ONE of the six is publicly
+            downloadable today (Quran Noor) — see data/suite.js for why the
+            rest carry a status instead of a store badge.
+            `components/Suite.jsx` + `suite.css` are still in the tree,
+            mounted by nothing — same treatment as OwnApps, ByResult and
+            Agents. `#lab` no longer resolves and its nav tab is gone. */}
         <AppsShowcase />
-        <ToolsLab />
         {/* OwnApps ("We build our own products too" — four in-development
             iOS apps) was REMOVED FROM THE PAGE on 10 Aug 2026 at the client's
             request. `components/OwnApps.jsx` and its CSS are still in the

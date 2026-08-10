@@ -9,7 +9,9 @@ import { MachineChat, useMachineLang } from './MachineChat.jsx'
 import { useWizard } from '../lib/wizard.jsx'
 import { ThreadDivider } from './Rich.jsx'
 import { WoolButton, WoolIcon } from './Wool.jsx'
+import { hasWebGL } from '../three/webglSupport.js'
 import './sections-stage.css'
+import './hero-fallback.css'
 import './process.css'
 import './stats.css'
 import './studios.css'
@@ -21,6 +23,13 @@ export function Hero() {
   const mobilePlanetRef = useRef(null)
   const reduced = useReducedMotion()
   const [coarse, setCoarse] = useState(false)
+  // Computed once, synchronously, in the SAME render that first paints —
+  // not in an effect — so a no-WebGL visitor's fallback class is present in
+  // the very first commit and there is nothing for a later render to flip.
+  // A real-WebGL visitor gets `noGL === false` forever; the fallback markup
+  // below stays `display:none` for the whole session and is never the thing
+  // that flashes before the canvas paints.
+  const [noGL] = useState(() => !hasWebGL())
 
   useEffect(() => {
     const mq = window.matchMedia('(pointer: coarse)')
@@ -66,7 +75,11 @@ export function Hero() {
   // readers never download it at all: the .hero-canvas-wrap gradient is already
   // the whole picture for them.
   useEffect(() => {
-    if (reduced) return
+    // `noGL` covers BOTH the visitor who genuinely has no WebGL (GPU disabled,
+    // sandboxed, an ancient WebView) and the one whose `new THREE.WebGLRenderer`
+    // call would throw for some other reason the probe already caught — either
+    // way .hero-static-planet (below) is carrying the subject instead.
+    if (reduced || noGL) return
     // ONE WebGL context on touch devices. iOS Safari kills the whole tab when
     // GPU memory runs out — no error, no recovery — and the page-wide companion
     // layer is already a context, and running this one alongside it is what was
@@ -121,7 +134,7 @@ export function Hero() {
 
     // unmounted before the chunk landed -> nothing was ever wired up
     return () => { cancelled = true; if (teardown) teardown() }
-  }, [reduced])
+  }, [reduced, noGL])
 
   const { scrollYProgress } = useScroll({ target: wrapRef, offset: ['start start', 'end start'] })
   const yType = useTransform(scrollYProgress, [0, 1], ['0%', reduced ? '0%' : '38%'])
@@ -150,6 +163,22 @@ export function Hero() {
             silently kill the parallax the instant the page loaded */}
         <div className="hero-canvas-bg" />
         <canvas ref={canvasRef} className="hero-canvas" />
+        {/* Desktop/laptop stand-in for the WebGL planet, for the two cases the
+            live canvas above never paints on a `pointer: fine` device: no
+            WebGL context could be created at all (`noGL`, see webglSupport.js
+            — the effect above bails before ever constructing PlanetField), or
+            the reader asked for reduced motion (the effect bails on that too,
+            deliberately — PlanetField is never fetched at all for them, so
+            there is nothing to renderOnce() from). Same subject art the WebGL
+            canvas would have textured onto its billboard, so a visitor who
+            flips a setting or comes back with acceleration on sees the same
+            planet, just now animated. `is-visible` is decided in the SAME
+            render that first paints (see the `noGL` useState above) — never
+            in a later effect — so a WebGL visitor's copy of this element is
+            `display:none` from the first frame and is never what flashes. */}
+        <div className={`hero-static-planet${(reduced || noGL) ? ' is-visible' : ''}`} aria-hidden="true">
+          <div className="hero-static-planet-inner" />
+        </div>
         {/* Touch-only stand-in for the WebGL planet (Sections.jsx:31 never
             gives touch devices that context). Two nested layers so the
             scroll-driven scale (JS, this element) and the ambient float

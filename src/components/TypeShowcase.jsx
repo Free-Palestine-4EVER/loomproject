@@ -23,15 +23,19 @@ import './typeshowcase.css'
 
 const WORD = 'BLOOM'
 
+// Home-page use only ever sets the literal word "BLOOM" (plus, for Rose, the
+// drifting cut-name band below) in these faces, so each points at the glyph
+// SUBSET built for that — 10-70 KB instead of 110-337 KB. /type still imports
+// its own CUTS with the full family names; nothing there reads this array.
 const CUTS = [
   { id: 'regular', label: 'Regular', family: 'LOOM Bloom', note: 'the face itself' },
-  { id: 'rose', label: 'Rose', family: 'LOOM Bloom Rose', note: 'a millefleur of spiral roses' },
-  { id: 'daisy', label: 'Daisy', family: 'LOOM Bloom Daisy', note: 'packed open daisies' },
-  { id: 'tulip', label: 'Tulip', family: 'LOOM Bloom Tulip', note: 'three-lobed tulip cups' },
-  { id: 'ivy', label: 'Ivy', family: 'LOOM Bloom Ivy', note: 'a Morris vine, no bloom' },
-  { id: 'wild', label: 'Wild', family: 'LOOM Bloom Wild', note: 'six species, overhanging' },
-  { id: 'hollow', label: 'Hollow', family: 'LOOM Bloom Hollow', note: 'the letter as an outline' },
-  { id: 'meadow', label: 'Meadow', family: 'LOOM Bloom Meadow', note: 'flowers up from the baseline' },
+  { id: 'rose', label: 'Rose', family: 'LOOM Bloom Rose Home', note: 'a millefleur of spiral roses' },
+  { id: 'daisy', label: 'Daisy', family: 'LOOM Bloom Daisy Home', note: 'packed open daisies' },
+  { id: 'tulip', label: 'Tulip', family: 'LOOM Bloom Tulip Home', note: 'three-lobed tulip cups' },
+  { id: 'ivy', label: 'Ivy', family: 'LOOM Bloom Ivy Home', note: 'a Morris vine, no bloom' },
+  { id: 'wild', label: 'Wild', family: 'LOOM Bloom Wild Home', note: 'six species, overhanging' },
+  { id: 'hollow', label: 'Hollow', family: 'LOOM Bloom Hollow Home', note: 'the letter as an outline' },
+  { id: 'meadow', label: 'Meadow', family: 'LOOM Bloom Meadow Home', note: 'flowers up from the baseline' },
 ]
 
 // The planted cuts share the scroll between them, so this file never hard-codes
@@ -208,7 +212,7 @@ function Act({ layout, narrow }) {
           <motion.div className="ts-band" style={{ x: reduced ? 0 : bandX, fontFamily: near ? 'LOOM Bloom' : undefined }}>
             ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789
           </motion.div>
-          <motion.div className="ts-band ts-band--low" style={{ x: reduced ? 0 : band2X, fontFamily: onScreen ? 'LOOM Bloom Rose' : undefined }}>
+          <motion.div className="ts-band ts-band--low" style={{ x: reduced ? 0 : band2X, fontFamily: onScreen ? 'LOOM Bloom Rose Home' : undefined }}>
             ROSE ✿ DAISY ❀ TULIP ❦ IVY ✿ ROSE ❀ DAISY
           </motion.div>
         </div>

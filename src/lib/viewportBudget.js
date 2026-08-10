@@ -72,6 +72,15 @@ const LOOP_HOSTS = [
   '.stg-stage',    // the products stage (sui-blink and friends)
   '.dk',           // the 3D-lab deck previews
   '.wtile',        // Selected Work mosaic tiles
+  // MEASURED 10 Aug 2026, playwright fps profile: these two were never hosted
+  // at all, so document.getAnimations() still reported them `running` after
+  // scrolling to the bottom of the page — full sessions spent, hero and
+  // studios both long off-screen.
+  '.hero',         // hero-bg-drift + hero-bg-breathe (hero-canvas-bg), the
+                    // static-planet float and the mobile-planet float, and
+                    // .hero-scrollhint's `drip` — everything alive in the
+                    // hero lives under this one section, .hero
+  '.studios',       // studios-arc-pulse riding the dashed arc (offset-distance)
 ].join(', ')
 
 function animationBudget() {

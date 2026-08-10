@@ -23,7 +23,13 @@
 import * as THREE from 'three'
 import { releaseRenderer } from './glContext.js'
 
-const PLANET_MAP = '/img/hero/planet.webp'
+// AVIF first (38% smaller than the webp at matched quality — 221 KB vs
+// 354 KB), webp as the fallback for the rare browser that can construct a
+// WebGL context but not decode AVIF into an <img>. TextureLoader's onError
+// covers that without a feature-detect: if the AVIF request fails to decode,
+// it just loads the webp next.
+const PLANET_MAP = '/img/hero/planet.avif'
+const PLANET_MAP_FALLBACK = '/img/hero/planet.webp'
 
 // The site's own palette — styles.css :root, not a new set of colours.
 const MAGENTA = new THREE.Color('#b3126a')
@@ -96,7 +102,7 @@ export class PlanetField {
     this.planet.position.copy(this.planetHome)
     this.scene.add(this.planet)
 
-    new THREE.TextureLoader().load(PLANET_MAP, (t) => {
+    const onPlanetTexture = (t) => {
       if (this.disposed) { t.dispose(); return }
       t.colorSpace = THREE.SRGBColorSpace
       t.anisotropy = Math.min(4, this.renderer.capabilities.getMaxAnisotropy())
@@ -104,6 +110,10 @@ export class PlanetField {
       this.planetMat.needsUpdate = true
       this.disposables.push(t)
       this.planetFade = 0
+    }
+    new THREE.TextureLoader().load(PLANET_MAP, onPlanetTexture, undefined, () => {
+      if (this.disposed) return
+      new THREE.TextureLoader().load(PLANET_MAP_FALLBACK, onPlanetTexture)
     })
 
     // ── motes. The only particles in the scene; they read as dust in the

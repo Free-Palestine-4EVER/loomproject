@@ -818,7 +818,7 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
                     panel taller than its scroll box, and a lazy image has no
                     height until it loads — so it never entered view, never
                     loaded, and the overlay could not be scrolled at all. */}
-                <img src={src} alt={`${c.client} — feature visual ${i + 1}`} ref={imgFade} onLoad={onImgLoad} />
+                <img src={src} alt={`${c.client} — feature visual ${i + 1}`} decoding="async" ref={imgFade} onLoad={onImgLoad} />
               </motion.figure>
             ))}
             {c.boards.map((src, i) => (
@@ -828,7 +828,7 @@ function CaseOverlay({ c, onClose, onPrev, onNext }) {
                 viewport={{ once: true, margin: '-5% 0px' }}
                 transition={{ duration: 0.7, ease: EASE }}
               >
-                <img src={src} alt={`${c.client} — case board ${i + 1}`} ref={imgFade} onLoad={onImgLoad} />
+                <img src={src} alt={`${c.client} — case board ${i + 1}`} decoding="async" ref={imgFade} onLoad={onImgLoad} />
               </motion.figure>
             ))}
           </div>

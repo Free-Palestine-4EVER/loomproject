@@ -285,14 +285,27 @@ function ServerCard({ s, i }) {
           of the server's own accent underneath, so a missing or still-loading
           render reads as a coloured plate rather than as a broken box. */}
       <motion.div className="mcp-plate" variants={row}>
+        {/* The photography finally exists (10 Aug 2026) — this section shipped
+            its redesign before it did, which is why every plate rendered as
+            just the dyed gradient below and the six files 404'd in production.
+            AVIF first, then WebP, in BOTH the phone and the desktop branch:
+            one <source> per format per breakpoint, since a browser takes the
+            first <source> whose media AND type it can use. Width/height are
+            the real encoded dimensions, so the plate reserves its box before
+            the bytes land instead of reflowing the unit beside it. */}
         <picture>
-          <source media="(max-width: 720px)" srcSet={`/img/mcp/${s.photo}-sm.webp`} />
+          <source media="(max-width: 720px)" type="image/avif" srcSet={`/img/mcp/${s.photo}-sm.avif`} />
+          <source media="(max-width: 720px)" type="image/webp" srcSet={`/img/mcp/${s.photo}-sm.webp`} />
+          <source type="image/avif" srcSet={`/img/mcp/${s.photo}.avif`} />
           <img
             className="mcp-plate-img"
             src={`/img/mcp/${s.photo}.webp`}
             alt=""
+            width={900}
+            height={502}
             loading="lazy"
             decoding="async"
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
         </picture>
         <span className="mcp-plate-n" aria-hidden="true">{s.n}</span>

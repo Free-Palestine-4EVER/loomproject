@@ -101,7 +101,17 @@ if (lamp) lamp.position.set(1.1, 1.2, 1.8)
 
 flyer.flap.setEffectiveWeight(num('flap', 1))
 if (q.has('phase')) {
-  flyer.flap.time = num('phase', 0) * flyer.flap.getClip().duration
+  // `frozen` (below) skips mixer.update() every frame so the turntable holds
+  // still — but mixer.update() is also the ONLY thing that ever calls
+  // bf.update(), which is what actually poses the wing hinges from flap.time.
+  // Setting flap.time alone left the model sitting at whatever pose
+  // createButterfly() constructs it in (wings at rest/fully spread) no matter
+  // what ?phase asked for. Bake the requested pose once here by calling
+  // mixer.update with a dt that lands flap.time exactly on the target instead
+  // of advancing it further.
+  const target = num('phase', 0) * flyer.flap.getClip().duration
+  flyer.flap.time = 0
+  flyer.mixer.update(target / flyer.flap.timeScale)
 }
 
 let meshN = 0, triN = 0

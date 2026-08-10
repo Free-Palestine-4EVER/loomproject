@@ -78,6 +78,58 @@
   font-display: swap;
 }
 
+/* "Home" cuts — glyph subsets of the seven planted faces above, carrying only
+   the characters the HOME PAGE actually sets in them (the hero headline in
+   Daisy, the cycling "BLOOM" word in every cut, and Rose's drifting cut-name
+   band). Separate family names, separate files — /type and its ZIP still ship
+   and reference the full 108–337 KB faces untouched; only the decorative home
+   page use points here. Rebuild with the fontTools.subset invocation recorded
+   in scripts/subset-bloom-home.mjs if the hero copy or the cycling word ever
+   changes — a missing glyph falls back to the OS sans, not to tofu, so a stale
+   subset shows up as an unstyled letter, not a crash. */
+@font-face {
+  font-family: 'LOOM Bloom Rose Home';
+  src: url('/fonts/loom-bloom/LOOMBloomRose-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Daisy Home';
+  src: url('/fonts/loom-bloom/LOOMBloomDaisy-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Tulip Home';
+  src: url('/fonts/loom-bloom/LOOMBloomTulip-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Ivy Home';
+  src: url('/fonts/loom-bloom/LOOMBloomIvy-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Wild Home';
+  src: url('/fonts/loom-bloom/LOOMBloomWild-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Hollow Home';
+  src: url('/fonts/loom-bloom/LOOMBloomHollow-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Meadow Home';
+  src: url('/fonts/loom-bloom/LOOMBloomMeadow-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
   /* THE GROUND IS ROSE-PLUM, NOT BLUE-VIOLET (10 Aug 2026).
      Rotated from hue 268 to hue ~322 so the whole page sits in the same
@@ -141,18 +193,40 @@
   --cyan-ink: #10627a;
   --felt: url('/img/wool/tex/felt-dark.webp');
 
-  --display: 'Clash Display', 'Avenir Next', sans-serif;
-  --body: 'Satoshi', 'Helvetica Neue', sans-serif;
-  /* Headings are set in the studio's own face. Clash Display stays in the
-     stack behind it: LOOM Bloom is 67 glyphs, so anything it does not draw
-     (→ … × · ٱ the whole Arabic block) falls through to Clash rather than to
-     a system serif. See the coverage note above .h2. */
-  --bloom: 'LOOM Bloom', 'Clash Display', 'Avenir Next', sans-serif;
+  /* CLIENT REQUEST (10 Aug 2026): "normal lightweight" font everywhere except
+     the hero. A system stack is the fastest, truest answer to "lightweight" —
+     it downloads zero bytes and never blocks first paint, and per CLAUDE.md
+     nothing here fetches a font from a CDN, so a Google Fonts link was never
+     an option. --display/--body/--bloom now resolve here by default; the
+     three places that must keep the drawn LOOM faces (.hero's headline,
+     #typeface, /type) redefine these same custom properties locally — see
+     the overrides in typeshowcase.css's `.ts` and typeface.css's `.tf`, and
+     `.hero` below for the outlined accent line. Custom properties resolve at
+     point of use, so nothing downstream (.h2, .ts-h2, .tf-h2, …) has to
+     change: it just inherits whichever value is in scope. */
+  --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --display: var(--font-system);
+  --body: var(--font-system);
+  /* Was 'LOOM Bloom', 'Clash Display', 'Avenir Next', sans-serif — the drawn
+     face is now scoped to the three places that still show it off (see the
+     note above); everywhere else var(--bloom) is a plain heading, so it
+     takes the same system stack as --display. */
+  --bloom: var(--font-system);
+  /* kept for the record: the studio's own drawn face, still referenced by
+     the scoped overrides below and reused verbatim there so there is exactly
+     one place this string is typed. */
+  --bloom-stack: 'LOOM Bloom', 'Clash Display', 'Avenir Next', sans-serif;
   /* The planted cut the hero is set in. All five cuts share ONE cmap (161
      codepoints, 98 glyphs — verified against the woff2s, not assumed) and one
      metric set, so Daisy → Bloom → Clash can never break a line mid-word: the
      three faces are interchangeable character for character. */
-  --bloom-daisy: 'LOOM Bloom Daisy', 'LOOM Bloom', 'Clash Display', 'Avenir Next', sans-serif;
+  /* The hero headline is the only unconditional (non-gated) use of a planted
+     cut, so it gets the glyph-subset "Home" face — 32 KB instead of 110 KB —
+     covering exactly "We weave brands / on the edge / of creativity." + BLOOM.
+     'LOOM Bloom Daisy' stays out of the stack on purpose: a fallback to it
+     would silently fetch the full 110 KB face the moment any character isn't
+     in the subset, defeating the point. */
+  --bloom-daisy: 'LOOM Bloom Daisy Home', 'Clash Display', 'Avenir Next', sans-serif;
   --pad: clamp(20px, 5vw, 96px);
   --radius: 18px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -520,6 +594,13 @@ html.cursor-hot .cursor-ring {
   display: grid; align-items: end;
   padding: 118px var(--pad) clamp(60px, 10vh, 110px);
   overflow: clip;
+  /* The client asked for the hero to keep the custom face. .hero-h1 itself
+     is already set in var(--bloom-daisy), untouched by the sitewide swap
+     above — but .hero-line--accent (the outlined "on the edge") is set in
+     var(--bloom) directly, which is now the system stack by default. Scope
+     it back to the drawn face so the headline's outline half doesn't switch
+     fonts out from under its filled half. */
+  --bloom: var(--bloom-stack);
 }
 /* Desktop gets more than 100svh so the planet has room to be a subject rather
    than a thing peeking in at the edge — on a 900px-tall laptop the hero was
@@ -568,16 +649,33 @@ html.cursor-hot .cursor-ring {
    breathe instead, so both animations run without fighting each other. */
 .hero-canvas-bg {
   position: absolute; inset: -8%;
-  background: url('/img/hero/bg-desktop.webp') no-repeat center / cover, var(--bg);
-  /* oversized (-8% inset) so the drift+breathe below never uncovers an edge */
-  animation: hero-bg-drift 22s ease-in-out infinite alternate,
-             hero-bg-breathe 9s ease-in-out infinite;
+  background: var(--bg);
+  /* oversized (-8% inset) so the breathe below never uncovers an edge */
+  animation: hero-bg-breathe 9s ease-in-out infinite;
 }
-/* the pan — was 48%->53% (a barely-there 5% shift over 26s); wide enough now
-   to actually read as clouds moving, not just a rounding error */
+/* MEASURED 10 Aug 2026 (playwright fps profile of the live site): this used
+   to be ONE element, with the pan driven by animating `background-position`
+   directly on it. `background-position` is not a compositor property — every
+   tick has to repaint the layer, and this layer is the full hero viewport,
+   oversized. Moved the photo (and the pan) onto this ::before instead, so the
+   pan is now a `transform: translate3d` — compositor-only, same as the
+   breathe scale on the parent — and the two can run independently without
+   fighting over the `transform` property (see the .hero-canvas-wrap comment
+   above for why sharing one property across two authorities is the failure
+   mode already fixed once here). Oversized further than the parent's own -8%
+   (-15% here) so the added translate range never uncovers an edge either. */
+.hero-canvas-bg::before {
+  content: '';
+  position: absolute; inset: -15%;
+  background: url('/img/hero/bg-desktop.webp') no-repeat center / cover;
+  animation: hero-bg-drift 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+/* the pan — was a background-position shift; same read (clouds slowly
+   drifting), now a translate so it stays on the compositor */
 @keyframes hero-bg-drift {
-  0% { background-position: 38% 34%; }
-  100% { background-position: 62% 66%; }
+  0% { transform: translate3d(-2.4%, -2%, 0); }
+  100% { transform: translate3d(2.4%, 2%, 0); }
 }
 /* the pulse — independent of scroll, so the hero is alive the instant it
    paints instead of waiting for the reader to scroll before anything moves */
@@ -586,7 +684,7 @@ html.cursor-hot .cursor-ring {
   50% { transform: scale(1.045); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-canvas-bg { animation: none; }
+  .hero-canvas-bg, .hero-canvas-bg::before { animation: none; }
 }
 .hero-canvas {
   width: 100%; height: 100%; display: block;
@@ -595,7 +693,7 @@ html.cursor-hot .cursor-ring {
   filter: drop-shadow(0 0 60px rgba(255, 200, 230, 0.35));
 }
 @media (max-width: 767px) {
-  .hero-canvas-bg { background-image: url('/img/hero/bg-mobile.webp'); }
+  .hero-canvas-bg::before { background-image: url('/img/hero/bg-mobile.webp'); }
 }
 /* Touch devices are never given the hero's WebGL context — one context per
    page is what stopped iPhones dying (Sections.jsx:31) — so the planet arrives
@@ -656,23 +754,49 @@ html.cursor-hot .cursor-ring {
   background:
     /* the copy lives on the left — a real photo behind it needs a scrim a
        flat dark background never did, or the headline loses to the clouds.
-       Pulled well back from the original 0.86: at that weight the scrim was
-       not protecting the headline, it was hiding the photograph we paid to
-       shoot. The headline is 7rem at 580 weight on its own line — it does not
-       need a near-opaque plate to survive, only enough to keep the smaller
-       .hero-sub legible where the clouds are brightest. */
-    linear-gradient(100deg, rgba(9,4,16,0.52) 0%, rgba(9,4,16,0.3) 32%, rgba(9,4,16,0.06) 58%, rgba(9,4,16,0) 74%),
-    linear-gradient(180deg, rgba(255,233,242,0.24) 0%, rgba(255,233,242,0) 30%, rgba(255,233,242,0.1) 70%, var(--bg) 100%);
+       This diagonal is pulled WAY back from both its original 0.86 and its
+       most recent 0.52: measured against the actual rendered photo (see the
+       radial note below), darkening this diagonal further does NOT help
+       .hero-sub/.hero-eyebrow — their text is DARK ink (--ink/--ink-dim), so
+       a darker scrim drags the backdrop's luminance down toward the text's
+       own, which *shrinks* the contrast ratio instead of growing it. 0.15 is
+       roughly the top of the range that still measures the strongest AA
+       margin; past here contrast falls in a straight line, down to ~3.1:1 at
+       the old 0.52.
+       The pale-pink 180deg wash that used to sit here (fading to an OPAQUE
+       var(--bg) band across the bottom) is gone outright — the client called
+       it out on both counts: a visible rectangular overlay at the hero's
+       foot, and a milky cast over the photo everywhere else.
+       In its place is a small radial — not a wash, a soft pool centred
+       behind the copy column only, sized to the eyebrow+headline+sub block
+       and nowhere near the photo's right two-thirds (the planet, the trees)
+       or its bottom edge, so it reads as light gathered behind the type
+       rather than a cast over the shot. Because the text is dark ink, this
+       one has to LIGHTEN the backdrop, not darken it — confirmed by sampling
+       the exact rendered pixels behind .hero-sub/.hero-eyebrow (opacity
+       toggled to 0 to expose the true backdrop, glyphs excluded) across the
+       full width of the background-pan cycle: worst case lands at 5.0:1
+       (.hero-sub) / 6.3:1 (.hero-eyebrow) on desktop, both clear of the
+       4.5:1 AA floor for body text. */
+    linear-gradient(100deg, rgba(9,4,16,0.15) 0%, rgba(9,4,16,0.086) 32%, rgba(9,4,16,0.017) 58%, rgba(9,4,16,0) 74%),
+    radial-gradient(55% 85% at 20% 60%, rgba(255,240,247,0.22) 0%, rgba(255,240,247,0) 72%);
 }
 /* Same diagonal shape as desktop, just lighter — a phone's viewport is
    narrow enough that the 100deg gradient's dark zone (0-58%) spans nearly
    the full width instead of just the left third, so it was reading as a
-   flat black screen rather than a scrim behind the copy. */
+   flat black screen rather than a scrim behind the copy.
+   The radial is repositioned/resized for the phone layout, where the copy is
+   the TOP row (not bottom-left) — centred over the eyebrow+headline+sub
+   stack, still nowhere near the planet row underneath. 0.22 (desktop's
+   figure) only cleared .hero-sub by 0.01:1 here — too close to the floor to
+   trust against render noise — so the phone radial runs at 0.3. Measured
+   worst case at that value: 5.0:1 (.hero-sub) / 5.3:1 (.hero-eyebrow) at
+   390px, both clear of AA with real margin. */
 @media (max-width: 767px) {
   .hero-vignette {
     background:
-      linear-gradient(100deg, rgba(9,4,16,0.5) 0%, rgba(9,4,16,0.34) 32%, rgba(9,4,16,0.08) 58%, rgba(9,4,16,0) 74%),
-      linear-gradient(180deg, rgba(255,233,242,0.3) 0%, rgba(255,233,242,0) 30%, rgba(255,233,242,0.08) 70%, var(--bg) 100%);
+      linear-gradient(100deg, rgba(9,4,16,0.15) 0%, rgba(9,4,16,0.102) 32%, rgba(9,4,16,0.024) 58%, rgba(9,4,16,0) 74%),
+      radial-gradient(85% 55% at 38% 55%, rgba(255,240,247,0.3) 0%, rgba(255,240,247,0) 72%);
   }
 }
 .hero-type { max-width: 1100px; }

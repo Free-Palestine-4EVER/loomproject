@@ -3,6 +3,17 @@
 .tf {
   --tf-max: 1320px;
   padding-top: clamp(92px, 11vw, 150px);
+  /* /type is the specimen and download page for LOOM Bloom — "every sample
+     here is set in the real font" (top of file). The 10 Aug 2026 "normal
+     lightweight font sitewide" request explicitly leaves this route alone
+     (CLAUDE.md), so --display/--body/--bloom are scoped back to their
+     pre-change values for the whole page: the elements that already set a
+     literal 'LOOM Bloom…' family are unaffected either way, but .tf-h2 and
+     .tf-anat h3 read var(--display) directly and would otherwise flip to the
+     system stack along with the rest of the site. */
+  --display: 'Clash Display', 'Avenir Next', sans-serif;
+  --body: 'Satoshi', 'Helvetica Neue', sans-serif;
+  --bloom: var(--bloom-stack);
 }
 
 /* ——————————————————————————————————————— hero */

@@ -188,6 +188,25 @@ function damp(cur, target, rate, dt) {
   return dt > 0 ? THREE.MathUtils.damp(cur, target, rate, dt) : target
 }
 
+// PERF (10 Aug 2026 audit): a real yield to a browser-reported idle window,
+// not just a microtask tick. `await loadButterfly()` in _load() below used
+// to look like a yield but isn't a useful one — loadButterfly() resolves
+// near-instantly (butterflyAsset.js: `return { procedural: true }`), so the
+// continuation (`new THREE.Box3()...`, `createButterfly()` — 20 meshes, a
+// painted canvas texture, ~42k triangles) ran in practice back-to-back with
+// whatever task called `new Companion()` in the first place. Flyer.jsx
+// already defers ITS OWN trigger to idle time (see its `bootIdle`), but a
+// second yield here means the heavy synchronous build never lands in the
+// same task as Companion's own construction (renderer/scene/lights setup)
+// either — two separate opportunities for the browser to paint/handle input
+// between "Companion() was called" and "the model actually gets built".
+function idleYield(timeout = 500) {
+  return new Promise((resolve) => {
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(() => resolve(), { timeout })
+    else setTimeout(resolve, 0)
+  })
+}
+
 // Is this a device that cannot afford a full-fat GL context?
 //
 // This is deliberately NOT `innerWidth < 768`, which is the LAYOUT breakpoint
@@ -368,9 +387,53 @@ export class Companion {
     try {
       const gltf = await loadButterfly()
       if (this.disposed) return
+      // See idleYield()'s comment above: a real yield, not just the
+      // near-instant microtask `await loadButterfly()` already provides, so
+      // the heavy synchronous build below always starts in idle time.
+      await idleYield()
+      if (this.disposed) return
       this.flyer = prepFlyer(gltf, { tint: ORCHID, scale: this.baseScale })
       this.scene.add(this.flyer.root)
       this._advance(0)
+      // PERF (10 Aug 2026 audit): measured with instrumentation — building
+      // the model (createButterfly + prepFlyer) is cheap, ~10-20ms. The
+      // multi-second block the audit found is WebGL SHADER COMPILATION for
+      // the wing membrane material's custom (onBeforeCompile-injected) vertex
+      // shader, and it happens on whichever frame first renders a mesh using
+      // that material — which, because Flyer.jsx's own lock/unlock
+      // MutationObserver can call start() before the model even finishes
+      // loading, is effectively "the very next animation frame", wherever
+      // that happens to land. `renderer.compile()` forces that same
+      // compilation HERE instead, synchronously but as its own isolated
+      // step, already inside the idle-yielded _load() continuation — so the
+      // first frame that actually reaches the live render loop with the
+      // model in it is cheap (shaders already warm), rather than paying the
+      // full compile cost inside a frame that might land mid-scroll.
+      // Doesn't shrink the total compile time (it's WebGL's, not ours) —
+      // moves WHEN it happens off the live per-frame path.
+      //
+      // ...and then `compileAsync` shrinks it anyway. The synchronous
+      // `compile()` above was itself the 1373ms long task the profiler kept
+      // pointing at: it does the link/validate on the main thread and blocks
+      // until the driver is done. `compileAsync` (three r152+, and we are on
+      // r171) drives the SAME work through `KHR_parallel_shader_compile`,
+      // which lets the driver link on its own thread while it polls
+      // COMPLETION_STATUS_KHR — the wall-clock cost is similar but it is no
+      // longer STOLEN FROM THE MAIN THREAD, which is the only part a reader
+      // can feel. Awaited, so `start()` still runs with the shaders warm.
+      //
+      // Falls back cleanly: three resolves immediately on drivers without the
+      // extension, so the worst case is exactly the old behaviour. Guarded
+      // because a lost context mid-compile rejects rather than throwing
+      // synchronously, and an unhandled rejection here would kill the flyer
+      // for no reason.
+      if (typeof this.renderer.compileAsync === 'function') {
+        try { await this.renderer.compileAsync(this.scene, this.camera) }
+        catch { this.renderer.compile(this.scene, this.camera) }
+      } else {
+        this.renderer.compile(this.scene, this.camera)
+      }
+      if (this.disposed) return
       if (this.reduced) this.renderOnce()
       else this.start()
     } catch (e) {

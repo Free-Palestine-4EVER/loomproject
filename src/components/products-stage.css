@@ -1,56 +1,43 @@
 /* ————————————————————————————————————————————————————————————————
-   products-stage.css — the two LOOM-product sections.
+   products-stage.css — `#apps`, "THE STAGE".
 
-   Owned by Products.jsx, and it owns BOTH sections:
+   One product centre stage, an icon rail of real tabs switching what is on
+   it. The client rejected the flat six-card grid `suite.css` shipped
+   ("not designed... make it change on scroll like it used to do"), so this
+   restores the OLD AppsShowcase design — re-plumbed onto SUITE's six items
+   (Products.jsx) instead of the old seven-app roster.
 
-     #apps  "THE STAGE" — one phone centre stage, an icon rail of real tabs
-            switching what is on it, and a 2-second beat cycling the captures
-            of whichever app is on the phone.
-     #lab   "THE DECK"  — the six in-house tools as application windows on a
-            scroll-driven 3D turntable; the section pins for its own height
-            and scroll POSITION picks the module.
+   PERFORMANCE CONTRACT, carried over from the design this replaces:
 
-   PERFORMANCE CONTRACT — this file is the reason both sections replaced the
-   old ones, so it is stated here rather than in a commit message:
-
-     · Nothing loops unconditionally. The deck's motes are gated on the deck
-       being on screen (`.is-live`), the console caret only exists while the
-       console is typing, and the phone's shot cycle is a single interval that
-       is only created for an app that actually has more than one capture.
+     · Nothing loops unconditionally. There is no shot-cycle interval and no
+       motes layer left in this version — SUITE items carry one image each,
+       so there is nothing to cycle.
      · Only `transform`, `opacity` and colour are animated. No `filter: blur`
        on any element with children, no canvas, no backdrop-filter.
-     · The stage's images are all in the DOM once and only crossfade —
-       switching an app or a capture never changes layout, so no reflow, ever.
-     · The deck's six cards are positioned by ONE transform each, written
-       straight to the node from a rAF-throttled scroll listener. No React
-       re-render moves a card.
+     · Only the SELECTED item's image is ever in the DOM (Products.jsx keys
+       it on `item.key`), so switching never crossfades six pre-loaded
+       images — it swaps one DOM node and plays one entrance animation.
 
-   Class prefixes are `stg-` (apps stage) and `dk-` (tools deck), chosen so
-   nothing here can collide with the `.app-card` / `.lab-card` rules still
-   sitting in styles.css from the previous design. `.dl-*` chips still come
-   from products-showcase.css, which Products.jsx still imports; `.sui-console`
-   / `.sui-get` / `.sui-caret` survive from the old suite window because the
-   deck's info column still files its blurb as a terminal line.
+   `#lab` / the old "THE DECK" turntable is gone — its whole ruleset (`.dk-*`)
+   was removed with it rather than kept dead, since nothing references those
+   classes any more. `git show` on this file's earlier revision is the way
+   back if the deck is ever wanted again.
    ———————————————————————————————————————————————————————————————— */
 
-.apps,
-.lab {
-  /* both sections carry soft washes that bleed past their own box; without
-     this a narrow viewport reads that bleed as real horizontal scroll */
-  overflow-x: clip;
-}
+.apps { overflow-x: clip; }
 
 /* ═══════════════════════════════════════════════════════════════
-   THE ICON — shared by both sections' rails and lists.
+   THE ICON — the rail and the identity row both use it.
 
-   Five apps ship a real icon file (public/img/apps/*-icon.webp, exported from
-   each project's own AppIcon asset). The two that don't are drawn here from
-   the fields site.js already carries: `grad` (the colour pair) and `glyph`
-   (a 24×24 stroke path). Flat gradient squircle, one inset highlight, one
-   stroked glyph — no image request, no filter, no pseudo-3D.
+   Four of the six items ship a real icon file (public/img/suite/*-icon.webp).
+   2D3D and KUN don't — they're desktop tools, not app-store products with a
+   square glyph — so those fall back to a gradient squircle carrying the
+   product's own initial. Flat gradient, one inset highlight, one letter — no
+   image request, no filter, no pseudo-3D.
    ═══════════════════════════════════════════════════════════════ */
 .pi {
-  display: block; position: relative; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; flex: none;
   border-radius: 23%; overflow: hidden;
   background: linear-gradient(146deg, var(--g1), var(--g2));
   box-shadow:
@@ -62,18 +49,17 @@
   content: ''; position: absolute; inset: 0; border-radius: inherit;
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 46%);
 }
-.pi svg {
-  position: absolute; inset: 0; margin: auto; width: 52%; height: 52%;
-  stroke: #fff; stroke-width: 1.9; fill: none;
-  stroke-linecap: round; stroke-linejoin: round;
-  opacity: 0.96; z-index: 2;
+.pi em {
+  position: relative; z-index: 2; font-style: normal;
+  font-family: var(--display); font-weight: 700;
+  font-size: 52%; color: #fff; opacity: 0.96; line-height: 1;
 }
 .pi img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pi--photo::after { background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 50%); }
 
-/* The distribution chip. Only two products have a public channel; rather than
-   invent a status for the other five, the badge falls back to the platform —
-   which is a fact rather than a claim. */
+/* The status chip. Every SUITE item states its own status honestly (see
+   data/suite.js) rather than a store badge that might 404 — the two "real"
+   ones (App Store / TestFlight) get their accent colour, the rest sit dim. */
 .pstore {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--display); font-weight: 560;
@@ -82,17 +68,14 @@
   border: 1px solid rgba(242, 240, 247, 0.18); color: var(--ink-dim);
 }
 .pstore i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex: none; }
-/* The BORDER keeps the bright status colour; the LABEL does not. These three
-   were mint / gold / cyan straight, which read on the old violet ground and
-   lands at 1.2-1.3:1 on the pink one. The badge still colour-codes at a
-   glance — the ring and the dot carry that — while the word stays readable. */
-.pstore[data-s='App Store'] { color: #17694b; border-color: rgba(46, 230, 168, 0.55); }
+/* the BORDER keeps the bright status colour; the LABEL does not, so the
+   badge still colour-codes at a glance while the word stays readable */
+.pstore[data-s='On the App Store'] { color: #17694b; border-color: rgba(46, 230, 168, 0.55); }
 .pstore[data-s='TestFlight'] { color: #7a5410; border-color: rgba(255, 199, 64, 0.55); }
-/* the "these are not mockups" claim, per product, where the claim is made */
-.pstore--real { color: #145f75; border-color: rgba(89, 230, 255, 0.6); }
+.pstore[data-s='Submitted'] { color: #145f75; border-color: rgba(89, 230, 255, 0.6); }
+.pstore[data-s='Built — in review'] { color: #145f75; border-color: rgba(89, 230, 255, 0.4); }
 
-/* This file's own visually-hidden helper — there is no global one, and
-   `.sol-sr-only` belongs to solutions.css. */
+/* This file's own visually-hidden helper — there is no global one. */
 .p-sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
@@ -100,13 +83,13 @@
 
 /* ═══════════════════════════════════════════════════════════════
    #apps · THE STAGE
-   rail (tabs) | copy (.stg-info) | phones (.stg-panel)
+   rail (tabs) | copy (.stg-info) | imagery (.stg-panel)
    Identity sits beside the rail; the imagery is the right-hand column.
    ═══════════════════════════════════════════════════════════════ */
-/* ——— the scroll timeline. One viewport to read the stage in, plus 0.62 of one
-   per app to travel through; `--steps` comes from JSX (APPS.length − 1), so
-   adding a product lengthens the timeline on its own. The card itself is
-   unchanged — it is simply held still by a sticky parent while the page
+/* ——— the scroll timeline. One viewport to read the stage in, plus 0.62 of
+   one per item to travel through; `--steps` comes from JSX (SUITE.length -
+   1), so adding a product lengthens the timeline on its own. The card itself
+   is unchanged — it is simply held still by a sticky parent while the page
    scrolls past it, and Products.jsx reads how far in the reader is.
 
    Below 761px wide or 620px tall the whole mechanism folds flat: the track
@@ -121,29 +104,23 @@
   min-height: 100vh;
   display: grid; align-content: center;
 }
-.stg-scroll--flat,
-.stg-scroll--flat .stg-pin { height: auto; min-height: 0; position: static; }
+.stg-scroll--flat { height: auto; }
+.stg-scroll--flat .stg-pin { position: static; height: auto; min-height: 0; padding-block: clamp(40px, 6vh, 80px); }
 /* THE OTHER HALF OF `STAGE_PIN` in Products.jsx — same rule, stated for the
    layout. Edit both or neither: a driver that believes it is pinned, over a
-   track that is `position: static`, walks an index nobody is looking at.
-   Unpin only when the viewport genuinely cannot hold the stage — any short
-   viewport, or a phone under 760px tall. A normal phone DOES pin now, so
-   scrolling the section walks the seven products instead of showing one card
-   that never changes. */
+   track that is `position: static`, walks an index nobody is looking at. */
 @media (max-height: 619px), (max-width: 760px) and (max-height: 759px) {
   .stg-scroll, .stg-pin { height: auto; min-height: 0; position: static; }
 }
 /* svh, not vh, on the phone track: vh freezes at the tallest layout viewport,
-   so a URL bar sliding away mid-scroll would leave the last product with less
-   travel than the six before it. */
+   so a URL bar sliding away mid-scroll would leave the last product with
+   less travel than the five before it. */
 @media (max-width: 760px) and (min-height: 760px) {
   .stg-scroll { height: calc(100svh + var(--steps) * 55svh); }
   .stg-pin { min-height: 100svh; }
 }
 
 .stg {
-  --spring: linear(0, .0088 1.1%, .0346 2.3%, .1442 4.9%, .7688 14.2%, .9202 16.7%, 1.0139 19.3%,
-    1.0498 21.9%, 1.0546 24.7%, 1.0338 28.2%, .9994 32.6%, .9895 37.3%, .9994 44.2%, 1.0026 55.3%, 1);
   position: relative; isolation: isolate;
   margin: clamp(26px, 4vh, 46px) var(--pad) 0;
   display: grid; grid-template-columns: auto minmax(0, 1fr);
@@ -153,10 +130,12 @@
   padding: clamp(20px, 2.6vw, 36px);
   overflow: hidden;
 }
-/* the card's own light, in the SELECTED app's colours (`--g1`/`--g2` are set
-   inline from site.js). Two pools and a floor: a wash behind the device, a
-   cooler one behind the copy, and an elliptical pool the device stands in so
-   it isn't floating on a flat rectangle. Only the colour transitions. */
+/* the card's own light, in the SELECTED item's colours (`--g1`/`--g2` are
+   set inline from suite.js). Two pools and a floor: a wash behind the
+   device, a cooler one behind the copy, and an elliptical pool the device
+   stands in so it isn't floating on a flat rectangle. Only colour
+   transitions, and it is the ONE thing here allowed to be slow, since it is
+   a `background` cross-fade behind everything else, not a per-frame paint. */
 .stg-aura {
   position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
@@ -171,12 +150,10 @@
   background: linear-gradient(90deg, transparent, rgba(242, 240, 247, 0.14) 26%, rgba(242, 240, 247, 0.14) 74%, transparent);
 }
 /* ——— the tabpanel: identity LEFT, imagery RIGHT ———
-   The client's order, and the order the markup is written in, so DOM order and
-   visual order agree — there is no `order` property anywhere in this file.
-   The copy takes the flexible track (it is text, it reflows); the phones take
-   an auto track whose width `.stg-panel` states outright, because a percentage
-   width inside a content-sized track is circular and is what once resolved the
-   device to zero. */
+   The client's order, and the order the markup is written in, so DOM order
+   and visual order agree — there is no `order` property anywhere in this
+   file. The copy takes the flexible track (it is text, it reflows); the
+   imagery takes an auto track whose width `.stg-panel` states outright. */
 .stg-stage {
   min-width: 0;
   display: grid;
@@ -185,16 +162,13 @@
   gap: clamp(20px, 3vw, 48px);
 }
 .stg-panel { min-width: 0; width: clamp(200px, 26vw, 300px); }
-/* the fan needs half again the width of a single device — three phones
-   overlapping by a quarter each */
-.stg-panel--fan { width: clamp(280px, 38vw, 470px); }
 
 /* ——— the rail: a real tablist, vertical on desktop ——— */
 .stg-rail { display: flex; flex-direction: column; gap: 12px; }
 .stg-rail button {
   position: relative; padding: 0; border: 0; background: none; cursor: pointer;
   border-radius: 19px; flex: none;
-  transition: transform 0.45s var(--spring);
+  transition: transform 0.3s var(--ease);
 }
 .stg-rail .pi { width: clamp(46px, 4.2vw, 58px); aspect-ratio: 1; opacity: 0.5; transition: opacity 0.35s var(--ease); }
 .stg-rail button:hover .pi { opacity: 0.85; }
@@ -209,22 +183,16 @@
 }
 .stg-rail button[aria-selected='true']::before { height: 26px; margin-top: -13px; }
 
-/* ——— the device ———
-   The real iPhone 14 Pro mockup the site already ships
-   (public/img/devices/iphone-frame.png, keyed to alpha by
-   scripts/make-device-frames.mjs). Every number below is measured from that
-   PNG — 900 × 1813, display at 5.71% / 2.39% / 88.52% / 95.19% — the same
-   four numbers styles.css uses for .app-screen. One device on the page. */
-.stg-phone-wrap { display: grid; place-items: center; min-width: 0; }
-/* A VIEWPORT width, not `width:100%; max-width:…`. Below 1080px the panel
-   becomes a single centred column, which makes the phone's grid area
-   content-sized — and a percentage width against a content-sized area is
-   circular, so the device resolved to zero and vanished on a phone. A clamp
-   in vw is always definite. */
+/* ——— the device: a portrait phone capture (Evora Scan, Quran Noor, KwaKwa,
+   Ellie) inside the site's own iPhone 14 Pro mockup
+   (public/img/devices/iphone-frame.png). Every number below is measured from
+   that PNG — 900 x 1813, display at 5.71% / 2.39% / 88.52% / 95.19%. One
+   device on the page, one image in it — no crossfade, no cycle. ——— */
 .stg-phone {
   position: relative; width: clamp(190px, 46vw, 264px);
-  aspect-ratio: 900 / 1813;
+  aspect-ratio: 900 / 1813; margin: 0 auto;
   filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.6)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  animation: stg-in 0.5s var(--ease) both;
 }
 .stg-glass {
   position: absolute; z-index: 1; overflow: hidden;
@@ -235,130 +203,33 @@
 .stg-glass img {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; object-position: 50% 0;
-  opacity: 0; transition: opacity 0.38s linear;
 }
-.stg-glass img.is-on { opacity: 1; }
+.stg-glass img.is-contain { object-fit: contain; }
 .stg-frame {
   position: absolute; inset: 0; z-index: 5;
   width: 100%; height: 100%; object-fit: fill;
   pointer-events: none; user-select: none;
 }
-/* ——— the unframed device: the three-up fan ———
-   For an app whose images are rendered mockups (KwaKwa), the frame and the
-   glass above are not rendered at all — each render carries its own phone on a
-   transparent background — and all three are on stage together.
 
-   They OVERLAP rather than sitting in a row: three separate phones at full
-   width would each be a third the size and the screens would stop being
-   readable. Overlapping by a quarter puts the middle one in front at full
-   size, with the outer two behind it, lower and turned slightly out — the
-   pose the renders were already composed in.
-
-   The shadow is a `filter` on each image rather than a box-shadow on its box:
-   the subject is a tilted phone, not a rectangle, and a box-shadow would draw
-   the silhouette of the transparent padding instead of the phone. */
-.stg-fan {
-  /* every phone in the SAME grid cell, so the overlap is real overlap and not
-     three flex tracks fighting for a third of the column each — that version
-     rendered each phone at a third the width and the screens stopped being
-     readable at any size */
-  display: grid; place-items: center;
-  grid-template-areas: 'fan';
-  width: 100%;
-  animation: stg-fan-in 0.6s var(--ease) both;
+/* ——— the wide plate: a desktop capture (2D3D, KUN) that was never shot for
+   a phone screen, so it gets its own panel instead of being crammed behind
+   the iPhone glass. Same gradient-plate idea `suite.css` used, sized to sit
+   in the same column the phone occupies. ——— */
+.stg-wide {
+  position: relative; width: 100%; max-width: 300px;
+  aspect-ratio: 16 / 9; margin: 0 auto;
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(242, 240, 247, 0.14);
+  box-shadow: 0 22px 40px -14px rgba(0, 0, 0, 0.6);
+  animation: stg-in 0.5s var(--ease) both;
 }
-@keyframes stg-fan-in {
-  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+.stg-wide img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0.96;
+}
+@keyframes stg-in {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
   to { opacity: 1; transform: none; }
-}
-.stg-mock {
-  grid-area: fan; position: relative;
-  width: 52%; aspect-ratio: 460 / 790;
-  transition: transform 0.5s var(--ease);
-}
-/* `>` on purpose: in a FRAMED fan the slot's images live inside .stg-glass and
-   .stg-frame, which draw their own shadow and set their own object-fit — a
-   descendant selector would put a drop-shadow filter on every screen capture
-   and re-fit it to `contain` inside the glass. */
-.stg-mock > img {
-  display: block; width: 100%; height: 100%; object-fit: contain;
-  filter: drop-shadow(0 26px 34px rgba(0, 0, 0, 0.55)) drop-shadow(0 5px 12px rgba(0, 0, 0, 0.4));
-}
-
-/* ——— the framed fan ———
-   The same three-slot composition, but each slot holds the site's own iPhone
-   frame with a flat capture behind its glass. The slot is the phone's own
-   aspect ratio (the render canvas is a different one), and the phone fills the
-   slot rather than carrying its stand-alone clamp. */
-.stg-fan--framed .stg-mock {
-  /* the phone's own ratio, not the render canvas's — and narrower than the
-     rendered fan, because a framed phone is a taller subject: at 52% the
-     hero's frame swallowed the two crops behind it and the set read as one
-     phone with debris either side */
-  aspect-ratio: 900 / 1813; width: 48%;
-}
-.stg-fan--framed .stg-phone {
-  width: 100%;
-  filter: drop-shadow(0 20px 34px rgba(0, 0, 0, 0.58)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
-}
-/* pushed further out and a little smaller than the rendered fan, so each crop
-   keeps enough of its own screen to be read as a different screen */
-.stg-fan--framed .stg-mock:nth-child(1) { transform: translate(-56%, 6%) rotate(-4deg) scale(0.8); }
-.stg-fan--framed .stg-mock:nth-child(3) { transform: translate(56%, 6%) rotate(4deg) scale(0.8); }
-.stg-fan--framed:hover .stg-mock:nth-child(1) { transform: translate(-60%, 3%) rotate(-6deg) scale(0.82); }
-.stg-fan--framed:hover .stg-mock:nth-child(3) { transform: translate(60%, 3%) rotate(6deg) scale(0.82); }
-/* the two behind sit back in the light as well as in space — one flat scrim
-   per glass, no blur, no extra element */
-.stg-fan--framed .stg-mock:nth-child(1) .stg-glass::after,
-.stg-fan--framed .stg-mock:nth-child(3) .stg-glass::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: #ffeef5; opacity: 0.3;
-}
-/* Placeholder crops — see `padded` in Products.jsx. Only ever applied to a
-   slot that was filled from another slot's picture: the outer two frame the
-   top and the bottom of the same screen while the hero shows it whole, so the
-   trio reads as a composition instead of as one image printed three times.
-   The moment real per-slot captures land in site.js, `padded` is false and
-   these never match. */
-.stg-glass img[data-crop='a'] { transform: scale(1.34) translateY(-12.5%); }
-.stg-glass img[data-crop='c'] { transform: scale(1.34) translateY(12.5%); }
-/* Explicit per-child rules rather than a `--i` + `abs()` expression: `abs()`
-   is Chrome 133 / Safari 18, and a browser without it would drop the whole
-   transform and stack all three phones dead centre. */
-.stg-mock:nth-child(1) { z-index: 1; transform: translate(-45%, 5%) rotate(-4deg) scale(0.86); }
-.stg-mock:nth-child(2) { z-index: 3; transform: none; }
-.stg-mock:nth-child(3) { z-index: 1; transform: translate(45%, 5%) rotate(4deg) scale(0.86); }
-/* the fan opens a little under the pointer — the only hover in this section,
-   and it is one transform on three elements */
-.stg-fan:hover .stg-mock:nth-child(1) { transform: translate(-49%, 2%) rotate(-6deg) scale(0.88); }
-.stg-fan:hover .stg-mock:nth-child(3) { transform: translate(49%, 2%) rotate(6deg) scale(0.88); }
-.stg-fan:hover .stg-mock:nth-child(2) { transform: translateY(-6px); }
-
-/* the beat, made visible: one pip per capture of the app on the phone, so the
-   reader knows the screen is going to change before it does. Sits INSIDE the
-   glass, under the frame, on the home-indicator line. */
-.stg-pips {
-  position: absolute; z-index: 4; left: 0; right: 0; bottom: 2.2%;
-  display: flex; justify-content: center; gap: 6px; pointer-events: none;
-}
-.stg-pips i {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: rgba(255, 236, 244, 0.28);
-  transition: background 0.35s var(--ease), transform 0.35s var(--ease);
-}
-.stg-pips i[data-on='true'] { background: rgba(255, 236, 244, 0.72); transform: scale(1.3); }
-/* the one app with no capture gets a stated panel, not a hole */
-.stg-noshot {
-  position: absolute; inset: 0; z-index: 2;
-  display: none; flex-direction: column; align-items: center; justify-content: center;
-  gap: 16px; padding: 22px; text-align: center;
-  background: radial-gradient(120% 90% at 50% 0%, rgba(123, 47, 190, 0.5), transparent 70%), var(--bg-3);
-}
-.stg-noshot.is-on { display: flex; }
-.stg-noshot .pi { width: 66px; aspect-ratio: 1; }
-.stg-noshot p {
-  font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-dim); line-height: 1.7;
 }
 
 /* ——— the copy beside it ——— */
@@ -369,14 +240,19 @@
   font-family: var(--display); font-weight: 620;
   font-size: clamp(1.5rem, 2.6vw, 2rem); letter-spacing: -0.015em; line-height: 1.05;
 }
-.stg-info .stg-ar { font-size: 1.05rem; color: var(--ink-dim); margin-top: 3px; }
 .stg-info .stg-tag {
   font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--magenta); margin-top: 12px;
 }
 .stg-info .stg-blurb { color: var(--ink-dim); line-height: 1.66; margin-top: 14px; font-size: 0.95rem; }
 .stg-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
-.stg-info .dl-row { margin-top: 18px; }
+/* the one real link in the section — Quran Noor only, see Products.jsx */
+.stg-open {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 14px; font-size: 0.85rem; font-weight: 700; color: var(--magenta);
+  transition: color 0.25s var(--ease);
+}
+.stg-open:hover { color: var(--magenta-deep, var(--magenta)); }
 .stg-count {
   position: relative;
   font-family: var(--display); font-weight: 620;
@@ -384,7 +260,7 @@
   margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line);
 }
 .stg-count b { color: var(--ink); font-weight: 620; }
-/* how far through the seven the scroll has carried the stage */
+/* how far through the six the scroll has carried the stage */
 .stg-count i {
   position: absolute; left: 0; top: -1px; height: 2px; width: var(--w, 0%);
   background: linear-gradient(90deg, var(--magenta), var(--cyan));
@@ -393,15 +269,14 @@
 
 @media (max-width: 1080px) {
   .stg { grid-template-columns: auto minmax(0, 1fr); }
-  /* the two columns stack IDENTITY FIRST, imagery second — the same order they
-     are read in side by side, and the order the markup is already in, so the
-     stack costs no `order` and no re-ordering for the keyboard */
+  /* the two columns stack IDENTITY FIRST, imagery second — the same order
+     they are read in side by side, and the order the markup is already in,
+     so the stack costs no `order` and no re-ordering for the keyboard */
   .stg-stage { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
   .stg-panel { width: min(100%, 320px); }
-  .stg-panel--fan { width: min(100%, 470px); }
   .stg-info { max-width: 52ch; }
   .stg-id { justify-content: center; }
-  .stg-meta, .stg-info .dl-row { justify-content: center; }
+  .stg-meta { justify-content: center; }
 }
 @media (max-width: 760px) {
   .stg { grid-template-columns: minmax(0, 1fr); gap: 22px; border-radius: 22px; }
@@ -419,406 +294,16 @@
   }
   .stg-rail button[aria-selected='true']::before { width: 24px; margin-left: -12px; height: 3px; margin-top: 0; }
   .stg-phone { width: clamp(190px, 56vw, 224px); }
-  /* the fan tightens rather than shrinking: on a phone the outer two are
-     context, and the middle one has to stay readable */
-  .stg-mock { width: 56%; }
-  .stg-mock:nth-child(1) { transform: translate(-42%, 6%) rotate(-5deg) scale(0.8); }
-  .stg-mock:nth-child(3) { transform: translate(42%, 6%) rotate(5deg) scale(0.8); }
-  .stg-fan--framed .stg-mock { width: 52%; }
-  .stg-fan--framed .stg-mock:nth-child(1) { transform: translate(-52%, 6%) rotate(-4deg) scale(0.78); }
-  .stg-fan--framed .stg-mock:nth-child(3) { transform: translate(52%, 6%) rotate(4deg) scale(0.78); }
+  .stg-wide { max-width: 260px; }
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   #lab · THE DECK
-   A `--steps`-viewport-tall element with a sticky 100vh stage inside it.
-   Scroll position IS the carousel index — there is no wheel handler, no
-   scroll-jacking and no scroll-snap; the page scrolls normally the whole way
-   through and the deck simply reads how far into itself the reader is.
-   ═══════════════════════════════════════════════════════════════ */
-.dk {
-  --spring: linear(0, .0088 1.1%, .0346 2.3%, .1442 4.9%, .7688 14.2%, .9202 16.7%, 1.0139 19.3%,
-    1.0498 21.9%, 1.0546 24.7%, 1.0338 28.2%, .9994 32.6%, .9895 37.3%, .9994 44.2%, 1.0026 55.3%, 1);
-  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  /* one viewport to read the stage in, plus 0.9 of one per module to travel
-     through. `--steps` comes from JSX (TOOLS.length − 1) so adding a tool
-     lengthens the timeline automatically. */
-  height: calc(100vh + var(--steps) * 90vh);
-  margin-top: clamp(26px, 4vh, 46px);
-  position: relative; z-index: 1;
-}
-.dk-pin {
-  position: sticky; top: 0;
-  height: 100vh; min-height: 640px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(300px, 30vw);
-  grid-template-areas: 'rail stage info';
-  align-items: center;
-  gap: clamp(16px, 2.4vw, 44px);
-  padding: 0 var(--pad);
-  overflow: hidden;
-}
-
-/* ——— the wash. Two radial pools in the current module's own colours, sitting
-   behind everything, cross-fading their COLOUR (not their opacity) as the deck
-   lands on a new tool. ——— */
-.dk-aura {
-  position: absolute; inset: -20% -10%; z-index: 0; pointer-events: none;
-  background:
-    radial-gradient(58% 46% at 50% 42%, color-mix(in oklab, var(--g1) 26%, transparent), transparent 72%),
-    radial-gradient(46% 40% at 26% 74%, color-mix(in oklab, var(--g2) 20%, transparent), transparent 70%),
-    radial-gradient(70% 50% at 82% 20%, rgba(123, 47, 190, 0.16), transparent 72%);
-  transition: background 0.9s var(--ease);
-}
-/* a hairline horizon so the deck reads as standing on something */
-.dk-pin::after {
-  content: ''; position: absolute; z-index: 0; pointer-events: none;
-  left: 0; right: 0; bottom: 26%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(242, 240, 247, 0.16) 30%, rgba(242, 240, 247, 0.16) 70%, transparent);
-}
-
-/* ——— the motes. Deliberately few and deliberately slow. They are the only
-   looping thing in this section and they do not exist until the deck is on
-   screen. Their scatter is written inline by JSX. ——— */
-.dk-motes { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.dk-motes i {
-  position: absolute; width: 4px; height: 4px; border-radius: 50%;
-  background: var(--cyan); opacity: 0;
-  box-shadow: 0 0 12px 2px rgba(89, 230, 255, 0.45);
-}
-.dk.is-live .dk-motes i {
-  animation: dk-mote calc(7s + var(--k) * 0.9s) ease-in-out calc(var(--k) * -1.3s) infinite;
-}
-@keyframes dk-mote {
-  0%, 100% { opacity: 0; transform: translate3d(0, 0, 0); }
-  20% { opacity: 0.7; }
-  50% { opacity: 0.3; transform: translate3d(14px, -26px, 0); }
-  80% { opacity: 0.55; }
-}
-
-/* ═══════════ the turntable ═══════════ */
-.dk-stage {
-  grid-area: stage; position: relative; z-index: 2;
-  min-width: 0; height: 100%;
-  display: grid; place-items: center;
-  perspective: 1600px; perspective-origin: 50% 46%;
-}
-.dk-track {
-  position: relative; transform-style: preserve-3d;
-  width: min(34vw, 470px); aspect-ratio: 16 / 10;
-}
-/* one module's seat on the turntable. Every property the driver writes —
-   transform, opacity, visibility, z-index, --dim — lives here. */
-.dk-slot {
-  position: absolute; inset: 0;
-  transform-style: preserve-3d;
-  transition: opacity 0.4s var(--ease);
-  will-change: transform;
-}
-.dk-card {
-  display: block; width: 100%; height: 100%;
-  padding: 0; border: 0; background: none; cursor: pointer;
-  transform-style: preserve-3d;
-}
-.dk-card:focus-visible { outline: 2px solid var(--cyan); outline-offset: 8px; border-radius: 16px; }
-
-/* ——— the laptop, drawn.
-   Four boxes: `.dk-body` is the whole machine (and the only thing that owns
-   the reflection), `.dk-lid` is the milled aluminium shell, `.dk-display` is
-   the glass, `.dk-base` is the deck under the hinge. No images, so the whole
-   thing survives a rotateY that would shear a photograph apart.
-
-   The aluminium is one 158° gradient with a hairline inset highlight on top of
-   it, which is what reads as a machined edge catching the room light — the
-   earlier conic bezel was a hairline frame and only ever looked like a window.
-   The reflection is `-webkit-box-reflect`, which costs one compositor mirror
-   and no extra DOM — Firefox simply doesn't draw it. ——— */
-.dk-body {
-  position: relative; display: flex; flex-direction: column; align-items: center;
-  width: 100%; height: 100%;
-  transform-style: preserve-3d;
-  filter: drop-shadow(0 34px 46px rgba(0, 0, 0, 0.85));
-  -webkit-box-reflect: below 12px linear-gradient(transparent 66%, rgba(255, 255, 255, 0.1));
-}
-.dk-lid {
-  position: relative; width: 100%; flex: 1; min-height: 0;
-  border-radius: 15px 15px 5px 5px;
-  padding: 1.9% 1.6% 3.4%;
-  background:
-    linear-gradient(158deg,
-      #9aa0ae 0%, #5d626f 12%, #c5bec1 34%, #d4ced1 62%, #dcd8da 82%, #6b7180 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.42),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
-    inset 0 -2px 5px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(0, 0, 0, 0.65);
-}
-/* the glass. Overflow lives here rather than on the body, so the base is free
-   to be wider than the lid without being clipped. */
-.dk-display {
-  position: relative; display: flex; flex-direction: column;
-  width: 100%; height: 100%; overflow: hidden;
-  border-radius: 8px; background: #fff2f8;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.9), inset 0 2px 14px rgba(0, 0, 0, 0.75);
-}
-/* the camera housing — 15% of the lid wide, hanging off the top edge */
-.dk-notch {
-  position: absolute; z-index: 4; left: 50%; top: 0; transform: translateX(-50%);
-  width: 15%; height: 5.4%; min-height: 5px; max-height: 14px;
-  border-radius: 0 0 6px 6px; background: #fff2f8;
-}
-.dk-notch::after {
-  content: ''; position: absolute; left: 50%; top: 34%; transform: translateX(-50%);
-  width: 3px; height: 3px; border-radius: 50%;
-  background: #dfd5da; box-shadow: 0 0 2px rgba(120, 200, 255, 0.5);
-}
-/* the deck under the hinge: wider than the lid, tapering to a lit front edge,
-   with the thumb scoop cut into it */
-.dk-base {
-  position: relative; flex: none;
-  width: 106%; height: 2.6%; min-height: 5px;
-  border-radius: 0 0 9px 9px;
-  background: linear-gradient(180deg, #e6e2e4 0%, #4d525e 24%, #babfca 62%, #6f7480 100%);
-  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.9), inset 0 -1px 0 rgba(255, 255, 255, 0.3);
-}
-.dk-base i {
-  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-  width: 14%; height: 62%;
-  border-radius: 0 0 5px 5px;
-  background: linear-gradient(180deg, #d5d0d2, #ebe8e9);
-}
-.dk-chrome {
-  display: flex; align-items: center; gap: 6px; flex: none;
-  padding: 9px 12px;
-  background: linear-gradient(180deg, #eee3e8, #fde8f1);
-  border-bottom: 1px solid var(--line);
-}
-.dk-chrome i { width: 8px; height: 8px; border-radius: 50%; background: #deced6; flex: none; }
-.dk-chrome i:first-child { background: #dcced4; }
-.dk-chrome em {
-  font-style: normal; font-family: var(--mono); font-size: 0.66rem;
-  letter-spacing: 0.06em; color: var(--ink-dim); margin-left: 8px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.dk-screen {
-  position: relative; display: block; flex: 1; min-height: 0; overflow: hidden;
-  background: #f6f0f3;
-}
-.dk-screen img {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; object-position: 50% 0;
-}
-.dk-mock { display: block; width: 100%; height: 100%; object-fit: cover; }
-/* SPLAT LAB has no still, and one would be a lie: its output is a live splat,
-   not a frame. The pane says so, in the language of the tool. */
-.dk-cloud {
-  position: absolute; inset: 0; display: grid; place-items: center;
-  text-align: center; padding: 24px;
-  background:
-    radial-gradient(circle at 30% 40%, rgba(89, 230, 255, 0.14), transparent 55%),
-    radial-gradient(circle at 72% 62%, rgba(242, 28, 140, 0.12), transparent 55%),
-    radial-gradient(1.4px 1.4px at 6px 8px, rgba(89, 230, 255, 0.55) 50%, transparent 51%),
-    radial-gradient(1.4px 1.4px at 20px 26px, rgba(242, 240, 247, 0.3) 50%, transparent 51%),
-    radial-gradient(1.6px 1.6px at 33px 12px, rgba(242, 28, 140, 0.4) 50%, transparent 51%),
-    #ffeef5;
-  background-size: auto, auto, 40px 40px, 40px 40px, 40px 40px, auto;
-}
-.dk-cloud em {
-  font-style: normal; font-family: var(--mono); font-size: 0.66rem;
-  /* the splat-lab pane's ground (#ffeef5 above) went light with the page, so
-     the bright cyan and the black glow behind it both had to go — the glow
-     was there to lift the type off a dark starfield that no longer exists */
-  letter-spacing: 0.16em; line-height: 2; color: #145f75;
-  text-transform: uppercase; text-shadow: 0 1px 10px rgba(255, 255, 255, 0.85);
-}
-.dk-cloud b { display: block; font-weight: inherit; color: var(--ink-dim); }
-
-/* the light. `dk-sheen` is a fixed diagonal glare on the glass; `dk-scrim`
-   is the distance darkening the driver writes as `--dim`. */
-.dk-sheen {
-  position: absolute; inset: 0; border-radius: 8px; pointer-events: none;
-  background: linear-gradient(122deg,
-    rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 16%,
-    transparent 34%, transparent 70%, rgba(255, 255, 255, 0.07) 100%);
-  mix-blend-mode: screen;
-}
-.dk-scrim {
-  position: absolute; inset: 0; border-radius: 8px; pointer-events: none;
-  background: #fff4f9; opacity: var(--dim, 0);
-}
-
-/* the floor pool the reflection lands in */
-.dk-floor {
-  position: absolute; z-index: -1; left: 50%; bottom: 12%;
-  width: min(70vw, 720px); height: 22vh; transform: translateX(-50%);
-  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.06), transparent 72%);
-  pointer-events: none;
-}
-
-/* the veil — see the note in Products.jsx. Sits above every card (the stage
-   is its own stacking context at z-index 2) and below the rail and the copy. */
-.dk-veil {
-  position: absolute; inset: 0; z-index: 3; pointer-events: none;
-  background: linear-gradient(90deg,
-    var(--bg) 0%, color-mix(in oklab, var(--bg) 72%, transparent) 13%, transparent 27%,
-    transparent 58%, color-mix(in oklab, var(--bg) 78%, transparent) 74%, var(--bg) 88%);
-}
-
-/* ═══════════ the copy ═══════════ */
-.dk-info {
-  grid-area: info; position: relative; z-index: 4;
-  min-width: 0; max-width: 44ch;
-  animation: dk-in 0.55s var(--ease) both;
-}
-@keyframes dk-in {
-  from { opacity: 0; transform: translate3d(0, 14px, 0); }
-  to { opacity: 1; transform: none; }
-}
-.dk-id { display: flex; align-items: baseline; gap: 14px; }
-.dk-n { font-family: var(--mono); font-size: 0.8rem; color: var(--magenta); flex: none; }
-.dk-id-t { min-width: 0; }
-.dk-info h3 {
-  font-family: var(--display); font-weight: 620;
-  font-size: clamp(1.5rem, 2.8vw, 2.2rem); letter-spacing: -0.02em; line-height: 1.02;
-}
-.dk-tag {
-  display: block; margin-top: 7px;
-  font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: #145f75;
-}
-.dk-info .sui-console { margin-top: 18px; border-left: 2px solid var(--line); }
-.dk-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
-.dk-meta .pill {
-  color: #ffe9f2; background: var(--magenta); padding: 3px 9px; border-radius: 4px;
-  font-family: var(--mono); font-size: 0.63rem; font-weight: 600; letter-spacing: 0.06em;
-}
-.dk-note { font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.1em; color: #6d5f8a; }
-.dk-info .sui-get { margin-top: 16px; }
-
-/* ═══════════ the rail ═══════════ */
-.dk-rail {
-  grid-area: rail; position: relative; z-index: 4;
-  display: flex; flex-direction: column; gap: 2px;
-}
-.dk-mod {
-  display: flex; align-items: baseline; gap: 10px;
-  padding: 9px 12px; border: 0; background: none; cursor: pointer; text-align: left;
-  border-left: 2px solid transparent; border-radius: 0 6px 6px 0;
-  /* the six module tabs measured 33.4px tall on a phone. `align-items:
-     baseline` is what keeps the mono number and the display name on one
-     baseline, so the height is bought with a min-height and the text stays
-     top-aligned inside it rather than being re-centred. */
-  min-height: 44px; min-width: 44px;
-  transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
-}
-.dk-mod .n { font-family: var(--mono); font-size: 0.62rem; color: #5c4d78; flex: none; }
-.dk-mod .t {
-  font-family: var(--display); font-weight: 600; font-size: 0.92rem; letter-spacing: -0.01em;
-  white-space: nowrap; color: var(--ink-dim); transition: color 0.3s var(--ease);
-}
-.dk-mod:hover { background: rgba(242, 240, 247, 0.04); }
-.dk-mod:hover .t { color: var(--ink); }
-.dk-mod:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
-.dk-mod[aria-selected='true'] { background: rgba(242, 28, 140, 0.1); border-left-color: var(--magenta); }
-.dk-mod[aria-selected='true'] .t { color: var(--ink); }
-.dk-mod[aria-selected='true'] .n { color: var(--magenta); }
-
-/* ═══════════ the counter + progress hairline ═══════════ */
-.dk-count {
-  position: absolute; z-index: 4; left: var(--pad); right: var(--pad); bottom: clamp(18px, 3vh, 34px);
-  font-family: var(--display); font-weight: 620;
-  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim);
-  /* right-aligned: the bottom-left corner of the viewport is where the dev
-     Studio badge and the flight HUD live, and a left-aligned counter collides
-     with both */
-  text-align: right;
-  padding-top: 14px; border-top: 1px solid var(--line);
-}
-.dk-count b { color: var(--ink); font-weight: 620; }
-.dk-count i {
-  position: absolute; left: 0; top: -1px; height: 2px; width: var(--w, 0%);
-  background: linear-gradient(90deg, var(--magenta), var(--cyan));
-  transition: width 0.5s var(--ease);
-}
-
-/* ═══════════ narrow ═══════════ */
-@media (max-width: 1100px) {
-  .dk-pin {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'stage' 'info' 'rail';
-    align-content: center; justify-items: center; text-align: center;
-    gap: clamp(10px, 2vh, 24px);
-    padding: clamp(50px, 8vh, 90px) var(--pad) clamp(70px, 10vh, 110px);
-  }
-  .dk-track { width: min(74vw, 460px); }
-  /* stacked, the veil would wash out the copy sitting under the deck — it
-     only has a job when the rail and the copy flank the stage */
-  .dk-veil { display: none; }
-  .dk-info { max-width: 46ch; }
-  .dk-id, .dk-meta, .dk-info .sui-get { justify-content: center; }
-  .dk-info .sui-console { border-left: 0; text-align: left; }
-  .dk-rail { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px; }
-  .dk-mod {
-    border-left: 0; border-bottom: 2px solid transparent; border-radius: 6px 6px 0 0;
-    padding: 8px 11px;
-  }
-  .dk-mod[aria-selected='true'] { border-bottom-color: var(--magenta); }
-  .dk-pin::after { bottom: auto; top: 58%; }
-}
-/* A phone is the one viewport where the pin has to fit card + copy + console
-   + rail + counter into 100vh with nothing to spare, so everything below is
-   the same layout at a tighter setting rather than a different one. */
-@media (max-width: 620px) {
-  .dk-pin { min-height: 600px; gap: 8px; padding: clamp(30px, 5vh, 60px) var(--pad) 56px; }
-  .dk-track { width: 84vw; }
-  .dk-info h3 { font-size: 1.45rem; }
-  .dk-info .sui-console { margin-top: 12px; min-height: 0; padding: 11px 13px; }
-  .dk-info .sui-console .row { font-size: 0.68rem; line-height: 1.6; }
-  .dk-meta, .dk-info .sui-get { margin-top: 11px; }
-  .dk-rail { gap: 2px; }
-  .dk-mod { padding: 6px 9px; gap: 7px; }
-  .dk-mod .t { font-size: 0.76rem; }
-  .dk-count { letter-spacing: 0.1em; font-size: 0.56rem; padding-top: 10px; bottom: 14px; }
-}
-
-/* ═══════════ the console, kept from the old suite window ═══════════ */
-.sui-console {
-  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  background: #ffeef5; padding: 13px 16px; min-height: 96px; border-radius: 6px;
-}
-.sui-console .row { font-family: var(--mono); font-size: 0.74rem; line-height: 1.75; color: var(--ink-dim); word-break: break-word; }
-.sui-console .row .p { color: var(--magenta); }
-/* the command, in the terminal's cyan — mixed toward the ink so it survives
-   the pink ground the console now sits on (see --accent-ink in styles.css) */
-.sui-console .row .c { color: #145f75; }
-.sui-console .out { color: var(--ink); }
-.sui-caret {
-  display: inline-block; width: 7px; height: 0.95em; background: var(--cyan);
-  vertical-align: -2px; margin-left: 2px;
-  animation: sui-blink 1.1s steps(1) infinite;
-}
-@keyframes sui-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-
-/* the real download chips for the selected tool, filed as a command */
-.sui-get { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.sui-get > .sui-get-lbl {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.74rem; color: #6d5f8a; flex: none;
-}
-.sui-get .dl-row { margin-top: 0; }
 
 /* ═══════════ reduced motion ═══════════
-   The pin is the animation in the deck, so it is removed outright rather than
-   damped: the section collapses to its sticky child's height, the deck holds
-   whatever the rail last selected, and the rail is an ordinary tablist.
-   (`place()` is still called once per selection, so the fan still reads as a
-   deck — it just never moves on its own.) The stage's shot cycle is switched
-   off in JS: the interval is never created. */
-.dk--flat { height: auto; }
-.dk--flat .dk-pin { position: static; height: auto; min-height: 0; padding-block: clamp(40px, 6vh, 80px); }
-.dk--flat .dk-motes { display: none; }
+   The pin is the animation in the stage, so it is removed outright rather
+   than damped (`.stg-scroll--flat` above): the section collapses to its
+   sticky child's height, the stage holds whatever the rail last selected,
+   and the rail is an ordinary tablist. */
 @media (prefers-reduced-motion: reduce) {
-  .stg *, .stg *::before, .stg *::after,
-  .dk *, .dk *::before, .dk *::after {
+  .stg *, .stg *::before, .stg *::after {
     transition-duration: 0.01ms !important;
     animation: none !important;
   }
