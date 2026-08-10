@@ -1356,6 +1356,126 @@
   .sol-pin.is-pinned .sol-act2-lede { display: none; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   THE PHONE. One picture, one answer, nothing else.
+
+   Measured before this block, at 390x844: the stage came out 367x552 with a
+   12px inset — ratio 0.665 — while `Solutions.jsx` was already serving the
+   720x1280 `-9x16` portrait render to exactly this width. The render was
+   therefore being cover-cropped into a letterbox: three quarters of a shot
+   commissioned as a portrait, thrown away. THE SOURCE AND THE BOX HAVE TO
+   SWITCH ON THE SAME BREAKPOINT — that pairing is stated twice above this
+   block and was still only half true on a phone.
+
+   Everything else in the section is switched off here rather than shrunk.
+   `.sol-idx-flow` measured scrollWidth 1921 inside a 367 box: it was not a
+   dense index on a phone, it was seven columns of type with their left edge
+   sliced off ("afés & Coffee", "ast Food & Burgers"). A control that cannot
+   be read is not a smaller control, it is a broken one.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 719px) {
+  /* the picture takes the whole phone. No page gutter, no rounding, no
+     padding above or below it — `calc(50% - 50vw)` + `100vw` is the same
+     full-bleed escape the desktop stage documents at the top of this file. */
+  .sol-pin.is-pinned .sol-pin-inner { padding-block: 0; gap: 0; }
+  .sol-pin.is-pinned .sol-stage {
+    margin-inline: calc(50% - 50vw);
+    width: 100vw;
+    flex: 1 1 auto;
+    border-radius: 0;
+    aspect-ratio: auto;
+  }
+  /* object-position moves to the TOP on a phone. The desktop crop is pushed
+     to 62% because the left third is reserved for two white cards; in
+     portrait the card is a band across the bottom instead, so the subject
+     belongs high where the copy is not. */
+  .sol-pin.is-pinned .sol-stage-bg { object-position: center 32%; }
+
+  /* THE EXTRAS, REMOVED — not miniaturised.
+     The index is the whole thirty-industry list; it is the desktop's proof of
+     breadth and unreadable at this width. The count and the label are
+     scaffolding around a search field that explains itself. */
+  .sol-pin.is-pinned .sol-index,
+  .sol-pin.is-pinned .sol-idx-flow,
+  .sol-pin.is-pinned .sol-tour { display: none; }
+  .sol-bar-label, .sol-bar-count { display: none; }
+
+  /* the search bar floats ON the picture, top-left, instead of taking a row
+     above it — the row is what was stealing the height the portrait needed */
+  .sol-pin.is-pinned .sol-console { position: relative; }
+  .sol-pin.is-pinned .sol-bar {
+    /* 74px, not 12: the nav is sticky and paints OVER this stage now that the
+       stage runs to the top of the viewport. At 12px the field sat underneath
+       the bar and the section's only control was invisible. */
+    position: absolute; z-index: 4;
+    top: 74px; left: 12px; right: 12px;
+    margin: 0; padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(14px) saturate(1.15);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    box-shadow: 0 8px 26px -12px rgba(90, 30, 70, 0.45);
+  }
+
+  /* THE ANSWER CARD — a bottom sheet, which is the shape a thumb expects */
+  .sol-pin.is-pinned .sol-answer-slot { left: 0; right: 0; bottom: 0; }
+  .sol-pin.is-pinned .sol-panelcard {
+    border-radius: 22px 22px 0 0;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -18px 44px -20px rgba(60, 20, 50, 0.5);
+  }
+  .sol-pin.is-pinned .sol-answer-name { font-size: 1.45rem; }
+  .sol-pin.is-pinned .sol-answer-hook { font-size: 0.92rem; }
+  .sol-pin.is-pinned .sol-deliverables li { font-size: 0.8rem; line-height: 1.42; }
+
+  /* THE CTA GOES LAST. `.sol-answer-left` holds head + hook + CTA and
+     `.sol-answer-right` holds the deliverables, so stacking the two columns
+     put the button in the MIDDLE of the card — offer, then button, then more
+     offer. `display: contents` dissolves the two columns so all four blocks
+     order against the card itself and the button ends where a button ends.
+
+     NOT scoped to `.has-photo`: the pinned phone card carries only
+     `sol-panelcard sol-answer` — the photo lives on the stage behind it, not
+     on the card — so a `.has-photo` qualifier here matches nothing and the
+     button silently stays mid-card. */
+  .sol-pin.is-pinned .sol-answer-left { display: contents; }
+  .sol-pin.is-pinned .sol-answer-head { order: 1; }
+  .sol-pin.is-pinned .sol-answer-hook { order: 2; margin-top: 2px; }
+  .sol-pin.is-pinned .sol-answer-right { order: 3; margin-top: 10px; }
+  .sol-pin.is-pinned .sol-cta { order: 4; }
+
+  /* ONE deliverable on a phone, not two. Two ran past the bottom of the
+     screen — the second was cut mid-sentence and the first lost its last
+     line, which reads as a rendering fault rather than as an edited card.
+     The card is a summary here; the full list is one tap away behind the
+     CTA. Clamped at three lines so a long line cannot reintroduce the
+     overflow on a narrower phone. */
+  .sol-pin.is-pinned .sol-deliverables li:nth-child(n + 2) { display: none; }
+  .sol-pin.is-pinned .sol-deliverables li > :last-child {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* THE CTA WAS CLIPPED. Measured scrollWidth 335 inside clientWidth 293, so
+     "Build my Restaurants system" lost its last word on every industry whose
+     name is long. It is a full-width button here and the label is allowed to
+     wrap rather than being cut. */
+  .sol-pin.is-pinned .sol-cta {
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 0;
+  }
+  .sol-pin.is-pinned .sol-cta > * {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+    overflow: visible;
+  }
+}
+
 /* Reduced motion never pins — `.is-pinned` is simply absent, and everything
    above is scoped to it, so the section renders as an ordinary block. */
 

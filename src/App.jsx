@@ -300,7 +300,16 @@ export default function App() {
             length why a drafted quote under a real logo is the one thing on
             this page that could cost LOOM a client. */}
         <Voices />
-        <Studios />
+        {/* STUDIOS WENT BACK DOWN (10 Aug 2026, later the same day). Bringing
+            it up here with Voices was right about the reason and wrong about
+            the slot: "who and where we are" is not evidence of the same kind
+            as a client list, a case study or a quote, and dropping it into
+            the middle of that run broke the one adjacency the section below
+            actually depends on. Process's own comment claims it sits
+            "directly under the case studies" — with Studios wedged in front
+            of it, that had stopped being true. It now sits in the close,
+            where an about-us answers a question the visitor has by then
+            started asking. */}
         {/* Process came UP from the CLOSE band (10 Aug 2026). It is the
             "why AI-native" argument — brief, weave, craft, perform — and as
             the last thing before Contact it was answering a question the
@@ -377,6 +386,13 @@ export default function App() {
         {/* CLOSE — an unbroken ramp to the ask. How it works, why it works,
             who does it, one last offer, then the form. Nothing new is
             introduced past this point. */}
+        {/* Two studios, named and placed, immediately before the belief and
+            the ask. By here the visitor has seen what LOOM sells and what it
+            costs, so "who is this and where are they" is a live question
+            rather than an interruption — which is exactly what it was up in
+            the evidence run above. Amman and Sarajevo also do real work for
+            a Jordanian buyer this late on the page: the studio is local. */}
+        <Studios />
         {/* Manifesto came down from slot 4. "Trends don't lead our work.
             Thinking does." is a claim, and a claim only pays once there is
             evidence behind it — it now reads as the conclusion of the page

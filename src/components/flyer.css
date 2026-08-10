@@ -54,3 +54,14 @@ html.menu-open .flyer-layer {
 @media (prefers-reduced-motion: reduce) {
   .flyer-layer { display: none; }
 }
+
+/* NOT ON A PHONE. The duck (Flyer.jsx projects the wingspan and fades the
+   layer over text) works because a desktop viewport has margins the butterfly
+   can occupy; a 390px one does not. It was landing on the Solutions CTA — a
+   428px-wide canvas over a 390px screen has nowhere uncovered to be — so the
+   primary action of that section read as a butterfly with a button behind it.
+   It also buys back a WebGL context and a 7.5Hz DOM scan on exactly the
+   devices least able to afford either. */
+@media (max-width: 719px) {
+  .flyer-layer { display: none; }
+}

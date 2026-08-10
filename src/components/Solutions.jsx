@@ -312,7 +312,27 @@ function StagePhoto({ n }) {
         height={600}
         loading="lazy"
         decoding="async"
-        onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
+        /* FALL BACK TO THE PORTRAIT, DON'T HIDE. Seven of the thirty
+           industries — dental, clinic, pharmacy, school, kids, wedding, ngo —
+           have only a `-9x16` render on disk; the landscape one was never
+           made. Hiding on error meant those seven showed a BLANK stage on
+           desktop, which reads as a broken page rather than a missing asset.
+           The portrait cover-crops into a 21:9 box perfectly well — it is a
+           worse composition than a purpose-made landscape, not a defect. This
+           also covers any niche added later before its wide render exists. */
+        onError={(e) => {
+          const img = e.currentTarget
+          if (img.dataset.fellBack) { img.style.visibility = 'hidden'; return }
+          img.dataset.fellBack = '1'
+          /* THE <source> ELEMENTS HAVE TO GO FIRST. Setting img.src alone does
+             nothing inside a <picture>: the browser has already resolved a
+             <source>, and that resolution wins over any later src assignment —
+             measured, the img stayed on dental.avif at naturalWidth 0. Drop
+             the sources, THEN point src at the portrait. */
+          const pic = img.parentElement
+          if (pic && pic.tagName === 'PICTURE') pic.querySelectorAll('source').forEach((s) => s.remove())
+          img.src = `/img/niches/${n.key}-9x16.webp`
+        }}
       />
     </picture>
   )
