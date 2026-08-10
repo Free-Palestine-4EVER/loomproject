@@ -123,8 +123,22 @@
 }
 .stg-scroll--flat,
 .stg-scroll--flat .stg-pin { height: auto; min-height: 0; position: static; }
-@media (max-width: 760px), (max-height: 619px) {
+/* THE OTHER HALF OF `STAGE_PIN` in Products.jsx — same rule, stated for the
+   layout. Edit both or neither: a driver that believes it is pinned, over a
+   track that is `position: static`, walks an index nobody is looking at.
+   Unpin only when the viewport genuinely cannot hold the stage — any short
+   viewport, or a phone under 760px tall. A normal phone DOES pin now, so
+   scrolling the section walks the seven products instead of showing one card
+   that never changes. */
+@media (max-height: 619px), (max-width: 760px) and (max-height: 759px) {
   .stg-scroll, .stg-pin { height: auto; min-height: 0; position: static; }
+}
+/* svh, not vh, on the phone track: vh freezes at the tallest layout viewport,
+   so a URL bar sliding away mid-scroll would leave the last product with less
+   travel than the six before it. */
+@media (max-width: 760px) and (min-height: 760px) {
+  .stg-scroll { height: calc(100svh + var(--steps) * 55svh); }
+  .stg-pin { min-height: 100svh; }
 }
 
 .stg {

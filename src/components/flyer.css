@@ -55,13 +55,22 @@ html.menu-open .flyer-layer {
   .flyer-layer { display: none; }
 }
 
-/* NOT ON A PHONE. The duck (Flyer.jsx projects the wingspan and fades the
-   layer over text) works because a desktop viewport has margins the butterfly
-   can occupy; a 390px one does not. It was landing on the Solutions CTA — a
-   428px-wide canvas over a 390px screen has nowhere uncovered to be — so the
-   primary action of that section read as a butterfly with a button behind it.
-   It also buys back a WebGL context and a 7.5Hz DOM scan on exactly the
-   devices least able to afford either. */
+/* ON A PHONE THE DUCK HAS TO ACTUALLY DUCK.
+   The butterfly flies on every screen — it is the site's one creature and it
+   was asked for on both. But the rule above (ducking at opacity 1) was a
+   desktop decision: there, a 1440px viewport has margins the wingspan can sit
+   in, so refusing to fade costs nothing. At 390px the canvas is wider than
+   the screen and there is no uncovered place to be, so the same rule put a
+   butterfly on top of the Solutions CTA and the section's primary action read
+   as a bug.
+   So: still flying, still over the copy, but on a phone it genuinely fades
+   when its own projected bbox is over text — which is the mechanic
+   Flyer.jsx already computes at ~7.5Hz and publishes as window.__loomFlyerBBox.
+   0.5, not 0.22 and not 0: a 390px screen is mostly text, so the duck fires
+   for a large share of the scroll — fade it far and the butterfly is
+   effectively absent from the phone, which is the thing being fixed. Half
+   opacity keeps it plainly a butterfly while leaving the copy under it
+   readable. */
 @media (max-width: 719px) {
-  .flyer-layer { display: none; }
+  .flyer-layer.is-ducking { opacity: 0.5; }
 }

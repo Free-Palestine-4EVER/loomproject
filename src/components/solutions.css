@@ -1236,13 +1236,18 @@
    no transform is written per frame. The only JS is one motion-value read that
    swaps which industry is showing. */
 .sol-pin.is-pinned {
-  /* 30 industries x 12svh of scroll each, plus the 100svh the stage occupies
-     while pinned = 4.6 screens total. The first pass used 34svh each and came
-     out at 11.2 SCREENS of forced scrolling, measured — which is not a tour,
-     it is a hostage situation. At 12svh each industry gets ~108px of scroll:
-     fast, but every one of the thirty is registered on the way past, which is
-     what the brief asked for. */
-  height: calc(100svh + 30 * 12svh);
+  /* 30 industries x 20svh of scroll each, plus the 100svh the stage occupies
+     while pinned = 7 screens total.
+     History, because this number has been wrong in both directions: the first
+     pass used 34svh (11.2 screens measured — a hostage situation), which was
+     then cut to 12svh (~108px per industry) and read as a flicker. Thirty
+     photographs going past at 108px each is not a tour either; nobody can see
+     what an industry IS in that distance, which defeats the section. 20svh
+     gives each one ~180px — slow enough to land, short enough that the whole
+     run is under the seven screens where forced scrolling starts to feel like
+     a trap. If it is ever retuned again, move THIS number and the phone's
+     below together: they are the same decision at two widths. */
+  height: calc(100svh + 30 * 20svh);
   position: relative;
 }
 .sol-pin.is-pinned .sol-pin-inner {
@@ -1335,7 +1340,11 @@
 
 /* ——— MOBILE: full screen, same tour ——— */
 @media (max-width: 939px) {
-  .sol-pin.is-pinned { height: calc(100svh + 30 * 10svh); }
+  /* the phone's half of the same decision as the 20svh above — retune both or
+     neither. Slightly shorter per industry than desktop because a phone's
+     100svh is taller relative to a thumb's travel, so the same svh costs more
+     swipes. */
+  .sol-pin.is-pinned { height: calc(100svh + 30 * 17svh); }
   .sol-pin.is-pinned .sol-pin-inner { height: 100svh; padding-block: clamp(8px, 1.6vh, 16px); }
   .sol-pin.is-pinned .sol-stage { aspect-ratio: auto; flex: 1 1 auto; }
   /* on a phone the card cannot sit beside the picture — it sits ON it, full

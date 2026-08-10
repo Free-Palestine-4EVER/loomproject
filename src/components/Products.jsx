@@ -383,11 +383,23 @@ function ShotCycle({ app, shots, on, reduced, hero = true, crop }) {
    tabs still work: a click scrolls to that app's slice rather than setting
    state, otherwise the next scroll event would snap the copy straight back.
 
-   The pin is off on phones and on short viewports (`STAGE_PIN`) — a card
-   taller than the viewport cannot sit still inside a sticky 100vh box — and
-   off under reduced motion. In every one of those cases the section falls back
-   to exactly what it was before: a normal-height card driven only by clicks. */
-const STAGE_PIN = '(min-width: 761px) and (min-height: 620px)'
+   THE GUARD IS HEIGHT, NOT WIDTH (10 Aug 2026). This used to be off on every
+   phone, so the whole rail was click-only there: scrolling past seven products
+   changed nothing, and the section read as a single static card. The stated
+   reason was that a card taller than the viewport cannot sit still in a sticky
+   box — true, but it is a HEIGHT problem and it was being enforced with a
+   width. Measured, the mobile stage is 658px tall on a 390x844 phone and 697
+   on a 430x932 one: it fits, with room to spare.
+
+   So a phone pins too, provided it is actually tall enough (760px). A short
+   phone — an SE at 667 — still falls back to the click-only card, which is the
+   correct behaviour for a viewport that genuinely cannot hold the stage.
+
+   THIS QUERY IS HALF OF A PAIR. `products-stage.css` states the same rule
+   again to unpin `.stg-scroll` / `.stg-pin`, and the two must always be edited
+   in the same commit — a driver that thinks it is pinned over a track that is
+   `position: static` walks an index nothing is showing. */
+const STAGE_PIN = '(min-width: 761px) and (min-height: 620px), (max-width: 760px) and (min-height: 760px)'
 
 export function AppsShowcase() {
   const reduced = useReducedMotion()
