@@ -441,6 +441,25 @@ export function Solutions({ merged = false } = {}) {
   })
   const tourIndex = NICHES.findIndex((n) => n.key === shown.key)
 
+  /* While the pinned tour owns the screen, the site's global bottom pill steps
+     aside — on a phone it is fixed at the bottom and the tour's answer card is
+     a bottom sheet, so "Start a project" sat right on top of "Build my
+     <industry> system". See the `html.sol-tour-live` rule in solutions.css.
+     An observer on the pin track, not a scroll handler: this needs to be true
+     for exactly as long as the sticky inner is parked, which is precisely what
+     the track's own intersection reports. */
+  useEffect(() => {
+    const el = pinRef.current
+    if (!el || !pinned) return
+    const root = document.documentElement
+    const io = new IntersectionObserver(
+      ([e]) => root.classList.toggle('sol-tour-live', e.isIntersecting),
+      { threshold: 0 }
+    )
+    io.observe(el)
+    return () => { io.disconnect(); root.classList.remove('sol-tour-live') }
+  }, [pinned])
+
   const sectionAccent = YARN_HEX[GROUP_YARN[shown.group]]
 
   return (

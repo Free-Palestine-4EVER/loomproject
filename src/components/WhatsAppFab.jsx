@@ -7,100 +7,17 @@ import './whatsapp-fab.css'
 
 const HELLO = encodeURIComponent('Hi LOOM — I came from loomstudio-jo.com and I’d like to start a project.')
 
-// ── the safe zone ──
-// A real FAB is allowed to float over content — that alone isn't the bug.
-// The bug was this button parked on top of running body copy at its full
-// 110px size. Rather than guess a "safe" position that some future card
-// layout invalidates, this measures: is the button's own RESTING footprint
-// currently over rendered, non-empty text? If so it collapses toward a
-// smaller, softer resting state (see useTextDuck below) until either the
-// text scrolls out from under it or the reader actually goes to use it
-// (hover/focus instantly restores full size, per useTextDuck's `hovering`
-// escape hatch) — "collapse until hovered/scrolled to", not "hide".
+// THE DUCK IS GONE (11 Aug 2026, client request). This button used to
+// measure, on a 160ms interval, whether its own resting footprint sat over
+// rendered text — querySelectorAll over every p/h1-h4/li/button/a in the
+// document, a getBoundingClientRect on each, then a TreeWalker and
+// Range.getClientRects() walk of the text nodes of anything that overlapped —
+// and collapsed itself to 56% scale and 62% opacity when it did. It was the
+// same machinery the butterfly carried, in a second copy, and it is deleted
+// for the same reason: a floating action button is allowed to float over
+// content. It is now always full size and full opacity.
 //
-// Selector kept identical to Flyer.jsx's — and to the QA probe — so "what we
-// duck for" and "what gets measured" never quietly drift apart.
-const TEXT_SELECTOR = 'p, h1, h2, h3, h4, li, button, a'
-const DUCK_CHECK_MS = 160
-
-// A big case-study card is one <button> wrapping a screenshot mockup plus a
-// headline/meta strip — that button's own getBoundingClientRect() covers the
-// screenshot too, and the FAB nudging a thumbnail is not "sitting on copy".
-// So the real test is against the box of the element's rendered TEXT GLYPHS
-// (every non-whitespace text node, via Range.getClientRects()), not the
-// element's own box — that box is only used first as a cheap reject.
-function textGlyphRects(el) {
-  const rects = []
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
-    acceptNode: (n) => (n.nodeValue && n.nodeValue.trim()) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
-  })
-  const range = document.createRange()
-  let node
-  while ((node = walker.nextNode())) {
-    range.selectNodeContents(node)
-    const list = range.getClientRects()
-    for (let i = 0; i < list.length; i++) rects.push(list[i])
-  }
-  return rects
-}
-
-function overlapsText(rect, exclude) {
-  if (!rect || rect.width <= 0 || rect.height <= 0) return false
-  const vw = window.innerWidth, vh = window.innerHeight
-  if (rect.right <= 0 || rect.left >= vw || rect.bottom <= 0 || rect.top >= vh) return false
-  const nodes = document.querySelectorAll(TEXT_SELECTOR)
-  for (let i = 0; i < nodes.length; i++) {
-    const el = nodes[i]
-    if (exclude && el.closest(exclude)) continue
-    const text = el.textContent
-    if (!text || text.trim().length < 3) continue
-    const outer = el.getBoundingClientRect()
-    if (outer.width <= 0 || outer.height <= 0) continue
-    if (outer.right <= rect.left || outer.left >= rect.right || outer.bottom <= rect.top || outer.top >= rect.bottom) continue
-    for (const r of textGlyphRects(el)) {
-      if (r.width <= 0 || r.height <= 0) continue
-      if (r.right <= rect.left || r.left >= rect.right || r.bottom <= rect.top || r.top >= rect.bottom) continue
-      return true
-    }
-  }
-  return false
-}
-
-/** Polls whether `ref`'s element sits on top of text, `active` gates it off
- *  (hidden behind an overlay/menu — nothing to duck from).
- *
- *  Hysteresis: the collision test always runs against the last known RESTING
- *  (full-size, not-yet-shrunk) box, cached the moment we're NOT ducking.
- *  Testing the live box instead would create a feedback loop — shrink because
- *  of an overlap, the smaller box promptly clears it, un-shrink, immediately
- *  re-collide, shrink again, forever. Testing the constant full-size box
- *  means the duck state only flips when the text underneath (which is what's
- *  actually moving, via scroll) genuinely arrives or leaves. */
-function useTextDuck(ref, active) {
-  const [ducking, setDucking] = useState(false)
-  const duckingRef = useRef(false)
-  const restRect = useRef(null)
-
-  useEffect(() => {
-    if (!active) { duckingRef.current = false; setDucking(false); return }
-    const tick = () => {
-      const el = ref.current
-      if (!el) return
-      if (!duckingRef.current) restRect.current = el.getBoundingClientRect()
-      const overlap = overlapsText(restRect.current, '.wa-fab-stack')
-      if (overlap !== duckingRef.current) {
-        duckingRef.current = overlap
-        setDucking(overlap)
-      }
-    }
-    tick()
-    const id = setInterval(tick, DUCK_CHECK_MS)
-    window.addEventListener('resize', tick, { passive: true })
-    return () => { clearInterval(id); window.removeEventListener('resize', tick) }
-  }, [active, ref])
-
-  return ducking
-}
+// git has it if it is ever wanted: this file before 11 Aug 2026.
 
 // Always short — this sits inside a small bubble next to a 76px button, not
 // a sentence. Rotates so a reader who lingers doesn't see the same line
@@ -140,9 +57,7 @@ function usePromptLoop(active) {
 
 export function WhatsAppFab() {
   const [locked, setLocked] = useState(false)
-  const [hovering, setHovering] = useState(false)
   const reduced = useReducedMotion()
-  const fabRef = useRef(null)
 
   // Yield to overlays/menus — same signal MobileChrome watches
   useEffect(() => {
@@ -157,15 +72,10 @@ export function WhatsAppFab() {
   }, [])
 
   const visible = !locked
-  const ducking = useTextDuck(fabRef, visible)
-  // Hovering/focusing is the reader reaching for it on purpose — full size,
-  // full opacity, every time, regardless of what's under it.
-  const duckActive = ducking && !hovering
-  const prompt = usePromptLoop(visible && !reduced && !duckActive)
+  const prompt = usePromptLoop(visible && !reduced)
 
-  const restingScale = visible ? 1 : 0.9
-  const scale = duckActive ? 0.56 : restingScale
-  const opacity = !visible ? 0 : duckActive ? 0.62 : 1
+  const scale = visible ? 1 : 0.9
+  const opacity = visible ? 1 : 0
 
   return (
     <div className="wa-fab-stack">
@@ -184,16 +94,11 @@ export function WhatsAppFab() {
         )}
       </AnimatePresence>
       <motion.a
-        ref={fabRef}
-        className={`wa-fab${duckActive ? ' is-ducking' : ''}`}
+        className="wa-fab"
         href={`${BRAND.whatsapp}?text=${HELLO}`}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat with LOOM on WhatsApp"
-        onMouseEnter={() => setHovering(true)}
-        onMouseLeave={() => setHovering(false)}
-        onFocus={() => setHovering(true)}
-        onBlur={() => setHovering(false)}
         initial={false}
         animate={
           reduced

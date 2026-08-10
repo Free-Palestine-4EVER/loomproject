@@ -131,17 +131,29 @@ appears in dev or after an explicit selection** — `setProfile()` must not
 persist on the initial load, or every production visitor gets the dev HUD
 painted over the page. That has already shipped once.
 
-### The duck
+### The duck — DELETED, do not rebuild it
 
-`Flyer.jsx` projects the butterfly's wingspan through the camera every frame
-into a real on-screen box (published as `window.__loomFlyerBBox` for QA), then
-at ~7.5 Hz scans the DOM under that box for text and fades the layer via
-`.is-ducking`. The canvas is `position: fixed; inset: 0`, so its own bounding
-rect is the whole viewport and useless for measuring overlap — use the bbox.
+**The butterfly is always at full opacity.** It does not fade over text, on any
+width. This is a standing client decision (11 Aug 2026: "remove it totally, make
+the butterfly always fully visible"), not an oversight to be helpfully corrected
+the next time someone notices a wing crossing a headline.
 
-`Companion.js`'s `PATH` waypoints deliberately keep to the outer thirds, and
-near-camera depths only land on waypoints already out past ~|0.55| on x. Big
-*and* central is the combination that makes the duck fire constantly.
+What used to be here: `Flyer.jsx` projected the wingspan through the camera
+every frame into an on-screen box (`window.__loomFlyerBBox`), scanned the DOM
+under it at ~7.5 Hz for text, and faded the layer via `.is-ducking`. It grew a
+four-axis Schmitt trigger to stop that flipping at text boundaries, and took the
+file from 110 lines to 822. `window.__loomFlyerBBox` and `.is-ducking` no longer
+exist on this layer — nothing publishes or reads them. It was originally built
+to serve the speech bubble, which was itself removed a day earlier.
+
+It is all in git if it is ever genuinely wanted back: `8acccce..0fd4744` on
+`src/components/Flyer.jsx`.
+
+`WhatsAppFab.jsx` has its own, unrelated `useTextDuck` — that one is live and is
+not what this section is about.
+
+`Companion.js`'s `PATH` waypoints keep to the outer thirds; that is now purely a
+composition choice, not a way of keeping the duck quiet.
 
 ## The typeface — LOOM Bloom
 

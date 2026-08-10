@@ -69,9 +69,22 @@ export async function loadButterfly() {
 // Overriding the spec here rather than editing butterfly-model.js keeps that
 // file a byte-identical drop-in from ~/Desktop/loom-butterfly, so it can be
 // re-copied when the generator changes without re-applying a patch.
+//
+// CUT 18/120 -> 10/64 (11 Aug 2026). The paragraph above is still the right
+// reasoning and the wrong number: 18x120 is 2,160 quads per wing surface, and
+// with eight wing meshes that was 34,560 of the model's 42,552 triangles — for
+// a creature that measures ~120 CSS px across on a desktop and ~200 on a
+// phone. There were roughly as many triangles as there were pixels to draw
+// them on, which buys nothing the display can resolve and costs a
+// full-viewport transparent layer real time every frame.
+//
+// 10x64 keeps both things the paragraph above is protecting: ten rings still
+// bend the membrane as a curve rather than a crease, and 64 outline segments
+// still carry the 7-lobe scallop at nine samples a lobe. Checked against the
+// lab's 2x contact sheet — silhouette and weave unchanged.
 const QUALITY = {
-  rings: 18,   // radial subdivisions root->rim; drives how smoothly the bend curves
-  segs: 120,   // subdivisions along the outline; drives silhouette smoothness
+  rings: 10,   // radial subdivisions root->rim; drives how smoothly the bend curves
+  segs: 64,    // subdivisions along the outline; drives silhouette smoothness
 }
 
 export function prepFlyer(_source, { tint = null, scale = 1, wingAlpha = 1 } = {}) {

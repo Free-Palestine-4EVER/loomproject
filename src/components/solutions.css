@@ -1464,10 +1464,10 @@
   .sol-pin.is-pinned .sol-answer-slot { left: 0; right: 0; bottom: 0; }
   .sol-pin.is-pinned .sol-panelcard {
     border-radius: 22px 22px 0 0;
-    padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -18px 44px -20px rgba(60, 20, 50, 0.5);
   }
-  .sol-pin.is-pinned .sol-answer-name { font-size: 1.45rem; }
+  .sol-pin.is-pinned .sol-answer-name { font-size: 1.3rem; }
   .sol-pin.is-pinned .sol-answer-hook { font-size: 0.92rem; }
   .sol-pin.is-pinned .sol-deliverables li { font-size: 0.8rem; line-height: 1.42; }
 
@@ -1530,9 +1530,19 @@
      further still grows rather than clipping its own copy. */
   .sol-pin.is-pinned .sol-answer-hook {
     line-height: 1.35;
-    min-height: calc(0.92rem * 1.35 * 2);
+    /* ONE line, reserved and clamped. Two was the stable-but-fat choice; the
+       brief is that the PHOTOGRAPH is the section and this card is a caption
+       under it, so the hook gets the one line it needs at 390 and the couple
+       of hooks that wrapped at 360 are clamped instead of given a second. */
+    min-height: calc(0.92rem * 1.35);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
-  .sol-pin.is-pinned .sol-deliverables li { min-height: calc(0.8rem * 1.42 * 3); }
+  /* two lines, not three — same trade */
+  .sol-pin.is-pinned .sol-deliverables li { min-height: calc(0.8rem * 1.42 * 2); }
+  .sol-pin.is-pinned .sol-deliverables li > :last-child { -webkit-line-clamp: 2; }
   .sol-pin.is-pinned .sol-cta { min-height: 69px; display: flex; align-items: center; }
 
   /* THE CTA WAS CLIPPED. Measured scrollWidth 335 inside clientWidth 293, so
@@ -1664,3 +1674,24 @@
    scrub of the thirty, so a rule that hid it while pinned hid it always. Its
    place in the argument is after the scrub anyway — you meet your own trade
    first, then read what everybody gets. */
+
+
+/* ——— THE GLOBAL MOBILE PILL STANDS DOWN OVER THIS SECTION ———
+   `.mobile-cta-pill` is fixed at the bottom of every phone screen, and the
+   pinned tour's answer card is a bottom sheet — so the site's generic "Start a
+   project" button sat directly on top of "Build my <industry> system", the one
+   conversion this section exists to offer. Two buttons, one of them covering
+   the more specific one.
+
+   Padding the sheet to clear it was the first fix and it was wrong: it made the
+   card 363px tall on an 844px screen, eating the photograph the section is
+   built around. So the generic pill yields instead. `Solutions.jsx` puts
+   `sol-tour-live` on <html> while the pinned tour is on screen; the moment the
+   reader scrolls out, the pill fades straight back. Nothing is lost — the
+   specific CTA is right there, and it opens the same wizard. */
+html.sol-tour-live .mobile-cta-pill {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}

@@ -67,26 +67,13 @@
   text-decoration: none;
   will-change: transform, opacity;
   transition: transform 0.3s;
-  /* scale/opacity while ducking (see .is-ducking below and useTextDuck in the
-     .jsx) are driven by Framer via inline style, which always wins over any
-     CSS rule here — this only sets WHERE that scale shrinks toward. Framer
-     never touches transform-origin, so it's safe to own it here. */
+  /* Framer drives scale/opacity as inline style (show/hide only, now that the
+     duck is gone); it never touches transform-origin, so that lives here. */
   transform-origin: bottom right;
 }
 
-/* .is-ducking is a plain marker class WhatsAppFab.jsx toggles when the
-   button's resting (full-size) footprint is measured to be sitting on
-   rendered body text AND the reader isn't hovering/focusing it right now
-   (see useTextDuck + `duckActive` there) — it carries no rule of its own
-   here. The actual shrink/fade is applied by Framer Motion as `scale` /
-   `opacity` animate values, spring-driven the same way the show/hide
-   entrance already is, and Framer's inline style would win over a CSS rule
-   on this selector anyway. The class exists so a QA script (or a future
-   dev in devtools) can tell the state apart without decoding a matrix().
-
-   Focus always wins regardless of duck state: focusing the button flips
-   `hovering` true in the component, which cancels ducking outright, so this
-   ring only ever appears on the full-size button. */
+/* The duck is gone (11 Aug 2026) — the button no longer shrinks or fades
+   over body copy. See WhatsAppFab.jsx. */
 .wa-fab:focus-visible {
   outline: 3px solid var(--yarn-blue);
   outline-offset: 4px;

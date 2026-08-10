@@ -446,8 +446,18 @@ export class Companion {
   // World-space extent of the z = 0 plane, which is how xNorm/yNorm become
   // positions and how the butterfly keeps a constant share of the viewport
   // instead of ballooning on a wide monitor.
-  // 1.0 on phones: this layer is the only WebGL context there, and on a 3x
-  // display even 1.25 quadruples the framebuffer for a decorative flyer.
+  // 2.0 on phones, raised from 1.0 (11 Aug 2026, client: the butterfly "exists
+  // but is low quality" on a phone). 1.0 was the whole reason: an iPhone
+  // reports devicePixelRatio 3, so the creature was being drawn at a third of
+  // the screen's linear resolution and upscaled — every woven strand and the
+  // eye highlights turned to mush, and `antialias` is off on this branch too,
+  // so nothing was smoothing the wing edges either. It read as a low-res GIF
+  // pasted onto a sharp page.
+  //
+  // 2 rather than the full 3: on a 390x844 phone that is a 780x1688 buffer,
+  // 5.3 MB against the 1.3 MB it was — real, but small next to this page's
+  // decoded bitmaps, and it is the step that gets the strands back. Going to 3
+  // would cost 11.8 MB for a difference nobody can see at this size.
   //
   // Re-applied on every resize, not set once in the constructor. `setSize`
   // multiplies by whatever ratio the renderer is currently holding, so a
@@ -455,7 +465,7 @@ export class Companion {
   // the old innerWidth test called it a desktop) kept a 1.5x buffer for the
   // rest of the session, including after it was rotated back to portrait.
   _applyPixelRatio() {
-    const want = Math.min(window.devicePixelRatio || 1, this.constrained ? 1.0 : 1.5)
+    const want = Math.min(window.devicePixelRatio || 1, this.constrained ? 2.0 : 1.5)
     if (this.renderer.getPixelRatio() !== want) this.renderer.setPixelRatio(want)
   }
 
@@ -469,19 +479,17 @@ export class Companion {
     this.camera.updateProjectionMatrix()
     this.viewH = 2 * Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z
     this.viewW = this.viewH * this.camera.aspect
-    // model wingspan is ~2.02 units; hold it at a fixed fraction of the frame.
-    // Trimmed down from 0.32/0.20: the duck check's on-screen box scales
-    // directly off this, and on a copy-dense page the old fraction meant the
-    // box alone (before any padding) already covered 20-30% of the viewport
-    // width — big enough to catch text almost anywhere it flew. Still a
-    // clearly-sized creature, just no longer one that dominates a third of
-    // the frame.
-    // Mobile nudged 0.27 -> 0.31: on a phone the butterfly is the only piece of
-    // the 3D layer a reader ever really sees, and at 0.27 it read as a detail
-    // rather than as the companion it is. The duck's box scales off this, so
-    // the cost of the extra 4% is that it ducks slightly more often — which is
-    // the correct trade, and the hysteresis in Flyer.jsx now keeps that from
-    // flickering the way it used to.
+    // Model wingspan is ~2.02 units; hold it at a fixed fraction of the frame
+    // so the creature keeps a constant share of the viewport instead of
+    // ballooning on a wide monitor.
+    //
+    // Both numbers were last tuned against the DUCK, which no longer exists
+    // (its on-screen box scaled directly off baseScale, so every size change
+    // used to be a legibility decision too — 0.32/0.20 was trimmed because the
+    // box alone covered 20-30% of the viewport and caught text almost anywhere
+    // it flew). With the duck deleted these are now purely what they look like:
+    // 0.31 on a phone, where the butterfly is the only part of the 3D layer a
+    // reader really sees, and 0.165 on a desktop.
     const frac = this.isMobile ? 0.31 : 0.165
     this.baseScale = (frac * this.viewW) / 2.02
     // Keep the whole wingspan inside the frame. A flat ±0.92 clamp is fine on a

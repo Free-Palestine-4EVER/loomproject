@@ -25,52 +25,18 @@ html.menu-open .flyer-layer {
   opacity: 0;
 }
 
-/* The duck: Flyer.jsx projects the butterfly's actual wingspan through the
-   camera every frame and, ~7.5 times a second, checks whether that box is
-   sitting on a MEANINGFUL patch of rendered text — not a pixel of it, see
-   MIN_OVERLAP_AREA in Flyer.jsx — over a large enough chunk of a paragraph,
-   heading or link to actually interrupt reading. When it is, this fades it
-   down instead of letting it sit opaque on top of copy. 0.14 used to sit here
-   and, combined with the old hair-trigger "any glyph pixel" check, made the
-   creature vanish for the entire body of the page — measured at 87% of the
-   scroll. 0.4 still leaves every letter it crosses fully legible (verified by
-   screenshot) while keeping the (freshly rebuilt) woven wings visibly there
-   instead of erased. It never fully disappears and never freezes. */
-/* THE DUCK NO LONGER FADES (client, 10 Aug 2026: "make the butterfly always
-   fully visible"). The class is still toggled — `flyer-say.css` and
-   `WhatsAppFab` both read it, and Flyer.jsx's bbox measurement is what
-   publishes `window.__loomFlyerBBox` for QA — so only the opacity is
-   neutralised, not the mechanism.
+/* THE DUCK IS GONE (11 Aug 2026, client: "remove it totally, make the
+   butterfly always fully visible"). There is no `.is-ducking` rule here any
+   more and nothing toggles that class on this layer — the butterfly is at full
+   opacity everywhere, on every width, and the only thing that still fades it is
+   an overlay taking the page, above.
 
-   THE TRADE, stated plainly because it was measured before: the duck existed
-   because the creature crosses body copy for most of the scroll (24 of 26
-   samples through `#offer` had it true). At full opacity the woven wings now
-   sit over those words instead of behind a 0.45 veil. That is the ask; if
-   legibility ever has to win again, this is the one line to change back. */
-.flyer-layer.is-ducking {
-  opacity: 1;
-}
+   Three rules used to live here and they had drifted into contradicting each
+   other: one fading to 0.4, one overriding that back to 1 "but keeping the
+   mechanism", and a phone-only one taking it to 0.5. The last of those is why
+   the creature looked washed out on a phone. See Flyer.jsx for what was
+   deleted on the JS side. */
 
 @media (prefers-reduced-motion: reduce) {
   .flyer-layer { display: none; }
-}
-
-/* ON A PHONE THE DUCK HAS TO ACTUALLY DUCK.
-   The butterfly flies on every screen — it is the site's one creature and it
-   was asked for on both. But the rule above (ducking at opacity 1) was a
-   desktop decision: there, a 1440px viewport has margins the wingspan can sit
-   in, so refusing to fade costs nothing. At 390px the canvas is wider than
-   the screen and there is no uncovered place to be, so the same rule put a
-   butterfly on top of the Solutions CTA and the section's primary action read
-   as a bug.
-   So: still flying, still over the copy, but on a phone it genuinely fades
-   when its own projected bbox is over text — which is the mechanic
-   Flyer.jsx already computes at ~7.5Hz and publishes as window.__loomFlyerBBox.
-   0.5, not 0.22 and not 0: a 390px screen is mostly text, so the duck fires
-   for a large share of the scroll — fade it far and the butterfly is
-   effectively absent from the phone, which is the thing being fixed. Half
-   opacity keeps it plainly a butterfly while leaving the copy under it
-   readable. */
-@media (max-width: 719px) {
-  .flyer-layer.is-ducking { opacity: 0.5; }
 }
