@@ -66,7 +66,9 @@
 }
 .wk-h1-line2 {
   display: block; margin-top: 0.14em;
-  background: linear-gradient(94deg, var(--magenta) 0%, var(--violet) 60%, var(--cyan) 100%);
+  /* --cyan-ink, not --cyan: this is clipped text and --cyan is 1.28:1 on the
+     pink ground, so the h1's second line faded out before its last word. */
+  background: linear-gradient(94deg, var(--magenta) 0%, var(--violet) 60%, var(--cyan-ink) 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .wk-hero-sub { margin-top: 26px; max-width: 62ch; color: var(--ink-dim); font-size: clamp(1.02rem, 1.5vw, 1.2rem); line-height: 1.6; }

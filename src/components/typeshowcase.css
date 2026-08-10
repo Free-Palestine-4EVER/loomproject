@@ -67,12 +67,18 @@
 }
 .ts-layer--plain {
   display: flex;
-  background: linear-gradient(94deg, #fff 0%, #f4e8ff 46%, var(--magenta) 100%);
+  /* Was #fff -> #f4e8ff -> magenta, drawn for the violet ground. On pink the
+     first two thirds of a 288px word simply were not there; only the magenta
+     tail rendered. Same left-to-right journey, re-pitched into ink range —
+     matches .tf-hero-line on /type, which is the same construction. */
+  background: linear-gradient(94deg, var(--ink) 0%, var(--violet) 46%, var(--magenta) 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .ts-ltr { display: inline-block; will-change: transform, opacity; }
 .ts-layer--cut {
-  background: linear-gradient(94deg, var(--magenta) 0%, var(--violet) 52%, var(--cyan) 100%);
+  /* terminal stop is --cyan-ink, not --cyan: see styles.css. Ending a clipped
+     text ramp on --cyan drops the last third of the word off the page. */
+  background: linear-gradient(94deg, var(--magenta) 0%, var(--violet) 52%, var(--cyan-ink) 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 

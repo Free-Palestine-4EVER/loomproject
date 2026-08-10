@@ -131,6 +131,14 @@
      RULES, BARS AND FILLS KEEP THE BRIGHT YARN. Only text uses these. */
   --accent-ink: color-mix(in srgb, var(--accent, var(--magenta)) 46%, var(--ink));
   --yarn-ink: color-mix(in srgb, var(--yarn, var(--magenta)) 46%, var(--ink));
+  /* The cool end of a gradient that fills TEXT. --cyan is 1.28:1 on the pink
+     ground, so any `background-clip: text` ramp ending on it loses its whole
+     last third — the word fades out mid-letter and no contrast checker
+     reports it, because clipped text computes `color: transparent` and every
+     sweep that reads getComputedStyle().color skips the element entirely.
+     Audit clipped text by its BACKGROUND STOPS, not its colour. Same hue as
+     --cyan, pitched into ink range at 5.9:1. */
+  --cyan-ink: #10627a;
   --felt: url('/img/wool/tex/felt-dark.webp');
 
   --display: 'Clash Display', 'Avenir Next', sans-serif;
