@@ -207,16 +207,25 @@ function AnswerCard({ n, reduced, onOpen }) {
   // than a hardcoded manifest, this follows Banners.jsx's own rule: reference
   // the file unconditionally and let onLoad/onError decide, so a niche that
   // gains art later needs no code change here at all. `loaded` resets on
-  // every niche switch because AnswerCard itself never unmounts between
-  // answers (only the inner motion.article's key changes, for the
-  // AnimatePresence crossfade) — without the reset, a photo niche's
-  // `has-photo` class would still be sitting on the very next card even if
-  // that next niche has no art yet.
+  // every niche switch because nothing here unmounts between answers — not
+  // AnswerCard, and (since the shake fix below) not the article either — so
+  // without the reset a photo niche's `has-photo` class would still be
+  // sitting on the very next card even if that next niche has no art yet.
   const [loaded, setLoaded] = useState(false)
   useEffect(() => { setLoaded(false) }, [n.key])
   return (
+    /* NO `key={n.key}` HERE — and this is load-bearing, not tidying.
+       A key that changes per niche remounts this article on every industry
+       the tour walks past, which restarts `initial` every time: opacity from
+       0 and y from 10px. Measured on a 390x844 phone at an ordinary reading
+       speed, the tour changes industry roughly every 350ms while the enter
+       animation runs for 400 — so the card never once reached its resting
+       state. It blinked and lurched 9-35px per change for the whole scrub,
+       which is what "the section shakes trying to stabilise" was.
+       Keyless, the article stays mounted for the life of the tour and only
+       its text changes; the entrance still plays once, on first mount, which
+       is the only time a visitor can actually see it. */
     <motion.article
-      key={n.key}
       className={`sol-panelcard sol-answer${loaded ? ' has-photo' : ''}`}
       style={{ '--panel-yarn': YARN_HEX[yarn] }}
       initial={reduced ? false : { opacity: 0, y: 10 }}
@@ -524,11 +533,19 @@ export function Solutions({ merged = false } = {}) {
               same square inches. The card owns the page below the seam; the
               picture owns everything above it. */}
           <div id="sol-answer" role="region" aria-live="polite" aria-label="Selected industry" className="sol-answer-slot">
+            {/* The keys belong HERE, on AnimatePresence's own direct children.
+                They used to sit on the motion elements those components
+                return, where AnimatePresence cannot see them — so the exit
+                half of this crossfade had never actually run, while the key
+                it could not use was remounting the answer card thirty times
+                a scrub. Two keys, and only two: this swaps between "an
+                industry resolved" and "nothing matched", never between one
+                industry and the next. */}
             <AnimatePresence mode="wait" initial={false}>
               {noMatch ? (
-                <NoMatchCard query={query} reduced={reduced} onOpen={(niche) => open({ niche })} />
+                <NoMatchCard key="no-match" query={query} reduced={reduced} onOpen={(niche) => open({ niche })} />
               ) : (
-                <AnswerCard n={shown} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
+                <AnswerCard key="answer" n={shown} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
               )}
             </AnimatePresence>
           </div>

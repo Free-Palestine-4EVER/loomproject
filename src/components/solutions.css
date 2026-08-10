@@ -1294,6 +1294,29 @@
   background-color: rgba(255, 255, 255, 0.93);
   backdrop-filter: blur(6px);
 }
+/* THE CARD IS BOTTOM-ANCHORED, SO ITS HEIGHT IS ITS TOP EDGE.
+   Every industry the tour walks past re-flows this card, and the only thing
+   that changes size is the deliverable list: measured across all thirty, each
+   row runs 2 or 3 lines (59 two-line rows, 31 three-line, at 1440). Three rows
+   free to disagree gave the card a 48.4px range at 1440 and 31.2 at 820 — the
+   top edge stepping up and down as the scrub went by. Reserving the tallest
+   case costs nothing visually (the card was already sized for it on a third of
+   the industries) and holds the edge still. `min-height`, never `height`: a
+   row that runs longer than the measured max still grows rather than clipping.
+   The phone's own version of this is at the foot of the file, with two more
+   blocks to reserve — see there for the full reasoning. */
+.sol-pin.is-pinned .sol-deliverables li {
+  min-height: calc(clamp(0.76rem, 0.85vw, 0.83rem) * 1.32 * 3);
+}
+/* The other variable row. The button carries the industry's OWN name, so
+   "Build my Med Spas & Aesthetics system" wraps where "Build my Law Firms
+   system" does not — and whether it wraps depends on the card's width, which
+   is `min(460px, 44%)`: at 1440 the card is a full 460 and nothing wraps, at
+   1024 it is ~440 and eight of the thirty do. That is why this looked fixed at
+   one desktop width and still stepped 25.6px at another. Shortening the label
+   would cost the personalisation the button exists for, so the row reserves
+   two lines and a one-line label sits centred in it. */
+.sol-pin.is-pinned .sol-cta { min-height: 87px; display: flex; align-items: center; }
 
 /* the index, compressed to a single reading band at the foot of the screen */
 .sol-pin.is-pinned .sol-index {
@@ -1359,7 +1382,18 @@
   .sol-pin.is-pinned .sol-panelcard { padding: 14px 16px; }
   .sol-pin.is-pinned .sol-answer-name { font-size: 1.2rem; }
   .sol-pin.is-pinned .sol-answer-hook { font-size: 0.86rem; }
-  .sol-pin.is-pinned .sol-deliverables li { font-size: 0.74rem; }
+  /* two rows here, not three, and each one tops out at two lines at this
+     width — so the reservation above is re-stated against these metrics
+     rather than left holding three desktop-sized lines open. */
+  .sol-pin.is-pinned .sol-deliverables li { font-size: 0.74rem; min-height: calc(0.74rem * 1.32 * 2); }
+  /* The CTA reservation above is a DESKTOP problem and is given back here.
+     Below 940 the card stops sitting beside the picture and goes full width
+     (left/right 10px), so the button has ~700px to set "Build my Med Spas &
+     Aesthetics system" on one line and no industry wraps — reserving a second
+     line here would just take 25px off the photograph to hold space nothing
+     ever uses. The phone, at 320-430, wraps again and re-reserves its own
+     (smaller) two lines further down. */
+  .sol-pin.is-pinned .sol-cta { min-height: 0; }
   .sol-pin.is-pinned .sol-deliverables li:nth-child(n + 3) { display: none; }
   .sol-pin.is-pinned .sol-idx-flow { columns: 2; max-height: clamp(52px, 9vh, 74px); }
   .sol-pin.is-pinned .sol-act2-lede { display: none; }
@@ -1466,6 +1500,40 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  /* ——— THE SHEET HOLDS ITS HEIGHT ———
+     This card is anchored by its BOTTOM edge, so every pixel of height
+     variance between two industries is a jump of its TOP edge — and the tour
+     walks thirty industries past it. Measured at 390x844 the card came out
+     261.8 / 279.9 / 305.5px, a 43.7px swing, which the scrub rendered as the
+     top of the sheet lurching up and down: half of "the section shakes".
+     (The other half was the remount — see Solutions.jsx.)
+
+     Exactly two things vary, and both are reserved rather than trimmed:
+
+     1. The single deliverable clamps at three lines but often runs two. The
+        min-height is those same three lines stated in the same units the
+        rule above uses, so it tracks the font instead of being a magic
+        number that rots the next time the type changes.
+     2. The CTA carries the industry's own name — "Build my Med Spas &
+        Aesthetics system" wraps to two lines where "Build my Law Firms
+        system" does not, on 8 of the 30. Shortening the label would cost the
+        personalisation that is the whole point of the button, so the row
+        reserves two lines and short labels sit centred in it.
+     3. The hook is one line on a 390 and two on a 360 — "The regulars come
+        back without being asked." does not fit 360px of type. Same treatment,
+        with the line-height stated locally so the reservation and the thing
+        it is reserving for cannot drift apart. Verified flat at 320 / 360 /
+        390 / 430.
+
+     Both are min-height, never height: a narrower phone that wraps something
+     further still grows rather than clipping its own copy. */
+  .sol-pin.is-pinned .sol-answer-hook {
+    line-height: 1.35;
+    min-height: calc(0.92rem * 1.35 * 2);
+  }
+  .sol-pin.is-pinned .sol-deliverables li { min-height: calc(0.8rem * 1.42 * 3); }
+  .sol-pin.is-pinned .sol-cta { min-height: 69px; display: flex; align-items: center; }
 
   /* THE CTA WAS CLIPPED. Measured scrollWidth 335 inside clientWidth 293, so
      "Build my Restaurants system" lost its last word on every industry whose
