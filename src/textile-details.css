@@ -160,6 +160,11 @@
   background-size: 100% 1px, 100% 1px, 11px 1.4px;
 }
 
+/* ⚠ NOT MOUNTED, AND BROKEN IF IT EVER IS. This fill was drawn for the old
+   dark ground and still ramps through #fff, which is invisible on #ffe9f2.
+   Because `background-clip: text` computes `color: transparent`, no contrast
+   sweep will report it — re-pitch the stops into ink range (see --cyan-ink
+   in styles.css) BEFORE remounting anything that uses this. */
 .footer-word {
   background-image: var(--tex-fabric);
   background-size: 340px 36px;

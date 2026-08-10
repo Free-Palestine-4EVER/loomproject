@@ -788,6 +788,11 @@ html.cursor-hot .cursor-ring {
      per-frame layout of 40 inline-flex children */
   will-change: transform;
 }
+/* ⚠ NOT MOUNTED, AND BROKEN IF IT EVER IS. This fill was drawn for the old
+   dark ground and still ramps through #fff, which is invisible on #ffe9f2.
+   Because `background-clip: text` computes `color: transparent`, no contrast
+   sweep will report it — re-pitch the stops into ink range (see --cyan-ink
+   in styles.css) BEFORE remounting anything that uses this. */
 /* The client wall reads WHITE, with a pink sheen travelling through it.
    `color` stays declared as the real fallback: if background-clip: text is
    unsupported the names are plain white, never invisible. */
@@ -1560,6 +1565,11 @@ html.cursor-hot .cursor-ring {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
 }
 .stat { text-align: center; }
+/* ⚠ NOT MOUNTED, AND BROKEN IF IT EVER IS. This fill was drawn for the old
+   dark ground and still ramps through #fff, which is invisible on #ffe9f2.
+   Because `background-clip: text` computes `color: transparent`, no contrast
+   sweep will report it — re-pitch the stops into ink range (see --cyan-ink
+   in styles.css) BEFORE remounting anything that uses this. */
 .stat-value {
   font-family: var(--display); font-weight: 580;
   font-size: clamp(2.6rem, 6.5vw, 5rem); line-height: 1;
