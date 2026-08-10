@@ -996,7 +996,14 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.82);
+  /* The scrim under this fork flipped from near-black to near-white with the
+     rest of the page (.ofk-branch::after above), so every value here that was
+     drawn to sit ON a dark scrim now sits on a light one. This eyebrow, the
+     body copy and the CTA below all kept their white and had to come back to
+     ink. Full --ink rather than --ink-dim: the eyebrow sits at the TOP of the
+     branch, where that scrim is only 0.18 opacity and the knit shows through
+     at nearly full strength. --ink-dim survives lower down; it does not here. */
+  color: var(--ink);
 }
 .ofk-ord {
   margin-left: auto;
@@ -1020,7 +1027,7 @@
   margin-top: clamp(10px, 1.2vw, 15px);
   font-size: clamp(0.92rem, 1.05vw, 1.02rem);
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--ink-dim);
   max-width: 38ch;
   text-wrap: pretty;
 }
@@ -1039,7 +1046,11 @@
   border-radius: 999px;
   padding: 13px clamp(18px, 2vw, 26px);
   background: #fff;
-  color: #fbe2ee;
+  /* This was #14091f — a literal dark ink on a white pill — and the ground
+     flip swept it to pink along with the real backgrounds, which left the
+     section's primary CTA reading white on white. It is a button ON white:
+     it does not follow the ground. */
+  color: var(--ink);
   font-family: var(--body);
   font-size: 0.94rem;
   font-weight: 700;
@@ -1047,13 +1058,13 @@
   transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
 }
 .ofk-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35); }
-.ofk-cta:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.ofk-cta:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 .ofk-link {
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--ink);
   text-decoration: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  border-bottom: 1px solid rgba(51, 36, 61, 0.45);
   padding-bottom: 2px;
   transition: border-color 0.3s var(--ease);
 }

@@ -283,10 +283,16 @@ function InkWord({ word, progress, range, reduced }) {
   // cheap derivation of it, so a word costs one scroll interpolation rather
   // than five independent scroll subscriptions.
   const t = useTransform(progress, range, [0, 1], { ease: INK_EASE })
-  // Grey cloth -> magenta ignition -> hot filament -> white. The magenta stop
+  // Pale cloth -> magenta ignition -> deep magenta -> ink. The magenta stop
   // sits early (0.38) so the flare happens while the word is still tilted and
-  // rising; by the time it is flat on its baseline it has cooled to white.
-  const color = useTransform(t, [0, 0.38, 0.7, 1], ['#6b6284', '#f21c8c', '#ff9ed1', '#ffffff'])
+  // rising; by the time it is flat on its baseline it has cooled to the ink.
+  // THE RAMP MUST END ON THE INK, NOT ON WHITE. It used to run
+  // #6b6284 -> #f21c8c -> #ff9ed1 -> #ffffff, which was the payoff on the old
+  // violet ground and is now a headline that fades to invisible exactly as it
+  // comes to rest — the last two stops were both lighter than #ffe9f2. The
+  // unlit stop lightened for the same reason: on pink, "unlit cloth" is a tint
+  // of the ink, not a mid grey.
+  const color = useTransform(t, [0, 0.38, 0.7, 1], ['#a896b4', '#f21c8c', '#b3126a', '#33243d'])
   // % units, not px/em: they resolve against the word's own box, so the rise
   // scales with the clamp()ed display size instead of being tuned for one width.
   const y = useTransform(t, [0, 1], ['52%', '0%'])
@@ -296,7 +302,10 @@ function InkWord({ word, progress, range, reduced }) {
   // headline reads as ink filling existing cloth, not as missing text.
   const opacity = useTransform(t, [0, 0.3, 1], [0.14, 0.9, 1])
   if (reduced) {
-    return <span className="ink-word" aria-hidden="true" style={{ color: '#fff' }}>{word}</span>
+    // var(--ink), not #fff — reduced motion is a large slice of ordinary
+    // visitors here (Chrome's Battery Saver forces the query on), and this is
+    // the whole headline for every one of them.
+    return <span className="ink-word" aria-hidden="true" style={{ color: 'var(--ink)' }}>{word}</span>
   }
   return (
     <motion.span

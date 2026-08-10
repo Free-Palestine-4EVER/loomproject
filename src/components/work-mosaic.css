@@ -118,10 +118,14 @@
 .wtile:hover .wm-rev, .wtile:focus-visible .wm-rev { max-height: 150px; opacity: 1; transform: translateY(0); }
 /* the biggest cards are big enough to say the line without being asked */
 .wtile .wm-cap.is-lead .wm-rev { max-height: 150px; opacity: 1; transform: none; }
-.wtile .wm-rev p { font-size: 0.83rem; line-height: 1.36; color: #ded7ef; margin-top: 7px; }
+/* The scrim above flipped from near-black to near-white with the rest of the
+   page, but these two kept the light-on-dark values they were drawn for —
+   #ded7ef on the new scrim is 1.02:1, i.e. the case line was invisible on
+   all sixteen tiles. They follow the scrim now. */
+.wtile .wm-rev p { font-size: 0.83rem; line-height: 1.36; color: var(--ink-dim); margin-top: 7px; }
 .wtile .wm-meta {
   display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px;
-  font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: #a396c4;
+  font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint);
 }
 .wtile .wm-meta span + span { padding-left: 8px; border-left: 1px solid rgba(242, 240, 247, 0.18); }
 .wtile .wm-meta .wm-market { color: var(--magenta); }

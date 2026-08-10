@@ -116,6 +116,21 @@
   --yarn-blue: #5cc0e8;
   --yarn-gold: #e0a82f;
   --yarn-cream: #efe7da;
+  /* THE SAME ACCENT, LEGIBLE AS TEXT ON THE PINK GROUND (10 Aug 2026).
+     The line above has always said the yarns are for surfaces and never for
+     body text, and on the old violet ground that rule cost nothing — a bright
+     yarn on #0d0716 read fine. On #ffe9f2 it stops being true: --yarn-blue
+     lands at 1.8:1 and --yarn-gold at 1.85:1 against the new ground, so every
+     label that tinted itself with the section's accent went nearly invisible
+     in one commit (proof labels, price units, crew indices, citation numbers,
+     process numbers).
+     Mixing just under half the accent into the ink keeps the hue identity —
+     the blue stat still reads blue, the gold one gold — while clearing 4.5:1.
+     Both resolve against whatever --accent / --yarn the element inherited, so
+     a section only has to set its accent once, as it already does.
+     RULES, BARS AND FILLS KEEP THE BRIGHT YARN. Only text uses these. */
+  --accent-ink: color-mix(in srgb, var(--accent, var(--magenta)) 46%, var(--ink));
+  --yarn-ink: color-mix(in srgb, var(--yarn, var(--magenta)) 46%, var(--ink));
   --felt: url('/img/wool/tex/felt-dark.webp');
 
   --display: 'Clash Display', 'Avenir Next', sans-serif;

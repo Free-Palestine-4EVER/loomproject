@@ -347,7 +347,7 @@
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.18em;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .hire .hire-name {
   font-family: var(--display);
