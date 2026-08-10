@@ -29,8 +29,8 @@
 // types. The answer card grew a group-icon badge next to its name, and the
 // index below grew the same seven icons ahead of their group labels.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
-import { NICHES, NICHE_GROUPS } from '../data/site.js'
+import { motion, AnimatePresence, useMotionValueEvent, useScroll, useReducedMotion } from 'motion/react'
+import { NICHES, NICHE_GROUPS, CORE_SERVICES, ENTRY_OFFER } from '../data/site.js'
 import { EASE, SplitWords, Reveal } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
 import { WoolButton } from './Wool.jsx'
@@ -267,13 +267,22 @@ function AnswerCard({ n, reduced, onOpen }) {
       </div>
       <div className="sol-answer-right">
         <p className="sol-answer-label sol-sr-only">What resolves for {n.name}</p>
+        {/* Three, and each one is "Title — what it does". The em dash is the
+            split point: bolding the title is what lets a reader take the three
+            in at a glance instead of reading three full sentences. A line with
+            no dash still renders — it just comes out unbolted. */}
         <ul className="sol-deliverables">
-          {n.deliverables.map((d) => (
-            <li key={d}>
-              <i className="sol-stitch" aria-hidden="true" />
-              <span>{d}</span>
-            </li>
-          ))}
+          {n.deliverables.map((d) => {
+            const cut = d.indexOf(' — ')
+            const title = cut < 0 ? d : d.slice(0, cut)
+            const rest = cut < 0 ? '' : d.slice(cut + 3)
+            return (
+              <li key={d}>
+                <i className="sol-stitch" aria-hidden="true" />
+                <span><b className="sol-deliv-t">{title}</b>{rest && <> — {rest}</>}</span>
+              </li>
+            )
+          })}
         </ul>
         <p className="sol-agent">
           <span className="sol-agent-kicker">AI agent</span>
@@ -376,6 +385,33 @@ export function Solutions({ merged = false } = {}) {
       ? `Try "${example}"…`
       : 'Type an industry…'
 
+  /* ——— THE PINNED TOUR (10 Aug 2026) ———
+     The section pins to the viewport and the scroll walks the visitor through
+     every one of the thirty industries — the client's ask was that nobody
+     gets to skip past this with one flick. The search field still wins: the
+     moment anything is typed, `query` is non-empty and the scroll stops
+     writing, so a visitor who knows their trade is never fighting the page
+     for control of it.
+
+     Reduced motion opts OUT of the pin entirely (see `pinned`): hijacking the
+     scroll is precisely the thing that setting asks us not to do, and the
+     section still works as an ordinary block with a search field. */
+  const pinRef = useRef(null)
+  const pinned = !reduced
+  const { scrollYProgress: tourP } = useScroll({
+    target: pinRef,
+    offset: ['start start', 'end end'],
+  })
+  useMotionValueEvent(tourP, 'change', (p) => {
+    if (!pinned || query.length > 0) return
+    // clamp on BOTH ends: at p===1 the raw index is NICHES.length, which is
+    // past the end of the array and would blank the card on the last frame.
+    const i = Math.min(NICHES.length - 1, Math.max(0, Math.floor(p * NICHES.length)))
+    const key = NICHES[i].key
+    setPinnedKey((prev) => (prev === key ? prev : key))
+  })
+  const tourIndex = NICHES.findIndex((n) => n.key === shown.key)
+
   const sectionAccent = YARN_HEX[GROUP_YARN[shown.group]]
 
   return (
@@ -392,6 +428,12 @@ export function Solutions({ merged = false } = {}) {
       style={{ '--sol-tint': sectionAccent }}
       {...(merged ? { 'aria-label': 'Solutions by industry' } : {})}
     >
+      {/* THE PIN TRACK. Its height is what the visitor scrolls THROUGH while
+          the stage inside it stays parked — 30 industries' worth. `.is-pinned`
+          is the only thing that turns the behaviour on, so reduced-motion
+          users get the same markup as an ordinary block. */}
+      <div className={`sol-pin${pinned ? ' is-pinned' : ''}`} ref={pinRef}>
+        <div className="sol-pin-inner">
       {merged ? (
         <div className="sol-act2">
           <span className="sol-act2-rule" aria-hidden="true" />
@@ -415,56 +457,60 @@ export function Solutions({ merged = false } = {}) {
       )}
 
       <Reveal delay={0.05} className="sol-console">
-        {/* THE STAGE — one wide 21:9 photograph, and everything else sits ON
-            it. This is the client's mock: a search box and a content card as
-            two white panels down the left of a single image, rather than a
-            pink console with a search row stacked above a separate card. It
-            also buys back the search row's height, which is most of why the
-            section now clears the fold. */}
+        {/* ——— THE SEARCH BAR — its own row, above the photograph ———
+            It used to sit as a small pill INSIDE the image's top-left corner,
+            competing with the render for the same few hundred pixels and
+            shrinking to `cqw` type nobody would type into. It is the section's
+            only interaction; it gets its own line and full width. */}
+        <div className="sol-bar">
+          <label className="sol-bar-label" htmlFor="sol-search">Find your industry</label>
+          <div className="sol-bar-field">
+            <svg className="sol-bar-glass" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+              <circle cx="10.3" cy="10.3" r="6.3" />
+              <path d="M19.5 19.5l-4.7-4.7" />
+            </svg>
+            <input
+              id="sol-search"
+              className="sol-search"
+              type="text"
+              autoComplete="off"
+              spellCheck="false"
+              placeholder={placeholder}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              list="sol-search-list"
+              aria-describedby="sol-answer"
+            />
+            <datalist id="sol-search-list">
+              {NICHES.map((n) => <option key={n.key} value={n.name} />)}
+            </datalist>
+          </div>
+          <span className="sol-bar-count" aria-hidden="true">{NICHES.length} industries</span>
+        </div>
+
+        {/* ——— THE STAGE ———
+            Wide, but inset: the render is the biggest thing in the section and
+            it earns the width, yet running it to the viewport edge made it
+            read as a page background rather than as a piece of work. */}
         <div className="sol-stage">
           <StagePhoto n={noMatch ? null : shown} />
           <i className="sol-stage-scrim" aria-hidden="true" />
 
-          <div className="sol-ov">
-            {/* white card one: the search box */}
-            <div className="sol-searchbox">
-              <label className="sol-search-label" htmlFor="sol-search">Find your industry</label>
-              <div className="sol-search-field">
-                <svg className="sol-search-glass" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                  <circle cx="10.3" cy="10.3" r="6.3" />
-                  <path d="M19.5 19.5l-4.7-4.7" />
-                </svg>
-                <input
-                  id="sol-search"
-                  className="sol-search"
-                  type="text"
-                  autoComplete="off"
-                  spellCheck="false"
-                  placeholder={placeholder}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  list="sol-search-list"
-                  aria-describedby="sol-answer"
-                />
-                <span className="sol-search-arrow" aria-hidden="true" />
-                <datalist id="sol-search-list">
-                  {NICHES.map((n) => <option key={n.key} value={n.name} />)}
-                </datalist>
-              </div>
-            </div>
-
-            {/* white card two: the resolved answer */}
-            <div id="sol-answer" role="region" aria-live="polite" aria-label="Selected industry" className="sol-answer-slot">
-              <AnimatePresence mode="wait" initial={false}>
-                {noMatch ? (
-                  <NoMatchCard query={query} reduced={reduced} onOpen={(niche) => open({ niche })} />
-                ) : (
-                  <AnswerCard n={shown} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
-                )}
-              </AnimatePresence>
-            </div>
+          {/* The answer STRADDLES the photograph's bottom edge instead of
+              floating inside it — an editorial device, and the practical
+              reason is that it stops the copy fighting the render for the
+              same square inches. The card owns the page below the seam; the
+              picture owns everything above it. */}
+          <div id="sol-answer" role="region" aria-live="polite" aria-label="Selected industry" className="sol-answer-slot">
+            <AnimatePresence mode="wait" initial={false}>
+              {noMatch ? (
+                <NoMatchCard query={query} reduced={reduced} onOpen={(niche) => open({ niche })} />
+              ) : (
+                <AnswerCard n={shown} reduced={reduced} onOpen={(n) => open({ niche: n.name })} />
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </Reveal>
@@ -503,6 +549,52 @@ export function Solutions({ merged = false } = {}) {
           })}
         </p>
       </nav>
+
+        {/* the tour's own progress — thirty ticks, the current one lit. It is
+            the only affordance telling a visitor that the scroll is doing
+            something deliberate rather than being stuck. */}
+        {pinned && (
+          <div className="sol-tour" aria-hidden="true">
+            <span className="sol-tour-now">{String(tourIndex + 1).padStart(2, '0')}</span>
+            <span className="sol-tour-track">
+              <span className="sol-tour-fill" style={{ transform: `scaleX(${(tourIndex + 1) / NICHES.length})` }} />
+            </span>
+            <span className="sol-tour-all">{NICHES.length}</span>
+          </div>
+        )}
+        </div>
+      </div>
+
+      {/* ——— THE FOUR EVERYONE GETS ———
+          Below the console on purpose. The console answers "what do you build
+          for ME", which is the question a visitor arrives with; this answers
+          "and what does everybody get", which only matters once they have seen
+          themselves on the page. Stated once here so no industry card has to
+          carry it — see CORE_SERVICES in site.js for why that matters. */}
+      <Reveal delay={0.08} className="sol-core">
+        <div className="sol-core-head">
+          <h3 className="sol-core-title">Every client gets these four</h3>
+          <p className="sol-core-sub">The three above are yours alone. These four are the floor.</p>
+        </div>
+        <ul className="sol-core-grid">
+          {CORE_SERVICES.map((c, i) => (
+            <li className="sol-core-card" key={c.title}>
+              <span className="sol-core-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <h4 className="sol-core-h">{c.title}</h4>
+              <p className="sol-core-b">{c.blurb}</p>
+              <ul className="sol-core-pts">
+                {c.points.map((p) => <li key={p}>{p}</li>)}
+              </ul>
+            </li>
+          ))}
+        </ul>
+        <p className="sol-entry">
+          <span className="sol-entry-tag">Start here</span>
+          <span className="sol-entry-title">{ENTRY_OFFER.title}</span>
+          <span className="sol-entry-price">{ENTRY_OFFER.price}</span>
+          <span className="sol-entry-blurb">{ENTRY_OFFER.blurb}</span>
+        </p>
+      </Reveal>
     </Tag>
   )
 }
