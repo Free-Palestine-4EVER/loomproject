@@ -72,5 +72,31 @@ service cloud.firestore {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
       allow write: if false;
     }
+
+    // -------------------------------------------------------------------
+    // LOOM FORGE — the 2D-photo-to-3D tool on loomstudio-jo.com/3d.
+    // Same carve-out shape and the same reasoning as blip's above.
+    //
+    // `freeUsed` and `credits` on forgeusers/{uid} ARE the paywall. A client
+    // that could write its own document could hand itself unlimited free
+    // models, so writes are server-only without exception — every one goes
+    // through the `forge` Cloud Function's Admin SDK, which bypasses these
+    // rules. Reads are allowed so the page can show a live balance, but the
+    // page must never DECIDE from them: functions/forge.mjs re-checks the
+    // entitlement inside a transaction on every generate.
+    //
+    // forgeips holds hashed-IP abuse counters that belong to no user, and
+    // forgeorders holds payment references an operator acts on; neither has
+    // a specific block, so the catch-all keeps both fully denied.
+
+    match /forgeusers/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /forgejobs/{id} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
   }
 }

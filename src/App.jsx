@@ -27,6 +27,7 @@ import { WorkshopsPromo } from './components/WorkshopsPromo.jsx'
 import { Pricing } from './components/Pricing.jsx'
 import { Voices } from './components/Voices.jsx'
 import { Faq } from './components/Faq.jsx'
+import { Forge } from './components/Forge.jsx'
 
 // firebase.json rewrites ** -> /index.html, so every path already boots this
 // SPA. A real URL therefore costs one pathname check, not a router dependency
@@ -361,6 +362,20 @@ export default function App() {
             team to run. Has its own booking page with a live price, so it
             closes the sell band rather than trailing the capability one. */}
         <WorkshopsPromo />
+        {/* FORGE closes the SELL band (10 Aug 2026) — the smallest, cheapest
+            and only instantly self-serve thing LOOM sells: 2 JOD a model,
+            first one free, no brief and no call. It sits LAST in SELL and
+            immediately above CAPABLE on purpose. Last, because the band is
+            ranked by what LOOM wants sold and a 2 JOD self-serve tool does
+            not outrank a subscription; immediately above CAPABLE, because
+            ToolsLab (#lab, the 3D Lab) is the section directly under it and
+            this is that lab with a price on it.
+
+            It is a SMALL band by instruction — the pitch and the price only.
+            Every interactive step lives in the popup it owns, which also
+            auto-opens once per visitor. Forge.jsx's header explains why the
+            funnel is not split across both. */}
+        <Forge />
         {/* CAPABLE — everything that answers "can they actually build it?"
             rather than "what am I buying?". Shipped work first, then tools,
             then the things that are honestly not for sale yet. */}

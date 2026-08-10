@@ -36,6 +36,13 @@ initializeApp()
 // touches it or is touched by it.
 export { blip } from './blip.mjs'
 
+// LOOM FORGE — a third independent product on this project: the 2D-photo-to-3D
+// model tool on loomstudio-jo.com/3d. Own Firestore collections
+// (forgeusers/forgejobs/forgeorders/forgeips), own Cloud Function export, own
+// Firebase-Auth-ID-token scheme, and the only holder of the Meshy API key. See
+// functions/forge.mjs; nothing above or below this line touches it.
+export { forge } from './forge.mjs'
+
 const DI = { store }
 
 // ---------------------------------------------------------------------------

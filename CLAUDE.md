@@ -278,6 +278,85 @@ below **1860px**, not 1360: thirteen labels overlapped the "Get started" pill at
 `qa-nav-fit.mjs` walks the viewport and prints the gap between the last visible
 tab and the pill — **run it, do not nudge the breakpoint by eye.**
 
+## FORGE — the 2D→3D tool (10 Aug 2026)
+
+**This site now has a backend.** The line at the top of this file — "no backend,
+no env vars, `dist/` is the entire deliverable" — is still true of everything
+*except* `#forge`, and staying that way is the point: FORGE is one section and
+one popup talking to one Cloud Function. Nothing else on the page knows it
+exists.
+
+`<Forge />` (`src/components/Forge.jsx` + `forge.css`) is a **small band** at the
+end of the SELL run, and it owns the popup that does all the work — account,
+upload, progress, download, payment. The split is deliberate and App.jsx's
+comment at the mount says why. The popup also **auto-opens once per visitor**,
+14s in, gated on `localStorage['loom.forge.popup.seen.v1']` and skipped if
+another overlay already owns the page. It reuses NeedModal's overlay contract
+(`.overlay-open`, Escape, focus trap, shared bottom sheet) rather than a second
+one.
+
+**No new nav tab.** The bar is at its documented limit of thirteen; FORGE is
+reached from the section, the popup and nothing else.
+
+### The server half
+
+`clients-backend/functions/forge.mjs`, deployed to the **`loom-clients`**
+Firebase project as the `forge` function
+(`https://europe-west1-loom-clients.cloudfunctions.net/forge`). It is modelled
+on `blip.mjs` — a third independent product on that project, own collections
+(`forgeusers` / `forgejobs` / `forgeorders` / `forgeips`), own Firebase Auth ID
+token scheme, every write through the Admin SDK. Deploy from
+`clients-backend/`, not the repo root, and only that codebase:
+
+```bash
+cd clients-backend
+firebase deploy --only functions:clients-api:forge,firestore:rules,firestore:indexes --project loom-clients
+```
+
+**Two rules that must not be softened:**
+
+- **The Meshy API key lives only in Secret Manager** (`MESHY_API_KEY`), read by
+  the function. It is a spending credential on a shared balance — a browser that
+  could see it could drain it. The client uploads its photo to the function and
+  polls the function; it never talks to Meshy. One model costs Meshy 15 credits,
+  so the balance is ~45 models per top-up and 2 JOD each is the price around it.
+- **The entitlement is spent inside a Firestore transaction**, before Meshy is
+  called, and refunded if Meshy refuses or the job later reports FAILED. One free
+  model per account *ever* (`freeUsed`), then `credits`. Two tabs pressing
+  generate together must not both spend the same single free try — a
+  read-then-write outside a transaction is exactly how that leaks. `firestore.rules`
+  lets a client READ its own `forgeusers` doc and nothing else; the page renders
+  from those flags but never decides on them.
+
+Registering throwaway addresses in a loop is the obvious attack on a
+one-free-per-account rule. `forgeips` blunts it with a hashed-IP counter (3 free
+tries per IP per day) — deliberately loose, since an office behind one NAT must
+not lock itself out.
+
+### Taking money
+
+There is no payment processor wired. `POST /orders` mints a reference
+(`FRG-XXXXXX`) that the customer quotes on WhatsApp; an operator then tops the
+account up:
+
+```bash
+curl -X POST https://europe-west1-loom-clients.cloudfunctions.net/forge/admin/grant \
+  -H 'content-type: application/json' -H "x-forge-admin-key: $FORGE_ADMIN_KEY" \
+  -d '{"email":"customer@example.com","credits":5}'
+```
+
+`FORGE_ADMIN_KEY` is a Secret Manager secret, separate from the Meshy one.
+When a processor is added it replaces the body of `/orders` and nothing on the
+page has to move.
+
+### Verifying it
+
+`node qa-forge.mjs` drives the real flow end to end against the dev server —
+registers a throwaway account, sends a photo, waits for the model, checks the
+four download links, then confirms the paywall appears on the second attempt and
+the sheet renders on a phone. **It spends one Meshy generation per run**; pass
+`--nogen` for the UI-only pass.
+
 ## Removed sections — Crew and the Ascent
 
 Both are **gone from the page and deleted from the tree** (Aug 2026). `Crew.jsx`
