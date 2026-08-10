@@ -7,6 +7,69 @@
    different close buttons in two different places. */
 
 /* ——————————————————————————————————————————————————————————
+   the woven side tab — the second explicit way to open the popup (the
+   section CTA below is the first). Pinned to the right edge on every
+   viewport, phone and desktop alike, clear of the two other fixed
+   right/bottom elements: .wa-fab-stack sits at the bottom-right corner and
+   .mobile-cta-pill spans the bottom edge on phones. Parking this at
+   vertical center keeps it off both regardless of which one is on screen,
+   and regardless of html.sol-tour-live's swap of the FAB for the tour bar
+   (solutions.css) — this tab never shares its slot with either, so that
+   rule has nothing to fight here.
+   —————————————————————————————————————————————————————————— */
+
+.fg-side-tab {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  z-index: 91; /* below .wa-fab/.mobile-cta-pill (92), well below .fg-scrim (94) */
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: 0;
+  border-radius: 14px 0 0 14px;
+  background: linear-gradient(165deg, var(--magenta) 0%, var(--magenta-deep) 55%, var(--violet) 100%);
+  box-shadow:
+    -10px 12px 32px -14px rgba(40, 8, 40, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  cursor: pointer;
+  transition: transform 0.3s var(--ease), padding 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.fg-side-tab span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--display);
+  font-size: 0.86rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff8fc;
+  white-space: nowrap;
+}
+.fg-side-tab:hover,
+.fg-side-tab:focus-visible {
+  transform: translateY(-50%) translateX(-4px);
+  padding-left: 14px;
+  box-shadow:
+    -14px 16px 38px -14px rgba(40, 8, 40, 0.62),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+.fg-side-tab:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+.fg-side-tab:active { transform: translateY(-50%) translateX(-1px); }
+
+@media (max-width: 767px) {
+  .fg-side-tab { padding: 14px 7px; }
+  .fg-side-tab span { font-size: 0.76rem; letter-spacing: 0.1em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg-side-tab { transition: none; }
+  .fg-side-tab:hover, .fg-side-tab:focus-visible, .fg-side-tab:active { transform: translateY(-50%); }
+}
+
+/* ——————————————————————————————————————————————————————————
    the section
    —————————————————————————————————————————————————————————— */
 

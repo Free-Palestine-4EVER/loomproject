@@ -37,11 +37,6 @@ import './forge.css'
 
 const PRICE_JOD = 2
 
-/** Shown once per visitor, then never again unless they open it themselves.
- *  A popup that returns on every page load is the single fastest way to make
- *  a returning visitor stop reading the site. */
-const SEEN_KEY = 'loom.forge.popup.seen.v1'
-
 /** Meshy takes roughly 40-90s. Poll often enough that the bar moves, rarely
  *  enough that a tab left open overnight is not a thousand function calls:
  *  every 4s, and give up displaying progress after 6 minutes. */
@@ -60,33 +55,25 @@ const STEPS = [
 
 export function Forge() {
   const [open, setOpen] = useState(false)
-  const openedOnce = useRef(false)
 
-  // Auto-open once, 14s in — late enough that it is not the first thing that
-  // happens to a visitor, early enough to still be on screen while they read.
-  // Suppressed outright once they have seen it, and never fired while another
-  // overlay owns the page (the wizard, a need panel), which would put two
-  // dialogs on screen at once.
-  useEffect(() => {
-    let seen = false
-    try { seen = localStorage.getItem(SEEN_KEY) === '1' } catch { seen = true }
-    if (seen) return
-    const t = setTimeout(() => {
-      if (document.documentElement.classList.contains('overlay-open')) return
-      if (openedOnce.current) return
-      openedOnce.current = true
-      setOpen(true)
-    }, 14_000)
-    return () => clearTimeout(t)
-  }, [])
-
-  const close = useCallback(() => {
-    setOpen(false)
-    try { localStorage.setItem(SEEN_KEY, '1') } catch { /* private mode */ }
-  }, [])
+  const close = useCallback(() => setOpen(false), [])
 
   return (
     <>
+      {/* The woven side tab — the OTHER explicit way in, next to the section's
+          own CTA. Fixed-position, so it renders here (Forge.jsx never touches
+          App.jsx/Sections.jsx) but reads as parked beside the hero at the top
+          of the page on both phone and desktop. See forge.css for why its
+          vertical slot clears the WhatsApp FAB and .mobile-cta-pill. */}
+      <button
+        type="button"
+        className="fg-side-tab"
+        onClick={() => setOpen(true)}
+        aria-label="Try 2D to 3D — send a photo, get a 3D model back"
+      >
+        <span>Try 2D to 3D</span>
+      </button>
+
       <section className="forge" id="forge" aria-labelledby="forge-title">
         <div className="forge-inner">
           <div className="forge-copy">
@@ -358,7 +345,6 @@ function ForgeTool() {
   const onAuthed = useCallback((r, mode) => {
     setError(null)
     if (mode === 'register') {
-      try { localStorage.setItem(SEEN_KEY, '1') } catch { /* private mode */ }
       window.location.href = '/dashboard'
       return
     }

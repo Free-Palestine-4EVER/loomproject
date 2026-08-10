@@ -301,14 +301,30 @@ exists.
 `<Forge />` (`src/components/Forge.jsx` + `forge.css`) is a **small band** at the
 end of the SELL run, and it owns the popup that does all the work — account,
 upload, progress, download, payment. The split is deliberate and App.jsx's
-comment at the mount says why. The popup also **auto-opens once per visitor**,
-14s in, gated on `localStorage['loom.forge.popup.seen.v1']` and skipped if
-another overlay already owns the page. It reuses NeedModal's overlay contract
+comment at the mount says why. It reuses NeedModal's overlay contract
 (`.overlay-open`, Escape, focus trap, shared bottom sheet) rather than a second
 one.
 
+**The popup never opens itself.** It used to auto-open once per visitor,
+14s in, gated on a `localStorage` flag — the client asked for that gone
+outright (11 Aug 2026): it opens from exactly two explicit clicks and nothing
+else. There is no timer and no seen-flag left behind to clean up later.
+
+1. the `#forge` section's own "Make one free" CTA;
+2. the **woven side tab** (`.fg-side-tab` in Forge.jsx/forge.css) — a vertical
+   "Try 2D to 3D" ribbon `position: fixed` to the right edge, vertically
+   centered, on every viewport (phone and desktop both). It renders from
+   inside `<Forge />` itself precisely so it can live fixed-to-viewport
+   without App.jsx or Sections.jsx needing to mount anything "next to the
+   hero" — being `position: fixed`, it reads as parked by the hero without
+   being in its DOM subtree. It sits clear of `.wa-fab-stack` and
+   `.mobile-cta-pill` (both bottom-anchored) by parking at vertical center,
+   which also means `html.sol-tour-live`'s swap of the FAB for the tour bar
+   (solutions.css) never has to account for it — it was never in that
+   corner to begin with.
+
 **No new nav tab.** The bar is at its documented limit of thirteen; FORGE is
-reached from the section, the popup and nothing else.
+reached from the section, the side tab, the popup and nothing else.
 
 ### The server half
 
