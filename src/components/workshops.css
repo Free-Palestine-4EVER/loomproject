@@ -166,7 +166,11 @@
 .wk-chip-hours { font-size: 0.76rem; color: var(--ink-faint); flex: none; }
 .wk-chip:hover:not(.is-disabled) { border-color: var(--magenta); color: var(--ink); }
 .wk-chip.is-on { border-color: var(--magenta); background: rgba(242, 28, 140, 0.12); color: var(--ink); }
-.wk-chip.is-on .wk-chip-hours { color: rgba(255, 255, 255, 0.7); }
+/* The chip's own fill is rgba(242,28,140,0.12) — 12% alpha, so this text is
+   effectively on the bare pink ground, where white measured 1.15:1. It is the
+   selected state's hour count; it has to be the most legible thing in the
+   chip, not the least. */
+.wk-chip.is-on .wk-chip-hours { color: var(--magenta-deep); }
 .wk-chip.is-disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* the sticky estimate rail */
