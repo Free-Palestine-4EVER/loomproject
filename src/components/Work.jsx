@@ -190,13 +190,12 @@ function arrange(list, sizes) {
   return out
 }
 
-const DUR = 3400, STAGGER = 140, CADENCE = 2600
+const DUR = 3400, STAGGER = 140
 const FLIP_EASE = 'cubic-bezier(.42,0,.24,1)'   // long, soft in, no snap at the end
 const DRIFT = 1.35
 
 function Mosaic({ list, onOpen }) {
   const wallRef = useRef(null)
-  const noteRef = useRef(null)
   const tileRefs = useRef([])
   // the slugs currently showing a MacBook + iPhone. On a fine pointer this is
   // at most one — see the wm-dev note below.
@@ -326,38 +325,26 @@ function Mosaic({ list, onOpen }) {
       })
     }
 
-    /* ── the cadence ──────────────────────────────────────────────────────────
-       One block per beat, 2.6s apart, rotating A → C → B so two consecutive
-       moves are never in touching rows. The move lasts 3.4s plus up to three
-       140ms stagger steps — LONGER than the gap between beats — so the next
-       block sets off while the last is still settling and there is never an
-       instant with no card in flight. A block still only recomposes once every
-       7.8s, so no single card is ever hurried. */
-    const ROTATION = blocks.length === 3 ? [0, 2, 1] : blocks.map((_, i) => i)
-    let beat = null, spin = 0, held = false, onScreen = false, hoverT = null
-    const live = () => !reduced() && wide() && onScreen && !held && !document.hidden && blocks.some((b) => b.chain.length > 1)
+    /* ── THE AMBIENT RE-TILE IS GONE (11 Aug 2026, client: "delete this
+       animation, make it static on pc") ──────────────────────────────────────
+       The wall used to recompose itself forever: one block every 2.6s, each
+       move a 3.4s FLIP with a 140ms stagger, so there was never an instant
+       with no card in flight. It was already desktop-only (`wide()` is
+       min-width 1001px), which is exactly the surface the client was looking
+       at. The layout now stays on each block's resting map for the whole
+       visit.
 
-    const tick = () => {
-      const b = blocks[ROTATION[spin++ % ROTATION.length]]
-      if (!b) return
-      let next = b.at + b.dir
-      if (next >= b.chain.length || next < 0) { b.dir *= -1; next = b.at + b.dir }
-      moveTo(b, next)
-    }
-    const sync = () => {
-      if (beat) { clearInterval(beat); beat = null }
-      const on = live()
-      if (on) {
-        beat = setInterval(tick, CADENCE)
-        // arriving at the wall should not mean waiting a whole beat for the
-        // first move — but only kick if nothing is already in flight, or every
-        // stray pointerleave would fire an extra beat
-        if (!blocks.some((b) => b.busy)) {
-          setTimeout(() => { if (live() && !blocks.some((b) => b.busy)) tick() }, 420)
-        }
-      }
-      noteRef.current?.classList.toggle('is-beating', on)
-    }
+       `moveTo` and the FLIP machinery above are KEPT and still called — the
+       hover promotion below walks a block to whichever map gives the hovered
+       card the most area, and that is a deliberate response to the reader
+       rather than motion that plays at them. What is deleted is the timer:
+       the interval, the A→C→B rotation, the `live()` gate that existed to
+       decide when the timer was allowed to run, and the `is-beating` marker
+       the note under the wall wore while it ticked.
+
+       `held` survives because the promotion still needs to know the pointer is
+       in the wall; it no longer pauses anything. */
+    let held = false, hoverT = null
 
     /* ── attention sets size, and mounts the hardware ─────────────────────────
        Hovering or tab-focusing a card walks its block to whichever of its maps
@@ -430,10 +417,10 @@ function Mosaic({ list, onOpen }) {
     // pointer event firing at all — which left the reader hovering a card with
     // no preview on it until they twitched the mouse.
     tiles.forEach((t, i) => { on(t, 'focus', () => promote(t, i)) })
-    on(root, 'pointerenter', () => { held = true; sync() })
-    on(root, 'pointerleave', () => { held = false; unpromote(); sync() })
-    on(root, 'focusin', () => { held = true; sync() })
-    on(root, 'focusout', () => { held = false; unpromote(); sync() })
+    on(root, 'pointerenter', () => { held = true })
+    on(root, 'pointerleave', () => { held = false; unpromote() })
+    on(root, 'focusin', () => { held = true })
+    on(root, 'focusout', () => { held = false; unpromote() })
 
     /* ── the breath: live windows, not stills ─────────────────────────────────
        Every card's photograph runs a permanent, very slow Ken-Burns drift — a
@@ -532,7 +519,7 @@ function Mosaic({ list, onOpen }) {
     on(root, 'pointerleave', () => { ptr = null; askDrift() })
 
     // ── the gates ───────────────────────────────────────────────────────────
-    const wallIO = new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; sync() }, { rootMargin: '120px' })
+    const wallIO = new IntersectionObserver(() => {}, { rootMargin: '120px' })
     wallIO.observe(root)
     const tileIO = new IntersectionObserver((es) => es.forEach((e) => {
       const b = BREATH.find((x) => x.t === e.target)
@@ -543,12 +530,12 @@ function Mosaic({ list, onOpen }) {
     }), { rootMargin: '80px' })
     BREATH.forEach((b) => tileIO.observe(b.t))
 
-    on(document, 'visibilitychange', () => { sync(); syncBreathAll() })
+    on(document, 'visibilitychange', () => { syncBreathAll() })
 
     const rmq = window.matchMedia('(prefers-reduced-motion: reduce)')
     const onRM = () => {
       if (reduced()) { rest(); ptr = null }
-      sync(); syncBreathAll(); drift()
+      syncBreathAll(); drift()
     }
     rmq.addEventListener('change', onRM)
 
@@ -562,21 +549,17 @@ function Mosaic({ list, onOpen }) {
       invalidateBoxes()
       const now = wide()
       if (now !== wasWide) { wasWide = now; if (!now) rest(); restDevices() }
-      sync()
     }
     on(window, 'resize', onResize)
-    sync()
 
     if (import.meta.env.DEV) {
       window.__mosaic = {
-        tiles, blocks, BREATH, tick, moveTo, rest, live, wide, syncBreathAll,
-        CADENCE, DUR, DRIFT,
+        tiles, blocks, moveTo, rest, wide, syncBreathAll, DUR, DRIFT,
         breathParams: BREATH.map((b) => ({ i: b.i, slug: b.t.dataset.slug, durMs: b.dur, phaseMs: b.phase, s0: b.s0, s1: b.s1, tx: b.tx, ty: b.ty })),
       }
     }
 
     return () => {
-      if (beat) clearInterval(beat)
       clearTimeout(hoverT)
       if (praf) cancelAnimationFrame(praf)
       offs.forEach((f) => f())
@@ -667,8 +650,12 @@ function Mosaic({ list, onOpen }) {
           reads as a developer talking. What survives is the part a visitor can
           act on — that the board is live, and that every card opens onto real
           hardware. The dot is driven from the actual cycle, not decoration. */}
-      <p className="wmosaic-note" ref={noteRef}>
-        <span><i className="wm-pulse" aria-hidden="true" />The board re-ranks itself while you watch</span>
+      {/* "The board re-ranks itself while you watch" used to lead this line.
+          It described the ambient re-tile, which was deleted on 11 Aug 2026 —
+          so it became a claim the page no longer keeps, next to a pulse dot
+          that could never light again. Both are gone; what is left is true on
+          every width. */}
+      <p className="wmosaic-note">
         <span>Open any card to see the site running on a <b>real MacBook and iPhone</b></span>
       </p>
     </>

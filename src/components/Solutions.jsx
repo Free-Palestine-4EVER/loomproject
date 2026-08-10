@@ -319,7 +319,14 @@ function StagePhoto({ n }) {
         alt=""
         width={1400}
         height={600}
-        loading="lazy"
+        /* NOT `loading="lazy"`. This <img> only ever exists while the pinned
+           tour is on screen, so it is in the viewport by definition — lazy
+           bought nothing and cost the swap: on the first pass through the
+           thirty, each industry's render started downloading only at the
+           moment it became the current one, which is the ~0.5s of blank
+           gradient between photographs the client saw. Every pass after that
+           was instant because the cache was warm, which is exactly the shape
+           of "only on first run". See PRELOAD below for the other half. */
         decoding="async"
         /* FALL BACK TO THE PORTRAIT, DON'T HIDE. Seven of the thirty
            industries — dental, clinic, pharmacy, school, kids, wedding, ngo —
@@ -402,6 +409,22 @@ export function Solutions({ merged = false } = {}) {
     setQuery(n.name)
   }, [])
 
+  // Bridge for the nav's industries dropdown (Chrome.jsx) and its mobile-menu
+  // twin — both live outside this section and the long page may not even be
+  // mounted when one is clicked (a sub-page route), so a CustomEvent is the
+  // only channel that reaches this component either way. App.jsx's route
+  // handler already gets the visitor back to '/' and to '#solutions' before
+  // this fires; this just resolves which industry to land on once it does.
+  useEffect(() => {
+    const onSelect = (e) => {
+      const key = e?.detail?.key
+      const n = NICHES.find((x) => x.key === key)
+      if (n) pick(n)
+    }
+    window.addEventListener('loom:select-niche', onSelect)
+    return () => window.removeEventListener('loom:select-niche', onSelect)
+  }, [pick])
+
   // Cycling only when there's nothing real to fight: idle, empty, unfocused,
   // motion allowed. The instant any of those flips — a tap into the field, a
   // keystroke — this goes false and the hook freezes on its current word
@@ -440,6 +463,36 @@ export function Solutions({ merged = false } = {}) {
     setPinnedKey((prev) => (prev === key ? prev : key))
   })
   const tourIndex = NICHES.findIndex((n) => n.key === shown.key)
+
+  /* ——— PRELOAD THE NEXT FEW INDUSTRIES ———
+     Eager loading fixes the current photograph; it does not fix the NEXT one,
+     which is what the reader is about to scroll into. So as the tour advances,
+     quietly fetch the renders a few industries ahead. `new Image()` warms the
+     HTTP cache and nothing else — the real <img> in StagePhoto then decodes
+     from cache instead of starting a request when it becomes current.
+
+     THREE ahead, not thirty: preloading the whole set would pull ~30 renders
+     the moment anyone reaches this section, which is worse than the problem.
+     Three is comfortably more than a fast scroll gets through in the time one
+     image takes to land, and the browser drops the ones it does not need.
+
+     The URL has to match what the <picture> would pick or the warm entry is
+     the wrong file and the fetch happens twice — hence the same 719px query
+     and the same `-9x16` portrait the <source> elements use. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const portrait = window.matchMedia('(max-width: 719px)').matches
+    const from = NICHES.findIndex((n) => n.key === shown.key)
+    if (from < 0) return
+    const imgs = []
+    for (let i = 1; i <= 3; i++) {
+      const n = NICHES[(from + i) % NICHES.length]
+      const img = new Image()
+      img.src = portrait ? `/img/niches/${n.key}-9x16.webp` : `/img/niches/${n.key}.webp`
+      imgs.push(img)
+    }
+    return () => imgs.forEach((i) => { i.src = '' })
+  }, [shown.key])
 
   /* While the pinned tour owns the screen, the site's global bottom pill steps
      aside — on a phone it is fixed at the bottom and the tour's answer card is

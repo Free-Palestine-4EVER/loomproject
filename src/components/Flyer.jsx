@@ -60,7 +60,7 @@ export function Flyer() {
   const [noGL] = useState(() => !hasWebGL())
 
   useEffect(() => {
-    if (reduced || noGL || isTooSmallToFly()) return
+    if (noGL || isTooSmallToFly()) return
     let cancelled = false
     let teardown = null
     let idle = 0
@@ -76,10 +76,34 @@ export function Flyer() {
       if (cancelled || !canvasRef.current) return
       let field
       try {
-        field = new Companion(canvasRef.current, { reduced: false })
+        field = new Companion(canvasRef.current, { reduced })
       } catch (e) {
         // WebGL unavailable (or the context limit is already spent on the hero)
         canvasRef.current.style.display = 'none'
+        return
+      }
+
+      /* REDUCED MOTION KEEPS THE BUTTERFLY, IT JUST STOPS IT FLYING.
+         This used to `return null` and render nothing at all, and that turned
+         out to be a content bug wearing an accessibility hat: CHROME FORCES
+         `prefers-reduced-motion: reduce` WHENEVER ENERGY SAVER IS ON — a
+         laptop off its charger, which is most laptops — so the site's one
+         creature silently vanished for a large slice of ordinary Chrome
+         visitors while Safari next to it showed it fine. That is the exact
+         symptom that got reported, twice.
+
+         The setting asks for less MOTION, not less content. So a reduced
+         visitor gets the butterfly rendered once, parked, with no scroll
+         listener attached and no animation loop running — Companion's own
+         `reduced` path already draws that single frame (see renderOnce). It is
+         a still illustration of the mascot, which is exactly what the media
+         query is asking for, instead of a hole where it used to be.
+
+         CLAUDE.md's rule that reduced motion kills Lenis and the FX pack is
+         unchanged — those are motion. This one is a picture. */
+      if (reduced) {
+        field.renderOnce()
+        teardown = () => field.dispose()
         return
       }
 
@@ -167,7 +191,7 @@ export function Flyer() {
 
   // Nothing is going to be drawn into it, and an empty full-viewport <canvas>
   // is still a compositor layer the size of the screen — so don't render one.
-  if (reduced || noGL || isTooSmallToFly()) return null
+  if (noGL || isTooSmallToFly()) return null
   return (
     <div className="flyer-layer" aria-hidden="true">
       <canvas ref={canvasRef} />

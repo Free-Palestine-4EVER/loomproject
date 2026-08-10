@@ -37,6 +37,8 @@ html.menu-open .flyer-layer {
    the creature looked washed out on a phone. See Flyer.jsx for what was
    deleted on the JS side. */
 
-@media (prefers-reduced-motion: reduce) {
-  .flyer-layer { display: none; }
-}
+/* No `display: none` under reduced motion any more — see the long note in
+   Flyer.jsx. Chrome turns this media query on for every laptop running Energy
+   Saver, and hiding the layer there deleted the site's mascot for a large share
+   of ordinary Chrome visitors. The layer stays; Flyer.jsx renders one static
+   frame into it and attaches no scroll listener, so there is no motion in it. */
