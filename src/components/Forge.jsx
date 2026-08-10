@@ -223,32 +223,6 @@ function ForgeModal({ open, onClose }) {
             </button>
 
             <div className="fg-body" data-lenis-prevent ref={bodyRef} {...(isMobile ? handoff : {})}>
-              <div className="fg-hero">
-                <img
-                  className="fg-hero-img"
-                  src="/img/forge/forge-mascots.webp"
-                  alt="Two LOOM wool mascots — one holding a flat printed photo of an armchair, the other holding the same chair rebuilt as a glowing 3D wireframe"
-                  width={1400}
-                  height={781}
-                  decoding="async"
-                  onError={(e) => { e.currentTarget.style.display = 'none' }}
-                />
-                <div className="fg-hero-ink">
-                  <p className="fg-kicker">2D → 3D</p>
-                  <h2 className="fg-title" id="fg-title">Turn a photo into a 3D model</h2>
-                </div>
-              </div>
-
-              <ol className="fg-steps">
-                {STEPS.map((s) => (
-                  <li key={s.n}>
-                    <span className="fg-step-n">{s.n}</span>
-                    <h3 className="fg-step-t">{s.t}</h3>
-                    <p className="fg-step-d">{s.d}</p>
-                  </li>
-                ))}
-              </ol>
-
               <ForgeTool onRequestClose={requestClose} />
             </div>
           </motion.div>
@@ -259,12 +233,57 @@ function ForgeModal({ open, onClose }) {
 }
 
 // ---------------------------------------------------------------------------
+// the hero + 01/02/03 explainer — shared between the pitch step and the
+// authenticated tool view (that layout was fine; only the ENTRY flow around
+// it needed rework, per the client's own note that the content is good and
+// it is the layout/flow that needed the work).
+// ---------------------------------------------------------------------------
+
+function ForgeHero({ titleId }) {
+  return (
+    <>
+      <div className="fg-hero">
+        <img
+          className="fg-hero-img"
+          src="/img/forge/forge-mascots.webp"
+          alt="Two LOOM wool mascots — one holding a flat printed photo of an armchair, the other holding the same chair rebuilt as a glowing 3D wireframe"
+          width={1400}
+          height={781}
+          decoding="async"
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        />
+        <div className="fg-hero-ink">
+          <p className="fg-kicker">2D → 3D</p>
+          <h2 className="fg-title" id={titleId}>Turn a photo into a 3D model</h2>
+        </div>
+      </div>
+
+      <ol className="fg-steps">
+        {STEPS.map((s) => (
+          <li key={s.n}>
+            <span className="fg-step-n">{s.n}</span>
+            <h3 className="fg-step-t">{s.t}</h3>
+            <p className="fg-step-d">{s.d}</p>
+          </li>
+        ))}
+      </ol>
+    </>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // the working half — account, upload, progress, result, payment
 // ---------------------------------------------------------------------------
 
+// Two-step ENTRY for a visitor who is not signed in yet: 'pitch' (Start now)
+// then 'auth' (register or sign in). Once `profile` exists — either from a
+// fresh sign-in/register or from an already-live session found on mount —
+// neither step renders again; see the render switch below.
 function ForgeTool() {
   const [profile, setProfile] = useState(null)
   const [booting, setBooting] = useState(isSignedIn())
+  const [entryStep, setEntryStep] = useState('pitch') // 'pitch' | 'auth'
+  const [authMode, setAuthMode] = useState('register')
   const [job, setJob] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -313,7 +332,38 @@ function ForgeTool() {
     return () => clearInterval(id)
   }, [job])
 
-  const onAuthed = useCallback((r) => { setProfile(r.profile); setError(null) }, [])
+  // A brand-new registration is the client's requested handoff: "start now,
+  // then register, then redirect to the user dashboard" — so a fresh account
+  // leaves the popup entirely rather than landing on the upload panel here.
+  //
+  // A SIGN-IN does not redirect. Two reasons: an account that already exists
+  // is exactly the "returning signed-in user" case the brief says must not be
+  // shoved through onboarding again, and the CliQ pay panel + upload/poll/
+  // download flow living in THIS popup is still the only shipped, QA'd way to
+  // reach them (`qa-forge-pay.mjs` signs in through this exact form and
+  // expects the paywall to render right here). Sending every successful sign-
+  // in offsite would strand that flow with nothing to replace it.
+  //
+  // INTEGRATION POINT — `src/lib/auth.jsx` (`AuthProvider`/`useAuth`) and the
+  // real `/dashboard` page both exist now, built by a second agent working the
+  // same brief. This file was deliberately NOT switched over to `useAuth()`:
+  // `lib/auth.jsx`'s own header says it "reads and writes the exact same
+  // localStorage-backed session" as the direct `lib/forge.js` calls below, so
+  // `register()` here already leaves the account signed in exactly the way
+  // `/dashboard` expects to find it on the very next navigation — no
+  // behaviour changes by switching later, and switching now would mean
+  // re-plumbing the job-poll effect, the paywall panel and the dropzone's
+  // profile shape onto a context this file did not need to touch to ship.
+  // Do it when Forge.jsx's own account state next needs real work.
+  const onAuthed = useCallback((r, mode) => {
+    setError(null)
+    if (mode === 'register') {
+      try { localStorage.setItem(SEEN_KEY, '1') } catch { /* private mode */ }
+      window.location.href = '/dashboard'
+      return
+    }
+    setProfile(r.profile)
+  }, [])
 
   const onPick = useCallback(async (file) => {
     setError(null)
@@ -340,37 +390,75 @@ function ForgeTool() {
 
   const again = useCallback(() => { setJob(null); setPreview(null); setError(null) }, [])
 
-  if (booting) return <div className="fg-tool"><p className="fg-note">Checking your account…</p></div>
-
-  // --- signed out -------------------------------------------------------
-  if (!profile) return <div className="fg-tool"><AuthPanel onAuthed={onAuthed} /></div>
-
-  // --- a model is running or done ---------------------------------------
-  if (job) {
+  if (booting) {
     return (
-      <div className="fg-tool">
-        <JobPanel job={job} preview={preview} error={error} onAgain={again} profile={profile} />
-      </div>
+      <>
+        <ForgeHero titleId="fg-title" />
+        <div className="fg-tool"><p className="fg-note">Checking your account…</p></div>
+      </>
     )
   }
 
-  // --- out of entitlement ------------------------------------------------
-  if (!profile.canGenerate) {
+  // --- signed out: two-step entry ----------------------------------------
+  // Step 1 — the pitch, one unmistakable primary action ("Start now").
+  if (!profile && entryStep === 'pitch') {
     return (
-      <div className="fg-tool">
-        <PayPanel profile={profile} order={order} setOrder={setOrder} setError={setError} error={error} />
-        <AccountLine profile={profile} onSignOut={() => { signOut(); setProfile(null) }} />
-      </div>
+      <>
+        <ForgeHero titleId="fg-title" />
+        <div className="fg-tool">
+          <PitchStep
+            onStart={() => { setAuthMode('register'); setEntryStep('auth') }}
+            onSignIn={() => { setAuthMode('signin'); setEntryStep('auth') }}
+          />
+        </div>
+      </>
     )
   }
 
-  // --- ready to upload ---------------------------------------------------
+  // Step 2 — register or sign in. Deliberately no hero/steps repeated here:
+  // that content already did its job on step 1, and a second copy of it is
+  // exactly the "everything at once" the client asked to move away from.
+  if (!profile) {
+    return (
+      <>
+        <div className="fg-compact-head">
+          <button type="button" className="fg-back" onClick={() => setEntryStep('pitch')}>
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+            Back
+          </button>
+          <p className="fg-stepnav" aria-hidden="true"><i /><i className="is-on" /></p>
+        </div>
+        <div className="fg-tool">
+          <h2 className="fg-auth-title" id="fg-title">
+            {authMode === 'register' ? 'Make your account' : 'Welcome back'}
+          </h2>
+          <AuthPanel mode={authMode} onModeChange={setAuthMode} onAuthed={onAuthed} />
+        </div>
+      </>
+    )
+  }
+
+  // --- signed in: unchanged from the shipped tool ------------------------
   return (
-    <div className="fg-tool">
-      <Dropzone onPick={onPick} busy={busy} nextIsFree={profile.nextIsFree} credits={profile.credits} />
-      {error && <p className="fg-error" role="alert">{error}</p>}
-      <AccountLine profile={profile} onSignOut={() => { signOut(); setProfile(null) }} />
-    </div>
+    <>
+      <ForgeHero titleId="fg-title" />
+      {job ? (
+        <div className="fg-tool">
+          <JobPanel job={job} preview={preview} error={error} onAgain={again} profile={profile} />
+        </div>
+      ) : !profile.canGenerate ? (
+        <div className="fg-tool">
+          <PayPanel profile={profile} order={order} setOrder={setOrder} setError={setError} error={error} />
+          <AccountLine profile={profile} onSignOut={() => { signOut(); setProfile(null) }} />
+        </div>
+      ) : (
+        <div className="fg-tool">
+          <Dropzone onPick={onPick} busy={busy} nextIsFree={profile.nextIsFree} credits={profile.credits} />
+          {error && <p className="fg-error" role="alert">{error}</p>}
+          <AccountLine profile={profile} onSignOut={() => { signOut(); setProfile(null) }} />
+        </div>
+      )}
+    </>
   )
 }
 
@@ -386,8 +474,29 @@ function AccountLine({ profile, onSignOut }) {
 
 // ---------------------------------------------------------------------------
 
-function AuthPanel({ onAuthed }) {
-  const [mode, setMode] = useState('register')
+// Step 1 of 2 — the pitch. Everything a visitor needs to decide "yes" (the
+// hero + 01/02/03 render above this, in `ForgeHero`) plus ONE unmistakable
+// primary action. `onSignIn` is a small, deliberately secondary escape hatch
+// for someone who already has an account — it lands on step 2 with the Sign
+// in tab pre-selected rather than making them notice a tab switch after the
+// fact.
+function PitchStep({ onStart, onSignIn }) {
+  return (
+    <div className="fg-pitch">
+      <p className="fg-pitch-price">
+        Make an account and your first model is on us. After that it is {PRICE_JOD} JOD each.
+      </p>
+      <WoolButton label="Start now" onClick={onStart} />
+      <p className="fg-pitch-signin">
+        Already have an account? <button type="button" className="fg-link" onClick={onSignIn}>Sign in</button>
+      </p>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+function AuthPanel({ mode, onModeChange, onAuthed }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -400,7 +509,7 @@ function AuthPanel({ onAuthed }) {
     setBusy(true)
     try {
       const r = mode === 'register' ? await register(email, password) : await signIn(email, password)
-      onAuthed(r)
+      onAuthed(r, mode)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -419,11 +528,13 @@ function AuthPanel({ onAuthed }) {
     }
   }
 
+  const setMode = (next) => { onModeChange(next); setError(null) }
+
   return (
     <form className="fg-auth" onSubmit={submit}>
       <p className="fg-auth-lede">
         {mode === 'register'
-          ? <>Make an account and your first model is on us. After that it is {PRICE_JOD} JOD each.</>
+          ? <>One more step — email and a password, and your first model is on us.</>
           : <>Welcome back — sign in to pick up where you left off.</>}
       </p>
 
@@ -431,12 +542,12 @@ function AuthPanel({ onAuthed }) {
         <button
           type="button" role="tab" aria-selected={mode === 'register'}
           className={mode === 'register' ? 'is-on' : ''}
-          onClick={() => { setMode('register'); setError(null) }}
+          onClick={() => setMode('register')}
         >Create account</button>
         <button
           type="button" role="tab" aria-selected={mode === 'signin'}
           className={mode === 'signin' ? 'is-on' : ''}
-          onClick={() => { setMode('signin'); setError(null) }}
+          onClick={() => setMode('signin')}
         >Sign in</button>
       </div>
 

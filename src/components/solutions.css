@@ -1695,3 +1695,30 @@ html.sol-tour-live .mobile-cta-pill {
   transform: translateY(8px);
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
+
+/* THE FAB NEEDS `visibility`, NOT `opacity`, AND THAT IS NOT A STYLE CHOICE.
+   `.wa-fab-stack` is `display: contents` (whatsapp-fab.css) — it generates no
+   box at all, so `opacity: 0` on it is a no-op that still reports "0" from
+   getComputedStyle. That is exactly how this was nearly shipped broken: the
+   probe read 0, agreed with itself, and the screenshot showed the button
+   sitting on the CTA anyway. Its two children are each `position: fixed` and
+   the button is a Framer `motion.a` carrying an INLINE opacity, which beats
+   any stylesheet rule short of !important.
+   `visibility` is inherited, so it passes straight through a display:contents
+   parent to both children, and Framer never writes it. */
+html.sol-tour-live .wa-fab-stack {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* The WhatsApp button is in that list for a reason worth writing down. It used
+   to carry its own text-duck — it measured whether it was sitting on rendered
+   copy and shrank to 56% — and that duck was deleted on 11 Aug at the client's
+   request, along with the butterfly's. Correct call: the machinery was absurd.
+   But the duck WAS the thing keeping the FAB off this card, and with it gone
+   the button sat squarely on top of "Build my <industry> system" — measured
+   over: true, opacity 1, against a CTA spanning 760-829px on a 390x844 phone.
+   Fixing that by reinstating a 160ms document-wide scan would be undoing the
+   thing that was asked for. Standing the FAB down over exactly one section
+   costs nothing (WhatsApp is reachable from the nav, the footer and the
+   wizard) and needs no measurement at all. */

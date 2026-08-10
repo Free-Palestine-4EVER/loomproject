@@ -563,8 +563,79 @@ html.cursor-hot .cursor-ring {
    unscrolled: 16px x2 plus the 49px "Get started" pill) plus the notch. */
 .menu {
   position: fixed; inset: 0; z-index: 75;
+  /* Fallback ground — MenuBackground (Chrome.jsx) paints the real, layered
+     one on top; this is what shows if that layer is ever removed, and it is
+     also what a browser paints for the one frame before the child mounts. */
   background: linear-gradient(160deg, var(--bg-2), var(--bg-3));
-  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8vh;
+  overflow: hidden; /* clips .menu-bg's blooms and falling petals to the drawer */
+}
+/* THE DRAWER'S BACKGROUND — see MenuBackground in Chrome.jsx for what draws
+   each layer and why (code-generated, nothing fetched: a hatch pass in two
+   directions for the woven read, three slow-drifting colour blooms, and a
+   small deterministic drift of petals reusing the footer's own keyframe).
+   Sits BEHIND `.menu-content` (z-index 0 vs 1) and ignores pointer events so
+   it can never intercept a tap meant for a link underneath it. */
+.menu-bg {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
+}
+.menu-bg-weave {
+  position: absolute; inset: -12%;
+  background-image:
+    repeating-linear-gradient(52deg, rgba(51, 36, 61, 0.055) 0 2px, transparent 2px 26px),
+    repeating-linear-gradient(-38deg, rgba(242, 28, 140, 0.045) 0 2px, transparent 2px 30px);
+  mix-blend-mode: multiply;
+}
+.menu-bg-bloom {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: menu-bloom-drift 15s ease-in-out infinite;
+}
+.menu-bg-bloom--a {
+  width: 52vw; height: 52vw; left: -14%; top: -10%;
+  background: radial-gradient(circle, var(--magenta) 0%, transparent 70%);
+  opacity: 0.5;
+}
+.menu-bg-bloom--b {
+  width: 44vw; height: 44vw; right: -16%; top: 22%;
+  background: radial-gradient(circle, var(--violet) 0%, transparent 70%);
+  opacity: 0.42; animation-delay: -5s;
+}
+.menu-bg-bloom--c {
+  width: 56vw; height: 56vw; left: 16%; bottom: -22%;
+  background: radial-gradient(circle, var(--cyan) 0%, transparent 72%);
+  opacity: 0.3; animation-delay: -9.5s;
+}
+@keyframes menu-bloom-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(2.5%, -3%, 0) scale(1.08); }
+}
+.menu-petals { position: absolute; inset: 0; overflow: hidden; }
+.menu-petals i {
+  position: absolute; top: -6%; left: var(--x); font-style: normal;
+  width: calc(clamp(7px, 0.9vw, 13px) * var(--s));
+  height: calc(clamp(9px, 1.1vw, 16px) * var(--s));
+  border-radius: 60% 60% 60% 60% / 80% 80% 40% 40%;
+  background: linear-gradient(160deg, #ffd0e8, #f76fb4);
+  opacity: 0;
+  animation: foot-fall var(--dur) linear infinite;
+  animation-delay: var(--delay);
+}
+.menu-petals i.is-leaf {
+  width: calc(clamp(6px, 0.76vw, 11px) * var(--s));
+  height: calc(clamp(12px, 1.6vw, 21px) * var(--s));
+  border-radius: 76% 24% 76% 24% / 50% 50% 50% 50%;
+  background: linear-gradient(150deg, #cfe6b4, #7fae74);
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-bg-bloom { animation: none; }
+}
+
+.menu-content {
+  position: relative; z-index: 1;
+  height: 100%;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5vh;
   justify-content: safe center;
   padding: calc(env(safe-area-inset-top, 0px) + 92px) var(--pad)
            calc(env(safe-area-inset-bottom, 0px) + 28px);
@@ -576,8 +647,127 @@ html.cursor-hot .cursor-ring {
   font-family: var(--display); font-weight: 560;
   font-size: clamp(2.6rem, 9vw, 4.6rem); line-height: 1.15;
 }
-.menu-links a:hover { color: var(--magenta); }
+.menu-links a { display: inline-block; transition: color 0.3s, transform 0.3s var(--ease); }
+.menu-links a:hover { color: var(--magenta); transform: translateX(10px); }
 .menu-links a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  .menu-links a:hover { transform: none; }
+}
+
+/* ——— MenuIndustries — the mobile disclosure (Chrome.jsx) ———
+   A secondary way into the 30-niche index, deliberately smaller type than
+   .menu-links: this is a lookup, not one of the page's primary destinations. */
+.menu-industries { width: min(440px, 88vw); }
+.menu-ind-toggle {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 13px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.22);
+  background: rgba(255, 255, 255, 0.4);
+  font-family: var(--display); font-weight: 560;
+  font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-dim);
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+.menu-ind-toggle:hover,
+.menu-ind-toggle[aria-expanded="true"] { border-color: var(--magenta); color: var(--ink); background: rgba(242, 28, 140, 0.08); }
+.menu-ind-toggle:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+.menu-ind-chev { width: 11px; height: 8px; transition: transform 0.3s var(--ease); }
+.menu-ind-chev.is-open { transform: rotate(180deg); }
+
+.menu-ind-panel { overflow: hidden; width: 100%; }
+.menu-ind-inner {
+  padding-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 22px;
+  text-align: left;
+}
+.menu-ind-glabel {
+  font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--grp-yarn, var(--ink-faint));
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.menu-ind-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.menu-ind-chips button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.16);
+  font-size: 0.76rem;
+  color: var(--ink-dim);
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.menu-ind-chips button:hover,
+.menu-ind-chips button:focus-visible {
+  border-color: var(--grp-yarn, var(--magenta));
+  color: var(--ink);
+  background: color-mix(in srgb, var(--grp-yarn, var(--magenta)) 12%, transparent);
+}
+@media (max-width: 420px) {
+  .menu-ind-inner { grid-template-columns: 1fr; }
+}
+
+/* ——— NavIndustries — the desktop dropdown (Chrome.jsx) ———
+   Anchored to the existing "Solutions" tab, so it costs the bar nothing
+   qa-nav-fit.mjs measures: the trigger is the same `.nav-links a` the script
+   already accounts for, and the panel is position:absolute — outside layout. */
+.nav-drop { position: relative; display: inline-flex; align-items: center; }
+.nav-drop-trigger {
+  font-family: var(--display); font-weight: 560;
+  font-size: 0.82rem; letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--ink-dim);
+  display: inline-flex; align-items: center; gap: 5px;
+  line-height: 44px; min-width: 44px; text-align: center;
+}
+.nav-drop-chev { width: 9px; height: 6px; opacity: 0.65; transition: transform 0.3s var(--ease); }
+.nav-drop-chev.is-open { transform: rotate(180deg); }
+.nav-drop-panel {
+  position: absolute; top: calc(100% + 14px); left: 50%; transform-origin: top center;
+  translate: -50% 0;
+  width: min(760px, 88vw);
+  padding: 24px 26px 20px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid rgba(51, 36, 61, 0.1);
+  box-shadow: 0 30px 70px -26px rgba(40, 8, 40, 0.4);
+  z-index: 81;
+  text-align: left;
+}
+.nav-drop-lede {
+  font-size: 0.8rem; color: var(--ink-faint);
+  padding-bottom: 14px; margin-bottom: 14px;
+  border-bottom: 1px solid rgba(51, 36, 61, 0.08);
+}
+.nav-drop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px 20px;
+}
+.nav-drop-glabel {
+  font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--grp-yarn, var(--ink-faint));
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.nav-drop-col ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.nav-drop-col button {
+  width: 100%; text-align: left;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  transition: background 0.2s, color 0.2s;
+}
+.nav-drop-col button:hover,
+.nav-drop-col button:focus-visible {
+  background: color-mix(in srgb, var(--grp-yarn, var(--magenta)) 12%, transparent);
+  color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-drop-chev, .menu-ind-chev { transition: none; }
+}
 .menu-meta { display: flex; flex-direction: column; gap: 8px; color: var(--ink-dim); font-size: 0.95rem; }
 /* the phone number and the address at the foot of the drawer measured
    210 x 24.3 — the two smallest targets inside the mobile navigation. */
@@ -586,6 +776,82 @@ html.cursor-hot .cursor-ring {
   min-height: 44px; min-width: 44px;
 }
 .menu-meta a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
+/* MenuAuth (Chrome.jsx) reuses this drawer's plain-line idiom for "Sign in" /
+   "Dashboard" / "Sign out" — the button needs the same touch target the
+   links already have, added rather than folded into the selector above so
+   the existing rule is untouched. */
+.menu-meta button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; min-width: 44px;
+  font: inherit; color: inherit; background: none; border: 0;
+}
+.menu-meta button:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
+
+/* ——— nav account control (NavAuth / MenuAuth, Chrome.jsx) ———————————
+   NOT a fourteenth nav tab — the bar is documented at its 13-tab limit and
+   qa-nav-fit.mjs verifies it. This rides inside .nav-cta beside the burger,
+   sized to stay small: signed out, a compact pill that is the only header
+   route into /dashboard; signed in, a round initial that opens a two-item
+   menu rather than spending nav width on an email address. */
+.nav-auth-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 36px; padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.22);
+  font-family: var(--display); font-weight: 560;
+  font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-dim);
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+  white-space: nowrap;
+}
+.nav-auth-pill:hover { border-color: var(--magenta); color: var(--ink); background: rgba(242, 28, 140, 0.06); }
+.nav-auth-pill:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+
+.nav-auth { position: relative; }
+.nav-auth-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--ink); color: #fff8fc;
+  font-family: var(--display); font-weight: 620; font-size: 0.9rem;
+  transition: background 0.3s;
+}
+.nav-auth-avatar:hover { background: var(--magenta-deep); }
+.nav-auth-avatar[aria-expanded="true"] { background: var(--magenta); }
+.nav-auth-avatar:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+
+.nav-auth-menu {
+  position: absolute; top: calc(100% + 12px); right: 0;
+  min-width: 210px;
+  display: flex; flex-direction: column;
+  padding: 8px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(51, 36, 61, 0.12);
+  box-shadow: 0 20px 50px -20px rgba(40, 8, 40, 0.4);
+  z-index: 81; /* just above .nav (80) — it is anchored inside the header */
+}
+.nav-auth-email {
+  padding: 8px 10px 10px;
+  font-size: 0.72rem; color: var(--ink-faint);
+  border-bottom: 1px solid rgba(51, 36, 61, 0.08);
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.nav-auth-menu a, .nav-auth-menu button {
+  display: block; width: 100%; text-align: left;
+  padding: 10px; border-radius: 8px;
+  font-size: 0.88rem; color: var(--ink);
+  transition: background 0.2s;
+}
+.nav-auth-menu a:hover, .nav-auth-menu button:hover { background: rgba(242, 28, 140, 0.08); }
+.nav-auth-menu a:focus-visible, .nav-auth-menu button:focus-visible {
+  outline: 2px solid var(--magenta); outline-offset: -2px;
+}
+
+@media (max-width: 1200px) {
+  .nav-auth-pill { height: 32px; padding: 0 12px; font-size: 0.66rem; }
+  .nav-auth-avatar { width: 32px; height: 32px; font-size: 0.8rem; }
+}
 
 /* ——— hero ——— */
 .hero {

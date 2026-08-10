@@ -19,7 +19,10 @@ for (const [tag, vp] of [['desktop', { width: 1440, height: 900 }], ['mobile', {
   await p.locator('.forge-cta .wool-btn').click()
   await p.locator('.fg-panel').waitFor({ timeout: 8000 })
 
-  await p.locator('.fg-tabs button', { hasText: 'Sign in' }).click()
+  // Step 1 (the pitch) has a secondary "Already have an account? Sign in"
+  // link that jumps straight to step 2 with the Sign in tab preselected.
+  await p.locator('.fg-pitch-signin .fg-link').click()
+  await p.locator('.fg-auth').waitFor({ timeout: 8000 })
   await p.locator('.fg-field input[type=email]').fill(EMAIL)
   await p.locator('.fg-field input[type=password]').fill(PASSWORD)
   await p.locator('.fg-auth button[type=submit]').click()

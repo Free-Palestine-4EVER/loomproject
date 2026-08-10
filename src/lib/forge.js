@@ -198,7 +198,14 @@ export async function api(path, { method = 'GET', body } = {}) {
 export const me = () => api('/me')
 export const startJob = (image, name) => api('/jobs', { method: 'POST', body: { image, name } })
 export const jobStatus = (id) => api(`/jobs/${id}`)
+export const jobs = () => api('/jobs')
 export const createOrder = (quantity) => api('/orders', { method: 'POST', body: { quantity } })
+
+// `idToken` above is the one thing lib/auth.jsx's shared context is allowed
+// to call directly — everything else in that module goes through the named
+// exports here, same as Forge.jsx does. Exported under a shorter, public name
+// since "idToken" reads like an internal helper from outside this file.
+export { idToken as token }
 
 // ---------------------------------------------------------------------------
 // the photo

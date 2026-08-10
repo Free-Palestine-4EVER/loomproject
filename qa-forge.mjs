@@ -60,14 +60,46 @@ await page.locator('.fg-panel').waitFor({ timeout: 8000 })
 await page.waitForTimeout(900)
 log('popup title:', await page.locator('.fg-title').innerText())
 log('steps:', await page.locator('.fg-steps li .fg-step-t').allInnerTexts())
+await page.screenshot({ path: `${SHOT}/forge-popup-pitch.png` })
+
+// --- step 1 -> step 2 --------------------------------------------------
+await page.locator('.fg-pitch .wool-btn').click()
+await page.locator('.fg-auth').waitFor({ timeout: 8000 })
+await page.waitForTimeout(500)
 await page.screenshot({ path: `${SHOT}/forge-popup-auth.png` })
 
-// --- register --------------------------------------------------------------
+// --- register ----------------------------------------------------------
+// A fresh registration now redirects to /dashboard (client's requested
+// handoff — see Forge.jsx's onAuthed comment). /dashboard is not in App.jsx's
+// PAGES table yet (a second agent owns that route), so today the SPA router
+// falls back to '/' — this is a real hard navigation, not a client-side hop.
 await page.locator('.fg-field input[type=email]').fill(EMAIL)
 await page.locator('.fg-field input[type=password]').fill(PASSWORD)
-await page.locator('.fg-auth button[type=submit]').click()
+await Promise.all([
+  page.waitForNavigation({ waitUntil: 'load', timeout: 20000 }),
+  page.locator('.fg-auth button[type=submit]').click(),
+])
+log('registered + redirected:', EMAIL, '->', page.url())
+
+// /dashboard is a real page now (built alongside this — see Forge.jsx's
+// onAuthed comment), so there is no #forge section to scroll to here. Follow
+// its own link back to the home page first.
+await page.locator('.dash-back').first().click()
+await page.waitForURL(`${BASE}/`, { timeout: 10000 })
+
+// The session persists in localStorage across all of that, so reopening the
+// popup from home must skip straight past step 1 and step 2 — this is the
+// "returning signed-in user must not be forced back through step 1"
+// requirement, exercised for real rather than asserted.
+await page.waitForTimeout(1500)
+await page.evaluate(() => {
+  const el = document.querySelector('#forge')
+  if (el) (window.__lenis ? window.__lenis.scrollTo(el, { immediate: true }) : el.scrollIntoView())
+})
+await page.waitForTimeout(1000)
+await page.locator('.forge-cta .wool-btn').click()
 await page.locator('.fg-drop', { timeout: 20000 }).waitFor({ timeout: 20000 })
-log('registered:', EMAIL)
+log('reopened popup, already signed in — no pitch/auth step shown')
 log('entitlement badge:', await page.locator('.fg-drop-badge').innerText())
 log('account line:', await page.locator('.fg-account').innerText())
 await page.screenshot({ path: `${SHOT}/forge-popup-upload.png` })

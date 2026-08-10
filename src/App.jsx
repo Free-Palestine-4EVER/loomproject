@@ -27,6 +27,8 @@ import { WorkshopsPromo } from './components/WorkshopsPromo.jsx'
 import { Pricing } from './components/Pricing.jsx'
 import { Faq } from './components/Faq.jsx'
 import { Forge } from './components/Forge.jsx'
+import { AuthProvider } from './lib/auth.jsx'
+import { Dashboard } from './components/Dashboard.jsx'
 
 // firebase.json rewrites ** -> /index.html, so every path already boots this
 // SPA. A real URL therefore costs one pathname check, not a router dependency
@@ -34,7 +36,10 @@ import { Forge } from './components/Forge.jsx'
 // renders the workshops booking page, everything else renders the long page.
 // Trailing slash tolerated (cleanUrls is on). PAGES is also the allow-list
 // for the in-page link interceptor below.
-const PAGES = ['/type', '/ai-workshops']
+// '/dashboard' added 11 Aug 2026 with the shared account context (lib/auth.jsx)
+// — the signed-in FORGE account's own page: entitlement state + past jobs,
+// reached from the nav's account control rather than from a fourteenth tab.
+const PAGES = ['/type', '/ai-workshops', '/dashboard']
 
 // index.html carries exactly one <title>, and firebase.json serves that same
 // file for every path — so before this table, /type and /ai-workshops both
@@ -48,6 +53,7 @@ const TITLES = {
   '/': 'LOOM — AI-Native Creative Agency · Amman × Sarajevo',
   '/type': 'LOOM Bloom — a free display typeface by LOOM',
   '/ai-workshops': 'AI Workshops for Teams — LOOM',
+  '/dashboard': 'Your Account — LOOM',
 }
 
 const currentRoute = () => {
@@ -224,6 +230,7 @@ export default function App() {
   }, [])
 
   return (
+    <AuthProvider>
     <WizardProvider>
       {/* the loom never stops running — a fixed, compositor-only backdrop
           behind every section (see loom-bg.css) */}
@@ -249,6 +256,13 @@ export default function App() {
              page's sections don't have; the home page only pitches and links
              here via WorkshopsPromo, below. */
           <Workshops />
+        ) : route === '/dashboard' ? (
+          /* /dashboard — a signed-in FORGE account's own page. Reached from
+             the nav's account control (Chrome.jsx), never from a nav tab —
+             the bar is at its documented 13-tab limit. Renders straight from
+             the shared AuthProvider below; signed out, it shows a sign-in
+             prompt rather than an empty shell. */
+          <Dashboard />
         ) : (
         <>
         {/* ORDER IS A CONVERSION DECISION, NOT A TASTE ONE (reordered 9 Aug
@@ -457,5 +471,6 @@ export default function App() {
       <WhatsAppFab />
       <WizardModal />
     </WizardProvider>
+    </AuthProvider>
   )
 }

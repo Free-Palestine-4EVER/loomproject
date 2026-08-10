@@ -1,9 +1,10 @@
 // Chrome: Loader, Nav, Cursor, ScrollProgress, Footer
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence, useScroll, useSpring, useReducedMotion } from 'motion/react'
-import { BRAND } from '../data/site.js'
+import { BRAND, NICHES, NICHE_GROUPS } from '../data/site.js'
 import { EASE, Magnetic } from '../lib/motion.jsx'
 import { useWizard } from '../lib/wizard.jsx'
+import { useAuth } from '../lib/auth.jsx'
 import { WoolButton } from './Wool.jsx'
 
 export function LoomMark({ className = '' }) {
@@ -132,6 +133,267 @@ const LINKS = [
   { href: '#contact', label: 'Contact' },
 ]
 
+/* THE INDUSTRIES DROPDOWN (desktop) / DISCLOSURE (mobile) — 11 Aug 2026.
+   Solutions.jsx already owns the 30-niche index by category (`NICHES` /
+   `NICHE_GROUPS` in data/site.js); this reuses that SAME data rather than
+   hardcoding a second list, and reaches the section itself through a
+   CustomEvent (`loom:select-niche`) since the long page may not even be
+   mounted when the visitor is on a sub-page — App.jsx's route handler is what
+   actually gets them back to '/' and scrolled to `#solutions` first, and
+   Solutions.jsx picks the industry up from there. Same 7-group colour map
+   Solutions.jsx uses for its own index, kept small and local here rather than
+   imported from a component file. */
+const NAV_GROUPS = NICHE_GROUPS.filter((g) => g.id !== 'all')
+const NAV_GROUP_YARN = {
+  food: 'var(--yarn-gold)', health: 'var(--yarn-blue)', beauty: 'var(--yarn-pink)',
+  retail: 'var(--yarn-violet)', property: '#e0244a', services: '#a9a8b6', creative: 'var(--yarn-cream)',
+}
+
+const Chevron = ({ className = '' }) => (
+  <svg className={className} viewBox="0 0 12 8" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 1.5 6 6.5 11 1.5" />
+  </svg>
+)
+
+/* Desktop: a hover/focus-revealed panel anchored to the existing "Solutions"
+   tab — NOT a fourteenth tab and NOT extra width the bar has to fit, since
+   the trigger is the same `<a>` qa-nav-fit.mjs already measures. The panel
+   itself is absolutely positioned and does not participate in that layout. */
+function NavIndustries({ link, go, onPick }) {
+  const [open, setOpen] = useState(false)
+  const closeTimer = useRef(null)
+
+  const openNow = () => { clearTimeout(closeTimer.current); setOpen(true) }
+  const closeSoon = () => { closeTimer.current = setTimeout(() => setOpen(false), 180) }
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+  useEffect(() => () => clearTimeout(closeTimer.current), [])
+
+  return (
+    <div className="nav-drop" onMouseEnter={openNow} onMouseLeave={closeSoon}>
+      <a
+        href={link.href}
+        className={`nav-drop-trigger${link.extra ? ' is-extra' : ''}`}
+        onClick={(e) => { setOpen(false); go(e, link.href) }}
+        onFocus={openNow}
+        aria-haspopup="true"
+        aria-expanded={open}
+      >
+        <span data-text={link.label}>{link.label}</span>
+        <Chevron className={`nav-drop-chev${open ? ' is-open' : ''}`} />
+      </a>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="nav-drop-panel"
+            role="menu"
+            aria-label="Browse by industry"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: EASE }}
+            onMouseEnter={openNow}
+            onMouseLeave={closeSoon}
+          >
+            <p className="nav-drop-lede">Thirty industries — the loom already knows yours.</p>
+            <div className="nav-drop-grid">
+              {NAV_GROUPS.map((g) => (
+                <div className="nav-drop-col" key={g.id} style={{ '--grp-yarn': NAV_GROUP_YARN[g.id] }}>
+                  <p className="nav-drop-glabel">{g.label}</p>
+                  <ul>
+                    {NICHES.filter((n) => n.group === g.id).map((n) => (
+                      <li key={n.key}>
+                        <button type="button" role="menuitem" onClick={() => { setOpen(false); onPick(n) }}>
+                          {n.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/* Mobile: a disclosure inside the drawer, below the big-type primary links —
+   the industries are a secondary way in, not competing with WORK / SOLUTIONS
+   / PRICING for the same scale of type. */
+function MenuIndustries({ onPick }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="menu-industries">
+      <button type="button" className="menu-ind-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <span>Browse by industry</span>
+        <Chevron className={`menu-ind-chev${open ? ' is-open' : ''}`} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            className="menu-ind-panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: EASE }}
+          >
+            <div className="menu-ind-inner">
+              {NAV_GROUPS.map((g) => (
+                <div className="menu-ind-group" key={g.id} style={{ '--grp-yarn': NAV_GROUP_YARN[g.id] }}>
+                  <p className="menu-ind-glabel">{g.label}</p>
+                  <div className="menu-ind-chips">
+                    {NICHES.filter((n) => n.group === g.id).map((n) => (
+                      <button key={n.key} type="button" onClick={() => onPick(n)}>{n.name}</button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/* THE MOBILE MENU'S BACKGROUND — code-generated, nothing fetched. Three
+   layers: a soft gradient ground (unchanged from before), two woven hatch
+   passes at a whisper of opacity (the same warp/weft idea `loom-bg.css`
+   carries elsewhere on the site, redrawn here in plain CSS gradients rather
+   than shared with that layer, since this one sits inside a drawer that
+   mounts and unmounts with the menu), and a small drift of petals reusing
+   the footer's own `foot-fall` keyframe and hashed-not-random positioning —
+   deterministic, so the set is identical every time the drawer opens rather
+   than reshuffling. Reduced-motion drops the drift and the slow bloom pulse,
+   keeps the gradient and the hatch. */
+function MenuBackground() {
+  const reduced = useReducedMotion()
+  const petals = useMemo(
+    () => Array.from({ length: 14 }, (_, i) => {
+      const h = ((i * 2654435761) % 1000) / 1000
+      const g = ((i * 40503) % 997) / 997
+      return {
+        i,
+        leaf: i % 3 === 0,
+        style: {
+          '--x': `${4 + ((i * 6.8) % 92)}%`,
+          '--s': 0.6 + h * 0.9,
+          '--dx': `${-70 + g * 130}px`,
+          '--rot': `${180 + h * 420}deg`,
+          '--dur': `${9 + h * 8}s`,
+          '--delay': `${-(g * 16).toFixed(2)}s`,
+          '--o': 0.35 + g * 0.35,
+        },
+      }
+    }),
+    [],
+  )
+  return (
+    <div className="menu-bg" aria-hidden="true">
+      <span className="menu-bg-weave" />
+      <span className="menu-bg-bloom menu-bg-bloom--a" />
+      <span className="menu-bg-bloom menu-bg-bloom--b" />
+      <span className="menu-bg-bloom menu-bg-bloom--c" />
+      {!reduced && (
+        <div className="menu-petals">
+          {petals.map((p) => <i key={p.i} className={p.leaf ? 'is-leaf' : ''} style={p.style} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* THE ACCOUNT CONTROL — deliberately NOT a fourteenth nav tab.
+   `qa-nav-fit.mjs` verifies the bar at its documented 13-tab limit by
+   measuring the gap between the last visible `.nav-links a` and `.nav-cta`'s
+   left edge, and `.nav-cta` grows leftward as its own content grows — so this
+   rides inside it, sized to add as little width as the burger does, rather
+   than adding a label to `LINKS`. Signed out: a small pill that is the ONLY
+   way into `/dashboard` from the header, since that route has no nav tab
+   either. Signed in: a round initial that opens a two-item menu — the read
+   never blocks on a network round trip past the first /me check, done once
+   by AuthProvider; `loading` renders nothing rather than flashing "Sign in"
+   before an existing session resolves. */
+function NavAuth() {
+  const { user, loading, signOut } = useAuth()
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  if (loading) return null
+
+  if (!user) {
+    return <a className="nav-auth-pill" href="/dashboard" aria-label="Sign in to your account">Sign in</a>
+  }
+
+  const initial = (user.email || '?').trim().charAt(0).toUpperCase() || '?'
+  return (
+    <div className="nav-auth" ref={ref}>
+      <button
+        type="button"
+        className="nav-auth-avatar"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Account menu — ${user.email || 'signed in'}`}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {initial}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="nav-auth-menu"
+            role="menu"
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: EASE }}
+          >
+            <span className="nav-auth-email">{user.email}</span>
+            <a role="menuitem" href="/dashboard" onClick={() => setOpen(false)}>Dashboard</a>
+            <button type="button" role="menuitem" onClick={() => { setOpen(false); signOut() }}>Sign out</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/* Same account state, the drawer's own idiom — plain lines inside
+   `.menu-meta`, alongside the WhatsApp number and the email address it
+   already carries. `onClose` is the menu's own `setOpen(false)`, passed down
+   so picking either link closes the drawer the same way every other link in
+   it does. */
+function MenuAuth({ onClose }) {
+  const { user, loading, signOut } = useAuth()
+  if (loading) return null
+  if (!user) return <a href="/dashboard" onClick={onClose}>Sign in</a>
+  return (
+    <>
+      <a href="/dashboard" onClick={onClose}>Dashboard — {user.email}</a>
+      <button type="button" onClick={() => { signOut(); onClose?.() }}>Sign out</button>
+    </>
+  )
+}
+
 export function Nav({ onNavigate }) {
   const { open: openWizard } = useWizard()
   const [open, setOpen] = useState(false)
@@ -179,6 +441,14 @@ export function Nav({ onNavigate }) {
     if (!href.startsWith('#')) { setOpen(false); return }
     e.preventDefault(); setOpen(false); onNavigate(href)
   }
+  // Shared by the desktop dropdown and the mobile disclosure — see the note
+  // above NAV_GROUPS. Dispatches first so a listener already mounted on the
+  // long page (Solutions.jsx) can act on it the instant the scroll lands.
+  const pickNiche = (n) => {
+    window.dispatchEvent(new CustomEvent('loom:select-niche', { detail: { key: n.key } }))
+    setOpen(false)
+    onNavigate('#solutions')
+  }
   return (
     <>
       <header className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
@@ -186,21 +456,26 @@ export function Nav({ onNavigate }) {
           <img className="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" />
         </a>
         <nav className="nav-links" aria-label="Primary">
-          {LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className={l.extra ? 'is-extra' : undefined}
-              onClick={(e) => go(e, l.href)}
-            >
-              <span data-text={l.label}>{l.label}</span>
-            </a>
-          ))}
+          {LINKS.map((l) =>
+            l.href === '#solutions' ? (
+              <NavIndustries key={l.href} link={l} go={go} onPick={pickNiche} />
+            ) : (
+              <a
+                key={l.href}
+                href={l.href}
+                className={l.extra ? 'is-extra' : undefined}
+                onClick={(e) => go(e, l.href)}
+              >
+                <span data-text={l.label}>{l.label}</span>
+              </a>
+            ),
+          )}
         </nav>
         <div className="nav-cta">
           <Magnetic strength={0.25}>
             <WoolButton label="Get started" size="small" onClick={() => { setOpen(false); openWizard({}) }} />
           </Magnetic>
+          <NavAuth />
           <button
             ref={burgerRef}
             className={`burger ${open ? 'is-open' : ''}`}
@@ -224,21 +499,32 @@ export function Nav({ onNavigate }) {
             exit={{ clipPath: 'inset(0 0 100% 0)' }}
             transition={{ duration: 0.7, ease: EASE }}
           >
-            <div className="menu-links">
-              {LINKS.map((l, i) => (
-                <motion.a
-                  key={l.href} href={l.href} onClick={(e) => go(e, l.href)}
-                  initial={{ y: 60, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.04 + i * 0.03, duration: 0.4, ease: EASE }}
-                >{l.label}</motion.a>
-              ))}
+            <MenuBackground />
+            <div className="menu-content">
+              <div className="menu-links">
+                {LINKS.map((l, i) => (
+                  <motion.a
+                    key={l.href} href={l.href} onClick={(e) => go(e, l.href)}
+                    initial={{ y: 60, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.04 + i * 0.03, duration: 0.4, ease: EASE }}
+                  >{l.label}</motion.a>
+                ))}
+              </div>
+              <motion.div
+                initial={{ y: 24, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.04 + LINKS.length * 0.03, duration: 0.4, ease: EASE }}
+              >
+                <MenuIndustries onPick={pickNiche} />
+              </motion.div>
+              <motion.div className="menu-meta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
+                <WoolButton label="Start weaving" size="big" onClick={() => { setOpen(false); openWizard({}) }} />
+                <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>
+                <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
+                <MenuAuth onClose={() => setOpen(false)} />
+              </motion.div>
             </div>
-            <motion.div className="menu-meta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
-              <WoolButton label="Start weaving" size="big" onClick={() => { setOpen(false); openWizard({}) }} />
-              <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>
-              <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

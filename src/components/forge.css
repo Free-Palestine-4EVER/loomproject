@@ -253,6 +253,69 @@
   color: var(--ink-faint);
 }
 
+/* ——— step 1: the pitch ——— */
+
+.fg-pitch { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.fg-pitch-price {
+  font-size: clamp(1.02rem, 1.6vw, 1.18rem);
+  color: var(--ink);
+  line-height: 1.5;
+  max-width: 42ch;
+  margin: 0 auto 22px;
+}
+.fg-pitch-signin {
+  margin-top: 18px;
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+}
+.fg-pitch-signin .fg-link { color: var(--ink-dim); }
+
+/* ——— step 2: compact header (no hero repeat — that already did its job on
+   step 1) with a back arrow and a two-dot progress read ——— */
+
+.fg-compact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Right padding clears the close button (42px circle at top:14/right:14) —
+     without it the step dots render directly underneath it. */
+  padding: clamp(18px, 3vw, 26px) 70px 0 clamp(18px, 3vw, 30px);
+}
+.fg-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px 6px 4px;
+  border: 0;
+  background: none;
+  color: var(--ink-dim);
+  font-family: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: color 0.2s, background 0.2s;
+}
+.fg-back svg { width: 16px; height: 16px; }
+.fg-back:hover { color: var(--ink); background: rgba(51, 36, 61, 0.06); }
+
+.fg-stepnav { display: flex; gap: 6px; }
+.fg-stepnav i {
+  display: block;
+  width: 16px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(51, 36, 61, 0.16);
+  font-style: normal;
+}
+.fg-stepnav i.is-on { background: var(--magenta); }
+
+.fg-auth-title {
+  font-family: var(--display);
+  font-size: clamp(1.3rem, 2.6vw, 1.7rem);
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
 /* ——— auth ——— */
 
 .fg-auth-lede { color: var(--ink-dim); font-size: 0.95rem; line-height: 1.55; }
