@@ -430,9 +430,58 @@
 .fg-qty button.is-on { border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); }
 .fg-qty button.is-on span { color: var(--magenta-deep); }
 
-.fg-order-ref { font-size: 1.05rem; color: var(--ink); margin-bottom: 6px; }
-.fg-order-ref strong { font-family: var(--display); letter-spacing: 0.08em; color: var(--magenta-deep); }
+.fg-order-total { font-size: 1.05rem; color: var(--ink); margin-bottom: 14px; }
+.fg-order-total strong { font-family: var(--display); color: var(--magenta-deep); }
+
+/* The payment instruction. Every row is a value the visitor has to retype into
+   a banking app, so each one that can be copied carries its own button — a
+   CliQ alias mistyped by one character is somebody else's money. */
+.fg-paylines {
+  border: 1px solid rgba(51, 36, 61, 0.14);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+}
+.fg-payline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+.fg-payline + .fg-payline { border-top: 1px solid rgba(51, 36, 61, 0.1); }
+.fg-payline dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.fg-payline dd { display: flex; align-items: center; gap: 10px; margin: 0; }
+.fg-payline dd span {
+  color: var(--ink);
+  font-size: 0.98rem;
+  /* Digits and a reference code are read character by character — a
+     proportional face makes 1/l and 0/O the reader's problem. */
+  font-variant-numeric: tabular-nums;
+}
+.fg-payline dd .fg-ref { font-family: var(--display); letter-spacing: 0.08em; color: var(--magenta-deep); }
+
+.fg-copy {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.2);
+  background: transparent;
+  color: var(--ink-dim);
+  font-family: inherit;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.fg-copy:hover { background: var(--ink); border-color: var(--ink); color: #fff8fc; }
+
 .fg-order .fg-pick { margin-top: 16px; }
+.fg-order .fg-fine strong { color: var(--ink); }
 
 /* ——— phone: the shared bottom sheet ——— */
 
@@ -446,6 +495,12 @@
   }
   .fg-close { width: 38px; height: 38px; }
   .fg-qty { grid-template-columns: repeat(2, 1fr); }
+  /* A label, a value and a Copy button do not fit on one 390px row once the
+     value is a full CliQ alias — stack rather than let the button squeeze the
+     alias into an ellipsis, which is the one thing on this panel that must
+     never be truncated. */
+  .fg-payline { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .fg-payline dd { width: 100%; justify-content: space-between; }
   .fg-auth-actions { flex-direction: column; align-items: stretch; }
   .fg-auth-actions .wool-btn { width: 100%; }
   .fg-pick { width: 100%; }

@@ -333,11 +333,28 @@ one-free-per-account rule. `forgeips` blunts it with a hashed-IP counter (3 free
 tries per IP per day) — deliberately loose, since an office behind one NAT must
 not lock itself out.
 
-### Taking money
+### Taking money — CliQ, by hand
 
-There is no payment processor wired. `POST /orders` mints a reference
-(`FRG-XXXXXX`) that the customer quotes on WhatsApp; an operator then tops the
-account up:
+**There is no payment processor and none is planned at this price point** — a
+2 JOD top-up does not survive a card fee, and every Jordanian buyer already has
+CliQ in their banking app. The flow is: pick a quantity → `POST /orders` mints a
+`FRG-XXXXXX` reference → WhatsApp, prefilled with the reference, the count, the
+total and the account email → the customer sends the CliQ transfer → an operator
+confirms it landed and runs `/admin/grant`.
+
+**The reference is the load-bearing part.** Two customers topping up 5 models on
+the same evening are two identical 10 JOD transfers, and a CliQ receipt carries
+the payer's name, not their FORGE account. The reference is minted server-side
+against the uid, so crediting the right account is a lookup and never a guess.
+
+`CLIQ` in `data/site.js` is the one switch: **fill in `alias` and the panel
+prints it with a copy button so the customer can pay before they message; leave
+it empty and the panel says the details will arrive on WhatsApp.** Both paths are
+finished and both are QA'd. Do not ship a placeholder — an alias wrong by one
+character sends somebody's money to a stranger and there is no getting it back.
+As of 10 Aug 2026 it is empty, waiting on the real alias.
+
+Crediting an account:
 
 ```bash
 curl -X POST https://europe-west1-loom-clients.cloudfunctions.net/forge/admin/grant \

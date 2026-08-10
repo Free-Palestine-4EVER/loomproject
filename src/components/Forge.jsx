@@ -27,7 +27,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { EASE, Reveal, Magnetic } from '../lib/motion.jsx'
 import { WoolButton } from './Wool.jsx'
 import { useBottomSheet, useIsMobile, SheetHandle, useSheetScrollHandoff } from '../lib/sheet.jsx'
-import { BRAND } from '../data/site.js'
+import { BRAND, CLIQ } from '../data/site.js'
 import {
   register, signIn, signOut, sendReset, isSignedIn,
   me, startJob, jobStatus, createOrder, fileToDataUrl, ForgeError,
@@ -584,9 +584,24 @@ function JobPanel({ job, preview, error, onAgain, profile }) {
 
 // ---------------------------------------------------------------------------
 
+// PAYMENT IS CLIQ, BY HAND. No processor is wired and none is planned for this
+// price point: a 2 JOD top-up does not survive a card fee, and every Jordanian
+// buyer already has CliQ in their banking app. So the panel's whole job is to
+// produce an unambiguous instruction — how much, to whom, quoting what — and
+// get the visitor into WhatsApp with all three already typed out. An operator
+// confirms the transfer landed and runs /admin/grant.
+//
+// The reference is the load-bearing part. Two customers topping up 5 models on
+// the same evening are two identical 10 JOD transfers, and the CliQ receipt
+// carries the payer's name, not their FORGE account. `FRG-XXXXXX` is minted
+// server-side against the uid, so crediting the right account is a lookup and
+// never a guess.
 function PayPanel({ profile, order, setOrder, setError, error }) {
   const [quantity, setQuantity] = useState(5)
   const [busy, setBusy] = useState(false)
+  const [copied, setCopied] = useState(null)
+
+  const hasAlias = Boolean(CLIQ.alias)
 
   const make = async () => {
     setBusy(true)
@@ -601,9 +616,28 @@ function PayPanel({ profile, order, setOrder, setError, error }) {
     }
   }
 
+  const copy = async (value, which) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(which)
+      setTimeout(() => setCopied(null), 1800)
+    } catch {
+      // Clipboard is blocked on insecure origins and in some in-app browsers.
+      // The value is on screen either way — this button is a convenience, and
+      // a failed copy must not look like a failed payment step.
+    }
+  }
+
   const wa = order
     ? `${BRAND.whatsapp}?text=${encodeURIComponent(
-        `Hi LOOM — I'd like to top up my 3D models.\nReference: ${order.ref}\nModels: ${order.quantity}\nTotal: ${order.amountJod} JOD\nAccount: ${profile.email}`
+        [
+          `Hi LOOM — I'd like to top up my 3D models.`,
+          `Reference: ${order.ref}`,
+          `Models: ${order.quantity}`,
+          `Total: ${order.amountJod} JOD`,
+          `Account: ${profile.email}`,
+          hasAlias ? `\nI'm sending it on CliQ now.` : `\nPlease send me the CliQ details.`,
+        ].join('\n')
       )}`
     : null
 
@@ -611,9 +645,9 @@ function PayPanel({ profile, order, setOrder, setError, error }) {
     <div className="fg-pay">
       <p className="fg-pay-lead">You have used your free model.</p>
       <p className="fg-fine">
-        Each further model is {PRICE_JOD} JOD. Pick how many you want, and we will
-        send you the payment details on WhatsApp — your models are added to this
-        account the moment it clears.
+        Each further model is {PRICE_JOD} JOD, paid by <strong>CliQ</strong>. Pick how
+        many you want and we will confirm on WhatsApp — your models land on this
+        account as soon as the transfer shows up.
       </p>
 
       {!order ? (
@@ -631,17 +665,53 @@ function PayPanel({ profile, order, setOrder, setError, error }) {
           </div>
           {error && <p className="fg-error" role="alert">{error}</p>}
           <button type="button" className="fg-pick" onClick={make} disabled={busy}>
-            {busy ? 'One moment…' : `Get payment details — ${quantity * PRICE_JOD} JOD`}
+            {busy ? 'One moment…' : `Continue — ${quantity * PRICE_JOD} JOD`}
           </button>
         </>
       ) : (
         <div className="fg-order">
-          <p className="fg-order-ref">Reference <strong>{order.ref}</strong></p>
-          <p className="fg-fine">
-            {order.quantity} model{order.quantity === 1 ? '' : 's'} · {order.amountJod} JOD.
-            Quote that reference when you pay.
+          <p className="fg-order-total">
+            {order.quantity} model{order.quantity === 1 ? '' : 's'} · <strong>{order.amountJod} JOD</strong>
           </p>
-          <a className="fg-pick" href={wa} target="_blank" rel="noreferrer">Send it on WhatsApp</a>
+
+          <dl className="fg-paylines">
+            {hasAlias && (
+              <div className="fg-payline">
+                <dt>CliQ alias</dt>
+                <dd>
+                  <span>{CLIQ.alias}</span>
+                  <button type="button" className="fg-copy" onClick={() => copy(CLIQ.alias, 'alias')}>
+                    {copied === 'alias' ? 'Copied' : 'Copy'}
+                  </button>
+                </dd>
+              </div>
+            )}
+            {hasAlias && CLIQ.name && (
+              <div className="fg-payline">
+                <dt>Account name</dt>
+                <dd><span>{CLIQ.name}</span></dd>
+              </div>
+            )}
+            <div className="fg-payline">
+              <dt>Reference</dt>
+              <dd>
+                <span className="fg-ref">{order.ref}</span>
+                <button type="button" className="fg-copy" onClick={() => copy(order.ref, 'ref')}>
+                  {copied === 'ref' ? 'Copied' : 'Copy'}
+                </button>
+              </dd>
+            </div>
+          </dl>
+
+          <p className="fg-fine">
+            {hasAlias
+              ? <>Send {order.amountJod} JOD by CliQ to the alias above, put <strong>{order.ref}</strong> in the transfer note, then send us the receipt on WhatsApp.</>
+              : <>Message us on WhatsApp and we will send you the CliQ alias. Quote <strong>{order.ref}</strong> so we credit the right account.</>}
+          </p>
+
+          <a className="fg-pick" href={wa} target="_blank" rel="noreferrer">
+            {hasAlias ? 'Send the receipt on WhatsApp' : 'Get the CliQ details on WhatsApp'}
+          </a>
         </div>
       )}
     </div>

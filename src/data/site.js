@@ -13,6 +13,26 @@ export const BRAND = {
   email: 'mofakhori@gmail.com',
 }
 
+// ————————————————————————————————————————————
+// How FORGE gets paid (components/Forge.jsx).
+//
+// CliQ, confirmed over WhatsApp, settled by hand — there is no processor on
+// the site and nothing here touches a card. The panel asks for a quantity,
+// mints a reference, and hands the visitor to WhatsApp; an operator confirms
+// the transfer and credits the account with /admin/grant.
+//
+// `alias` is the ONLY thing standing between that flow and the customer being
+// able to pay before they message: fill it in and the panel prints the CliQ
+// alias with a copy button, leave it empty and the panel says the details will
+// arrive on WhatsApp. Both paths are complete — do not ship a placeholder
+// alias, an alias that is wrong by one character sends somebody's money to a
+// stranger and there is no getting it back.
+// ————————————————————————————————————————————
+export const CLIQ = {
+  alias: '',
+  name: '', // the name the payer will see on the CliQ confirmation screen
+}
+
 export const CLIENT_WALL = [
   'United Colors of Benetton', 'UNICEF', 'Vodafone', 'MAC', 'Max Factor',
   'Espresso Lab', 'Savia', 'Scion International', 'Weitnauer', 'Normfest',
