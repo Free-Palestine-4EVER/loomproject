@@ -203,15 +203,101 @@ export const forge = onRequest(
       if (method === 'OPTIONS') return res.status(204).send('')
       if (path === '/health' && method === 'GET') return send(res, 200, { ok: true, priceJod: PRICE_JOD })
 
-      // --- operator top-up ------------------------------------------------
+      // --- operator routes --------------------------------------------------
       // Guarded by a shared secret in a header, NOT by an ID token: the person
-      // running it is an operator on a laptop, not a signed-in FORGE customer.
-      if (path === '/admin/grant' && method === 'POST') {
-        const key = req.get('x-forge-admin-key') || ''
+      // running these is an operator on a laptop, not a signed-in FORGE
+      // customer. `scripts/forge-admin.mjs` in the site repo is the front end.
+      const isAdmin = () => {
         const expected = FORGE_ADMIN_KEY.value()
-        if (!expected || key !== expected) return fail(res, 403, 'FORBIDDEN', 'Bad admin key.')
+        return Boolean(expected) && (req.get('x-forge-admin-key') || '') === expected
+      }
 
+      // What is owed but not yet paid — the operator's worklist, matched
+      // against the CliQ transfers that actually landed.
+      if (path === '/admin/orders' && method === 'GET') {
+        if (!isAdmin()) return fail(res, 403, 'FORBIDDEN', 'Bad admin key.')
+        const status = typeof req.query.status === 'string' ? req.query.status : 'awaiting_payment'
+        const q = await db
+          .collection('forgeorders')
+          .where('status', '==', status)
+          .orderBy('createdAt', 'desc')
+          .limit(60)
+          .get()
+        return send(res, 200, {
+          orders: q.docs.map((d) => {
+            const o = d.data()
+            return {
+              ref: o.ref,
+              email: o.email || null,
+              quantity: o.quantity,
+              amountJod: o.amountJod,
+              status: o.status,
+              createdAt: o.createdAt?.toMillis?.() || null,
+            }
+          }),
+        })
+      }
+
+      // Drop an order nobody is going to pay. Reuse above keeps the worklist
+      // from growing on its own, but a customer who picks 5, thinks better of
+      // it and never transfers still leaves one sitting there — this is how it
+      // gets cleared without touching anybody's credit.
+      const cancel = /^\/admin\/orders\/(FRG-[A-Fa-f0-9]{6})\/cancel$/.exec(path)
+      if (cancel && method === 'POST') {
+        if (!isAdmin()) return fail(res, 403, 'FORBIDDEN', 'Bad admin key.')
+        const orderRef = db.collection('forgeorders').doc(cancel[1].toUpperCase())
+        const snap = await orderRef.get()
+        if (!snap.exists) return fail(res, 404, 'NO_SUCH_ORDER', 'No order with that reference.')
+        if (snap.data().status === 'paid') {
+          return fail(res, 409, 'ALREADY_PAID', 'That order is settled — cancelling it would not undo the credit.')
+        }
+        await orderRef.update({ status: 'cancelled', cancelledAt: FieldValue.serverTimestamp() })
+        return send(res, 200, { order: { ref: snap.data().ref, status: 'cancelled' } })
+      }
+
+      if (path === '/admin/grant' && method === 'POST') {
+        if (!isAdmin()) return fail(res, 403, 'FORBIDDEN', 'Bad admin key.')
         const body = req.body || {}
+
+        // --- settle an order by its reference -----------------------------
+        // The operator's real action is "FRG-XXXXXX paid", not "give this
+        // email 5 credits" — the reference already knows the account and the
+        // quantity, so this path cannot credit the wrong person or the wrong
+        // number. Done in a transaction and refused if the order is already
+        // settled, because the natural operator error is running it twice
+        // after a flaky connection.
+        if (typeof body.ref === 'string' && body.ref.trim()) {
+          const orderRef = db.collection('forgeorders').doc(body.ref.trim().toUpperCase())
+          let settled
+          try {
+            settled = await db.runTransaction(async (tx) => {
+              const snap = await tx.get(orderRef)
+              if (!snap.exists) throw Object.assign(new Error('no order'), { code: 'NO_SUCH_ORDER' })
+              const order = snap.data()
+              if (order.status === 'paid') throw Object.assign(new Error('already'), { code: 'ALREADY_PAID' })
+              tx.set(
+                db.collection('forgeusers').doc(order.uid),
+                { credits: FieldValue.increment(order.quantity) },
+                { merge: true },
+              )
+              tx.update(orderRef, { status: 'paid', paidAt: FieldValue.serverTimestamp() })
+              return order
+            })
+          } catch (err) {
+            if (err.code === 'NO_SUCH_ORDER') return fail(res, 404, 'NO_SUCH_ORDER', 'No order with that reference.')
+            if (err.code === 'ALREADY_PAID') return fail(res, 409, 'ALREADY_PAID', 'That order was already settled.')
+            throw err
+          }
+          const snap = await db.collection('forgeusers').doc(settled.uid).get()
+          return send(res, 200, {
+            order: { ref: settled.ref, quantity: settled.quantity, amountJod: settled.amountJod, status: 'paid' },
+            profile: publicProfile(snap.data()),
+          })
+        }
+
+        // --- or adjust an account directly --------------------------------
+        // The escape hatch: a refund, a goodwill credit, a correction. Signed
+        // both ways on purpose.
         const credits = Math.floor(Number(body.credits))
         if (!Number.isFinite(credits) || credits === 0 || Math.abs(credits) > 500) {
           return fail(res, 400, 'BAD_CREDITS', 'credits must be a non-zero integer within +/-500.')
@@ -225,11 +311,11 @@ export const forge = onRequest(
             return fail(res, 404, 'NO_SUCH_USER', 'No account with that email.')
           }
         }
-        if (!uid) return fail(res, 400, 'NO_TARGET', 'Pass uid or email.')
+        if (!uid) return fail(res, 400, 'NO_TARGET', 'Pass ref, or uid/email with credits.')
 
-        const ref = db.collection('forgeusers').doc(uid)
-        await ref.set({ credits: FieldValue.increment(credits) }, { merge: true })
-        const snap = await ref.get()
+        const userDoc = db.collection('forgeusers').doc(uid)
+        await userDoc.set({ credits: FieldValue.increment(credits) }, { merge: true })
+        const snap = await userDoc.get()
         return send(res, 200, { profile: publicProfile(snap.data()) })
       }
 
@@ -423,6 +509,36 @@ export const forge = onRequest(
       // route and nothing else on the page has to move.
       if (path === '/orders' && method === 'POST') {
         const quantity = Math.min(50, Math.max(1, Math.floor(Number(req.body?.quantity) || 1)))
+
+        // REUSE AN OPEN ORDER FOR THE SAME QUANTITY rather than minting a
+        // second one. Pressing "Continue", closing the popup and pressing it
+        // again is ordinary behaviour — it is what the QA run did without
+        // trying — and every press used to leave another unpaid order in the
+        // operator's worklist, none of which will ever be settled. The
+        // reference has to stay stable anyway: a customer who read one off the
+        // screen, went to their banking app and came back must not find a
+        // different one waiting.
+        //
+        // Two equality filters and no orderBy, deliberately: Firestore serves
+        // that from single-field indexes, so this needs no composite index.
+        const open = await db
+          .collection('forgeorders')
+          .where('uid', '==', uid)
+          .where('status', '==', 'awaiting_payment')
+          .limit(10)
+          .get()
+        const existing = open.docs.map((d) => d.data()).find((o) => o.quantity === quantity)
+        if (existing) {
+          return send(res, 200, {
+            order: {
+              ref: existing.ref,
+              quantity: existing.quantity,
+              amountJod: existing.amountJod,
+              priceJod: PRICE_JOD,
+            },
+          })
+        }
+
         const ref = `FRG-${randomBytes(3).toString('hex').toUpperCase()}`
         await db.collection('forgeorders').doc(ref).set({
           ref,

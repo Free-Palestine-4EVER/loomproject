@@ -354,7 +354,35 @@ finished and both are QA'd. Do not ship a placeholder — an alias wrong by one
 character sends somebody's money to a stranger and there is no getting it back.
 As of 10 Aug 2026 it is empty, waiting on the real alias.
 
-Crediting an account:
+**`scripts/forge-admin.mjs` is the operator desk** — the thing to actually run,
+rather than hand-written curl:
+
+```bash
+node scripts/forge-admin.mjs orders          # who owes what, oldest first
+node scripts/forge-admin.mjs paid FRG-A3F91C # settle one: credits the account
+node scripts/forge-admin.mjs cancel FRG-…    # drop an order nobody will pay
+node scripts/forge-admin.mjs who name@mail   # balance for one account
+node scripts/forge-admin.mjs grant name@mail 3   # goodwill; negative takes back
+```
+
+`paid` reads the account and the quantity off the ORDER, so it cannot credit the
+wrong person or the wrong number, and it refuses an already-settled reference —
+running it twice after a flaky connection is the natural mistake and it is not
+one you can make. The key comes from `$FORGE_ADMIN_KEY` or from Secret Manager
+via the firebase CLI, and is never written to disk.
+
+**`POST /orders` reuses an open order for the same quantity** instead of minting
+a second one. Pressing "Continue", closing the popup and pressing it again is
+ordinary behaviour — the QA run did it without trying — and every press used to
+leave another unpaid order in the worklist that nobody would ever settle. The
+reference also has to stay stable: a customer who read one off the screen, went
+to their banking app and came back must not find a different one waiting.
+
+`forge-qa-…@loomstudio-jo.com` is a **deliberately kept test account** with its
+free model spent and no credit — it is what `qa-forge-pay.mjs` signs in as, so
+the CliQ panel can be checked without spending a Meshy generation.
+
+The raw route, if the script is ever unavailable:
 
 ```bash
 curl -X POST https://europe-west1-loom-clients.cloudfunctions.net/forge/admin/grant \

@@ -42,7 +42,7 @@ export const FAQ = [
   {
     id: 'payment',
     q: 'How does payment work?',
-    a: 'Project work is a fixed price agreed in writing before it starts, split across milestones — never billed by the hour, so a slow week is LOOM’s problem and not your invoice. The Machine is month to month with no minimum term and no retainer, cancellable whenever it stops earning its keep. Workshops are per seat, invoiced per cohort.',
+    a: 'Project work is a fixed price agreed in writing before it starts, split across milestones — never billed by the hour, so a slow week is LOOM’s problem and not your invoice. The Machine is month to month with no minimum term and no retainer, cancellable whenever it stops earning its keep. Workshops are per seat, invoiced per cohort. The 3D models are the one thing you can buy on the spot: the first is free, the rest are 2 JOD each, paid by CliQ and confirmed on WhatsApp.',
   },
   {
     id: 'ai-quality',
