@@ -28,9 +28,14 @@ export const BRAND = {
 // alias, an alias that is wrong by one character sends somebody's money to a
 // stranger and there is no getting it back.
 // ————————————————————————————————————————————
+// Confirmed by the client 10 Aug 2026. The alias is the same number as
+// BRAND.phoneJO / BRAND.whatsapp above — that is not a coincidence to tidy
+// away into a shared constant: a CliQ alias and a phone number are different
+// facts that happen to share a value today, and pointing one at the other
+// means changing the WhatsApp line would silently redirect payments.
 export const CLIQ = {
-  alias: '',
-  name: '', // the name the payer will see on the CliQ confirmation screen
+  alias: '0791792129',
+  name: 'LOOM STUDIO', // the name the payer will see on the CliQ confirmation screen
 }
 
 export const CLIENT_WALL = [
