@@ -83,6 +83,51 @@ const LOOP_HOSTS = [
   '.studios',       // studios-arc-pulse riding the dashed arc (offset-distance)
 ].join(', ')
 
+/* ——— the ambient loops that are always on screen ———
+
+   The parking below only ever helps an animation that can go OFF screen. The
+   loom background and the film grain never can: they are `position: fixed`
+   and they cover the viewport for the whole session, so the IntersectionObserver
+   correctly reports them visible forever and correctly never parks them.
+
+   MEASURED 12 Aug 2026 in Chrome 151, 1470x715 viewport at DPR 2 (2940x1430 =
+   4.2 MP) over the 29,235px home page: 12.6 fps with those loops running, 60 fps
+   with them paused — three A/B pairs back to back, no overlap between the two
+   distributions (11.9/12.6/13.2 vs 60/60/60). The same page in Safari holds 60
+   either way, and a clean Chromium at DPR 1 holds 60 either way. Brave shows the
+   Chrome number, which is the tell: it is Chromium's compositor at 2x, not this
+   site's JS. The main thread measures IDLE during the 12 fps state — 4.5ms
+   setTimeout latency and zero long tasks — so the cost is entirely raster and
+   composite, and nothing in the JS budget below can reach it.
+
+   Everything cheaper was ablated first and rejected on the numbers: the three
+   canvases (+6 fps), backdrop-filter (+2), mix-blend-mode (+4), will-change (0),
+   and the grain layer removed outright (12.8 -> 14.7). No single loop is the
+   offender; it is a cliff, and only pausing the set clears it.
+
+   So: only on Chromium, only at DPR >= 2, set `--ambient-motion: paused`. WebKit
+   and Firefox never take this branch and are visually untouched. */
+function ambientMotionBudget() {
+  const root = document.documentElement
+  const apply = () => {
+    // `chrome` is present in Chrome, Edge, Brave, Arc and every other Chromium.
+    // Feature-detect the engine rather than parse a UA string: Brave in
+    // particular reports whatever it likes, and it has the same compositor.
+    const isChromium = !!(window.chrome || navigator.userAgentData?.brands?.length)
+    const dense = window.devicePixelRatio >= 2
+    if (isChromium && dense) root.style.setProperty('--ambient-motion', 'paused')
+    else root.style.removeProperty('--ambient-motion')
+  }
+  apply()
+  // Dragging the window to a 1x external display should give the motion back.
+  const mq = window.matchMedia('(resolution >= 2dppx)')
+  mq.addEventListener?.('change', apply)
+  return () => {
+    mq.removeEventListener?.('change', apply)
+    root.style.removeProperty('--ambient-motion')
+  }
+}
+
 function animationBudget() {
   // Every host we have paused, with the animations we paused ON it. We keep
   // our own list rather than re-querying on the way back in, so we can never
@@ -119,14 +164,57 @@ function animationBudget() {
   )
 
   const seen = new WeakSet()
+  // teardown has to unpark orphans too, and a WeakMap cannot be iterated
+  const observed = new Set()
   const scan = () => {
     const found = document.querySelectorAll(LOOP_HOSTS)
     for (const el of found) {
       if (seen.has(el)) continue
       seen.add(el)
+      observed.add(el)
       io.observe(el)
     }
+    sweepOrphans()
     return found.length
+  }
+
+  /* ——— the self-discovering half ———
+
+     LOOP_HOSTS is a hand-written list and it has now rotted TWICE (see the note
+     above it). The DEV warning below catches that, but only for whoever happens
+     to be looking at a console — which is why it went unnoticed both times.
+
+     MEASURED 12 Aug 2026, Chrome 151 at DPR 2 on the built home page, after one
+     pass to the bottom: `document.getAnimations()` reported 157 running, of
+     which the hosted selectors covered a minority. At 2x that is enough to wedge
+     Chrome's compositor hard enough that CDP `Runtime.evaluate` times out after
+     45 SECONDS — the tab stops answering at all, which is the "damn slow in
+     Chrome, blazing in Safari" report this whole pass started from.
+
+     So stop trusting the list to be complete. Ask the document what is actually
+     looping and park the ones nothing covers, keyed on the animation's own host
+     element. The curated list stays: it parks a whole SUBTREE in one observer
+     entry, which is much cheaper than one entry per animation for the big
+     clusters (38 x wall-sheen in the marquee, 32 x rc-rise). This only mops up
+     what the list misses, so a future rename degrades to "slightly more
+     observers" instead of "the budget silently stops working". */
+  const sweepOrphans = () => {
+    for (const a of document.getAnimations()) {
+      if (a.effect?.getTiming?.().iterations !== Infinity) continue
+      // Pseudo-element animations report their originating element here, which
+      // is exactly the element whose box we want to test for visibility.
+      const el = a.effect?.target
+      if (!el?.closest || seen.has(el)) continue
+      // Already inside a curated host? That observer owns it; leave it alone.
+      if (el.closest(LOOP_HOSTS)) continue
+      // `position: fixed` ambient layers (the loom background, the grain) are
+      // on screen for the whole session by construction. They can never be
+      // parked by an observer, and ambientMotionBudget() handles them instead.
+      if (getComputedStyle(el).position === 'fixed') continue
+      seen.add(el)
+      observed.add(el)
+      io.observe(el)
+    }
   }
 
   // The animation half of this file has already died once by matching nothing
@@ -165,11 +253,27 @@ function animationBudget() {
   const mo = new MutationObserver(scan)
   mo.observe(document.body, { childList: true, subtree: true })
 
+  /* A loop can also START without any DOM mutation — a Reveal adding a class,
+     a `:hover`, an animation with a long `animation-delay` finally firing. The
+     MutationObserver never sees those, so the orphan sweep would miss them for
+     the rest of the session. Re-sweep as the reader moves, throttled to one
+     rAF per scroll burst: the sweep is a single getAnimations() pass and only
+     touches loops it has not already claimed. */
+  let queued = false
+  const onScroll = () => {
+    if (queued) return
+    queued = true
+    requestAnimationFrame(() => { queued = false; sweepOrphans() })
+  }
+  window.addEventListener('scroll', onScroll, { passive: true })
+
   return () => {
+    window.removeEventListener('scroll', onScroll)
     mo.disconnect()
     io.disconnect()
-    // leave nothing frozen behind us
-    for (const el of document.querySelectorAll(LOOP_HOSTS)) unpark(el)
+    // leave nothing frozen behind us — curated hosts AND swept orphans
+    for (const el of observed) unpark(el)
+    observed.clear()
   }
 }
 
@@ -731,8 +835,9 @@ export function imageBudget({ force = false } = {}) {
 }
 
 export function mountViewportBudget() {
+  const offAmbient = ambientMotionBudget()
   const offAnim = animationBudget()
   const offImg = imageBudget()
   if (import.meta.env.DEV) window.__imageBudget = imageBudget
-  return () => { offAnim(); offImg(); delete window.__imageBudget }
+  return () => { offAmbient(); offAnim(); offImg(); delete window.__imageBudget }
 }

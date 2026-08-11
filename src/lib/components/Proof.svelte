@@ -9,8 +9,15 @@
   read as *copy*, and copy is the one form a reader argues with. A logo strip
   is read as *evidence* — nobody argues with a row of marks, they scan it.
 
-  NOW: kicker + headline, then one full-bleed logo marquee, then the four
-  numbers as a horizontal row beneath it.
+  CUT BACK 11 Aug (fourth pass): the kicker, the headline and the four-number
+  row are all gone. What is left is the marquee and nothing else — the client's
+  call, and the honest one: the strip was already carrying the argument, and a
+  headline that says the names said yes on top of the names themselves is the
+  section explaining its own evidence. STATS in $data/site.js is untouched and
+  still the one source for those four numbers — it is simply unread by the home
+  page now, so putting them back anywhere is an import, not a retype.
+
+  NOW: one full-bleed logo marquee, edge to edge, and the weave behind it.
 
     · Two tracks sliding in opposite directions. Counter-motion is what stops
       a marquee reading as a broken carousel — with one row the eye tries to
@@ -65,9 +72,9 @@
   precision: rounding it to three decimals is a 1.6% error, and over a 16000-
   unit glyph run that is enough to push the outer letters out of the viewBox.
 
-  NOTHING HERE IS A NEW CLAIM — every value still comes from STATS and
-  CLIENT_WALL in $data/site.js, so the "verify every number" rule has exactly
-  one place to check, as before. The logo slug is DERIVED from the name rather
+  NOTHING HERE IS A NEW CLAIM — every name still comes from CLIENT_WALL in
+  $data/site.js, so the "verify every claim" rule has exactly one place to
+  check, as before. The logo slug is DERIVED from the name rather
   than stored beside it: adding a name to CLIENT_WALL and dropping the matching
   SVG in is the whole change, and there is no second list to fall out of sync.
   ————————————————————————————————————————————————————————
@@ -75,28 +82,9 @@
 <script>
   import { onMount } from 'svelte'
   import { browser } from '$app/environment'
-  import { CLIENT_WALL, STATS } from '$data/site.js'
-  import { reducedMotion, reveal } from '$lib/motion.svelte.js'
-  import SplitWords from './SplitWords.svelte'
-  import CountUp from './CountUp.svelte'
+  import { CLIENT_WALL } from '$data/site.js'
+  import { reducedMotion } from '$lib/motion.svelte.js'
   import './proof.css'
-
-  // The clause each number was missing. STATS carries the value and the
-  // label; this carries the "so what". Keyed by label so a reordered STATS
-  // cannot silently pair a number with the wrong sentence — an index would.
-  //
-  // Cut to one line each on 11 Aug: four numbers each carrying a heading, a
-  // label AND a two-line sentence was more furniture than four numbers can
-  // hold up, and the second line of each was most of what made this row as
-  // tall as the logo wall it is supposed to be the coda to.
-  const STAT_CLAUSE = {
-    'Brands woven': 'Identity, content, product.',
-    'Countries shipped to': 'Jordan to Bosnia to the Gulf.',
-    'Apps & tools in the lab': 'Ours first, then our clients’.',
-    'Studios — Amman × Sarajevo': 'One sleeps, one keeps sewing.',
-  }
-
-  const STAT_YARN = ['var(--magenta)', 'var(--yarn-blue)', 'var(--yarn-violet)', 'var(--yarn-gold)']
 
   // "United Colors of Benetton" -> "united-colors-of-benetton". Kept in step
   // with scripts that write static/img/logos/*.svg; a name with no file shows
@@ -142,7 +130,7 @@
   const hideBroken = (e) => { e.currentTarget.closest('.pl-cell')?.style.setProperty('display', 'none') }
 </script>
 
-<section class="proof" id="proof" aria-label="Clients and studio in numbers" bind:this={sectionEl}>
+<section class="proof" id="proof" aria-label="Selected clients" bind:this={sectionEl}>
   <div class="proof-bg" bind:this={bgEl} aria-hidden="true">
     <picture style="display: contents">
       <source media="(max-width: 767px)" type="image/avif" srcset="/img/weave-alt-sm.avif" />
@@ -150,11 +138,6 @@
       <source type="image/avif" srcset="/img/weave-alt.avif" />
       <img src="/img/weave-alt.webp" alt="" width="1400" height="782" loading="lazy" decoding="async" />
     </picture>
-  </div>
-
-  <div class="proof-head">
-    <p class="kicker"><span>—</span> Proof</p>
-    <SplitWords as="h2" class="h2 proof-h2" text="These names already said yes." />
   </div>
 
   <!-- ——— THE STRIP ———
@@ -182,19 +165,6 @@
             </div>
           {/each}
         </div>
-      </div>
-    {/each}
-  </div>
-
-  <!-- ——— THE NUMBERS ———
-      Four across, under the strip, each keeping the clause that turns it from
-      a fact into a claim and its own yarn stub — the whole chrome budget. -->
-  <div class="proof-stats">
-    {#each STATS as s, i (s.label)}
-      <div class="proof-stat" style="--yarn: {STAT_YARN[i % 4]}" use:reveal={{ delay: i * 0.05, y: 16 }}>
-        <div class="proof-value"><CountUp value={s.value} suffix={s.suffix} /></div>
-        <p class="proof-label">{s.label}</p>
-        {#if STAT_CLAUSE[s.label]}<p class="proof-clause">{STAT_CLAUSE[s.label]}</p>{/if}
       </div>
     {/each}
   </div>

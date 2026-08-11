@@ -34,8 +34,10 @@
   /* the backdrop is 120% wide and drifts, and the marquee tracks are wider
      than the viewport by design — never let either open a scrollbar */
   overflow-x: clip;
-  padding: clamp(38px, 5vh, 62px) 0 clamp(34px, 4.4vh, 56px);
-  border-block: 1px solid var(--line);
+  /* Head and stats were cut 11 Aug — the band is now the strip and nothing
+     else, so the section's own vertical padding and hairlines would only
+     double the strip's. The strip carries both. */
+  padding: 0;
 }
 
 /* the weave photograph the old Stats band carried, kept — it is the one
@@ -62,26 +64,6 @@
     linear-gradient(to bottom, rgba(255, 233, 242, 0.86), rgba(255, 233, 242, 0.72) 45%, rgba(255, 233, 242, 0.9));
 }
 
-.proof-head {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 var(--pad) clamp(16px, 1.9vw, 26px);
-}
-/* The kicker's global margin is 22px, drawn for sections whose headline is the
-   loudest thing in them. Here the marks are, and a 22px trench under a 0.8rem
-   line reads as a mistake at this headline size — the two belong to each
-   other and should be set as one block. */
-.proof .kicker { margin-bottom: 9px; }
-/* h3 scale, not h2's clamp(2rem, 5.2vw, 4.4rem). At 1440 that global ramp
-   lands on ~70px, which is a title for a page, not a lead-in to a logo wall —
-   it out-weighed nineteen client names on its own. */
-.proof-h2 {
-  font-size: clamp(1.7rem, 3.3vw, 2.9rem);
-  line-height: 1.02;
-  letter-spacing: -0.012em;
-  max-width: 22ch;
-}
-
 /* ——————————————————————————————————————— the strip
    Full-bleed on purpose: a logo wall that stops at the 1180px measure reads
    as a widget sitting inside the page, and the whole argument of this band is
@@ -90,7 +72,7 @@
   position: relative;
   display: grid;
   gap: clamp(11px, 1.5vw, 22px);
-  padding: clamp(19px, 2.1vw, 28px) 0;
+  padding: clamp(28px, 3.6vw, 48px) 0;
   border-block: 1px solid var(--line);
   /* The marks fade out before the edge rather than being guillotined by it —
      without this, a wordmark is cut mid-letter at both ends of every row.
@@ -162,62 +144,6 @@
   transform: scale(1.07);
 }
 
-/* ——————————————————————————————————————— the numbers
-   Four across, under the strip, at a smaller size than the old rail: they are
-   the coda to the marks now, not a band competing with them. */
-/* ——————————————————————————————————————— the numbers
-   Four across, under the strip. The yarn stub each of these carried has grown
-   into a full-width rule over the column: at this density four short dashes
-   floating over four numbers read as debris, while four ruled columns read as
-   a ledger — and a ledger is the right register for the coda to a wall of
-   client marks. Costs nothing in height and buys the row its structure back. */
-.proof-stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(18px, 2.4vw, 36px);
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: clamp(22px, 2.6vw, 34px) var(--pad) 0;
-}
-.proof-stat {
-  position: relative;
-  min-width: 0;
-  padding-top: 11px;
-  border-top: 2px solid var(--yarn, var(--magenta));
-}
-.proof-value {
-  font-family: var(--bloom);
-  font-weight: 560;
-  font-size: clamp(1.75rem, 2.7vw, 2.45rem);
-  line-height: 0.95;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-.proof-label {
-  margin: 9px 0 0;
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  line-height: 1.25;
-  color: var(--yarn-ink);
-}
-/* one line at every breakpoint above 860 — the clauses were rewritten shorter
-   in Proof.svelte for exactly this, because the second line was most of what
-   made the numbers row as tall as the logo wall */
-.proof-clause {
-  margin: 5px 0 0;
-  font-size: clamp(0.76rem, 0.85vw, 0.83rem);
-  line-height: 1.4;
-  color: var(--ink-dim);
-  max-width: 32ch;
-}
-
-@media (max-width: 860px) {
-  /* 2×2 — four numbers across a phone gives each one about nine characters of
-     clause per line, which is a ladder, not a sentence */
-  .proof-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 4.5vw, 30px); }
-}
 @media (max-width: 560px) {
   .pl-cell { padding-inline: clamp(13px, 3.6vw, 20px); }
   /* A phone gets a smaller mark, not a fainter one. It also has to come down
