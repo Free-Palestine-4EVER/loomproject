@@ -1,0 +1,276 @@
+<!--
+  The contact machine: a figure whose head is a loom frame, warp threads strung
+  across the opening, glow behind them, yarn where cables would be.
+
+  Drawn procedurally on a <canvas>. There was a <video> path here that preferred
+  generated clips at /video/contact/, but those were never produced — it 404'd
+  nine times on every page load and fell straight through to this. The canvas was
+  always the real thing; it is abstract on purpose and does not pretend to be a
+  photoreal render.
+-->
+<script>
+  import { browser } from '$app/environment'
+  import { MACHINE_STATES } from '$data/machine.js'
+  import './machine.css'
+
+  // NOTE: the prop is aliased away from the bare name `state` on purpose —
+  // `state` as a local identifier collides with the `$state` rune (Svelte
+  // parses `$state(...)` as legacy store auto-subscription of a variable
+  // named `state` when one is in scope), which silently breaks every
+  // `$state(...)` call below. `headState` is the local name throughout;
+  // `state` stays the external prop name so callers are unaffected.
+  let { state: headState = 'idle', reduced = false } = $props()
+
+  const GLOW = {
+    magenta: ['#f21c8c', '#7b2fbe'],
+    cyan:    ['#59e6ff', '#7b2fbe'],
+    gold:    ['#ffc740', '#f21c8c'],
+    red:     ['#ff2d38', '#b3126a'],
+  }
+  const YARNS = ['#d6247e', '#9b55c9', '#5cc0e8', '#e0a82f']
+
+  /* ── procedural renderer ─────────────────────────────────────────────────── */
+
+  function drawFrame(ctx, W, H, t, drawState, drawReduced) {
+    const { glow } = MACHINE_STATES[drawState] ?? MACHINE_STATES.idle
+    const [c1, c2] = GLOW[glow] ?? GLOW.magenta
+
+    ctx.clearRect(0, 0, W, H)
+
+    // Cyclorama: a soft pool of light behind the figure, not a flat fill.
+    const cyc = ctx.createRadialGradient(W / 2, H * 0.42, 0, W / 2, H * 0.42, W * 0.72)
+    cyc.addColorStop(0, 'rgba(60,54,78,0.55)')
+    cyc.addColorStop(1, 'rgba(255,233,242,0)')
+    ctx.fillStyle = cyc
+    ctx.fillRect(0, 0, W, H)
+
+    // Frame geometry — a 4:3 opening, sized off the shorter axis so it holds up in
+    // both the wide desktop column and the tall mobile one.
+    const fw = Math.min(W * 0.62, H * 0.52)
+    const fh = fw * 0.78
+    const fx = (W - fw) / 2
+    const fy = H * 0.40 - fh / 2
+    const breathe = drawReduced ? 0 : Math.sin(t * 0.9) * 2
+
+    // Neck and shoulders, behind the frame. Drawn as one path so the trapezius line
+    // is continuous — a separate neck rectangle over a separate shoulder shape reads
+    // as a cone sitting on a hill, which is what the first pass looked like.
+    const neckY = fy + fh - fh * 0.08   // neck starts just inside the frame
+    const shoulderY = H * 0.74          // where the trapezius levels out
+    const neckHalf = W * 0.075
+    ctx.save()
+    ctx.beginPath()
+    ctx.moveTo(W * 0.04, H)
+    // left trapezius, rising into the neck
+    ctx.bezierCurveTo(W * 0.08, H * 0.86, W * 0.28, shoulderY + 12, W * 0.38, shoulderY)
+    ctx.bezierCurveTo(W * 0.45, H * 0.725, W / 2 - neckHalf, H * 0.715, W / 2 - neckHalf, neckY)
+    ctx.lineTo(W / 2 + neckHalf, neckY)
+    // and back down the right side, mirrored
+    ctx.bezierCurveTo(W / 2 + neckHalf, H * 0.715, W * 0.55, H * 0.725, W * 0.62, shoulderY)
+    ctx.bezierCurveTo(W * 0.72, shoulderY + 12, W * 0.92, H * 0.86, W * 0.96, H)
+    ctx.closePath()
+    const skin = ctx.createLinearGradient(0, neckY, 0, H)
+    skin.addColorStop(0, 'rgba(206,196,208,0.34)')
+    skin.addColorStop(0.55, 'rgba(150,140,166,0.26)')
+    skin.addColorStop(1, 'rgba(255,233,242,0)')
+    ctx.fillStyle = skin
+    ctx.fill()
+    // A rim light down the left edge of the neck, so it reads as a body and not a fill.
+    ctx.beginPath()
+    ctx.moveTo(W / 2 - neckHalf, neckY)
+    ctx.lineTo(W / 2 - neckHalf, H * 0.72)
+    ctx.strokeStyle = 'rgba(239,231,218,0.16)'
+    ctx.lineWidth = 2
+    ctx.stroke()
+    ctx.restore()
+
+    ctx.save()
+    ctx.translate(0, breathe)
+
+    // Glow behind the weave.
+    ctx.save()
+    ctx.beginPath()
+    ctx.roundRect(fx + 10, fy + 10, fw - 20, fh - 20, 8)
+    ctx.clip()
+    const pulse = drawReduced ? 0.62 : 0.52 + Math.sin(t * 1.6) * 0.14
+    const g = ctx.createRadialGradient(
+      fx + fw / 2, fy + fh / 2, 0,
+      fx + fw / 2, fy + fh / 2, fw * 0.62,
+    )
+    g.addColorStop(0, c1)
+    g.addColorStop(0.55, c2)
+    g.addColorStop(1, '#120a1e')
+    ctx.globalAlpha = pulse
+    ctx.fillStyle = g
+    ctx.fillRect(fx, fy, fw, fh)
+    ctx.globalAlpha = 1
+
+    // 'sent' — the weave fills bottom-up in gold and holds.
+    if (drawState === 'sent') {
+      const p = drawReduced ? 1 : Math.min(1, (t % 4) / 2.2)
+      const fill = ctx.createLinearGradient(0, fy + fh, 0, fy + fh - fh * p)
+      fill.addColorStop(0, 'rgba(255,199,64,0.85)')
+      fill.addColorStop(1, 'rgba(255,199,64,0)')
+      ctx.fillStyle = fill
+      ctx.fillRect(fx, fy + fh - fh * p, fw, fh * p)
+    }
+
+    // 'error' — a horizontal tear that jumps rather than sweeps.
+    if (drawState === 'error' && !drawReduced) {
+      const ty = fy + ((t * 220) % fh)
+      ctx.fillStyle = 'rgba(255,45,56,0.5)'
+      ctx.fillRect(fx, ty, fw, 3)
+    }
+    ctx.restore()
+
+    // Warp threads. The shuttle is the whole point of the 'listen' state: a band of
+    // light passing through the weave the way a real shuttle passes through a loom.
+    const n = 26
+    const shuttle = (Math.sin(t * 1.1) * 0.5 + 0.5) * fw
+    const listening = drawState === 'listen' || MACHINE_STATES[drawState]?.clip === 'listen'
+    for (let i = 0; i < n; i++) {
+      const x = fx + 14 + ((fw - 28) * i) / (n - 1)
+      // Two threads snap in the error state and hang loose.
+      const snapped = drawState === 'error' && (i === 7 || i === 18)
+      const near = 1 - Math.min(1, Math.abs(x - (fx + shuttle)) / (fw * 0.16))
+      const lit = listening && !drawReduced ? near : 0
+      ctx.beginPath()
+      ctx.moveTo(x, fy + 12)
+      if (snapped) {
+        ctx.quadraticCurveTo(x + 14, fy + fh * 0.55, x - 8, fy + fh * 0.72)
+      } else {
+        const sway = drawReduced ? 0 : Math.sin(t * 1.3 + i * 0.4) * 1.6
+        ctx.quadraticCurveTo(x + sway, fy + fh / 2, x, fy + fh - 12)
+      }
+      ctx.strokeStyle = lit > 0
+        ? `rgba(255,255,255,${0.35 + lit * 0.6})`
+        : `rgba(239,231,218,${snapped ? 0.25 : 0.34})`
+      ctx.lineWidth = 1 + lit * 1.2
+      ctx.stroke()
+    }
+
+    // The frame itself — brushed aluminium and pale wood.
+    ctx.beginPath()
+    ctx.roundRect(fx, fy, fw, fh, 12)
+    const metal = ctx.createLinearGradient(fx, fy, fx + fw, fy + fh)
+    metal.addColorStop(0, 'rgba(214,208,222,0.85)')
+    metal.addColorStop(0.5, 'rgba(140,132,158,0.65)')
+    metal.addColorStop(1, 'rgba(214,208,222,0.8)')
+    ctx.strokeStyle = metal
+    ctx.lineWidth = Math.max(6, fw * 0.028)
+    ctx.stroke()
+
+    // Yarn running out of the frame and off the bottom of the canvas.
+    YARNS.forEach((col, i) => {
+      const side = i % 2 === 0 ? -1 : 1
+      const ox = fx + (side < 0 ? 0 : fw)
+      const oy = fy + fh * (0.45 + i * 0.09)
+      const drift = drawReduced ? 0 : Math.sin(t * 0.7 + i) * 6
+      ctx.beginPath()
+      ctx.moveTo(ox, oy)
+      ctx.bezierCurveTo(
+        ox + side * (34 + i * 12), oy + 40 + drift,
+        ox + side * (12 - i * 16), H * 0.80,
+        ox + side * (70 + i * 26), H + 20,
+      )
+      ctx.strokeStyle = col
+      ctx.globalAlpha = 0.55
+      ctx.lineWidth = 2.5
+      ctx.stroke()
+      ctx.globalAlpha = 1
+    })
+
+    ctx.restore()
+  }
+
+  /* ── canvas mount ────────────────────────────────────────────────────────── */
+
+  let canvasEl = $state(null)
+
+  // `state` lives in a plain (non-rune) variable, updated by its own effect,
+  // and only ever READ from inside the rAF tick closure below — never read
+  // synchronously inside the main setup effect's body. That is what keeps a
+  // state change from restarting the animation loop: restarting it would
+  // reset `t` and visibly jump the whole scene, same as the React version's
+  // `stateRef`.
+  let liveState = headState
+  $effect(() => { liveState = headState })
+
+  $effect(() => {
+    if (!browser) return
+    const cv = canvasEl
+    if (!cv) return
+    const ctx = cv.getContext('2d')
+    let raf = 0
+    let start = performance.now()
+
+    const size = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1)
+      const r = cv.getBoundingClientRect()
+      cv.width = Math.max(1, Math.round(r.width * dpr))
+      cv.height = Math.max(1, Math.round(r.height * dpr))
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      return r
+    }
+    let rect = size()
+
+    const tick = (now) => {
+      const t = (now - start) / 1000
+      drawFrame(ctx, rect.width, rect.height, t, liveState, reduced)
+      if (!reduced) raf = requestAnimationFrame(tick)
+    }
+
+    // The machine lives in the LAST section of a very long page, and this used to
+    // redraw a ~770x960 canvas at 60fps from first paint onward — the whole way
+    // down, off screen, on battery. Only run it when it can actually be seen.
+    // `start` is re-based on re-entry so the animation resumes rather than
+    // jumping forward by however long the reader was elsewhere.
+    let running = false
+    let elapsed = 0
+    const run = (on) => {
+      if (on === running) return
+      running = on
+      if (on) {
+        start = performance.now() - elapsed
+        raf = requestAnimationFrame(tick)
+      } else {
+        elapsed = performance.now() - start
+        cancelAnimationFrame(raf)
+      }
+    }
+    const io = new IntersectionObserver(([e]) => run(!!e?.isIntersecting), { rootMargin: '200px' })
+    io.observe(cv)
+    const onVis = () => { if (document.hidden) run(false) }
+    document.addEventListener('visibilitychange', onVis)
+
+    const ro = new ResizeObserver(() => {
+      rect = size()
+      if (reduced || !running) drawFrame(ctx, rect.width, rect.height, 0, liveState, reduced)
+    })
+    ro.observe(cv)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      io.disconnect()
+      ro.disconnect()
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  })
+
+  // Reduced motion still needs a repaint when the state changes — there is no loop
+  // running to pick it up.
+  $effect(() => {
+    if (!browser || !reduced) return
+    const cv = canvasEl
+    if (!cv) return
+    const r = cv.getBoundingClientRect()
+    drawFrame(cv.getContext('2d'), r.width, r.height, 0, headState, true)
+  })
+
+  const glowClass = $derived((MACHINE_STATES[headState] ?? MACHINE_STATES.idle).glow)
+</script>
+
+<div class="loomhead loomhead--{glowClass}">
+  <canvas bind:this={canvasEl} class="loomhead-canvas" aria-hidden="true"></canvas>
+  <div class="loomhead-vignette" aria-hidden="true"></div>
+</div>

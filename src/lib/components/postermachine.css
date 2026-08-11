@@ -1,0 +1,95 @@
+/* The poster machine — canvas-rendered posters set in LOOM Bloom. */
+
+.pm {
+  background:
+    radial-gradient(90% 70% at 8% 0%, rgba(242, 28, 140, 0.16), transparent 62%),
+    radial-gradient(90% 70% at 92% 100%, rgba(89, 230, 255, 0.12), transparent 60%),
+    #fde8f1;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.pm-inner { max-width: 1320px; margin: 0 auto; padding: clamp(56px, 8vw, 116px) var(--pad); }
+
+.pm-head {
+  display: flex; flex-wrap: wrap; gap: 22px;
+  align-items: flex-end; justify-content: space-between;
+  margin-bottom: clamp(24px, 3.5vw, 44px);
+}
+.pm-head .tf-h2 { margin: 10px 0 12px; }
+.pm-lede { max-width: 56ch; color: var(--ink-dim); font-size: clamp(14px, 1.35vw, 17px); line-height: 1.6; }
+.pm-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.pm-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 24px; border-radius: 999px;
+  border: 1px solid rgba(242, 240, 247, 0.22);
+  background: transparent; color: var(--ink);
+  font: inherit; font-size: 14px; cursor: pointer;
+  transition: border-color 300ms var(--ease), background 300ms var(--ease), color 300ms var(--ease);
+}
+.pm-btn:hover { border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); color: var(--ink); }
+.pm-btn--fill { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
+.pm-btn--fill:hover { background: var(--magenta-deep); border-color: var(--magenta-deep); }
+.pm-btn span { font-size: 11.5px; letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.7); }
+
+.pm-body {
+  display: grid; gap: clamp(20px, 3vw, 44px);
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.pm-controls { display: grid; gap: 18px; align-content: start; }
+.pm-field { display: grid; gap: 7px; }
+.pm-field span,
+.pm-group legend {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pm-field input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ink); font: inherit; font-size: 16px;
+  letter-spacing: 0.02em; outline: none;
+  transition: border-color 260ms var(--ease), background 260ms var(--ease);
+}
+.pm-field input:focus { border-color: var(--magenta); background: rgba(242, 28, 140, 0.06); }
+
+.pm-group { border: 0; padding: 0; margin: 0; display: grid; gap: 9px; }
+.pm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pm-chip {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px 15px; border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ink-dim); font: inherit; font-size: 13px; cursor: pointer;
+  /* the poster machine is four rails of these and every one measured 40.8px
+     tall; "Ivy" was 47.8 x 40.8. They are the whole interface of the poster
+     tool on a phone. */
+  min-height: 44px; min-width: 44px;
+  transition: border-color 260ms var(--ease), background 260ms var(--ease), color 260ms var(--ease);
+}
+.pm-chip:hover { color: var(--ink); border-color: rgba(242, 240, 247, 0.3); }
+.pm-chip:focus-visible { outline: 2px solid var(--magenta); outline-offset: 2px; }
+.pm-chip.is-on { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
+.pm-chip--sw i {
+  width: 11px; height: 11px; border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18) inset;
+}
+
+.pm-stage {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.25);
+  padding: clamp(12px, 1.6vw, 22px);
+}
+.pm-canvas {
+  display: block; width: 100%; height: auto;
+  border-radius: 6px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 900px) {
+  .pm-body { grid-template-columns: 1fr; }
+  .pm-stage { order: -1; }
+}

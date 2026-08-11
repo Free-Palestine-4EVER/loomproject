@@ -1,0 +1,505 @@
+/* hiring.css — WE ARE HIRING, the ninth chair. Owned by Hiring.jsx only.
+   Do not import into styles.css / textile*.css / wool.css.
+
+   CASCADE NOTE (same trap banners.css documents): src/main.jsx imports App.jsx
+   BEFORE './styles.css' and './wool.css', so every component stylesheet lands
+   EARLIER in the bundle than the globals and a bare single-class rule here would
+   LOSE a tie to them. Every class below is prefixed `hire-` and unique to this
+   file (verified: no `hire-` class exists in any other stylesheet), and the two
+   places where a global class is restyled (.h2 on the shout, .lede) are written
+   as `.hire .hire-*` — 0,2,0 — so they win outright regardless of order.
+
+   MATERIAL: the section borrows the studio's card silhouette and banners.css's
+   colour-block recipe (flat paint-in colour + the real photographed texture,
+   no filter, no blur) rather than inventing a new one. The four accents are the
+   four yarns, in the same order the rail runs them.
+
+   MOTION BUDGET: nothing animates at rest — no @keyframes are declared in this
+   file at all. Entry is one-shot (Reveal / SplitWords in JS); everything else is
+   a hover/focus transition on transform, opacity, colour or shadow. */
+
+.hire {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-bottom: clamp(60px, 9vh, 110px);
+  /* Last section on the page before the footer: Contact above is flat --bg
+     (no background rule of its own) and the pink footer below reads that same
+     dark --bg through its own top fade (see .footer--bloom .foot-sky in
+     styles.css), so this section only has to open and close on --bg to hand
+     off cleanly on both sides — it lifts in the middle and returns rather
+     than butting three flat panels together. */
+  background: linear-gradient(180deg, var(--bg) 0%, #fbe2ee 45%, #f0e5ea 62%, var(--bg) 100%);
+  border-block: 1px solid var(--line);
+}
+
+/* the four-yarn stripe as a section marker — one static gradient, painted once */
+.hire .hire-rail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  z-index: 4;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px
+  );
+}
+
+/* ═══ THE HEAD ═══════════════════════════════════════════════
+   A felt patch, stitched down. The shout is the section's real <h2>; the felt
+   under it is what stops "WE ARE HIRING" reading as a banner ad on the page's
+   own background. */
+.hire .hire-head {
+  position: relative;
+  z-index: 1;
+  max-width: 1560px;
+  margin-inline: auto;
+  margin-top: clamp(60px, 9vh, 110px);
+  padding: clamp(30px, 4vw, 58px) clamp(24px, 3.4vw, 56px) clamp(30px, 3.4vw, 48px);
+  border-radius: calc(var(--radius) * 1.4);
+  border: 2px dashed rgba(242, 240, 247, 0.16);
+  background-color: var(--bg-2);
+  background-image: url('/img/wool/tex/felt-dark.webp');
+  background-size: 260px;
+  box-shadow: inset 0 1px 0 rgba(242, 240, 247, 0.07), 0 22px 60px -30px rgba(0, 0, 0, 0.85);
+}
+/* the head sits inside the page pad, not at the section edge */
+.hire .hire-head { width: calc(100% - 2 * var(--pad)); }
+
+/* the count — read off ROLES.length in the JSX, so it cannot drift from the
+   grid it is describing */
+.hire .hire-count {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: clamp(14px, 1.8vw, 20px);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.hire .hire-count b {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 780;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--magenta);
+}
+/* the separator between the count and the cities — the four-yarn stripe again,
+   in miniature */
+.hire .hire-count i {
+  width: 34px;
+  height: 3px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 5px,
+    var(--yarn-violet) 5px 10px,
+    var(--yarn-blue) 10px 15px,
+    var(--yarn-gold) 15px 20px
+  );
+}
+
+/* 0,2,0 — beats styles.css's .h2 and the .sw rules outright. The studio's own
+   display face, which is caps-only by design and is exactly what this line is. */
+.hire .hire-shout {
+  font-family: 'LOOM Bloom', var(--display);
+  font-weight: 400;
+  /* it has the whole width of the patch now, so it can be the statement it is
+     meant to be instead of two lines against a half-empty column */
+  font-size: clamp(2.6rem, 11.5vw, 9.5rem);
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+  color: var(--ink);
+  text-transform: uppercase;
+  /* the type is lit, not glowing: one tight highlight above, one deep shadow
+     below. No filter — this is a text-shadow on a leaf text node. */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.14), 0 14px 40px rgba(10, 2, 16, 0.7);
+}
+/* the ask — reel first and big, education second and small. The client's own
+   ordering ("show us your projects then what you studied"), made visible as a
+   type-scale drop rather than just a sentence: the primary line is body-plus
+   and bold on the lead phrase, the secondary line is a full step down and
+   dimmer, so the eye cannot read them as two equal instructions. */
+.hire .hire-ask {
+  margin-top: clamp(18px, 2vw, 26px);
+  max-width: 62ch;
+}
+.hire .hire-ask-primary {
+  color: var(--ink);
+  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+  line-height: 1.4;
+}
+.hire .hire-ask-primary b { color: var(--ink); font-weight: 760; }
+.hire .hire-ask-secondary {
+  margin-top: 6px;
+  color: var(--ink-dim);
+  font-size: 0.88rem;
+}
+
+/* ═══ THE FOUR EMPTY STAGES ══════════════════════════════════ */
+.hire .hire-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(16px, 2.2vw, 30px);
+  padding: clamp(30px, 5vh, 60px) var(--pad) 0;
+  align-items: stretch;
+}
+/* the repeated overflow trap here: a grid child's min-width defaults to auto,
+   so one long word in .hire-line can push the track past the viewport */
+.hire .hire-cell { min-width: 0; height: 100%; }
+
+.hire .hire-card {
+  --accent: var(--yarn-pink);
+  position: relative;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: calc(var(--radius) * 1.3);
+  /* a POSTED role, not a person: a dashed running-stitch edge instead of
+     Crew's solid hairline. Same wool vocabulary, opposite state. */
+  border: 2px dashed rgba(242, 240, 247, 0.16);
+  background: linear-gradient(165deg, rgba(24, 14, 38, 0.86), rgba(255, 233, 242, 0.74));
+  transition: border-color 0.45s var(--ease), box-shadow 0.5s var(--ease), transform 0.5s var(--ease);
+}
+.hire .hire-card:hover,
+.hire .hire-card:focus-within {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55),
+              0 0 60px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* the status tag — cream felt, printed, tilted like a tag pinned to the board */
+.hire .hire-open {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  z-index: 3;
+  padding: 4px 12px 5px;
+  border-radius: 999px;
+  transform: rotate(-3deg);
+  background-color: #efe7da;
+  background-image: url('/img/wool/tex/felt-cream.webp');
+  background-size: 180px;
+  color: #33243d;                 /* ~11:1 on the cream felt */
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.9);
+}
+
+/* ── the empty stage ─────────────────────────────────────────
+   A lit stage with nobody on it: the spotlight is still on, the warp thread is
+   still hanging, the role's number is ghosted on the backdrop, and the only
+   thing standing on the mark is a felted `user` medallion — a placeholder, at
+   placeholder weight. */
+.hire .hire-stage {
+  position: relative;
+  overflow: hidden;
+  height: clamp(160px, 16vw, 210px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 clamp(14px, 2vw, 24px);
+}
+/* the spotlight: a cone from the top edge, not a soft blob. Two layers — the
+   hard-edged beam, and the wash it throws on the floor. */
+.hire .hire-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    conic-gradient(from 168deg at 50% -14%,
+      transparent 0deg,
+      color-mix(in srgb, var(--accent) 20%, transparent) 10deg,
+      color-mix(in srgb, var(--accent) 26%, transparent) 12deg,
+      color-mix(in srgb, var(--accent) 20%, transparent) 14deg,
+      transparent 24deg),
+    radial-gradient(58% 42% at 50% 96%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 74%);
+  opacity: 0.62;
+  transition: opacity 0.5s var(--ease);
+  pointer-events: none;
+}
+
+/* the role's number, ghosted behind the mark — weight in the empty half of the
+   card, and it costs one text node.
+
+   OUTLINED, not filled: LOOM Bloom is a condensed slab, and at this size a
+   filled numeral reads as two grey blocks parked behind the medallion rather
+   than as a number. A hairline outline keeps the shape and stays scenery. */
+.hire .hire-ghost {
+  position: absolute;
+  right: clamp(8px, 1.4vw, 16px);
+  bottom: clamp(4px, 0.8vw, 10px);
+  font-family: 'LOOM Bloom', var(--display);
+  font-weight: 400;
+  font-size: clamp(3.4rem, 5.4vw, 4.6rem);
+  line-height: 0.78;
+  letter-spacing: 0.01em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent) 34%, transparent);
+  pointer-events: none;
+  user-select: none;
+  transition: -webkit-text-stroke-color 0.5s var(--ease);
+}
+.hire .hire-card:hover .hire-ghost,
+.hire .hire-card:focus-within .hire-ghost {
+  -webkit-text-stroke-color: color-mix(in srgb, var(--accent) 62%, transparent);
+}
+.hire .hire-card:hover .hire-glow,
+.hire .hire-card:focus-within .hire-glow { opacity: 1; }
+
+/* the warp thread, still hanging, with nothing tied to it yet */
+.hire .hire-warp {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 40%;
+  margin-left: -1px;
+  z-index: 1;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 75%, transparent) 0 6px,
+    transparent 6px 12px
+  );
+  opacity: 0.75;
+  transform-origin: 50% 0;
+  transform: scaleY(1);
+  transition: transform 0.55s var(--ease), opacity 0.45s var(--ease);
+}
+.hire .hire-card:hover .hire-warp,
+.hire .hire-card:focus-within .hire-warp { transform: scaleY(1.14); opacity: 1; }
+
+/* the ring is where the bobbin would be threaded on */
+.hire .hire-ring {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: clamp(94px, 9.4vw, 118px);
+  aspect-ratio: 1;
+  margin-bottom: clamp(18px, 2.2vw, 28px);
+  border-radius: 50%;
+  border: 2px dashed color-mix(in srgb, var(--accent) 62%, transparent);
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 15%, transparent), transparent 70%),
+    rgba(255, 238, 245, 0.55);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 6%, transparent);
+  transition: transform 0.55s var(--ease), box-shadow 0.55s var(--ease);
+}
+.hire .hire-card:hover .hire-ring,
+.hire .hire-card:focus-within .hire-ring {
+  box-shadow: 0 0 0 12px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.hire .hire-card:hover .hire-ring,
+.hire .hire-card:focus-within .hire-ring { transform: rotate(-6deg) scale(1.05); }
+/* --wool-icon is a custom property, so it beats wool.css's own width/height
+   declarations regardless of source order (same mechanism .cnt-medal uses) */
+.hire .hire-ring .wool-icon {
+  --wool-icon: clamp(44px, 4.4vw, 58px);
+  opacity: 0.5;
+  transition: opacity 0.5s var(--ease);
+}
+.hire .hire-card:hover .hire-ring .wool-icon,
+.hire .hire-card:focus-within .hire-ring .wool-icon { opacity: 0.68; }
+
+/* the ground the missing person would be standing on — a radial gradient, not
+   a blurred shadow: a leaf element either way, but a gradient costs nothing to
+   composite and the shape wanted is soft, not sharp. */
+.hire .hire-ground {
+  position: absolute;
+  bottom: clamp(10px, 1.4vw, 18px);
+  left: 50%;
+  width: 46%;
+  height: 12px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 42%, transparent), transparent 72%);
+  opacity: 0.7;
+}
+
+/* ── the posting ─────────────────────────────────────────────── */
+.hire .hire-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 2px clamp(16px, 2vw, 24px) 0;
+}
+.hire .hire-index {
+  font-family: var(--display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--accent-ink);
+}
+.hire .hire-name {
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: clamp(1.45rem, 2.3vw, 1.95rem);
+  line-height: 1;
+  /* a role title is two words; break it rather than let it set the track width */
+  overflow-wrap: anywhere;
+}
+.hire .hire-owns {
+  width: fit-content;
+  max-width: 100%;
+  margin: 5px 0 0;
+  padding: 4px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-dim);
+}
+
+.hire .hire-foot {
+  margin-top: auto;
+  padding: clamp(16px, 2vw, 22px) clamp(16px, 2vw, 24px) clamp(16px, 2vw, 22px);
+}
+/* A real <button>. Not a WoolButton: four photographed knit pills in one grid
+   would be four more image requests and would out-shout the section's own CTA
+   at the bottom, which is the one that should carry the weight. */
+.hire .hire-apply {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 720;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background-color 0.35s var(--ease), transform 0.35s var(--ease), border-color 0.35s var(--ease);
+}
+.hire .hire-apply:hover {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 75%, transparent);
+}
+.hire .hire-apply:active { transform: translateY(1px); }
+.hire .hire-apply:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 4px; }
+
+/* ═══ THE OPEN THREAD ════════════════════════════════════════ */
+.hire .hire-strip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(20px, 3vw, 44px);
+  max-width: 1560px;
+  width: calc(100% - 2 * var(--pad));
+  margin: clamp(34px, 5vh, 56px) auto 0;
+  padding: clamp(24px, 3vw, 40px) clamp(22px, 3vw, 44px);
+  border-radius: calc(var(--radius) * 1.3);
+  border: 2px dashed rgba(242, 240, 247, 0.16);
+  background-color: var(--bg-2);
+  background-image: url('/img/wool/tex/felt-dark.webp');
+  background-size: 260px;
+}
+.hire .hire-strip-copy { flex: 1 1 320px; min-width: 0; }
+.hire .hire-strip-h {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+}
+.hire .hire-strip-p {
+  margin-top: 10px;
+  max-width: 56ch;
+  color: var(--ink-dim);
+  font-size: 0.95rem;
+}
+.hire .hire-strip-cta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(14px, 2vw, 24px);
+  min-width: 0;
+}
+.hire .hire-mail {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink-dim);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 3px;
+  overflow-wrap: anywhere;
+  transition: color 0.3s, border-color 0.3s;
+  position: relative;
+}
+/* TOUCH TARGET — 151 x 27. Same reasoning as `.mcp-mail`: the underline is the
+   design, so the box cannot grow downward. An invisible centred 44px band
+   takes the tap; `.hire-strip-cta` is a flex ROW, so the only neighbour is
+   beside it, never above or below. */
+.hire .hire-mail::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%);
+}
+.hire .hire-mail:hover { color: var(--ink); border-color: var(--magenta); }
+.hire .hire-mail:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 4px; border-radius: 4px; }
+
+/* ═══ RESPONSIVE ═════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .hire .hire-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 620px) {
+  .hire .hire-grid { grid-template-columns: minmax(0, 1fr); }
+  /* one-up, the stage no longer has to hold a four-card rhythm, so it can be
+     shorter and give the posting the fold instead */
+  .hire .hire-stage { height: clamp(140px, 34vw, 170px); }
+  .hire .hire-strip { flex-direction: column; align-items: flex-start; }
+  .hire .hire-strip-cta { width: 100%; }
+}
+@media (max-width: 420px) {
+  /* LOOM Bloom is condensed, but WE ARE HIRING is still 12 characters across
+     ~320px of usable width once the felt patch takes its padding — let it wrap
+     to two lines rather than shrink into the noise. */
+  .hire .hire-shout { font-size: clamp(2.2rem, 12vw, 3.4rem); }
+  .hire .hire-head { padding: clamp(22px, 6vw, 30px); }
+}
+
+/* ═══ REDUCED MOTION ═════════════════════════════════════════
+   There is nothing running at rest to stop, so this only has to freeze the
+   hover affordances. Frozen, not deleted — the lit stage, the ring and the
+   thread all still read; they simply stop moving. */
+@media (prefers-reduced-motion: reduce) {
+  .hire .hire-card,
+  .hire .hire-glow,
+  .hire .hire-warp,
+  .hire .hire-ring,
+  .hire .hire-ring .wool-icon,
+  .hire .hire-apply,
+  .hire .hire-mail { transition: none; }
+
+  .hire .hire-card:hover,
+  .hire .hire-card:focus-within { transform: none; }
+  .hire .hire-card:hover .hire-warp,
+  .hire .hire-card:focus-within .hire-warp { transform: scaleY(1); }
+  .hire .hire-card:hover .hire-ring,
+  .hire .hire-card:focus-within .hire-ring { transform: none; }
+  .hire .hire-apply:active { transform: none; }
+}

@@ -1,0 +1,2707 @@
+/* ————————————————————————————————————————————————————————
+   LOOM — design system
+   Dark violet atelier · electric magenta thread · Clash Display / Satoshi
+   ———————————————————————————————————————————————————————— */
+
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Variable.woff2') format('woff2');
+  font-weight: 200 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Variable.woff2') format('woff2');
+  font-weight: 300 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-VariableItalic.woff2') format('woff2');
+  font-weight: 300 900;
+  font-style: italic;
+  font-display: swap;
+}
+/* LOOM Bloom — the studio's own display family: one plain cut and four planted
+   ones, each carrying a different flower. Drawn in `type/`, built to
+   public/fonts/loom-bloom/, given away on /type. Caps-only by design. The
+   planted cuts are heavy (44–72 KB each) — load them on /type, not sitewide. */
+@font-face {
+  font-family: 'LOOM Bloom';
+  src: url('/fonts/loom-bloom/LOOMBloom-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Rose';
+  src: url('/fonts/loom-bloom/LOOMBloomRose-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Daisy';
+  src: url('/fonts/loom-bloom/LOOMBloomDaisy-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Tulip';
+  src: url('/fonts/loom-bloom/LOOMBloomTulip-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Ivy';
+  src: url('/fonts/loom-bloom/LOOMBloomIvy-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+/* The second family. Same six species throughout; what differs is how each cut
+   treats the LETTER — see type/font.md. All share the Regular's metrics, so any
+   of them can be swapped for any other mid-word without reflowing. */
+@font-face {
+  font-family: 'LOOM Bloom Wild';
+  src: url('/fonts/loom-bloom/LOOMBloomWild-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Hollow';
+  src: url('/fonts/loom-bloom/LOOMBloomHollow-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Meadow';
+  src: url('/fonts/loom-bloom/LOOMBloomMeadow-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* "Home" cuts — glyph subsets of the seven planted faces above, carrying only
+   the characters the HOME PAGE actually sets in them (the hero headline in
+   Daisy, the cycling "BLOOM" word in every cut, and Rose's drifting cut-name
+   band). Separate family names, separate files — /type and its ZIP still ship
+   and reference the full 108–337 KB faces untouched; only the decorative home
+   page use points here. Rebuild with the fontTools.subset invocation recorded
+   in scripts/subset-bloom-home.mjs if the hero copy or the cycling word ever
+   changes — a missing glyph falls back to the OS sans, not to tofu, so a stale
+   subset shows up as an unstyled letter, not a crash. */
+@font-face {
+  font-family: 'LOOM Bloom Rose Home';
+  src: url('/fonts/loom-bloom/LOOMBloomRose-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Daisy Home';
+  src: url('/fonts/loom-bloom/LOOMBloomDaisy-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Tulip Home';
+  src: url('/fonts/loom-bloom/LOOMBloomTulip-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Ivy Home';
+  src: url('/fonts/loom-bloom/LOOMBloomIvy-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Wild Home';
+  src: url('/fonts/loom-bloom/LOOMBloomWild-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Hollow Home';
+  src: url('/fonts/loom-bloom/LOOMBloomHollow-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Bloom Meadow Home';
+  src: url('/fonts/loom-bloom/LOOMBloomMeadow-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  /* THE GROUND IS ROSE-PLUM, NOT BLUE-VIOLET (10 Aug 2026).
+     Rotated from hue 268 to hue ~322 so the whole page sits in the same
+     temperature as the footer's bloom-sky (#ffe4f0 / rgb(247,176,202) /
+     rgb(196,116,172)) instead of meeting it as a different colour. Same three
+     lightness steps as before, so every panel and scrim keeps its old
+     relationship to the ground.
+     THE 65 HARDCODED COPIES OF --bg WERE MOVED WITH IT — 20 files fade TO
+     this colour by literal rgb(), including three WebGL clear colours. If this
+     is ever retuned again, grep `255, 233, 242` and `#ffe9f2` and move all of
+     them together, or the fades will end on the old blue. */
+  /* BABY PINK GROUND (10 Aug 2026). The site was a dark violet atelier; the
+     client asked for the whole page to sit on the footer's pink instead of
+     meeting it at the bottom. These are the footer sky's own tones.
+     THE INK FLIPS WITH IT — see below. A light ground with the old white ink
+     is an unreadable page, so the two must never be changed apart. */
+  --bg: #ffe9f2;
+  --bg-2: #ffdfec;
+  --bg-3: #f9d2e3;
+  /* paper ink, lifted verbatim from .footer--bloom, which has been the site's
+     one light surface all along and already had these solved against pink */
+  --ink: #33243d;
+  --ink-dim: #4a3652;
+  --ink-faint: #6b5273;
+  --magenta: #f21c8c;
+  --magenta-deep: #b3126a;
+  --violet: #7b2fbe;
+  --cyan: #59e6ff;
+  --gold: #ffc740;
+  --line: rgba(96, 40, 76, 0.18);
+
+  /* the four yarns, at the brightness they were actually photographed —
+     for wool surfaces and accents only, never for body text */
+  --yarn-pink: #d6247e;
+  --yarn-violet: #9b55c9;
+  --yarn-blue: #5cc0e8;
+  --yarn-gold: #e0a82f;
+  --yarn-cream: #efe7da;
+  /* THE SAME ACCENT, LEGIBLE AS TEXT ON THE PINK GROUND (10 Aug 2026).
+     The line above has always said the yarns are for surfaces and never for
+     body text, and on the old violet ground that rule cost nothing — a bright
+     yarn on #0d0716 read fine. On #ffe9f2 it stops being true: --yarn-blue
+     lands at 1.8:1 and --yarn-gold at 1.85:1 against the new ground, so every
+     label that tinted itself with the section's accent went nearly invisible
+     in one commit (proof labels, price units, crew indices, citation numbers,
+     process numbers).
+     Mixing just under half the accent into the ink keeps the hue identity —
+     the blue stat still reads blue, the gold one gold — while clearing 4.5:1.
+     Both resolve against whatever --accent / --yarn the element inherited, so
+     a section only has to set its accent once, as it already does.
+     RULES, BARS AND FILLS KEEP THE BRIGHT YARN. Only text uses these. */
+  --accent-ink: color-mix(in srgb, var(--accent, var(--magenta)) 46%, var(--ink));
+  --yarn-ink: color-mix(in srgb, var(--yarn, var(--magenta)) 46%, var(--ink));
+  /* The cool end of a gradient that fills TEXT. --cyan is 1.28:1 on the pink
+     ground, so any `background-clip: text` ramp ending on it loses its whole
+     last third — the word fades out mid-letter and no contrast checker
+     reports it, because clipped text computes `color: transparent` and every
+     sweep that reads getComputedStyle().color skips the element entirely.
+     Audit clipped text by its BACKGROUND STOPS, not its colour. Same hue as
+     --cyan, pitched into ink range at 5.9:1. */
+  --cyan-ink: #10627a;
+  --felt: url('/img/wool/tex/felt-dark.webp');
+
+  /* CLIENT REQUEST (10 Aug 2026): "normal lightweight" font everywhere except
+     the hero. A system stack is the fastest, truest answer to "lightweight" —
+     it downloads zero bytes and never blocks first paint, and per CLAUDE.md
+     nothing here fetches a font from a CDN, so a Google Fonts link was never
+     an option. --display/--body/--bloom now resolve here by default; the
+     three places that must keep the drawn LOOM faces (.hero's headline,
+     #typeface, /type) redefine these same custom properties locally — see
+     the overrides in typeshowcase.css's `.ts` and typeface.css's `.tf`, and
+     `.hero` below for the outlined accent line. Custom properties resolve at
+     point of use, so nothing downstream (.h2, .ts-h2, .tf-h2, …) has to
+     change: it just inherits whichever value is in scope. */
+  --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --display: var(--font-system);
+  --body: var(--font-system);
+  /* Was 'LOOM Bloom', 'Clash Display', 'Avenir Next', sans-serif — the drawn
+     face is now scoped to the three places that still show it off (see the
+     note above); everywhere else var(--bloom) is a plain heading, so it
+     takes the same system stack as --display. */
+  --bloom: var(--font-system);
+  /* kept for the record: the studio's own drawn face, still referenced by
+     the scoped overrides below and reused verbatim there so there is exactly
+     one place this string is typed. */
+  --bloom-stack: 'LOOM Bloom', 'Clash Display', 'Avenir Next', sans-serif;
+  /* The planted cut the hero is set in. All five cuts share ONE cmap (161
+     codepoints, 98 glyphs — verified against the woff2s, not assumed) and one
+     metric set, so Daisy → Bloom → Clash can never break a line mid-word: the
+     three faces are interchangeable character for character. */
+  /* The hero headline is the only unconditional (non-gated) use of a planted
+     cut, so it gets the glyph-subset "Home" face — 32 KB instead of 110 KB —
+     covering exactly "We weave brands / on the edge / of creativity." + BLOOM.
+     'LOOM Bloom Daisy' stays out of the stack on purpose: a fallback to it
+     would silently fetch the full 110 KB face the moment any character isn't
+     in the subset, defeating the point. */
+  --bloom-daisy: 'LOOM Bloom Daisy Home', 'Clash Display', 'Avenir Next', sans-serif;
+  --pad: clamp(20px, 5vw, 96px);
+  --radius: 18px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+/* relative because every useScroll({ target }) measures document.documentElement
+   as its container, and Motion refuses to trust the offsets of a static one */
+html { scroll-behavior: auto; position: relative; }
+html.menu-open, html.overlay-open { overflow: hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-weight: 420;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* Safety net ONLY — it is no longer load-bearing. Verified 2026-08-08 with
+     this line removed: `/`, `/type` and `/consultancy` all measure
+     documentElement.scrollWidth === innerWidth at every width from 320 to
+     1920. The real fixes are the `min-width: 0` grid-item rules below
+     (.work-grid, .tf-use-grid) and .tf-switch's wrap; every oversized
+     decorative layer clips at its own container (.loom-bg, .marquee, .hero,
+     .ts-sticky), not here. Do not let a new full-bleed section lean on this. */
+  overflow-x: clip;
+}
+
+/* film grain over everything */
+body::after {
+  content: '';
+  position: fixed; inset: -50%;
+  pointer-events: none; z-index: 200;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  animation: grain 9s steps(6) infinite;
+}
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -3%); }
+  60% { transform: translate(-2%, -2%); }
+  80% { transform: translate(3%, 3%); }
+}
+
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+::selection { background: var(--magenta); color: var(--ink); }
+
+html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
+
+/* ——— type scale ——— */
+/* ——— section headings, in LOOM Bloom ———————————————————————————————
+   LOOM Bloom is caps-only by design (lowercase maps to the cap glyphs), so
+   every .h2 renders as caps whatever case the string is written in — that is
+   the intended look, not a bug.
+   Three numbers move with the face and none of them are decoration:
+   · font-weight stays at 560. LOOM Bloom ships one weight (400); Chrome
+     synthesises a fake bold from 600 up, so 560 is the ceiling that keeps the
+     real outlines AND keeps Clash at its tuned weight if the woff2 fails.
+   · letter-spacing goes from -0.015em to 0. The negative tracking was drawn
+     for Clash's wide caps; on a condensed grotesque with flat terminals it
+     closes the sidebearings and V/A pairs touch.
+   · max-width moves from 18ch to 26ch. `ch` measures the current font's zero
+     advance, and Bloom's is much narrower, so 18ch in Bloom is a far shorter
+     line than 18ch in Clash was — 26ch restores the same measure. */
+.h2 {
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(2rem, 5.2vw, 4.4rem);
+  line-height: 1.04;
+  letter-spacing: 0;
+  max-width: 26ch;
+}
+.h2--light { color: var(--ink); }
+/* The bolt banner's claim is a `.h2 .bolt-claim`, but banners.css re-declares
+   `font-family: var(--display)` at (0,2,0) from a later stylesheet — a plain
+   `.bolt-claim` rule here would lose the cascade. (0,3,0) takes it back
+   without editing banners.css, which is owned elsewhere. */
+.bolt .h2.bolt-claim { font-family: var(--bloom); font-weight: 560; letter-spacing: 0; max-width: 22ch; }
+.kicker {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 0.8rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.22em;
+  color: var(--ink-dim);
+  margin-bottom: 22px;
+}
+.kicker span { color: var(--magenta); font-family: var(--display); }
+.kicker::after { content: ''; height: 1px; width: 64px; background: var(--line); }
+.kicker--center { justify-content: center; }
+.kicker--center::after { display: none; }
+.lede { font-size: clamp(1.05rem, 1.6vw, 1.3rem); color: var(--ink); max-width: 52ch; }
+.body-dim { color: var(--ink-dim); max-width: 52ch; }
+
+.sw { display: inline; }
+.sw-mask { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.sw-word { display: inline-block; }
+.sw.is-animating .sw-word { will-change: transform; }
+
+section { position: relative; }
+/* Clear the sticky header on every anchor landing that Lenis does NOT drive:
+   reduced-motion users (no Lenis at all, so App.jsx falls back to
+   scrollIntoView), and anyone who types or shares a /#work style URL. Lenis
+   measures the real header height at click time — this is the static mirror of
+   that, sized for the taller unscrolled bar so it can only ever be generous. */
+section[id], [id].section-anchor { scroll-margin-top: 114px; }
+@media (max-width: 900px) { section[id], [id].section-anchor { scroll-margin-top: 92px; } }
+.section-head { padding: clamp(70px, 10vh, 130px) var(--pad) clamp(30px, 5vh, 60px); }
+
+/* ——— buttons ——— */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 15px 30px;
+  border-radius: 999px;
+  font-weight: 640; font-size: 0.98rem;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+  position: relative; overflow: hidden;
+  transition: transform 0.5s var(--ease), background 0.35s, color 0.35s, border-color 0.35s, box-shadow 0.5s;
+  white-space: nowrap;
+}
+.btn--ghost { border-color: rgba(242, 240, 247, 0.25); color: var(--ink); }
+.btn--ghost:hover { border-color: var(--magenta); color: var(--ink); background: rgba(242, 28, 140, 0.08); }
+.magnetic { display: inline-block; transition: transform 0.35s var(--ease); }
+/* The pull is driven by pointermove, so a coarse pointer never moves one of
+   these at all — promoting them there buys a compositor layer per button
+   (11 of them on the home page) for an animation that cannot happen. */
+@media (hover: hover) and (pointer: fine) {
+  .magnetic { will-change: transform; }
+}
+
+/* ——— loader ——— */
+.loader {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--bg-2);
+  display: grid; place-items: center;
+}
+.loader-inner { text-align: center; }
+.loader-word {
+  font-family: var(--display); font-weight: 620;
+  font-size: clamp(3rem, 10vw, 6.5rem);
+  letter-spacing: 0.06em; line-height: 1;
+  display: inline-flex;
+  /* No `overflow: hidden` here. It was a leftover from the old text loader,
+     where letter <span>s slid up out of a masked box. With the woven logo the
+     mask instead clips the img's magenta drop-shadow to the content box — the
+     soft glow gets a hard rectangular edge and reads as a grey plate behind
+     the mark. */
+}
+.loader-word span { display: inline-block; }
+.loader-thread {
+  height: 2px; margin: 18px auto 14px; width: min(240px, 50vw);
+  background: linear-gradient(90deg, transparent, var(--magenta), transparent);
+  transform-origin: left;
+}
+.loader-sub { color: var(--ink-dim); letter-spacing: 0.3em; text-transform: uppercase; font-size: 0.75rem; }
+
+/* ——— progress + cursor ——— */
+.progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--magenta), var(--violet), var(--cyan));
+  transform-origin: left; z-index: 90;
+  /* z-index 90 puts this ABOVE the nav (80) across the full width of the
+     viewport. Without this line the read-out swallowed every tap landing in
+     the top two pixels of the screen — `document.elementFromPoint(x, 1)`
+     returned `.progress`, not the nav link underneath it. It is a read-out,
+     it must never be a target. */
+  pointer-events: none;
+}
+.cursor { position: fixed; inset: 0; pointer-events: none; z-index: 300; }
+.cursor-dot, .cursor-ring { position: absolute; top: 0; left: 0; border-radius: 50%; }
+.cursor-dot { width: 7px; height: 7px; background: var(--magenta); margin: -3.5px; }
+.cursor-ring {
+  width: 38px; height: 38px; margin: -19px;
+  border: 1.4px solid rgba(242, 28, 140, 0.55);
+  transition: width 0.3s, height 0.3s, margin 0.3s, background 0.3s;
+}
+html.cursor-hot .cursor-ring {
+  width: 62px; height: 62px; margin: -31px;
+  background: rgba(242, 28, 140, 0.12);
+}
+
+/* ——— nav ——— */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 80;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px var(--pad);
+  /* unscrolled state sits directly on the hero photo — .nav-links a is
+     .ink-dim, which measures well under 4.5:1 against the pink cloud
+     backdrop with no scrim at all. This gradient is just enough to hold
+     contrast without reading as a bar; .nav--scrolled's solid fill wins
+     over it once the user scrolls. */
+  background: linear-gradient(180deg, rgba(9,4,16,0.4) 0%, rgba(9,4,16,0.12) 70%, rgba(9,4,16,0) 100%);
+  /* the blur radius is NOT interpolated — ramping 0->14px across a 1440px bar
+     every frame for 450ms was the expensive half of this transition */
+  transition: background 0.45s, padding 0.45s;
+}
+.nav--scrolled {
+  background: rgba(255, 233, 242, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 10px var(--pad);
+  border-bottom: 1px solid var(--line);
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--display); font-weight: 620; letter-spacing: 0.08em; font-size: 1.25rem;
+  /* the wordmark is an <img>, a replaced element — under the default
+     flex-shrink:1 it absorbed almost the WHOLE squeeze once 10 nav items
+     stopped fitting (it has the largest flex-basis of any header child, and
+     default shrink is basis-weighted), collapsing to ~8px wide and
+     vanishing rather than the row overflowing visibly. Fixed size, always. */
+  flex: none;
+  /* the wordmark is 34-46px tall depending on width; on a phone it is 38, so
+     the home link was a 38px target. The bar is already 49px tall (the "Get
+     started" pill sets it), so this buys the target without moving anything. */
+  min-height: 44px;
+}
+.nav-logo:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; border-radius: 6px; }
+/* 9 items now (Software joined the original 8) — the old fixed
+   clamp fit 8 comfortably up to 1440 but let WORK collide with the wordmark
+   and 3D LAB wrap to two lines in the 1150-1360 laptop range once two more
+   labels were added. white-space stops the wrap outright; the 1360px query
+   below tightens the gap and label size for exactly the pinch range,
+   leaving the >=1360 spacing (the one every earlier screenshot judged)
+   untouched. */
+.nav-links { display: flex; gap: clamp(14px, 2.4vw, 40px); }
+.nav-links a { white-space: nowrap; }
+/* 1560, not 1360: LINKS has grown from eight tabs to ten (MCP, AI Search) and
+   at the wide gap the row ran under the "Get started" pill at 1440 — CONTACT
+   was sitting behind it. The tight gap has to start before that happens, not
+   80px after. Re-check this number if an eleventh tab is ever added. */
+@media (max-width: 1560px) {
+  .nav-links { gap: clamp(8px, 1.3vw, 20px); }
+  .nav-links a { font-size: 0.72rem; }
+}
+/* One more step. Ten tabs still touch the pill at 1280 on the rule above, and
+   the burger does not take over until 1100 — so 1100–1400 needs its own,
+   tighter setting rather than 300px of overlap. */
+@media (max-width: 1400px) {
+  .nav-links { gap: clamp(6px, 0.85vw, 13px); }
+  .nav-links a { font-size: 0.66rem; letter-spacing: 0.06em; }
+}
+/* 1860, not 1360 — and this number is MEASURED, not chosen.
+   LINKS went from eleven tabs to thirteen on 10 Aug 2026 (Pricing, FAQ), and
+   thirteen labels do not fit beside the "Get started" pill at ANY width below
+   ~1855: walking the viewport in 40px steps, the gap between the last tab and
+   the pill was exactly 0 from 1380 all the way to 1820, i.e. every ordinary
+   desktop had CONTACT sitting behind the pill. Ten is the count this bar has
+   actually been verified at, so the three `extra` tabs now step out until
+   there is real room for them. They stay in the burger menu and in the footer
+   sitemap at every width — see the notes beside them in Chrome.jsx.
+   Re-measure with qa-nav-fit.mjs if a fourteenth tab is ever added; do not
+   nudge this by eye. */
+@media (max-width: 1860px) {
+  .nav-links a.is-extra { display: none; }
+}
+/* The last 100px before the burger. Even at ten labels the row still ran into
+   the pill at 1101–1180 (this predates the AI Search tab — it arrived with the
+   AI Workshops one), so the band immediately above the burger gets the
+   smallest setting rather than an overlap. */
+@media (max-width: 1200px) {
+  .nav-links { gap: 5px; }
+  .nav-links a { font-size: 0.62rem; letter-spacing: 0.04em; }
+  .nav-cta { gap: 8px; }
+}
+/* The 100px immediately above the burger was measuring a 3px gap to the pill —
+   not an overlap, but inside the margin where a font swap or a slightly wider
+   label makes it one, and this band was already the tightest setting the bar
+   has. Tracking is what gives here rather than size: 10 caps labels at 0.62rem
+   are still legible with 0.02em, and dropping the tracking buys ~20px across
+   the row where dropping another 0.02rem of size buys 6px and costs more. */
+@media (max-width: 1160px) {
+  .nav-links { gap: 4px; }
+  .nav-links a { letter-spacing: 0.02em; }
+}
+/* Clash Display, not the inherited Satoshi body face. The nav sat in body
+   text at 540 while the wordmark beside it is Clash at 620 — the two read
+   as belonging to different sites. Uppercase with real tracking also makes
+   the hover scramble coherent: SCRAMBLE_GLYPHS in fx.js is A-Z, so a
+   title-case label was being scrambled into capitals and then snapping
+   back to Title Case. Now both states are caps and only the letters move. */
+.nav-links a {
+  font-family: var(--display); font-weight: 560;
+  font-size: 0.82rem; letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--ink-dim);
+  position: relative; overflow: hidden; display: inline-block;
+  /* TOUCH TARGET. These measured 34 x 21 — under even the 24px WCAG 2.2 AA
+     floor, let alone 44. The height CANNOT be bought with padding here: the
+     scramble copy is `span::after { top: 100% }` clipped by this box's own
+     `overflow: hidden`, so the reveal distance is the box height and padding
+     would desynchronise the two. `line-height` grows the box AND the span's
+     line box together, which keeps `top: 100%` and `translateY(-100%)`
+     measuring the same 44px. Text position is unchanged (half-leading).
+     `min-width` only bites on the one short label (MCP, 43.1px) so the row
+     grows by under a pixel — the 1101-1560px collision notes above still
+     hold. */
+  line-height: 44px;
+  min-width: 44px; text-align: center;
+}
+.nav-links a span { display: inline-block; transition: transform 0.45s var(--ease); }
+.nav-links a span::after {
+  content: attr(data-text);
+  position: absolute; left: 0; top: 100%; color: var(--magenta);
+}
+.nav-links a:hover span { transform: translateY(-100%); }
+.nav-cta { display: flex; align-items: center; gap: 14px; flex: none; }
+.burger {
+  display: none; flex-direction: column; gap: 5px; padding: 8px;
+  min-width: 44px; min-height: 44px; align-items: center; justify-content: center;
+}
+.burger span { width: 22px; height: 2px; background: var(--ink); transition: transform 0.4s var(--ease), opacity 0.3s; }
+.burger.is-open span:first-child { transform: translateY(3.5px) rotate(45deg); }
+.burger.is-open span:last-child { transform: translateY(-3.5px) rotate(-45deg); }
+
+/* THE BURGER DRAWER. Three things were wrong with it on a phone, and they
+   compounded into the worst tap failure on the site.
+
+   1. The drawer is z-index 75, the fixed `.nav` is 80. That ordering is
+      deliberate — the burger doubles as the close button and has to stay on
+      top — but nothing kept the drawer's own CONTENT out from under the bar.
+   2. Eleven links at clamp(2.6rem, 9vw) plus the meta block measure ~863px
+      against an 844px viewport, so `justify-content: center` pushed the list
+      off BOTH ends: measured, WORK sat at y = 0.6 and SOLUTIONS at y = 58.5,
+      both under an 81px-tall nav. `document.elementFromPoint` at their
+      centres returned `header.nav`. The first two items of the site's only
+      mobile navigation could not be tapped at all.
+   3. There was no `overflow`, so the overflow was simply unreachable.
+
+   `safe center` keeps the centred composition whenever the list fits and
+   falls back to start-alignment the moment it does not, which is exactly the
+   case that was broken; browsers that do not parse it keep the plain `center`
+   on the line above. The padding clears the tallest state of the bar (81px
+   unscrolled: 16px x2 plus the 49px "Get started" pill) plus the notch. */
+.menu {
+  position: fixed; inset: 0; z-index: 75;
+  /* Fallback ground — MenuBackground (Chrome.jsx) paints the real, layered
+     one on top; this is what shows if that layer is ever removed, and it is
+     also what a browser paints for the one frame before the child mounts. */
+  background: linear-gradient(160deg, var(--bg-2), var(--bg-3));
+  overflow: hidden; /* clips .menu-bg's blooms and falling petals to the drawer */
+}
+/* THE DRAWER'S BACKGROUND — see MenuBackground in Chrome.jsx for what draws
+   each layer and why (code-generated, nothing fetched: a hatch pass in two
+   directions for the woven read, three slow-drifting colour blooms, and a
+   small deterministic drift of petals reusing the footer's own keyframe).
+   Sits BEHIND `.menu-content` (z-index 0 vs 1) and ignores pointer events so
+   it can never intercept a tap meant for a link underneath it. */
+.menu-bg {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
+}
+.menu-bg-weave {
+  position: absolute; inset: -12%;
+  background-image:
+    repeating-linear-gradient(52deg, rgba(51, 36, 61, 0.055) 0 2px, transparent 2px 26px),
+    repeating-linear-gradient(-38deg, rgba(242, 28, 140, 0.045) 0 2px, transparent 2px 30px);
+  mix-blend-mode: multiply;
+}
+.menu-bg-bloom {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: menu-bloom-drift 15s ease-in-out infinite;
+}
+.menu-bg-bloom--a {
+  width: 52vw; height: 52vw; left: -14%; top: -10%;
+  background: radial-gradient(circle, var(--magenta) 0%, transparent 70%);
+  opacity: 0.5;
+}
+.menu-bg-bloom--b {
+  width: 44vw; height: 44vw; right: -16%; top: 22%;
+  background: radial-gradient(circle, var(--violet) 0%, transparent 70%);
+  opacity: 0.42; animation-delay: -5s;
+}
+.menu-bg-bloom--c {
+  width: 56vw; height: 56vw; left: 16%; bottom: -22%;
+  background: radial-gradient(circle, var(--cyan) 0%, transparent 72%);
+  opacity: 0.3; animation-delay: -9.5s;
+}
+@keyframes menu-bloom-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(2.5%, -3%, 0) scale(1.08); }
+}
+.menu-petals { position: absolute; inset: 0; overflow: hidden; }
+.menu-petals i {
+  position: absolute; top: -6%; left: var(--x); font-style: normal;
+  width: calc(clamp(7px, 0.9vw, 13px) * var(--s));
+  height: calc(clamp(9px, 1.1vw, 16px) * var(--s));
+  border-radius: 60% 60% 60% 60% / 80% 80% 40% 40%;
+  background: linear-gradient(160deg, #ffd0e8, #f76fb4);
+  opacity: 0;
+  animation: foot-fall var(--dur) linear infinite;
+  animation-delay: var(--delay);
+}
+.menu-petals i.is-leaf {
+  width: calc(clamp(6px, 0.76vw, 11px) * var(--s));
+  height: calc(clamp(12px, 1.6vw, 21px) * var(--s));
+  border-radius: 76% 24% 76% 24% / 50% 50% 50% 50%;
+  background: linear-gradient(150deg, #cfe6b4, #7fae74);
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-bg-bloom { animation: none; }
+}
+
+.menu-content {
+  position: relative; z-index: 1;
+  height: 100%;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5vh;
+  justify-content: safe center;
+  padding: calc(env(safe-area-inset-top, 0px) + 92px) var(--pad)
+           calc(env(safe-area-inset-bottom, 0px) + 28px);
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  text-align: center;
+}
+.menu-links { display: flex; flex-direction: column; gap: 10px; }
+.menu-links a {
+  font-family: var(--display); font-weight: 560;
+  font-size: clamp(2.6rem, 9vw, 4.6rem); line-height: 1.15;
+}
+.menu-links a { display: inline-block; transition: color 0.3s, transform 0.3s var(--ease); }
+.menu-links a:hover { color: var(--magenta); transform: translateX(10px); }
+.menu-links a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  .menu-links a:hover { transform: none; }
+}
+
+/* ——— MenuIndustries — the mobile disclosure (Chrome.jsx) ———
+   A secondary way into the 30-niche index, deliberately smaller type than
+   .menu-links: this is a lookup, not one of the page's primary destinations. */
+.menu-industries { width: min(440px, 88vw); }
+.menu-ind-toggle {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 13px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.22);
+  background: rgba(255, 255, 255, 0.4);
+  font-family: var(--display); font-weight: 560;
+  font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-dim);
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+.menu-ind-toggle:hover,
+.menu-ind-toggle[aria-expanded="true"] { border-color: var(--magenta); color: var(--ink); background: rgba(242, 28, 140, 0.08); }
+.menu-ind-toggle:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+.menu-ind-chev { width: 11px; height: 8px; transition: transform 0.3s var(--ease); }
+.menu-ind-chev.is-open { transform: rotate(180deg); }
+
+.menu-ind-panel { overflow: hidden; width: 100%; }
+.menu-ind-inner {
+  padding-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 22px;
+  text-align: left;
+}
+.menu-ind-glabel {
+  font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--grp-yarn, var(--ink-faint));
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.menu-ind-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.menu-ind-chips button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.16);
+  font-size: 0.76rem;
+  color: var(--ink-dim);
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.menu-ind-chips button:hover,
+.menu-ind-chips button:focus-visible {
+  border-color: var(--grp-yarn, var(--magenta));
+  color: var(--ink);
+  background: color-mix(in srgb, var(--grp-yarn, var(--magenta)) 12%, transparent);
+}
+@media (max-width: 420px) {
+  .menu-ind-inner { grid-template-columns: 1fr; }
+}
+
+/* ——— NavIndustries — the desktop dropdown (Chrome.jsx) ———
+   Anchored to the existing "Solutions" tab, so it costs the bar nothing
+   qa-nav-fit.mjs measures: the trigger is the same `.nav-links a` the script
+   already accounts for, and the panel is position:absolute — outside layout. */
+.nav-drop { position: relative; display: inline-flex; align-items: center; }
+.nav-drop-trigger {
+  font-family: var(--display); font-weight: 560;
+  font-size: 0.82rem; letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--ink-dim);
+  display: inline-flex; align-items: center; gap: 5px;
+  line-height: 44px; min-width: 44px; text-align: center;
+}
+.nav-drop-chev { width: 9px; height: 6px; opacity: 0.65; transition: transform 0.3s var(--ease); }
+.nav-drop-chev.is-open { transform: rotate(180deg); }
+.nav-drop-panel {
+  position: absolute; top: calc(100% + 14px); left: 50%; transform-origin: top center;
+  translate: -50% 0;
+  width: min(760px, 88vw);
+  padding: 24px 26px 20px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid rgba(51, 36, 61, 0.1);
+  box-shadow: 0 30px 70px -26px rgba(40, 8, 40, 0.4);
+  z-index: 81;
+  text-align: left;
+}
+.nav-drop-lede {
+  font-size: 0.8rem; color: var(--ink-faint);
+  padding-bottom: 14px; margin-bottom: 14px;
+  border-bottom: 1px solid rgba(51, 36, 61, 0.08);
+}
+.nav-drop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px 20px;
+}
+.nav-drop-glabel {
+  font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--grp-yarn, var(--ink-faint));
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.nav-drop-col ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.nav-drop-col button {
+  width: 100%; text-align: left;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  transition: background 0.2s, color 0.2s;
+}
+.nav-drop-col button:hover,
+.nav-drop-col button:focus-visible {
+  background: color-mix(in srgb, var(--grp-yarn, var(--magenta)) 12%, transparent);
+  color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-drop-chev, .menu-ind-chev { transition: none; }
+}
+.menu-meta { display: flex; flex-direction: column; gap: 8px; color: var(--ink-dim); font-size: 0.95rem; }
+/* the phone number and the address at the foot of the drawer measured
+   210 x 24.3 — the two smallest targets inside the mobile navigation. */
+.menu-meta a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; min-width: 44px;
+}
+.menu-meta a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
+/* MenuAuth (Chrome.jsx) reuses this drawer's plain-line idiom for "Sign in" /
+   "Dashboard" / "Sign out" — the button needs the same touch target the
+   links already have, added rather than folded into the selector above so
+   the existing rule is untouched. */
+.menu-meta button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; min-width: 44px;
+  font: inherit; color: inherit; background: none; border: 0;
+}
+.menu-meta button:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
+
+/* ——— nav account control (NavAuth / MenuAuth, Chrome.jsx) ———————————
+   NOT a fourteenth nav tab — the bar is documented at its 13-tab limit and
+   qa-nav-fit.mjs verifies it. This rides inside .nav-cta beside the burger,
+   sized to stay small: signed out, a compact pill that is the only header
+   route into /dashboard; signed in, a round initial that opens a two-item
+   menu rather than spending nav width on an email address. */
+.nav-auth-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 36px; padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.22);
+  font-family: var(--display); font-weight: 560;
+  font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-dim);
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+  white-space: nowrap;
+}
+.nav-auth-pill:hover { border-color: var(--magenta); color: var(--ink); background: rgba(242, 28, 140, 0.06); }
+.nav-auth-pill:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+
+.nav-auth { position: relative; }
+.nav-auth-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--ink); color: #fff8fc;
+  font-family: var(--display); font-weight: 620; font-size: 0.9rem;
+  transition: background 0.3s;
+}
+.nav-auth-avatar:hover { background: var(--magenta-deep); }
+.nav-auth-avatar[aria-expanded="true"] { background: var(--magenta); }
+.nav-auth-avatar:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+
+.nav-auth-menu {
+  position: absolute; top: calc(100% + 12px); right: 0;
+  min-width: 210px;
+  display: flex; flex-direction: column;
+  padding: 8px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(51, 36, 61, 0.12);
+  box-shadow: 0 20px 50px -20px rgba(40, 8, 40, 0.4);
+  z-index: 81; /* just above .nav (80) — it is anchored inside the header */
+}
+.nav-auth-email {
+  padding: 8px 10px 10px;
+  font-size: 0.72rem; color: var(--ink-faint);
+  border-bottom: 1px solid rgba(51, 36, 61, 0.08);
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.nav-auth-menu a, .nav-auth-menu button {
+  display: block; width: 100%; text-align: left;
+  padding: 10px; border-radius: 8px;
+  font-size: 0.88rem; color: var(--ink);
+  transition: background 0.2s;
+}
+.nav-auth-menu a:hover, .nav-auth-menu button:hover { background: rgba(242, 28, 140, 0.08); }
+.nav-auth-menu a:focus-visible, .nav-auth-menu button:focus-visible {
+  outline: 2px solid var(--magenta); outline-offset: -2px;
+}
+
+@media (max-width: 1200px) {
+  .nav-auth-pill { height: 32px; padding: 0 12px; font-size: 0.66rem; }
+  .nav-auth-avatar { width: 32px; height: 32px; font-size: 0.8rem; }
+}
+
+/* ——— hero ——— */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid; align-items: end;
+  padding: 118px var(--pad) clamp(60px, 10vh, 110px);
+  overflow: clip;
+  /* The client asked for the hero to keep the custom face. .hero-h1 itself
+     is already set in var(--bloom-daisy), untouched by the sitewide swap
+     above — but .hero-line--accent (the outlined "on the edge") is set in
+     var(--bloom) directly, which is now the system stack by default. Scope
+     it back to the drawn face so the headline's outline half doesn't switch
+     fonts out from under its filled half. */
+  --bloom: var(--bloom-stack);
+}
+/* Desktop gets more than 100svh so the planet has room to be a subject rather
+   than a thing peeking in at the edge — on a 900px-tall laptop the hero was
+   exactly viewport-height and the composition had nowhere to breathe. */
+@media (min-width: 768px) {
+  .hero { min-height: 112svh; }
+}
+
+/* Phones invert the whole hero: copy FIRST, planet under it, both fully in
+   frame. The desktop layout is `align-items: end` with the planet behind the
+   type — stacked on a 390px screen that put the headline on top of the planet
+   and cropped the planet's lower half off the fold, so the visitor met an
+   overlapped mess instead of either element. Splitting them into two rows and
+   letting the planet own the second one is the only way both read.
+   118svh is the room that costs: the address bar collapsing on scroll would
+   otherwise crush the second row. */
+@media (max-width: 767px) {
+  .hero {
+    min-height: 118svh;
+    /* the desktop hero is align-items:end — bottom-anchored copy over a
+       full-bleed photo. On a phone that drops the headline into the planet's
+       middle, so the copy goes to the TOP and the planet takes the space
+       underneath (see .hero-mobile-planet's 72%). */
+    align-items: start;
+    padding-top: 96px;
+  }
+  /* smaller: at 8.2vw the headline ran three lines and pushed the planet off
+     the fold entirely, which is the thing being fixed */
+  .hero-h1 { font-size: clamp(2.15rem, 6.6vw, 3rem); }
+  .hero-sub { margin-top: 18px; font-size: 0.96rem; }
+  .hero-eyebrow { margin-bottom: 16px; }
+  .hero-ctas { margin-top: 22px; }
+}
+/* The candy-cloud environment is now a real photograph, not a shader — the
+   PlanetField canvas renders transparent (renderer alpha:true, no nebula
+   mesh) and sits ON TOP of this as just the LOOM planet + motes + haze.
+   Desktop and mobile are different source images (the mobile one is framed
+   for a portrait crop, not just the desktop one resized), swapped at the
+   same 767px breakpoint the rest of the site uses for its layout switch. */
+.hero-canvas-wrap { position: absolute; inset: 0; z-index: -1; }
+/* The photo lives on its OWN layer, separate from .hero-canvas-wrap, which
+   framer-motion drives via inline `transform` for scroll parallax (see
+   Sections.jsx). A CSS @keyframes animation targeting `transform` on the SAME
+   element wins over an inline style every frame — sharing the two silently
+   killed the parallax the instant the page loaded. This layer owns the pan +
+   breathe instead, so both animations run without fighting each other. */
+.hero-canvas-bg {
+  position: absolute; inset: -8%;
+  background: var(--bg);
+  /* oversized (-8% inset) so the breathe below never uncovers an edge */
+  animation: hero-bg-breathe 9s ease-in-out infinite;
+}
+/* MEASURED 10 Aug 2026 (playwright fps profile of the live site): this used
+   to be ONE element, with the pan driven by animating `background-position`
+   directly on it. `background-position` is not a compositor property — every
+   tick has to repaint the layer, and this layer is the full hero viewport,
+   oversized. Moved the photo (and the pan) onto this ::before instead, so the
+   pan is now a `transform: translate3d` — compositor-only, same as the
+   breathe scale on the parent — and the two can run independently without
+   fighting over the `transform` property (see the .hero-canvas-wrap comment
+   above for why sharing one property across two authorities is the failure
+   mode already fixed once here). Oversized further than the parent's own -8%
+   (-15% here) so the added translate range never uncovers an edge either. */
+.hero-canvas-bg::before {
+  content: '';
+  position: absolute; inset: -15%;
+  background: url('/img/hero/bg-desktop.webp') no-repeat center / cover;
+  animation: hero-bg-drift 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+/* the pan — was a background-position shift; same read (clouds slowly
+   drifting), now a translate so it stays on the compositor */
+@keyframes hero-bg-drift {
+  0% { transform: translate3d(-2.4%, -2%, 0); }
+  100% { transform: translate3d(2.4%, 2%, 0); }
+}
+/* the pulse — independent of scroll, so the hero is alive the instant it
+   paints instead of waiting for the reader to scroll before anything moves */
+@keyframes hero-bg-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-canvas-bg, .hero-canvas-bg::before { animation: none; }
+}
+.hero-canvas {
+  width: 100%; height: 100%; display: block;
+  /* stands in for the bloom pass dropped from PlanetField.js (it broke
+     canvas alpha) — a cheap warm glow around the knit planet and motes */
+  filter: drop-shadow(0 0 60px rgba(255, 200, 230, 0.35));
+}
+@media (max-width: 767px) {
+  .hero-canvas-bg::before { background-image: url('/img/hero/bg-mobile.webp'); }
+}
+/* Touch devices are never given the hero's WebGL context — one context per
+   page is what stopped iPhones dying (Sections.jsx:31) — so the planet arrives
+   as a real (non-pseudo) element instead: Sections.jsx needs a ref on it to
+   drive a scroll-linked scale. Same art, ~40 KB, no second renderer.
+   Centred, in the empty band ABOVE the copy (the hero is bottom-anchored,
+   .hero padding-top:118px) — inset:0 at full size is what buried the eyebrow
+   and headline under it.
+   TWO transform authorities, two elements, on purpose: `--ms` (Sections.jsx,
+   one passive rAF-throttled scroll listener) scales the OUTER box; the float
+   keyframe animates the INNER box. Same fix as .hero-canvas-wrap earlier —
+   a CSS animation and a JS-driven transform on the SAME element fight, and
+   the animation silently wins every frame. `translate` is used for centring
+   because it is its own CSS property (distinct from `transform`), so setting
+   `transform: scale(var(--ms))` on the outer box never disturbs it. */
+@media (pointer: coarse) {
+  .hero-mobile-planet {
+    /* Stays absolute — it lives inside .hero-canvas-wrap (Sections.jsx:142),
+       not as a direct child of the .hero grid, so no grid-row placement can
+       reach it. Dropping it to 72% is what actually separates the two: the
+       copy now owns the top of the frame and the planet sits whole underneath,
+       instead of the headline landing across its middle.
+       72% + a 78vw diameter keeps its lower edge inside 118svh, so nothing is
+       cropped at the fold — that is why the two numbers are tied. */
+    position: absolute;
+    top: 72%;
+    left: 50%;
+    translate: -50% -50%;
+    width: min(78vw, 330px);
+    aspect-ratio: 1;
+    pointer-events: none;
+    --ms: 1;
+    transform: scale(var(--ms));
+    z-index: 0;
+  }
+}
+@media (pointer: fine) {
+  .hero-mobile-planet { display: none; }
+}
+.hero-mobile-planet-inner {
+  position: absolute; inset: 0;
+  background: url('/img/hero/planet-sm.webp') no-repeat center / contain;
+  filter: drop-shadow(0 0 40px rgba(255, 200, 230, 0.4));
+  opacity: 0.95;
+  animation: hero-planet-float 7s ease-in-out infinite;
+}
+@keyframes hero-planet-float {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); }
+  50%  { transform: translateY(-14px) rotate(1.6deg) scale(1.035); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-mobile-planet-inner { animation: none; }
+  .hero-mobile-planet { transform: none; }
+}
+.hero-vignette {
+  position: absolute; inset: 0;
+  background:
+    /* the copy lives on the left — a real photo behind it needs a scrim a
+       flat dark background never did, or the headline loses to the clouds.
+       This diagonal is pulled WAY back from both its original 0.86 and its
+       most recent 0.52: measured against the actual rendered photo (see the
+       radial note below), darkening this diagonal further does NOT help
+       .hero-sub/.hero-eyebrow — their text is DARK ink (--ink/--ink-dim), so
+       a darker scrim drags the backdrop's luminance down toward the text's
+       own, which *shrinks* the contrast ratio instead of growing it. 0.15 is
+       roughly the top of the range that still measures the strongest AA
+       margin; past here contrast falls in a straight line, down to ~3.1:1 at
+       the old 0.52.
+       The pale-pink 180deg wash that used to sit here (fading to an OPAQUE
+       var(--bg) band across the bottom) is gone outright — the client called
+       it out on both counts: a visible rectangular overlay at the hero's
+       foot, and a milky cast over the photo everywhere else.
+       In its place is a small radial — not a wash, a soft pool centred
+       behind the copy column only, sized to the eyebrow+headline+sub block
+       and nowhere near the photo's right two-thirds (the planet, the trees)
+       or its bottom edge, so it reads as light gathered behind the type
+       rather than a cast over the shot. Because the text is dark ink, this
+       one has to LIGHTEN the backdrop, not darken it — confirmed by sampling
+       the exact rendered pixels behind .hero-sub/.hero-eyebrow (opacity
+       toggled to 0 to expose the true backdrop, glyphs excluded) across the
+       full width of the background-pan cycle: worst case lands at 5.0:1
+       (.hero-sub) / 6.3:1 (.hero-eyebrow) on desktop, both clear of the
+       4.5:1 AA floor for body text. */
+    linear-gradient(100deg, rgba(9,4,16,0.15) 0%, rgba(9,4,16,0.086) 32%, rgba(9,4,16,0.017) 58%, rgba(9,4,16,0) 74%),
+    radial-gradient(55% 85% at 20% 60%, rgba(255,240,247,0.22) 0%, rgba(255,240,247,0) 72%);
+}
+/* Same diagonal shape as desktop, just lighter — a phone's viewport is
+   narrow enough that the 100deg gradient's dark zone (0-58%) spans nearly
+   the full width instead of just the left third, so it was reading as a
+   flat black screen rather than a scrim behind the copy.
+   The radial is repositioned/resized for the phone layout, where the copy is
+   the TOP row (not bottom-left) — centred over the eyebrow+headline+sub
+   stack, still nowhere near the planet row underneath. 0.22 (desktop's
+   figure) only cleared .hero-sub by 0.01:1 here — too close to the floor to
+   trust against render noise — so the phone radial runs at 0.3. Measured
+   worst case at that value: 5.0:1 (.hero-sub) / 5.3:1 (.hero-eyebrow) at
+   390px, both clear of AA with real margin. */
+@media (max-width: 767px) {
+  .hero-vignette {
+    background:
+      linear-gradient(100deg, rgba(9,4,16,0.15) 0%, rgba(9,4,16,0.102) 32%, rgba(9,4,16,0.024) 58%, rgba(9,4,16,0) 74%),
+      radial-gradient(85% 55% at 38% 55%, rgba(255,240,247,0.3) 0%, rgba(255,240,247,0) 72%);
+  }
+}
+.hero-type { max-width: 1100px; }
+.hero-eyebrow {
+  font-size: 0.86rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
+  /* .ink-dim measures ~1.36:1 here where the vignette is thinnest and the
+     clouds are brightest — .hero-vignette is shared with .hero-sub/.hero-h1
+     and was deliberately tuned down, so this text gets its own contrast
+     instead of raising that gradient. */
+  color: var(--ink); text-shadow: 0 1px 14px rgba(9,4,16,0.55); margin-bottom: 26px;
+}
+.hero-eyebrow .x { color: var(--magenta); }
+/* The hero is the one headline set in a PLANTED cut — LOOM Bloom Daisy.
+   Why Daisy and not Rose/Tulip/Ivy: all four were rendered at the real hero
+   sizes (112px desktop, 43.2px at 390 and again at 3x device pixels) over the
+   real cloud photograph. Daisy's motif is discrete — small starbursts and two
+   leaves, with clear white between them — so every letterform survives whole.
+   Rose's spirals close the counters of B/R/D; Tulip chews the cap line and
+   reads as torn paper; Ivy's angular leaves read as compression noise. Daisy
+   is also the only one that matches the world it sits on: the hero planet is
+   covered in cherry blossom, and daisies read as blossom.
+   Weight stays under 600 — Bloom Daisy ships one weight and Chrome would
+   synthesise a fake bold above that, thickening the stems until the flowers
+   fill in. */
+.hero-h1 {
+  font-family: var(--bloom-daisy); font-weight: 580;
+  font-size: clamp(2.7rem, 8.2vw, 7rem);
+  line-height: 1.005; letter-spacing: 0;
+}
+.hero-line { display: block; overflow: hidden; }
+.hero-line > span { display: block; }
+/* The accent line is a 1.5px OUTLINE with no fill, and an outline of a planted
+   cut is unreadable: every petal and leaf contributes its own contour, so
+   "ON THE EDGE" comes out as magenta confetti at every size tested. It gets
+   the plain cut instead. This costs nothing in rhythm — Daisy and Regular
+   share their metrics exactly, so the line still sets to the same width and
+   the same letter positions; it just reads as the stem before the flower. */
+.hero-line--accent {
+  font-family: var(--bloom);
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--magenta);
+}
+.hero-h1 .dot { color: var(--magenta); -webkit-text-stroke: 0; }
+.hero-sub { margin-top: 30px; max-width: 54ch; color: var(--ink-dim); font-size: clamp(1rem, 1.4vw, 1.18rem); }
+.hero-ctas { margin-top: 38px; display: flex; gap: 16px; flex-wrap: wrap; }
+.hero-scrollhint {
+  position: absolute; bottom: 26px; right: var(--pad);
+  display: flex; align-items: center; gap: 12px;
+  color: var(--ink-faint); font-size: 0.78rem; letter-spacing: 0.28em; text-transform: uppercase;
+}
+.hero-scrollhint-in { display: flex; align-items: center; gap: 12px; }
+.hero-scrollhint i {
+  width: 1px; height: 52px; display: block;
+  background: linear-gradient(180deg, var(--magenta), transparent);
+  animation: drip 1.8s var(--ease) infinite;
+  transform-origin: top;
+}
+@keyframes drip { 0% { transform: scaleY(0); } 45% { transform: scaleY(1); } 100% { transform: scaleY(0); transform-origin: bottom; } }
+
+/* ——— marquee ——— */
+/* The second thing after the hero, so it has to carry weight rather than act
+   as a rule between two sections. It gets big type, its own lit ground, and
+   a four-yarn hairline top and bottom — the same stripe .kicker::after and
+   .blk-rail already run, so the wall belongs to the system rather than
+   inventing a decoration. */
+.marquee {
+  position: relative;
+  /* The band hugs the caps. The type is NOT smaller — what went was the empty
+     air around it. Measured at 1440: the names paint 36px of ink and used to
+     float inside a 161px box; they now sit in a 60px one with 11px clear
+     above and 13px below, so the 3px yarn hairlines still read as edges
+     rather than as an underline. Shrink this further and they start to
+     crowd the caps. */
+  padding: clamp(5px, 0.75vh, 8px) 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 160% at 50% 50%, rgba(242, 28, 140, 0.10), rgba(251, 226, 238, 0) 62%),
+    rgba(14, 7, 24, 0.72);
+  isolation: isolate;
+}
+/* the yarn hairlines, top and bottom */
+.marquee::before,
+.marquee::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 3px;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px, var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px, var(--yarn-gold) 21px 28px
+  );
+  opacity: 0.5;
+}
+.marquee::before { top: 0; }
+.marquee::after { bottom: 0; }
+/* Edges fade instead of cutting. The names arrive out of the dark and leave
+   into it, which is what stops a moving row from reading as a clipped strip. */
+.marquee-track { mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
+/* gap: 0 is load-bearing. The track holds the client list TWICE and slides by
+   exactly -50% to loop, so the two halves have to be byte-identical in width.
+   With `gap: 44px` on the track they are not: 2N children carry 2N-1 gaps, so
+   half the track width is one copy PLUS half a gap, and every 46s the row
+   jumped 22px sideways. The spacing moves onto the item itself
+   (padding-inline-end below) — 2N items of identical width, and -50% lands
+   perfectly on the seam. */
+.marquee-track {
+  display: flex; gap: 0; width: max-content;
+  animation: marquee 64s linear infinite;
+  /* promote once, so the slide is a composited transform rather than a
+     per-frame layout of 40 inline-flex children */
+  will-change: transform;
+}
+/* ⚠ NOT MOUNTED, AND BROKEN IF IT EVER IS. This fill was drawn for the old
+   dark ground and still ramps through #fff, which is invisible on #ffe9f2.
+   Because `background-clip: text` computes `color: transparent`, no contrast
+   sweep will report it — re-pitch the stops into ink range (see --cyan-ink
+   in styles.css) BEFORE remounting anything that uses this. */
+/* The client wall reads WHITE, with a pink sheen travelling through it.
+   `color` stays declared as the real fallback: if background-clip: text is
+   unsupported the names are plain white, never invisible. */
+.marquee span {
+  font-family: var(--display); font-weight: 560;
+  /* Big. This is the client wall — Benetton, UNICEF, Vodafone, MAC — and at
+     1.05rem it was reading as a caption strip. Fluid so it stays large on a
+     wide monitor without overflowing a phone. */
+  font-size: clamp(1.5rem, 2.9vw, 2.9rem);
+  /* Deliberately below 1. This string is uppercase Clash Display and every
+     glyph in it — client names plus the * separators — sits between the
+     baseline and the cap line, so the descent half of a normal line box is
+     pure dead space. 0.86 collapses that box to roughly cap height and lets
+     the section shrink to the type instead of the type's metrics. The glyphs
+     overflow their own line box by ~6px a side and are caught by .marquee's
+     padding, not clipped.
+
+     The one thing that IS below the baseline is nothing — but one thing rises
+     ABOVE the cap line: the caron on ŠAH MAT BURGER, which reaches 0.86em
+     where plain caps stop at 0.67em. That matters more than it looks, because
+     the sheen below is `background-clip: text` and a background only paints
+     inside the element's own box: any ink poking out of the box is clipped to
+     a transparent fill and the glyph simply DISAPPEARS. At line-height 0.86
+     the box top sits 0.753em over the baseline, so the Š lost its caron and
+     read as a plain S. padding-block gives the box that 0.11em back — at the
+     top only, since with no descenders the bottom needs none, which is what
+     keeps the band short. */
+  line-height: 0.86;
+  padding-block: 0.16em 0;
+  letter-spacing: 0.10em; color: var(--ink);
+  text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 44px; white-space: nowrap;
+  /* the track's spacing lives here — see .marquee-track on why gap: 0 there */
+  padding-inline-end: 44px;
+
+  background-image: linear-gradient(
+    100deg,
+    #fff 0%, #fff 34%,
+    var(--magenta) 46%, #ff9ed0 52%, var(--magenta) 58%,
+    #fff 70%, #fff 100%
+  );
+  background-size: 260% 100%;
+  /* repeat-x, NOT no-repeat: the sheen travels a full tile width (-260%), and
+     an unrepeated gradient leaves the box entirely partway through that
+     journey — which paints nothing, and since the fill is transparent the
+     names simply vanish. Tiling keeps the box covered at every offset, and
+     the ramp starts and ends on #fff so the seam is invisible. */
+  background-repeat: repeat-x;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: wall-sheen 7s linear infinite;
+}
+/* The asterisk is a separator, not a name — it keeps its own solid magenta.
+   Without re-filling it explicitly it inherits the transparent fill above
+   and the separators vanish. */
+.marquee em {
+  color: var(--magenta); font-style: normal; font-size: 0.8rem;
+  background: none; -webkit-text-fill-color: var(--magenta);
+  animation: none;
+}
+@keyframes marquee { to { transform: translateX(-50%); } }
+@keyframes wall-sheen { to { background-position: -260% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; flex-wrap: wrap; width: auto; padding: 0 var(--pad); gap: 18px; }
+  /* Freeze the sheen mid-gradient rather than dropping to flat white — the
+     wall keeps its pink without anything moving. */
+  /* the wrapped layout stacks rows, so give the line box its descent back —
+     0.86 is only correct for the single-line moving band */
+  .marquee span { gap: 18px; animation: none; background-position: -130% 0; line-height: 1.15; }
+}
+
+/* ——— manifesto ——— */
+.manifesto { padding: clamp(80px, 12vh, 150px) var(--pad); overflow-x: clip; }
+.manifesto-grid {
+  display: grid; grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(30px, 6vw, 90px); align-items: center;
+}
+.manifesto-copy .h2 { margin-bottom: 30px; }
+.manifesto-copy .lede { margin-bottom: 18px; }
+/* No card any more — no border, no box-shadow, no background plate.
+   public/img/manifesto/laptop-mascot-cutout.webp is a colour-key cutout
+   (see scripts/clean-manifesto-alpha.mjs) with the backdrop removed down to
+   real alpha, so it floats straight on the section instead of carrying its
+   own competing rectangle. `.manifesto-media` needs overflow:visible (the
+   default) for the 1.5x scale below to spill past its grid column without
+   clipping — nothing here declares overflow:hidden, so it already does. */
+.manifesto-media { position: relative; }
+.manifesto-laptop {
+  display: block;
+  width: 150%;
+  max-width: none;
+  /* grows RIGHT only — the left edge stays put at the column's own start.
+     A negative margin-left here (the first version) pulled the extra size
+     back over the copy column and overlapped the body text at wider
+     viewports; growing right instead runs into the page's own outer
+     padding / the viewport edge, which .manifesto's overflow-x:clip now
+     catches instead of creating a horizontal scrollbar. */
+  margin-left: 0;
+}
+@media (max-width: 900px) {
+  /* same fix as desktop, same reason: a negative margin-left here cropped
+     the laptop's own left edge off the viewport instead of just growing
+     into the outer padding, which read as a broken/cut-off image rather
+     than an intentional bleed. Grows right only, same as above. */
+  .manifesto-laptop { width: 120%; margin-left: 0; }
+}
+.manifesto-caption {
+  margin-top: 14px; color: var(--ink-faint);
+  font-style: italic; font-size: 0.92rem; text-align: right;
+}
+
+/* ——— services ——— */
+.services { padding-bottom: clamp(60px, 9vh, 120px); }
+.svc-list { list-style: none; margin: 0 var(--pad); border-top: 1px solid var(--line); }
+.svc { border-bottom: 1px solid var(--line); position: relative; }
+.svc-row {
+  width: 100%; display: grid;
+  grid-template-columns: 70px 1fr auto;
+  align-items: center; gap: 18px;
+  padding: clamp(20px, 3.4vh, 34px) 6px;
+  text-align: left;
+}
+.svc-n { font-family: var(--display); color: var(--ink-faint); font-size: 1rem; transition: color 0.3s; }
+.svc-title {
+  font-family: var(--display); font-weight: 540;
+  font-size: clamp(1.5rem, 3.6vw, 2.6rem); letter-spacing: -0.01em;
+  transition: transform 0.5s var(--ease), color 0.3s;
+}
+.svc-arrow { font-size: 1.5rem; color: var(--ink-faint); transition: transform 0.5s var(--ease), color 0.3s; }
+.svc.is-open .svc-n { color: var(--magenta); }
+.svc.is-open .svc-title { transform: translateX(14px); color: var(--ink); }
+.svc.is-open .svc-arrow { transform: rotate(45deg); color: var(--magenta); }
+.svc-body {
+  display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.55s var(--ease);
+}
+.svc.is-open .svc-body { grid-template-rows: 1fr; }
+.svc-body > * { overflow: hidden; }
+/* The bottom padding has to live on the OPEN state only. .svc-body collapses via
+   grid-template-rows: 0fr, and with border-box a stretched grid item can never
+   shrink below its own padding — so a closed row floored at 26px and clipped at
+   the padding edge instead of at zero. On mobile the copy starts at the clip
+   top, so that strip showed one live line of the blurb, cut mid-sentence, under
+   every closed capability. On desktop the taller .svc-visual won the centred
+   track and the strip was merely empty, which is what left the rows sitting
+   13px above centre between their rules. */
+.svc-body-inner {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: clamp(20px, 4vw, 60px); align-items: center;
+  padding: 0 0 0 88px;
+}
+.svc.is-open .svc-body-inner { padding-bottom: 26px; }
+.svc-body p { color: var(--ink-dim); max-width: 62ch; }
+.svc-tags { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 0 0; }
+.svc-visual { width: clamp(150px, 18vw, 210px); flex-shrink: 0; }
+.svc-tags span {
+  font-size: 0.82rem; font-weight: 600; color: var(--ink-dim);
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px;
+}
+.svc::after {
+  content: ''; position: absolute; left: 0; bottom: -1px; height: 1px; width: 100%;
+  background: linear-gradient(90deg, var(--magenta), var(--violet));
+  transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--ease);
+}
+.svc.is-open::after { transform: scaleX(1); }
+
+@media (prefers-reduced-motion: reduce) { body::after, .hero-scrollhint i { animation: none; } }
+
+/* ——— work ——— */
+.case-card { position: relative; }
+.case-hit { display: block; width: 100%; text-align: left; }
+.case-media {
+  position: relative; overflow: hidden; border-radius: var(--radius);
+  border: 1px solid var(--line);
+  aspect-ratio: 4 / 3; background: var(--bg-3);
+}
+/* No `.case-media > img` rule any more: the card's thumbnail is no longer a
+   loose cover image, it is a MacBook + iPhone composite owned by
+   DeviceShowcase (`.case-devframe`, device-showcase.css). A blanket
+   `object-fit: cover` here would fight the frame apertures. */
+.overlay-gallery img { opacity: 0; transition: opacity 250ms ease-out; }
+.overlay-gallery img.is-loaded { opacity: 1; }
+.case-veil {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: linear-gradient(180deg, rgba(255, 233, 242, 0.15), rgba(255, 233, 242, 0.6));
+}
+.case-veil span {
+  font-family: var(--display); font-weight: 560; font-size: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px; padding: 12px 26px;
+  backdrop-filter: blur(6px); background: rgba(255, 233, 242, 0.35);
+}
+/* `.case-devshow` lived here when the MacBook was a small chip riding on top
+   of a cover photo. The device pair IS the thumbnail now, so the rule had
+   nothing left to match — see `.case-devframe` in device-showcase.css. */
+.case-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0; transition: opacity 0.45s var(--ease);
+  pointer-events: none;
+}
+.case-card:hover .case-video { opacity: 1; }
+.case-reel {
+  position: absolute; top: 14px; left: 14px; z-index: 2;
+  font-size: 0.66rem; font-weight: 800; letter-spacing: 0.18em;
+  color: var(--ink); background: rgba(242, 28, 140, 0.9);
+  border-radius: 999px; padding: 5px 11px;
+  box-shadow: 0 4px 18px rgba(242, 28, 140, 0.45);
+}
+.overlay-video video { width: 100%; display: block; background: #000; }
+.overlay-video figcaption {
+  padding: 10px 14px; color: var(--ink-faint); font-size: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+/* `flex-wrap: wrap` + `min-width: 0` on the title column keep the card
+   fluid. Unwrapped, this row's min-content (title column + 16px gap + the
+   flex-shrink:0 pills) was the widest thing in the card and set the floor
+   the work grid could not shrink under; the pills drop to their own line on
+   a small phone now instead of pushing the page sideways. */
+.case-meta {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
+  gap: 16px; padding: 16px 4px 0;
+}
+.case-meta > :first-child { min-width: 0; }
+.case-meta h3 { font-family: var(--display); font-weight: 560; font-size: 1.25rem; }
+.case-meta p { color: var(--ink-dim); font-size: 0.95rem; }
+.case-tags { display: flex; gap: 8px; flex-shrink: 0; }
+.case-tags span {
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-dim); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px;
+}
+.case-tags .case-country { color: var(--magenta); border-color: rgba(242, 28, 140, 0.4); }
+
+.work-all { padding: clamp(50px, 8vh, 100px) var(--pad) 0; }
+.work-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 34px; }
+.filter {
+  padding: 9px 20px; border-radius: 999px; font-weight: 620; font-size: 0.9rem;
+  border: 1px solid var(--line); color: var(--ink-dim);
+  /* mobilechrome.css already floored these at 44 — but only inside
+     `@media (max-width: 767px)`, so a 768px tablet (a touch device) got the
+     43px desktop pill. A touch target is not a width breakpoint; the floor
+     belongs on the base rule. */
+  min-height: 44px; min-width: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+}
+.filter:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+.filter:hover { border-color: var(--magenta); color: var(--ink); }
+.filter.is-active { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
+.work-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: clamp(18px, 2.4vw, 34px);
+}
+/* A grid item's default `min-width: auto` floors its track at the item's
+   min-content, which is how a card grid quietly widens the whole document on
+   a small phone. Measured here at 320px before this rule: track 280px,
+   resolved column 332.8px, document scrollWidth 353px. It has to sit on the
+   ITEM (Reveal wraps every card in its own motion div), not on the card. */
+.work-grid > * { min-width: 0; }
+
+/* ——— case overlay ——— */
+.overlay { position: fixed; inset: 0; z-index: 95; }
+.overlay-backdrop { position: absolute; inset: 0; background: rgba(255, 238, 245, 0.8); backdrop-filter: blur(8px); z-index: 0; }
+.overlay-panel {
+  position: absolute; inset: clamp(8px, 2vh, 28px);
+  background: var(--bg-2); border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 1.4);
+  overflow: hidden; z-index: 1;
+  display: flex; flex-direction: column;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
+}
+.overlay-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px clamp(16px, 3vw, 34px);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 233, 242, 0.7); backdrop-filter: blur(10px);
+}
+.overlay-brand { font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); font-weight: 700; }
+.overlay-nav { display: flex; gap: 6px; }
+.overlay-nav button {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--line); font-size: 1.05rem;
+  transition: all 0.3s; display: grid; place-items: center;
+}
+.overlay-nav button:hover { border-color: var(--magenta); color: var(--magenta); }
+.overlay-close:hover { background: var(--magenta); color: var(--ink) !important; border-color: var(--magenta) !important; }
+.overlay-scroll { overflow-y: auto; overscroll-behavior: contain; flex: 1; }
+.overlay-head { padding: clamp(34px, 6vh, 70px) clamp(20px, 5vw, 70px) 10px; max-width: 1000px; }
+.overlay-scope { color: var(--magenta); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 14px; }
+/* Client names. Bloom carries Č/Ć/Ž/Š/Đ and the whole Western accent set, so
+   the Bosnian and French names ("Maison de l’Avenir", the ’ included) all set
+   in one face. TWO of the sixteen do not, and it is punctuation, not letters:
+   `Auraa Desire × Savia` (U+00D7) and `ModulArt · Liberty Group` (U+00B7) are
+   outside Bloom's 67 glyphs and fall through to Clash for that one mark. The
+   `·` is invisible against Bloom's flat terminals; the `×` reads a shade light.
+   The real fix is two trivial glyphs in `type/glyphs.py` — a saltire and a dot
+   — not a different font-family here. */
+.overlay-head h2 { font-family: var(--bloom); font-weight: 560; font-size: clamp(2.2rem, 5.5vw, 4.2rem); line-height: 1.02; letter-spacing: 0; }
+.overlay-title { font-family: var(--display); font-weight: 460; font-size: clamp(1.2rem, 2.4vw, 1.7rem); color: var(--ink-dim); margin-top: 8px; font-style: normal; }
+.overlay-facts { display: flex; flex-wrap: wrap; gap: clamp(20px, 4vw, 50px); margin: 26px 0; }
+.overlay-facts span { display: flex; flex-direction: column; font-weight: 620; }
+.overlay-facts em { font-style: normal; font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 4px; font-weight: 700; }
+.overlay-copy { color: var(--ink-dim); font-size: 1.08rem; max-width: 62ch; }
+.overlay-gallery {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: clamp(14px, 2vw, 26px);
+  padding: clamp(26px, 5vh, 50px) clamp(20px, 5vw, 70px);
+}
+/* aspect-ratio, not intrinsic height: the img inside is height:100%, so before
+   it decodes the figure would collapse to nothing and the panel would have no
+   scrollable height at all. Reserving the box also means no reflow on decode. */
+.overlay-gallery figure {
+  border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line);
+  aspect-ratio: 4 / 3;
+}
+.overlay-gallery img { width: 100%; height: 100%; object-fit: cover; }
+.overlay-board { grid-column: 1 / -1; aspect-ratio: 16 / 9; }
+.overlay-foot { padding: 0 clamp(20px, 5vw, 70px) clamp(34px, 6vh, 60px); }
+
+/* ——— apps showcase ——— */
+.apps { padding-bottom: clamp(50px, 8vh, 100px); }
+.apps-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: clamp(18px, 2.6vw, 40px); padding: 0 var(--pad);
+}
+/* Stagger only. --g1/--g2 come from the data, set on .app-cell by React, so
+   the phone body and the ambient card glow below it read the same pair and
+   neither can drift if APPS is reordered. */
+.apps-grid > .app-cell:nth-child(1) { --idle-d: 0.0s; }
+.apps-grid > .app-cell:nth-child(2) { --idle-d: 1.1s; }
+.apps-grid > .app-cell:nth-child(3) { --idle-d: 2.2s; }
+.apps-grid > .app-cell:nth-child(4) { --idle-d: 3.3s; }
+.apps-grid > .app-cell:nth-child(5) { --idle-d: 4.4s; }
+.apps-grid > .app-cell:nth-child(6) { --idle-d: 5.5s; }
+.apps-grid > .app-cell:nth-child(7) { --idle-d: 6.6s; }
+/* An odd count leaves a lone card in the final row; left-aligned it reads as
+   a layout mistake rather than a seventh product. Centre it instead — only
+   when it really is alone (last child AND first of its row), so the rule
+   costs nothing at counts that fill evenly. Each breakpoint needs its own
+   column arithmetic; see the 2-column case at the max-width:1000px block. */
+@media (min-width: 1001px) {
+  .apps-grid > .app-cell:last-child:nth-child(3n + 1) { grid-column: 2; }
+}
+.app-card {
+  border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.2);
+  padding: clamp(18px, 2.2vw, 26px);
+  background: rgba(248, 216, 232, 0.45);
+  display: flex; flex-direction: column; gap: 16px;
+  transition: border-color 0.4s, transform 0.5s var(--ease), box-shadow 0.5s;
+  height: 100%;
+}
+.app-card:hover {
+  border-color: rgba(242, 28, 140, 0.45);
+  --lift: -6px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+/* the brand pair no longer paints the device — it paints the air it sits
+   in. Behind everything (.app-card's real children all carry z-index:1
+   already via the shared rule below), bled past the card's own edge and
+   blurred soft enough to read as bounce light, not a coloured rectangle. */
+.app-card::after {
+  content: '';
+  position: absolute; inset: -6% -10%; z-index: 0;
+  background:
+    radial-gradient(46% 40% at 26% 14%, color-mix(in srgb, var(--g1) 60%, transparent), transparent 70%),
+    radial-gradient(44% 38% at 80% 90%, color-mix(in srgb, var(--g2) 55%, transparent), transparent 72%);
+  filter: blur(26px);
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.6s var(--ease);
+}
+.app-card:hover::after { opacity: 0.7; }
+
+/* ——— the device is a real iPhone 14 Pro mockup, not a drawing ———
+   public/img/devices/iphone-frame.png is the stock vector render keyed to
+   alpha by scripts/make-device-frames.mjs: background gone, display punched
+   out, Dynamic Island left opaque so it still covers the live UI. Every
+   number below is measured from that PNG (900 x 1813, display at
+   5.71% / 2.39% / 88.52% / 95.19%) — change the art, re-run the script,
+   and copy the numbers it prints back into these four properties. */
+.app-phone {
+  position: relative; width: 100%; max-width: 260px;
+  aspect-ratio: 900 / 1813; align-self: center; box-sizing: border-box;
+  /* the silhouette is the PNG's own alpha, so the shadow has to be a
+     drop-shadow filter rather than a box-shadow around a rectangle */
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.55)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  transition: filter 0.5s var(--ease);
+  animation: phoneidle 8s var(--ease) infinite;
+  animation-delay: var(--idle-d, 0s);
+}
+.app-card:hover .app-phone {
+  filter: drop-shadow(0 30px 46px rgba(0, 0, 0, 0.62)) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+}
+.app-frame {
+  position: absolute; inset: 0; z-index: 5;
+  width: 100%; height: 100%; object-fit: fill;
+  pointer-events: none; user-select: none;
+}
+@keyframes phoneidle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-0.35deg); }
+}
+.app-screen {
+  position: absolute; z-index: 1; overflow: hidden;
+  left: 5.71%; top: 2.39%; width: 88.52%; height: 95.19%;
+  border-radius: 11.5% / 5.6%;   /* the mockup's own display corner */
+  background: #fff4f9;           /* nothing shows through the punched-out hole */
+}
+/* faint edge-light, top-left, static — one confident highlight rather than
+   the sheen sweep below doing all the work by itself */
+.app-screen::before {
+  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--g1) 40%, white) 0%, transparent 26%);
+  mix-blend-mode: overlay; opacity: 0.4;
+}
+.app-shot {
+  width: 100%; height: 100%; object-fit: cover; object-position: top;
+  transition: object-position 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.app-card:hover .app-shot { object-position: bottom; }
+.app-sheen {
+  position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background: linear-gradient(115deg, transparent 40%, color-mix(in srgb, var(--g1) 30%, white 70%) 50%, transparent 60%);
+  opacity: 0.7;
+  transform: translateX(-120%);
+}
+.app-card:hover .app-sheen { animation: sheen 0.9s var(--ease); }
+@keyframes sheen { to { transform: translateX(120%); } }
+@media (prefers-reduced-motion: reduce) {
+  .app-card:hover .app-shot { object-position: top; }
+  .app-card:hover .app-sheen { animation: none; }
+  .app-card::after { transition: none; }
+  .app-phone { animation: none; }
+}
+/* keyed to the display, not the whole device — the frame is a silhouette now,
+   so a full-bleed glow would halo out past the enclosure's edge */
+.app-glow {
+  position: absolute; z-index: 2;
+  left: 5.71%; top: 2.39%; width: 88.52%; height: 95.19%;
+  background: radial-gradient(80% 40% at 50% 0%, rgba(255, 255, 255, 0.3), transparent 70%);
+  mix-blend-mode: soft-light; pointer-events: none;
+}
+.app-meta { display: flex; flex-direction: column; gap: 8px; }
+.app-meta header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.app-meta h3 { font-family: var(--display); font-weight: 580; font-size: 1.35rem; }
+.app-meta header span {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--magenta);
+}
+.app-meta p { color: var(--ink-dim); font-size: 0.94rem; }
+
+/* ——— 3D lab ——— */
+.lab {
+  /* `overflow-x: clip`, NOT `overflow: hidden`. `hidden` makes this section a
+     scroll container, and a scroll container is the sticky positioning context
+     of everything inside it — which silently kills the deck's pin
+     (`.dk-pin` never sticks, so the whole carousel scrolls past as one dead
+     block). `clip` still contains the `.lab-bg` bleed without creating one.
+     products-stage.css repeats this rule; it is stated here too because this
+     is the declaration that used to be `hidden`. */
+  position: relative; overflow-x: clip;
+  margin-top: clamp(30px, 5vh, 60px);
+  background: linear-gradient(180deg, var(--bg) 0%, #fadeec 20%, #f7d5e6 55%, var(--bg) 100%);
+  border-block: 1px solid var(--line);
+  padding-bottom: clamp(60px, 9vh, 110px);
+}
+.lab-bg {
+  position: absolute; inset: -10%;
+  background:
+    radial-gradient(30% 40% at 85% 15%, rgba(123, 47, 190, 0.28), transparent 70%),
+    radial-gradient(26% 34% at 10% 80%, rgba(242, 28, 140, 0.16), transparent 70%),
+    radial-gradient(20% 26% at 60% 50%, rgba(89, 230, 255, 0.08), transparent 70%);
+  pointer-events: none;
+}
+.lab-grid {
+  position: relative; display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2.2vw, 30px); padding: 0 var(--pad);
+}
+.lab-card {
+  position: relative; overflow: hidden; height: 100%;
+  border: 1px solid rgba(242, 240, 247, 0.14); border-radius: var(--radius);
+  padding: clamp(22px, 2.8vw, 34px);
+  background: rgba(255, 233, 242, 0.55); backdrop-filter: blur(6px);
+  transition: border-color 0.4s, transform 0.5s var(--ease);
+}
+.lab-card:hover { border-color: rgba(89, 230, 255, 0.5); --lift: -6px; }
+.lab-preview-wrap {
+  position: relative; z-index: 1;
+  border-radius: calc(var(--radius) - 4px); overflow: hidden;
+  border: 1px solid var(--line); background: rgba(255, 238, 245, 0.6);
+  margin-bottom: 18px; aspect-ratio: 16 / 10;
+}
+.lab-preview-wrap > * { width: 100%; height: 100%; }
+/* real screenshot sits on top; hover x-rays through to the animated preview */
+.lab-shot {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: top left;
+  opacity: 1; transition: opacity 0.5s var(--ease);
+}
+.lab-preview-wrap .lab-real { width: auto; height: auto; }
+.lab-card:hover .lab-shot { opacity: 0; }
+.lab-real, .app-real {
+  position: absolute; top: 10px; right: 10px; z-index: 3;
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 0.16em;
+  color: var(--ink); background: rgba(46, 230, 168, 0.22);
+  border: 1px solid rgba(46, 230, 168, 0.55);
+  border-radius: 999px; padding: 4px 9px;
+  backdrop-filter: blur(4px);
+}
+/* bottom corner, not top: at 52px the pill landed straight on the captured
+   app's own header and clipped it (Glowbar's wordmark, Tawsiyat's banner mark).
+   Insets still clear the mockup's bezel (5.71% of the frame, ~15px at 260px). */
+.app-real { top: auto; bottom: 26px; right: 23px; }
+.lab-card:hover .lab-real { opacity: 0; transition: opacity 0.3s; }
+.app-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.app-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.74rem; font-weight: 700; color: var(--ink-dim);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px;
+}
+.app-badge svg { width: 14px; height: 14px; }
+.app-badge--store { color: var(--cyan); border-color: rgba(89, 230, 255, 0.4); }
+.app-badge--store.is-live { color: #2ee6a8; border-color: rgba(46, 230, 168, 0.5); }
+/* flex-start, not center: "2D→3D STUDIO" is the one title that wraps, and a
+   centred pill would float between its two lines instead of sitting on the
+   first one. The h3 then reserves both lines on every card (3.2em = 2 x the
+   inherited 1.6 line-height) so kickers and blurbs stay level across a row. */
+.lab-card header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.lab-card h3 {
+  font-family: var(--display); font-weight: 620; font-size: clamp(1.3rem, 2vw, 1.7rem);
+  letter-spacing: 0.04em; min-height: 3.2em;
+}
+.lab-tag {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--cyan); border: 1px solid rgba(89, 230, 255, 0.35);
+  border-radius: 999px; padding: 5px 12px; white-space: nowrap;
+}
+.lab-kicker { color: var(--magenta); font-weight: 640; font-size: 0.9rem; margin: 10px 0 8px; }
+.lab-blurb { color: var(--ink-dim); font-size: 0.95rem; }
+.lab-thread {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--ease);
+}
+.lab-card:hover .lab-thread { transform: scaleX(1); }
+
+/* ——— contact wizard ——— */
+.wizard {
+  max-width: 880px; margin: 46px auto 0; text-align: left;
+  border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.4);
+  background: linear-gradient(160deg, rgba(248, 216, 232, 0.85), rgba(255, 233, 242, 0.7));
+  overflow: hidden;
+}
+.wizard-steps {
+  position: relative; display: flex; gap: 4px;
+  padding: 14px clamp(14px, 3vw, 26px) 16px;
+  border-bottom: 1px solid var(--line);
+}
+.wstep {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.82rem; font-weight: 640; color: var(--ink-faint);
+  padding: 7px 12px; border-radius: 999px; transition: color 0.3s;
+  /* same story as .filter: the 44px floor lived only under `max-width: 767px`,
+     so the wizard's four step chips were 35px tall on a tablet and on a
+     laptop with a touchscreen. */
+  min-height: 44px; min-width: 44px; justify-content: center;
+}
+.wstep:focus-visible { outline: 2px solid var(--magenta); outline-offset: 2px; }
+.wstep i {
+  font-style: normal; width: 21px; height: 21px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 0.68rem;
+  border: 1px solid var(--line); transition: all 0.3s;
+}
+.wstep.is-now { color: var(--ink); }
+.wstep.is-now i { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
+.wstep.is-done { color: var(--ink-dim); cursor: pointer; }
+.wstep.is-done i { border-color: var(--magenta); color: var(--magenta); }
+.wstep:disabled { cursor: default; }
+.wizard-bar { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; }
+.wizard-bar i {
+  display: block; height: 100%; width: 100%;
+  background: linear-gradient(90deg, var(--magenta), var(--violet));
+  transform-origin: left; transform: scaleX(0.25);
+}
+.wizard-stage { padding: clamp(24px, 4vw, 44px); min-height: 380px; display: grid; }
+.wpane { grid-area: 1 / 1; }
+/* wizard question — 32px, display tier, strings are hardcoded English */
+.wq { font-family: var(--bloom); font-weight: 560; font-size: clamp(1.4rem, 2.6vw, 2rem); margin-bottom: 8px; }
+.wsub { color: var(--ink-dim); margin-bottom: 18px; font-size: 0.95rem; }
+.wintents { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 18px; }
+.wintent {
+  text-align: left; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px; display: flex; flex-direction: column; gap: 6px;
+  background: rgba(255, 233, 242, 0.5);
+  transition: border-color 0.3s, transform 0.4s var(--ease), background 0.3s;
+}
+.wintent:hover { border-color: var(--magenta); --lift: -4px; background: rgba(242, 28, 140, 0.07); }
+.wintent.is-picked { border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); }
+.wintent-icon { font-size: 1.5rem; }
+.wintent-title { font-family: var(--display); font-weight: 580; font-size: 1.15rem; }
+.wintent-sub { color: var(--ink-dim); font-size: 0.88rem; }
+.wchips { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 26px; }
+.wchip {
+  padding: 11px 20px; border-radius: 999px; font-weight: 620; font-size: 0.92rem;
+  border: 1px solid var(--line); color: var(--ink-dim); transition: all 0.25s;
+}
+.wchip:hover { border-color: var(--magenta); color: var(--ink); }
+.wchip.is-on { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
+.wform { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0 24px; }
+.wform label { display: flex; flex-direction: column; gap: 7px; }
+.wform label span { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
+.wform input, .wform select, .wform textarea {
+  font: inherit; color: var(--ink);
+  background: rgba(255, 233, 242, 0.7);
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 13px 15px; outline: none; transition: border-color 0.3s;
+  appearance: none; -webkit-appearance: none;
+}
+.wform select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a89fc0' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 15px center;
+}
+.wform input:focus, .wform select:focus, .wform textarea:focus { border-color: var(--magenta); }
+.wform input:focus-visible, .wform select:focus-visible, .wform textarea:focus-visible {
+  outline: 3px solid var(--cyan); outline-offset: 2px;
+}
+.wform input[aria-invalid='true'] { border-color: #ff5d5d; }
+.wform textarea { resize: vertical; min-height: 96px; }
+.wfull { grid-column: 1 / -1; }
+.wnav { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+.wnav--end { justify-content: flex-start; margin-top: 18px; }
+.wback { color: var(--ink-dim); font-weight: 640; transition: color 0.3s; padding: 10px 0; }
+.wback:hover { color: var(--ink); }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+.wbrief {
+  font: 0.92rem/1.7 var(--body); color: var(--ink);
+  white-space: pre-wrap; word-break: break-word;
+  border: 1px dashed rgba(242, 28, 140, 0.4); border-radius: var(--radius);
+  background: rgba(242, 28, 140, 0.05);
+  padding: 20px; margin: 16px 0 24px;
+}
+.wsend { display: flex; gap: 14px; flex-wrap: wrap; }
+.contact-direct {
+  margin-top: 34px; display: flex; gap: 12px; align-items: center; justify-content: center;
+  flex-wrap: wrap; color: var(--ink-faint); font-size: 0.92rem;
+}
+/* the phone number and the address are real `tel:`/`mailto:` links, and they
+   measured 23.5px tall — the shortest targets in the section. This is a
+   centred wrap row with a 12px gap, so an inline-flex box with its own
+   min-height grows the target and leaves the baseline where it was. */
+.contact-direct a {
+  color: var(--ink-dim); font-weight: 640; transition: color 0.3s;
+  display: inline-flex; align-items: center;
+  min-height: 44px; min-width: 44px; justify-content: center;
+}
+.contact-direct a:hover { color: var(--magenta); }
+.contact-direct a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
+
+/* ——— press feedback (feel layer) ——— */
+.btn:active { transform: scale(0.97); transition: transform 120ms ease-out; }
+.filter:active, .wchip:active, .wintent:active, .wback:active,
+.overlay-nav button:active, .wmodal-close:active, .burger:active {
+  transform: scale(0.96); transition: transform 120ms ease-out;
+}
+.case-hit:active { transform: scale(0.992); transition: transform 120ms ease-out; }
+.case-hit { transition: transform 300ms var(--ease); }
+
+/* ——— interaction layer: spotlight, tilt, thread trail ——— */
+.thread-trail {
+  position: fixed; inset: 0; z-index: 250;
+  pointer-events: none; mix-blend-mode: screen;
+}
+/* registered so --rx/--ry can carry their own transition below — left inside the
+   shorthand "transform" transition, tilt was forced to share the lift's slow
+   ease and visibly lagged behind the cursor */
+@property --rx { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --ry { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --lift { syntax: '<length>'; inherits: false; initial-value: 0px; }
+.case-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent {
+  --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg; --lift: 0px;
+  position: relative;
+  /* hover lift travels via --lift so it composes with the pointer tilt instead
+     of replacing the whole transform and wiping the perspective */
+  transform: perspective(900px) translate3d(0, var(--lift), 0) rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  transition: --rx 140ms ease-out, --ry 140ms ease-out, --lift 0.5s var(--ease), border-color 0.4s, box-shadow 0.5s;
+}
+.studio-card::before, .lab-card::before,
+.app-card::before, .sol-card::before, .wintent::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(340px circle at var(--mx) var(--my), rgba(242, 28, 140, 0.14), transparent 62%);
+  opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 0;
+}
+.is-lit::before { opacity: 1; }
+.studio-card > *, .lab-card > *, .app-card > *, .sol-card > * { position: relative; z-index: 1; }
+.nav-links a.is-current span { color: var(--ink); }
+.nav-links a::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1.5px;
+  background: var(--magenta); border-radius: 2px;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 180ms ease-out;
+}
+.nav-links a.is-current::after { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) {
+  .case-card, .studio-card, .lab-card, .app-card, .sol-card, .wintent { transform: none; }
+}
+
+/* ——— site-wide contact modal ——— */
+.wmodal { position: fixed; inset: 0; z-index: 96; display: grid; place-items: center; padding: clamp(10px, 3vh, 40px); }
+.wmodal-backdrop { position: absolute; inset: 0; background: rgba(255, 238, 245, 0.82); backdrop-filter: blur(10px); }
+.wmodal-panel {
+  position: relative; z-index: 1;
+  width: min(940px, 100%); max-height: 92vh;
+  display: flex; flex-direction: column;
+  background: var(--bg-2); border: 1px solid rgba(242, 28, 140, 0.28);
+  border-radius: calc(var(--radius) * 1.5); overflow: hidden;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7), 0 0 80px rgba(242, 28, 140, 0.1);
+}
+.wmodal-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px clamp(16px, 3vw, 28px); border-bottom: 1px solid var(--line);
+}
+.wmodal-brand { font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); font-weight: 700; }
+.wmodal-close {
+  width: 44px; height: 44px; min-width: 44px; min-height: 44px;
+  border-radius: 50%; border: 1px solid var(--line);
+  display: grid; place-items: center; transition: all 0.3s;
+}
+.wmodal-close:hover { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
+.wmodal-scroll { overflow-y: auto; overscroll-behavior: contain; padding: clamp(14px, 2.5vw, 26px); }
+.wmodal-scroll .wizard { margin-top: 0; border: 0; background: none; }
+.wmodal-scroll .wizard-stage { min-height: 320px; padding: clamp(18px, 3vw, 30px) 4px; }
+.wmodal-direct { text-align: center; color: var(--ink-faint); font-size: 0.9rem; padding: 4px 0 8px; }
+/* "Rather talk now? WhatsApp +962…" — the escape hatch out of the wizard, and
+   at 191 x 18 the smallest target inside the modal. It sits mid-sentence, so
+   the box has to stay inline: an invisible centred 44px band, not padding. */
+.wmodal-direct a { color: var(--ink-dim); font-weight: 640; position: relative; }
+.wmodal-direct a::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%);
+}
+.wmodal-direct a:hover { color: var(--magenta); }
+.wmodal-direct a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
+.wizard-seed {
+  padding: 12px clamp(14px, 3vw, 26px); border-bottom: 1px solid var(--line);
+  color: var(--ink-dim); font-size: 0.9rem;
+}
+.wizard-seed strong { color: var(--magenta); font-weight: 700; }
+
+/* ——— process ———
+   Redesigned 10 Aug 2026 and moved out to components/process.css. The old
+   4-up card grid (.process-grid/.process-card/.process-n/.process-thread) is
+   gone from the DOM, so its rules are gone from here. */
+
+/* ——— stats ——— */
+.stats {
+  position: relative; overflow: hidden; isolation: isolate;
+  padding: clamp(70px, 11vh, 130px) var(--pad);
+  border-block: 1px solid var(--line);
+  margin-top: clamp(60px, 9vh, 110px);
+  background: var(--bg-2);
+}
+.stats-bg { position: absolute; inset: -14% 0; z-index: 0; }
+.stats-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
+.stats::after {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(180deg, var(--bg) 0%, rgba(255,233,242,0.55) 40%, rgba(255,233,242,0.55) 60%, var(--bg) 100%);
+}
+.stats-grid {
+  position: relative; z-index: 2;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+}
+.stat { text-align: center; }
+/* ⚠ NOT MOUNTED, AND BROKEN IF IT EVER IS. This fill was drawn for the old
+   dark ground and still ramps through #fff, which is invisible on #ffe9f2.
+   Because `background-clip: text` computes `color: transparent`, no contrast
+   sweep will report it — re-pitch the stops into ink range (see --cyan-ink
+   in styles.css) BEFORE remounting anything that uses this. */
+.stat-value {
+  font-family: var(--display); font-weight: 580;
+  font-size: clamp(2.6rem, 6.5vw, 5rem); line-height: 1;
+  color: transparent;
+  background: linear-gradient(120deg, #fff 30%, var(--magenta));
+  -webkit-background-clip: text; background-clip: text;
+}
+.stat-label { color: var(--ink-dim); margin-top: 10px; font-size: 0.95rem; }
+
+/* ——— studios ——— */
+.studios-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: clamp(18px, 2.6vw, 40px); padding: 0 var(--pad);
+}
+.studio-card {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: clamp(26px, 4vw, 44px);
+  background: linear-gradient(150deg, rgba(248, 216, 232, 0.8), rgba(251, 226, 238, 0.4));
+  transition: border-color 0.4s, transform 0.5s var(--ease);
+}
+.studio-card:hover { border-color: rgba(242, 28, 140, 0.45); --lift: -6px; }
+.studio-card header { display: flex; justify-content: space-between; align-items: baseline; }
+.studio-card h3 { font-family: var(--display); font-weight: 580; font-size: clamp(1.8rem, 3.4vw, 2.7rem); }
+.studio-time { font-variant-numeric: tabular-nums; color: var(--magenta); font-weight: 700; letter-spacing: 0.08em; }
+.studio-country { color: var(--ink-dim); margin-top: 4px; }
+.studio-role { margin-top: 18px; font-weight: 560; }
+.studio-card footer {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+  margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line);
+  color: var(--ink-dim); font-size: 0.95rem;
+}
+/* "WhatsApp us →" / "Email the studio →" are the only controls on these two
+   cards and they measured 24.3px tall. The footer is a `space-between` flex
+   row with a 10px gap and the phone number opposite, so vertical padding here
+   grows the target without moving the label or the row. */
+.studio-card footer a {
+  color: var(--ink); font-weight: 640; transition: color 0.3s;
+  display: inline-flex; align-items: center;
+  min-height: 44px; min-width: 44px;
+  margin-block: -10px;
+}
+.studio-card footer a:hover { color: var(--magenta); }
+.studio-card footer a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
+
+/* ——— contact ——— */
+.contact {
+  text-align: center;
+  padding: clamp(90px, 14vh, 180px) var(--pad);
+}
+.contact-h2 {
+  font-family: var(--bloom); font-weight: 580;
+  font-size: clamp(2.8rem, 9vw, 7.5rem); line-height: 1.02; letter-spacing: 0;
+}
+.contact-accent { color: transparent; -webkit-text-stroke: 1.5px var(--magenta); }
+/* "BOUNDARIES?" is one unbreakable 11-character word, and Bloom's caps make it
+   303px wide at 320 — 3px past the viewport, where Clash's lowercase measured
+   288. `min()` only bites below 367px; from 367 up it resolves to the same
+   2.8rem the clamp already gave, so desktop and every normal phone are
+   untouched. Measured: 320 → 39.0px, accent right edge 20..285. */
+@media (max-width: 420px) { .contact-h2 { font-size: min(12.2vw, 2.8rem); } }
+.contact-sub { color: var(--ink-dim); margin-top: 26px; font-size: clamp(1rem, 1.5vw, 1.2rem); }
+.contact-ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 40px; }
+.contact-ig { margin-top: 30px; }
+.contact-ig a { color: var(--ink-dim); font-weight: 620; border-bottom: 1px solid var(--line); padding-bottom: 3px; transition: color 0.3s, border-color 0.3s; }
+.contact-ig a:hover { color: var(--magenta); border-color: var(--magenta); }
+
+/* ——— footer ——— */
+.footer { border-top: 1px solid var(--line); padding: clamp(50px, 8vh, 90px) var(--pad) 30px; position: relative; overflow: hidden; }
+/* DEAD RULE as of this pass — Chrome.jsx:233 replaced the type watermark with
+   `.footer-word-img` (the woven logo), so nothing matches this any more. Moved
+   to Bloom anyway so it is not a Clash landmine if the type version comes back;
+   plain Bloom outlines cleanly at 1px, unlike the planted cuts. */
+.footer-word {
+  position: absolute; left: 50%; bottom: -0.24em; transform: translateX(-50%);
+  font-family: var(--bloom); font-weight: 560;
+  font-size: clamp(8rem, 26vw, 24rem); line-height: 1;
+  color: transparent; -webkit-text-stroke: 1px rgba(242, 240, 247, 0.07);
+  pointer-events: none; user-select: none; white-space: nowrap;
+}
+.footer-grid {
+  display: grid; grid-template-columns: 1.2fr 0.8fr 1fr;
+  gap: clamp(26px, 5vw, 70px); position: relative; z-index: 1;
+}
+.footer-mark { width: 34px; height: 34px; margin-bottom: 16px; }
+.footer-grid p { color: var(--ink-dim); }
+.footer-grid nav { display: flex; flex-direction: column; gap: 10px; }
+.footer-grid nav a, .footer-contact a { color: var(--ink-dim); transition: color 0.3s; width: fit-content; }
+.footer-grid nav a:hover, .footer-contact a:hover { color: var(--magenta); }
+.footer-contact { display: flex; flex-direction: column; gap: 10px; }
+.footer-base {
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  margin-top: clamp(40px, 7vh, 80px); padding-top: 20px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-faint); font-size: 0.85rem;
+  position: relative; z-index: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   THE BLOOM FOOTER — the tree's new home
+
+   The tree came down here from `#offer`, and it brought its ground with it.
+   Two consequences, both deliberate:
+
+   1 · THE FOOTER IS THE ONLY LIGHT SURFACE ON THE SITE. Every ink value below
+       is measured against the pale sky, not inherited: `--ink`/`--ink-dim` are
+       white-on-dark tokens and would vanish here. They are re-pointed once, on
+       `.footer--bloom`, so a future child that reaches for `var(--ink-dim)`
+       gets a value that works on paper instead of a ghost.
+   2 · THERE IS NO TOP BORDER. A 1px rule between a dark section and a pale one
+       is the hardest line on the page. The sky bleeds `--seam` past the
+       footer's own top edge under an eased mask instead, exactly as `.offer`
+       did, so the dark contact section above dissolves into the pink and the
+       eye has no endpoint to find.
+
+   Nothing here animates anything but transform and opacity.
+   ═══════════════════════════════════════════════════════════ */
+.footer--bloom {
+  /* a LONGER seam than before. The join used to happen inside ~150px, which is
+     short enough that the eye finds the place where the dark stops even when
+     no single pixel is a hard edge. Over ~260px there is no place to find. */
+  --seam: clamp(110px, 17vh, 260px);
+  /* ink for a light ground. #33243d is the house ink on paper (see .cnt-strip
+     and the old wish tags) — a brand hue is not used for body copy because the
+     sky is speckled and saturated hues drop under 4.5:1 in the flecks. */
+  --ink: #33243d;
+  --ink-dim: #4a3652;
+  --ink-faint: #6b5273;
+  --line: rgba(96, 40, 76, 0.22);
+  border-top: 0;
+  /* clip X so the oversized sky and halo cannot open a horizontal scrollbar;
+     Y must stay visible or the top bleed is cut off at the very edge it exists
+     to erase. ORDER IS `overflow: <x> <y>` and is easy to write backwards. */
+  overflow: clip visible;
+  isolation: isolate;
+  padding: calc(var(--seam) + clamp(30px, 4.5vh, 60px)) var(--pad) 26px;
+  /* No min-height. The footer is content-sized now that the tree is a flow item
+     at the top of it — the old clamp existed only to reserve room for an
+     absolutely-positioned tree, and reserving space for something that is in
+     the flow is how you get an unexplained band of empty pink. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* the sky — a masked <img>, not a background-image, so it carries its own
+   intrinsic size and the box is settled before the bytes land. The mask lets
+   the dark page keep showing THROUGH at both ends, so there is no second
+   colour to keep in sync with whatever section sits above. */
+.footer--bloom .foot-sky {
+  position: absolute;
+  inset: calc(-1 * var(--seam)) 0 0;
+  z-index: 0;
+  width: 100%;
+  height: calc(100% + var(--seam));
+  object-fit: cover;
+  object-position: center 62%;
+  pointer-events: none;
+  user-select: none;
+  /* A SAMPLED SMOOTHSTEP, not a two-stop ramp and not the nine-stop eyeball
+     curve this used to be. Both of those are C1-discontinuous where they meet
+     0 and 1, and the kink reads as a mach band at exactly the height the fade
+     is supposed to be invisible. These twenty stops are 3t²-2t³ evaluated on an
+     even grid over 0–72%, so the derivative goes to zero at both ends and there
+     is no band to find. Only the TOP fades — the bottom of the page is the end
+     of the document, there is nothing below to dissolve into. */
+  -webkit-mask-image: linear-gradient(180deg,
+    rgba(0, 0, 0, 0) 0%,      rgba(0, 0, 0, 0.006) 4%,  rgba(0, 0, 0, 0.024) 8%,
+    rgba(0, 0, 0, 0.055) 12%, rgba(0, 0, 0, 0.098) 16%, rgba(0, 0, 0, 0.155) 20%,
+    rgba(0, 0, 0, 0.226) 24%, rgba(0, 0, 0, 0.309) 28%, rgba(0, 0, 0, 0.402) 32%,
+    rgba(0, 0, 0, 0.5) 36%,   rgba(0, 0, 0, 0.598) 40%, rgba(0, 0, 0, 0.691) 44%,
+    rgba(0, 0, 0, 0.774) 48%, rgba(0, 0, 0, 0.845) 52%, rgba(0, 0, 0, 0.902) 56%,
+    rgba(0, 0, 0, 0.945) 60%, rgba(0, 0, 0, 0.976) 64%, rgba(0, 0, 0, 0.994) 68%,
+    rgba(0, 0, 0, 1) 72%,     rgba(0, 0, 0, 1) 100%);
+  mask-image: linear-gradient(180deg,
+    rgba(0, 0, 0, 0) 0%,      rgba(0, 0, 0, 0.006) 4%,  rgba(0, 0, 0, 0.024) 8%,
+    rgba(0, 0, 0, 0.055) 12%, rgba(0, 0, 0, 0.098) 16%, rgba(0, 0, 0, 0.155) 20%,
+    rgba(0, 0, 0, 0.226) 24%, rgba(0, 0, 0, 0.309) 28%, rgba(0, 0, 0, 0.402) 32%,
+    rgba(0, 0, 0, 0.5) 36%,   rgba(0, 0, 0, 0.598) 40%, rgba(0, 0, 0, 0.691) 44%,
+    rgba(0, 0, 0, 0.774) 48%, rgba(0, 0, 0, 0.845) 52%, rgba(0, 0, 0, 0.902) 56%,
+    rgba(0, 0, 0, 0.945) 60%, rgba(0, 0, 0, 0.976) 64%, rgba(0, 0, 0, 0.994) 68%,
+    rgba(0, 0, 0, 1) 72%,     rgba(0, 0, 0, 1) 100%);
+}
+/* light rising out of the pink into the dark above, so the two zones interlock
+   rather than meet. Same move `.offer` used, and the same specificity trick:
+   `main > section::before` (fx.css) does not reach a <footer>, but the dark
+   contact section's own bottom edge sits right here, so the bloom is what
+   carries the join. */
+.footer--bloom::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  /* twice the seam: the glow has to START above the point where the sky has
+     already faded out, or the top of the glow is itself an edge. */
+  top: calc(-2 * var(--seam));
+  z-index: 1;
+  width: min(2100px, 148%);
+  height: clamp(360px, 46vh, 720px);
+  transform: translateX(-50%);
+  pointer-events: none;
+  /* THREE lobes, not one. A single radial is a perfect ellipse and the eye
+     finds an ellipse; overlapping a tall narrow core, a wide low haze and a
+     warm off-centre bloom gives the light an irregular silhouette that reads
+     as air. All three land on transparent, never on a colour, so nothing has
+     to be kept in sync with whatever section sits above. */
+  background:
+    radial-gradient(42% 68% at 50% 100%,
+      rgba(255, 214, 233, 0.42) 0%,
+      rgba(247, 176, 202, 0.24) 38%,
+      rgba(255, 233, 242, 0) 72%),
+    radial-gradient(78% 52% at 50% 100%,
+      rgba(232, 150, 196, 0.26) 0%,
+      rgba(180, 104, 168, 0.13) 46%,
+      rgba(255, 233, 242, 0) 78%),
+    radial-gradient(34% 40% at 63% 96%,
+      rgba(255, 226, 214, 0.2) 0%,
+      rgba(255, 233, 242, 0) 70%);
+}
+/* the counter-light: a thin warm lip ALONG the join itself, drawn on top of
+   the sky's own fade. Without it the dissolve is clean but flat — a horizon
+   with no sun behind it. 1px of nothing, 40px of light, gone. */
+.footer--bloom::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(-1 * var(--seam));
+  height: clamp(180px, 24vh, 340px);
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(255, 205, 228, 0) 0%,
+    rgba(255, 205, 228, 0.05) 34%,
+    rgba(255, 214, 233, 0.11) 62%,
+    rgba(255, 214, 233, 0) 100%);
+}
+
+/* ── the tree ────────────────────────────────────────────────
+   Anchored to the BOTTOM of the footer and centred, so it grows up out of the
+   hem behind the copy. It is the last object on the page; the copy is arranged
+   around it rather than on top of it (see the grid's empty middle column). */
+.footer--bloom .foot-bloom {
+  /* THE MIDDLE GRID CELL. Not a flow item above the copy, not an absolutely
+     positioned backdrop behind it — a real column, with the two text columns
+     beside it. That is what keeps a link off the canopy without a scrim: the
+     grid does it, so nothing has to be nudged, faded or z-indexed to stay
+     readable. `align-self: center` rather than `end`: the two side columns are
+     different heights, and hanging the tree off either of their baselines
+     makes the taller one look like a mistake. */
+  grid-column: 2;
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 620px;
+  display: grid;
+  place-items: end center;
+  pointer-events: none;
+}
+.footer--bloom .foot-tree {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  /* drop-shadow on a LEAF element: the tree is a cutout, so the only shadow it
+     can take is one that follows its own alpha. Warm plum, not the near-black
+     the dark page used — on pink that shadow reads as dirt. */
+  filter: drop-shadow(0 26px 38px rgba(122, 58, 96, 0.32));
+  animation: foot-float 11s ease-in-out infinite;
+  will-change: transform;
+}
+/* light in the air behind the canopy, not a plate under it */
+.footer--bloom .foot-halo {
+  position: absolute;
+  z-index: 0;
+  bottom: 6%;
+  width: min(860px, 128%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 46%,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 240, 247, 0.26) 38%,
+    rgba(255, 240, 247, 0) 70%);
+  animation: foot-breathe 9s ease-in-out infinite;
+}
+/* ── the drift ───────────────────────────────────────────────
+   18 petals across the WHOLE footer, not 7 inside the tree's box. Every petal
+   reads its lane, size, sideways drift, spin, duration and delay off custom
+   properties set once in JSX, so the animation itself is a single keyframe and
+   nothing here is per-index CSS.
+
+   `overflow: clip` on the layer, deliberately: `.footer--bloom` is
+   `clip visible` on Y so its top bleed survives, which means a petal falling
+   past the hem would be free to lengthen the document at the exact bottom of
+   the page. The layer is also `z-index: 0` — BEHIND the copy (z 2) and behind
+   the tree (z 1) — because petals crossing over live text is the thing that
+   makes a nice effect read as debris. They fall between the sky and the type. */
+.footer--bloom .foot-petals {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+.footer--bloom .foot-petals span {
+  position: absolute;
+  top: -6%;
+  left: var(--x);
+  width: calc(clamp(7px, 0.85vw, 12px) * var(--s));
+  height: calc(clamp(9px, 1.05vw, 15px) * var(--s));
+  border-radius: 60% 60% 60% 60% / 80% 80% 40% 40%;
+  background: linear-gradient(160deg, #ffd0e8, #f76fb4);
+  opacity: 0;
+  animation: foot-fall var(--dur) linear infinite;
+  animation-delay: var(--delay);
+  will-change: transform, opacity;
+}
+/* every third one is a leaf instead: a longer, flatter blade in the tree's own
+   greens, so the fall is not eighteen copies of one shape */
+.footer--bloom .foot-petals span.is-leaf {
+  width: calc(clamp(6px, 0.72vw, 10px) * var(--s));
+  height: calc(clamp(12px, 1.5vw, 20px) * var(--s));
+  border-radius: 76% 24% 76% 24% / 50% 50% 50% 50%;
+  background: linear-gradient(150deg, #cfe6b4, #7fae74);
+}
+@keyframes foot-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(0, -12px, 0) rotate(-0.8deg); }
+}
+@keyframes foot-breathe {
+  0%, 100% { transform: scale(1);    opacity: 0.85; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+/* one keyframe for all 18 — the variation is entirely in the custom properties.
+   112vh, not a pixel constant: the footer is ~1.1 screens tall on desktop and
+   two and a half on a phone, and a 300px fall stopped a third of the way down
+   whichever one you were looking at. */
+@keyframes foot-fall {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg);                       opacity: 0; }
+  10%  { opacity: var(--o); }
+  82%  { opacity: calc(var(--o) * 0.8); }
+  100% { transform: translate3d(var(--dx), 112vh, 0) rotate(var(--rot));     opacity: 0; }
+}
+
+/* ── the copy, AROUND the tree ───────────────────────────────
+   THREE TRACKS: words · blossom · contact. The middle track is sized in its
+   own right (not `1fr`) so the tree keeps its scale while the two side columns
+   take whatever is left — a `1fr 1fr 1fr` split shrinks the tree on a laptop
+   to pay for two columns of short links, which is backwards. */
+.footer--bloom .footer-grid {
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 30vw, 620px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(20px, 2.6vw, 52px);
+  max-width: 1660px;
+  margin-inline: auto;
+  width: 100%;
+  z-index: 2;
+}
+/* the two side stacks. `justify-content: center` on the vertical axis, so each
+   side is centred against the trunk rather than hanging off the top of it. */
+.footer--bloom .foot-side {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(26px, 4vh, 44px);
+  min-width: 0;
+}
+.footer--bloom .foot-side--l { grid-column: 1; }
+.footer--bloom .foot-side--r { grid-column: 3; align-items: stretch; }
+/* the two link lists sit side by side INSIDE the left column: a single ten-item
+   run down one side of the tree is taller than the tree. */
+.footer--bloom .foot-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 34px);
+}
+.footer--bloom .foot-brand { max-width: 34ch; }
+.footer--bloom .footer-mark { color: #33243d; width: 38px; height: 38px; }
+.footer--bloom .footer-grid p { color: var(--ink-dim); }
+.footer--bloom .foot-tag { line-height: 1.55; }
+.footer--bloom .foot-cities {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 14px;
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+
+/* the icon set. One size token so a 16px mail and a 16px pin optically match,
+   and `flex: none` because an icon inside a flex row with a long label is
+   otherwise the first thing the browser squashes. */
+.footer--bloom .foot-i { width: 17px; height: 17px; flex: none; }
+
+/* ── the two link columns ──
+   Headed lists, not a loose stack. The heading is the smallest type in the
+   footer and the only tracked-out uppercase in it, so it reads as a label
+   rather than as a link that does not work. */
+.footer--bloom .foot-col-t {
+  margin: 0 0 14px;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a5f86;
+}
+.footer--bloom .foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.footer--bloom .foot-col a {
+  display: inline-flex; align-items: center; gap: 9px;
+  /* was `padding: 5px 0` -> a 34px-tall row, and the two-up sitemap on a phone
+     put ten of those inside one thumb's reach. The padding does the growing
+     rather than a min-height so the thread pseudo stays vertically centred on
+     the label; `min-width` catches the three-letter labels (MCP, 43.1px). */
+  padding: 10px 0;
+  min-height: 44px; min-width: 44px;
+  color: var(--ink-dim);
+  font-weight: 640;
+  font-size: 0.94rem;
+  transition: color 0.3s var(--ease, ease), transform 0.3s var(--ease, ease);
+}
+/* the thread: a 0→10px rule that grows out of the left edge on hover, drawn
+   with a pseudo-element rather than a border so it can animate without moving
+   the label's own box (a width transition on an inline-flex child would). */
+.footer--bloom .foot-col a::before {
+  content: '';
+  width: 0; height: 2px; border-radius: 2px;
+  background: #d21f7d;
+  transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.footer--bloom .foot-col a:hover { color: #b3126a; }
+.footer--bloom .foot-col a:hover::before { width: 14px; }
+
+/* ── the contact card ──
+   The only boxed object in the footer, because the phone number is the only
+   thing here anyone came for. Translucent white over the sky, not an opaque
+   plate: the blossom has to keep showing through or the card reads as a hole
+   punched in the photograph. No backdrop-filter — this page already pays for
+   two WebGL layers and a rasterised blur at the bottom of a long scroll is a
+   permanent cost for a decoration. */
+.footer--bloom .footer-contact {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: clamp(18px, 1.6vw, 24px);
+  border-radius: 20px;
+  border: 1px solid rgba(96, 40, 76, 0.16);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.62), rgba(255, 244, 249, 0.4));
+  box-shadow: 0 18px 40px -28px rgba(90, 34, 72, 0.5);
+}
+.footer--bloom .footer-contact .foot-col-t { margin-bottom: 6px; }
+.footer--bloom .foot-c-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 10px;
+  margin-inline: -10px;
+  border-radius: 13px;
+  color: var(--ink-dim);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.footer--bloom .foot-c-row:hover { background: rgba(255, 255, 255, 0.62); color: #b3126a; }
+.footer--bloom .foot-c-ico {
+  display: grid; place-items: center; flex: none;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  color: #7a3a60;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(96, 40, 76, 0.14);
+  transition: color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+.footer--bloom .foot-c-row:hover .foot-c-ico { color: #d21f7d; border-color: rgba(210, 31, 125, 0.4); transform: translateY(-1px); }
+/* `align-items: flex-start` stated: the contact row is a flex line and this
+   column inherits a centred cross-axis from the site's generic link styling,
+   which centred the WHATSAPP kicker over the number instead of stacking the
+   two flush left. */
+.footer--bloom .foot-c-txt { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.25; }
+.footer--bloom .foot-c-txt em {
+  font-style: normal; font-size: 0.68rem; font-weight: 800;
+  letter-spacing: 0.14em; text-transform: uppercase; color: #8a5f86;
+}
+/* the address itself. `break-all` is wrong for an email and `nowrap` opens a
+   scrollbar on a 320px phone — anywhere-break is the one that keeps a long
+   address inside a 260px card without hyphenating a word mid-stem. */
+.footer--bloom .foot-c-txt b { font-weight: 700; font-size: 0.95rem; overflow-wrap: anywhere; }
+.footer--bloom .foot-c-row.is-lead .foot-c-txt b { font-size: 1.02rem; letter-spacing: 0.01em; }
+.footer--bloom .foot-c-go { margin-left: auto; opacity: 0.35; transition: opacity 0.3s ease, transform 0.3s ease; }
+.footer--bloom .foot-c-row:hover .foot-c-go { opacity: 1; transform: translate(2px, -2px); }
+.footer--bloom .foot-hours {
+  display: flex; align-items: center; gap: 8px;
+  margin: 4px 0 2px;
+  font-size: 0.8rem;
+  color: var(--ink-faint) !important;
+}
+.footer--bloom .foot-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  margin-top: 6px;
+  padding: 13px 18px;
+  border: 0; border-radius: 999px;
+  font: inherit; font-weight: 750; font-size: 0.95rem;
+  color: var(--ink); cursor: pointer;
+  background: linear-gradient(120deg, #d21f7d, #8d2ea8);
+  box-shadow: 0 12px 26px -14px rgba(160, 24, 100, 0.85);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, filter 0.3s ease;
+}
+.footer--bloom .foot-cta:hover { transform: translateY(-2px); filter: saturate(1.08); box-shadow: 0 18px 34px -14px rgba(160, 24, 100, 0.9); }
+.footer--bloom .foot-cta:active { transform: translateY(0); }
+
+/* ── share ──
+   Outside the card, not in it: the card is "reach the studio", this is "pass
+   the studio on", and putting a share button next to a phone number invites
+   a misclick between two very different intentions. */
+.footer--bloom .foot-share .foot-col-t { margin-bottom: 10px; }
+.footer--bloom .foot-share-row { display: flex; flex-wrap: wrap; gap: 9px; }
+.footer--bloom .foot-sh {
+  display: inline-grid; place-items: center;
+  position: relative;
+  /* 42 -> 44. The `@media (max-width: 767px)` rule below already lifted these
+     to 46 on a phone; a tablet is a touch device too and was left at 42. */
+  width: 44px; height: 44px;
+  border-radius: 50%; cursor: pointer;
+  color: #bea6b1;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(96, 40, 76, 0.16);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease,
+              background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.footer--bloom .foot-sh:hover {
+  transform: translateY(-3px);
+  color: #d21f7d;
+  background: rgba(255, 255, 255, 0.86);
+  border-color: rgba(210, 31, 125, 0.4);
+  box-shadow: 0 12px 22px -14px rgba(140, 30, 90, 0.8);
+}
+.footer--bloom .foot-sh .foot-i { width: 18px; height: 18px; }
+.footer--bloom .foot-sh--copy.is-copied { color: #1f8a5b; border-color: rgba(31, 138, 91, 0.45); background: rgba(255, 255, 255, 0.9); }
+/* the confirmation floats ABOVE the button rather than widening it — a pill
+   that grows on click shoves the four buttons beside it sideways. */
+.footer--bloom .foot-sh-say {
+  position: absolute; bottom: calc(100% + 7px); left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink); background: #1f8a5b;
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity 0.25s ease;
+}
+.footer--bloom .foot-sh--copy.is-copied .foot-sh-say { opacity: 1; }
+
+.footer--bloom .footer-base {
+  z-index: 2;
+  /* the hem. A fixed gap, not `margin-top: auto` — auto was pushing this to the
+     bottom of a reserved min-height, and the footer is content-sized now. */
+  margin-top: clamp(30px, 4.5vh, 52px);
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-faint);
+  max-width: 1560px;
+  margin-inline: auto;
+  width: 100%;
+}
+/* textile-details.css hems the base bar with `--stitch-dim`, a white-on-dark
+   token that is invisible on paper. Re-stated in plum so the stitch survives
+   the inversion. */
+.footer--bloom .footer-base::before {
+  background-image:
+    linear-gradient(rgba(96, 40, 76, 0.28), rgba(96, 40, 76, 0.28)),
+    linear-gradient(rgba(96, 40, 76, 0.14), rgba(96, 40, 76, 0.14)),
+    repeating-linear-gradient(90deg, rgba(96, 40, 76, 0.28) 0 6px, transparent 6px 11px);
+}
+/* the hem's three items: copyright, the line, the control. `align-items:
+   center` so the round button does not sit on a different baseline from the
+   two text runs, and the middle item takes the slack so the button stays hard
+   right at every width. */
+.footer--bloom .footer-base { display: flex; align-items: center; gap: 12px 18px; }
+/* the right end of the hem is the ONLY place on the page that shares a corner
+   with the fixed WhatsApp FAB. The sign-off is kept clear of it by hand rather
+   than left to overlap at the one scroll position where both are visible. */
+.footer--bloom .foot-edge { margin-left: auto; margin-right: 78px; font-style: italic; }
+.footer--bloom .foot-top {
+  /* LEFT END of the hem, not the right. The WhatsApp FAB is `position: fixed`
+     in the bottom-right corner, so a control parked at the right end of the
+     last row of the document sits underneath it at exactly the scroll position
+     where both are on screen — which is the only scroll position this button
+     exists for. */
+  order: -1;
+  display: grid; place-items: center; flex: none;
+  /* 40 -> 44. The one control on the hem, and the smallest thing on the page. */
+  width: 44px; height: 44px;
+  border-radius: 50%; cursor: pointer;
+  color: #7a3a60;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(96, 40, 76, 0.2);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+.footer--bloom .foot-top:hover {
+  transform: translateY(-3px);
+  color: #d21f7d;
+  border-color: rgba(210, 31, 125, 0.45);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* one visible focus ring for every interactive thing down here. The site's
+   global ring is tuned for white-on-dark and disappears against the sky. */
+.footer--bloom a:focus-visible,
+.footer--bloom button:focus-visible {
+  outline: 2px solid #b3126a;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+@media (max-width: 1180px) {
+  /* the tree gives up its column first. Below ~1180 the three-up leaves each
+     side stack under ~300px, which breaks "+962 79 179 2129" onto two lines —
+     and a phone number that wraps is worse than a smaller tree. One column of
+     copy, the tree back on top of it, full width. */
+  .footer--bloom .footer-grid { grid-template-columns: minmax(0, 1fr); gap: clamp(26px, 4vh, 44px); }
+  .footer--bloom .foot-bloom {
+    grid-column: 1;
+    grid-row: 1;
+    max-width: min(560px, 100%);
+    margin-inline: auto;
+  }
+  .footer--bloom .foot-side--l,
+  .footer--bloom .foot-side--r { grid-column: 1; }
+  /* the two halves run side by side under the tree rather than stacking into
+     one very long column */
+  .footer--bloom .footer-grid { grid-template-areas: 'tree' 'l' 'r'; }
+  .footer--bloom .foot-bloom { grid-area: tree; }
+  .footer--bloom .foot-side--l { grid-area: l; }
+  .footer--bloom .foot-side--r { grid-area: r; }
+}
+@media (max-width: 1180px) and (min-width: 861px) {
+  /* two-up under the tree while there is width for it */
+  .footer--bloom .footer-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-areas: 'tree tree' 'l r';
+    column-gap: clamp(24px, 4vw, 56px);
+  }
+}
+@media (max-width: 1180px) and (min-width: 601px) {
+  /* the card is wide here, and a stacked column inside a 900px box is two short
+     rows with half a card of air beside them. Two-up instead, with the timezone
+     and the CTA sharing the last line — and the CTA sized to its label, not to
+     the box: a 700px-wide pill is a banner, not a button. */
+  .footer--bloom .footer-contact { display: grid; grid-template-columns: 1fr 1fr; align-items: center; column-gap: clamp(16px, 3vw, 40px); row-gap: 10px; }
+  .footer--bloom .footer-contact .foot-col-t { grid-column: 1 / -1; }
+  .footer--bloom .foot-hours { grid-column: 1; margin: 2px 0 0; }
+  .footer--bloom .foot-cta { grid-column: 2; justify-self: end; margin-top: 0; padding-inline: 30px; }
+}
+
+@media (max-width: 900px) {
+  /* the seam is a proportion of a much taller, narrower box here — the desktop
+     clamp would put a screenful of empty pink above the tree before anything is
+     read. Shortened, and the top padding with it. */
+  .footer--bloom { --seam: clamp(60px, 9vh, 120px); padding-bottom: 26px; }
+  .footer--bloom .footer-base { margin-top: clamp(20px, 3vh, 30px); }
+}
+@media (max-width: 860px) {
+  /* one column all the way down, but the two LINK lists stay two-up inside it:
+     ten stacked links is most of a phone screen for a sitemap. */
+  .footer--bloom .footer-grid { grid-template-areas: 'tree' 'l' 'r'; }
+  .footer--bloom .foot-side { gap: clamp(22px, 3.4vh, 34px); }
+}
+@media (max-width: 767px) {
+  /* ten lanes, not eighteen. The layer is the full footer now rather than the
+     tree's box, so the count is trimmed for the paint budget on a phone, not
+     because the petals bunched — half as many animated boxes over a band that
+     is two and a half screens tall. */
+  .footer--bloom .foot-petals span:nth-child(n + 11) { display: none; }
+  /* the hem stacks: three items on one 360px line put four words per row */
+  .footer--bloom .footer-base { flex-wrap: wrap; font-size: 0.8rem; }
+  .footer--bloom .foot-edge { margin-left: 0; margin-right: 0; order: 3; flex: 1 1 100%; }
+  /* full-width tap targets for the share row on a phone */
+  .footer--bloom .foot-sh { width: 46px; height: 46px; }
+}
+@media (max-width: 600px) {
+  /* THE PHONE BLEED. The cutout carries transparent margins on every side, so
+     at exactly 100% the blossom only spans ~85% of the screen and the tree
+     reads small on the one device where it has the entire band to itself.
+     122% with a -11% inline margin runs the PNG's empty corners off both edges
+     and puts the BLOSSOM at the screen edges, which is the measurement that
+     matters. Nothing is cropped but air, and `.footer--bloom` clips X so this
+     cannot open a scrollbar. */
+  .footer--bloom .foot-bloom { max-width: none; width: 122%; margin-inline: -11%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer--bloom .foot-tree,
+  .footer--bloom .foot-halo { animation: none; }
+}
+
+/* ————— responsive ————— */
+@media (max-width: 1000px) {
+  .work-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 40px 20px; }
+  .manifesto-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .apps-grid { grid-template-columns: repeat(2, 1fr); }
+  /* two columns: a lone last card is the odd one out — centre it across
+     both tracks rather than stranding it on the left */
+  .apps-grid > .app-cell:last-child:nth-child(odd) {
+    grid-column: 1 / -1; justify-self: center; width: min(100%, 380px);
+  }
+  .lab-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* was 820px — 9 nav items (Software joined the original 8) still
+   overflowed the header between ~830-960px even with the tightened gap/font
+   above, so the burger now takes over a little earlier, before that pinch
+   range rather than inside it. */
+@media (max-width: 1100px) {
+  .nav-links { display: none; }
+  .burger { display: flex; }
+  .overlay-gallery { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .work-grid { grid-template-columns: 1fr; }
+  .studios-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .svc-row { grid-template-columns: 44px 1fr auto; }
+  .svc-body-inner { grid-template-columns: 1fr; padding-left: 62px; }
+  .svc-visual { display: none; }
+  .nav-cta .btn { display: none; }
+  .hero-scrollhint { display: none; }
+  .apps-grid { grid-template-columns: 1fr; }
+  .lab-grid { grid-template-columns: 1fr; }
+  .wintents { grid-template-columns: 1fr; }
+  .wform { grid-template-columns: 1fr; }
+  .wizard-steps { flex-wrap: wrap; }
+  .wsend .btn { width: 100%; }
+}
+
+/* ——— bottom-sheet presentation (case overlay + contact modal, <768px) ——— */
+@media (max-width: 767px) {
+  .overlay-panel.is-sheet {
+    position: fixed; inset: auto 0 0 0; top: auto;
+    max-height: 88vh;
+    border-radius: calc(var(--radius) * 1.4) calc(var(--radius) * 1.4) 0 0;
+    will-change: transform;
+    padding-top: 0;
+  }
+  .overlay-panel.is-sheet .overlay-bar { padding-top: 2px; }
+  .overlay-panel.is-sheet .overlay-scroll { touch-action: pan-y; overscroll-behavior: contain; }
+
+  .wmodal { padding: 0; }
+  .wmodal-panel.is-sheet {
+    align-self: end; justify-self: stretch;
+    width: 100%; max-height: 90vh;
+    border-radius: calc(var(--radius) * 1.4) calc(var(--radius) * 1.4) 0 0;
+    will-change: transform;
+  }
+  .wmodal-panel.is-sheet .wmodal-scroll { touch-action: pan-y; overscroll-behavior: contain; }
+}

@@ -1,0 +1,1099 @@
+/* banners.css — the banner layer: a category index, a forced choice, one claim.
+   Owned by Banners.jsx. Do not import into styles.css / textile*.css / wool.css.
+
+   CASCADE NOTE, load-bearing: src/main.jsx imports App.jsx on line 3, BEFORE
+   './styles.css' on line 4 and './wool.css' last. Every component stylesheet
+   therefore lands EARLIER in the bundle than the globals, and a bare
+   single-class rule here would LOSE a tie to them. Class names below are unique
+   to this file (verified: none of .blk / .cnt-* / .offer-* / .bolt-* appears in
+   any other stylesheet), and the two places where an existing global class is
+   touched (.sw on the bolt claim) are section-scoped so they win outright. */
+
+/* ═══════════════════════════════════════════════════════════
+   THE COLOUR BLOCK — the one material recipe all three shapes share.
+
+   Petbarn's mechanic is a hard-edged, value-FLAT colour field. A knit
+   photograph is not value-flat (~±25% swing; knit-blue and knit-crimson carry
+   white slubs), so the field is built in three cheap paint passes on ONE box:
+     background-color  the flat block — also the paint-in, so the box is already
+                       the right colour before the texture decodes
+     background-image  the wool itself, at the colour it was actually shot
+     ::before          one flat rect of the same hue that compresses the swing
+   No filter, no blur, no hue-rotate. 7 declarations, 6 network requests total,
+   shared per colour — never one texture per tile.
+   ═══════════════════════════════════════════════════════════ */
+.blk {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--blk-flat);
+  background-image: var(--blk-knit);
+  background-repeat: repeat;
+  background-position: center;
+  /* Tuned on screen, not on paper. 240px puts ~2 stitch columns across a 290px
+     tile: large enough that the wool reads as material, small enough that each
+     texture's mirrored centre artifact repeats as rhythm instead of sitting in
+     the middle of one tile as a stain. Stitch pitch is ~80px — nowhere near the
+     sub-pixel range that crawls under Lenis (lerp 0.1). Verify by SCROLLING. */
+  background-size: var(--blk-scale, 240px);
+}
+.blk::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--blk-tint);
+  pointer-events: none;
+}
+
+.blk--magenta { --blk-flat: #b3126a; --blk-knit: url('/img/wool/tex/knit-magenta.webp'); --blk-tint: rgba(179, 18, 106, 0.30); }
+.blk--violet  { --blk-flat: #d1a6ba; --blk-knit: url('/img/wool/tex/knit-violet.webp');  --blk-tint: rgba(90, 34, 146, 0.32); }
+.blk--blue    { --blk-flat: #1f6f96; --blk-knit: url('/img/wool/tex/knit-blue.webp');    --blk-tint: rgba(40, 120, 160, 0.48); --blk-scale: 160px; }
+.blk--crimson { --blk-flat: #d4a6bc; --blk-knit: url('/img/wool/tex/knit-crimson.webp'); --blk-tint: rgba(122, 21, 38, 0.38); --blk-scale: 160px; }
+.blk--gold    { --blk-flat: #a8760f; --blk-knit: url('/img/wool/tex/knit-gold.webp');    --blk-tint: rgba(168, 118, 15, 0.28); }
+.blk--grey    { --blk-flat: #bdb5b9; --blk-knit: url('/img/wool/tex/knit-grey.webp');    --blk-tint: rgba(60, 55, 70, 0.42); --blk-scale: 180px; }
+.blk--felt    { --blk-flat: var(--bg-2); --blk-knit: var(--felt); --blk-scale: 260px; --blk-tint: rgba(255, 233, 242, 0.20); }
+
+/* the four yarns — the identical stripe .kicker::after (wool.css:33) and
+   .progress already run. One static gradient, painted once, never animated. */
+.blk-rail {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  z-index: 3;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   1 · THE COUNTER — the category tile grid
+   ═══════════════════════════════════════════════════════════ */
+.counter { padding-bottom: clamp(70px, 10vh, 130px); }
+
+.counter .cnt-grid {
+  display: grid;
+  /* TWO columns on desktop, not four. The tiles are 21:9 panoramas now (see
+     the aspect-ratio note below); at four across, a 291px column would paint
+     the still 125px tall and the knitted set — which is the entire reason the
+     photograph is there — stops reading as objects. Two columns give it
+     ~600x257 at 1440, which is the width the 1100px file was rendered for. */
+  grid-template-columns: repeat(2, 1fr);
+  /* deliberately tighter than .sol-grid's clamp(14px, 1.8vw, 24px):
+     a SET must look denser than a list of cards */
+  gap: clamp(12px, 1.4vw, 22px);
+  align-items: start;
+  padding: 0 var(--pad);
+}
+.counter .cnt-cell { min-width: 0; }
+
+.counter .cnt-tile {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  text-align: left;
+  /* NO FRAME. The tile used to be a die-cut sticker: 9px of white on every
+     side plus a curling corner, which is a lot of chrome around a photograph
+     that is already the most interesting thing in the row. The white margin
+     also fought the section's own ground and made eight tiles read as eight
+     objects lying on the page rather than as one set. The art is the tile now
+     — full bleed, one radius, nothing drawn around it.
+
+     `overflow: clip` follows from that: with the peel gone nothing has to
+     escape the box any more, and clipping is what lets the still scale on
+     hover inside a rounded corner without square corners appearing under it.
+     (`clip`, not `hidden` — `hidden` would make the tile a scroll container.) */
+  background: transparent;
+  padding: 0;
+  border-radius: clamp(18px, 1.5vw, 26px);
+  overflow: clip;
+  position: relative;
+  /* 21/9 at EVERY width, matching the `-wide` still exactly (1100x471).
+     It used to be 2/3 here and 21/9 only under 719px, off two separately
+     rendered shots — one frame per breakpoint, and the media query in
+     Banners.jsx had to be pinned to this exact number or the source and the
+     box disagreed. One ratio, one file, nothing to keep in sync. The tile
+     still IS the shot's frame rather than a window onto it, so nothing is
+     cropped and the calm band the render reserves along the bottom is the
+     band the label pill sits in. */
+  aspect-ratio: 21 / 9;
+  -webkit-tap-highlight-color: transparent;
+  /* box-shadow now, not drop-shadow. The die-cut silhouette was the only
+     thing that justified a filter on a parent with children (wool.css:191
+     warns off exactly that, and eight of them are the densest screenful on
+     the page) — the tile is a plain rounded rectangle again, so the cheap
+     shadow is also the correct one. */
+  filter: none;
+  box-shadow: 0 18px 34px -18px rgba(10, 4, 18, 0.75);
+  transition: transform 0.5s var(--ease), box-shadow 0.45s var(--ease);
+}
+/* a sticker is a small object, so it gets the small-object affordance
+   wool.css:69 uses — a slight rotate. On the old 290px textured box that
+   made the grid unstable; on a die-cut sticker it is the whole point. */
+.counter .cnt-tile:hover {
+  /* the rotate goes with the sticker. A framed cut-out can sit askew on the
+     page; a full-bleed image tile tilting reads as a broken transform. */
+  transform: translateY(-6px);
+  box-shadow: 0 30px 46px -20px rgba(10, 4, 18, 0.82);
+}
+
+/* The peel. A wedge of the sticker's own white back, hinged at the
+   bottom-right corner and rotating up off the face. */
+/* THE PEEL IS GONE. Left in the DOM (it is one empty <i>) and switched off
+   here, so nothing in Banners.jsx has to change and the curl can come back by
+   deleting one line if the sticker is ever wanted again. */
+.counter .cnt-peel { display: none; }
+.counter .cnt-peel--legacy {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 74px;
+  height: 74px;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(315deg, #fff 0 60%, #d5cec1 100%);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  border-radius: 0 0 28px 0;
+  transform-origin: 100% 100%;
+  transform: rotate(0) scale(1);
+  transition: transform 0.55s var(--ease);
+  box-shadow: -7px -7px 15px rgba(0, 0, 0, 0.34);
+}
+.counter .cnt-tile:hover .cnt-peel--legacy { transform: rotate(-9deg) scale(1.2); }
+.counter .cnt-tile:active { transform: translateY(-1px); transition-duration: 0.1s; }
+.counter .cnt-tile:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 4px; }
+
+/* Full-bleed: the still is the tile now, not a 4/3 window above a label
+   strip. The old split spent ~30% of every tile on a cream bar carrying one
+   word, which cropped the knitted set — the spool characters were losing
+   their feet — for no gain the pill below does not deliver better. The
+   tile's own aspect-ratio reserves the box, so nothing reflows on decode. */
+.counter .cnt-band {
+  display: block;
+  position: absolute;
+  /* full bleed, and the radius is INHERITED rather than restated: the tile's
+     own radius is a clamp now, and two clamps kept in sync by hand is how a
+     1px pink hairline appears in a corner at one viewport width. */
+  inset: 0;
+  border-radius: inherit;
+}
+/* Reads the pill off the photo on a light still without tinting the set:
+   a bottom-anchored scrim only, no blur, no filter on a parent with
+   children. Sits under the pill (z 2) and over the photo (z 1). */
+.counter .cnt-tile::after {
+  content: '';
+  position: absolute;
+  /* to the edges now — there is no white cut line left to protect. Taller and
+     eased in two stops rather than one: the label got bigger, and a scrim that
+     ramps linearly leaves a visible horizon across the middle of the still. */
+  inset: auto 0 0 0;
+  /* 72%, and at EVERY width now. 52% was sized for the 2:3 portrait tile;
+     the tile is a 21:9 banner everywhere since the reorder, and a banner is
+     a third of the portrait height, so the scrim has to be a much bigger
+     fraction of it to seat the same label. This used to be overridden to 72%
+     only under 719px, back when that was the one breakpoint where the tile
+     went wide — the override is gone, because so is the distinction. */
+  height: 72%;
+  border-radius: inherit;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to top,
+    rgba(251, 226, 238, 0.78) 0%,
+    rgba(251, 226, 238, 0.52) 26%,
+    rgba(251, 226, 238, 0.22) 56%,
+    rgba(251, 226, 238, 0) 100%);
+}
+/* Fixed size, anchored top-left. The instant the medallion out-weighs the word
+   the tile reads as clip-art. `--wool-icon` is a custom property, so it beats
+   wool.css's `width: var(--wool-icon, 42px)` regardless of source order. */
+.counter .cnt-medal {
+  --wool-icon: 72px;
+  position: absolute;
+  left: 16px;
+  top: 18px;
+  z-index: 2;
+  transition: transform 0.4s var(--ease);
+}
+/* wool.css:297 only matches `button:hover > .wool-icon` — a DIRECT child — and
+   this medallion is nested inside the band, so the rotate is declared here. */
+.counter .cnt-tile:hover .cnt-medal { transform: rotate(-7deg) scale(1.08); }
+
+/* The knitted still, full-bleed in the band. It arrives on its own white studio
+   sweep — that sweep IS the material of the set (same shoot as the photographed
+   spools), so it is never cropped out or tinted. The dye block underneath is the
+   paint-in: it holds the tile's colour until the webp decodes. */
+.counter .cnt-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.55s var(--ease);
+}
+.counter .cnt-tile:hover .cnt-photo { transform: scale(1.045); }
+/* set by the img's own onLoad — the medallion is never removed on a promise */
+.counter .cnt-tile.has-photo .cnt-medal { display: none; }
+
+/* Petbarn's white label strip, in a real photographed material. Contrast
+   STRUCTURE preserved (saturated field over near-white label), ~11:1.
+   min-height is the whole peer read: 1-line and 2-line labels give the SAME
+   tile height, which is what makes eight tiles read as equals. */
+/* The label is a real button now, not a bar. A felt pill floating on the
+   still, sized to its word rather than to the tile — so the set behind it
+   stays whole and eight tiles still read as equals because the pill's
+   HEIGHT is fixed while only its width follows the word.
+   Same cream felt material as before: contrast structure (dark ink on
+   near-white photographed felt, ~11:1) is preserved exactly. */
+.counter .cnt-strip {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* On a sticker the label is PRINTED ON the artwork, not a chip laid
+     over it. So: no plate, no fill, no shadow of its own — just type on
+     the scrim that ::after already lays down. Anything with its own
+     background here immediately reads as UI sitting on top of a photo,
+     which is the exact thing the die-cut is buying us out of. */
+  /* the peel is gone, so the label gets the full width of the tile back —
+     it only ever stopped at 74px to clear a curl that no longer exists. */
+  left: 20px;
+  right: 20px;
+  bottom: 18px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--ink);
+  display: block;
+  transition: transform 0.5s var(--ease);
+}
+.counter .cnt-tile:hover .cnt-strip { transform: translateY(-3px); }
+
+/* THE NAME.
+   It was 1.16rem of display type with a blur behind it, sitting in the corner
+   of a photograph and hoping to be read. Three changes, in order of how much
+   each one does:
+
+   1 · SIZE AND CUT. A tile's whole job is to say one word; the word should be
+       the second-biggest thing in it after the picture. Up to ~1.5rem, weight
+       700, tracking pulled in — the display face tightens as it grows, and at
+       1.16rem it was sitting at a headline's tracking on a caption's size.
+   2 · A RULE ABOVE IT, not a shadow behind it. The old text-shadow was doing
+       two jobs — legibility and separation — and doing neither well; the ::after
+       scrim under it now carries legibility, so the shadow drops to a hairline
+       and a 20px magenta rule does the separating. It grows to 44px on hover,
+       which is the whole hover state the label needs.
+   3 · IT STAYS ONE LINE. `text-wrap: balance` on the clamp, so "Social content"
+       breaks evenly if it ever has to break at all. */
+.counter .cnt-label {
+  position: relative;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.18rem, 1.15vw, 1.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+  padding-top: 13px;
+  text-shadow: 0 1px 6px rgba(255, 233, 242, 0.55);
+}
+/* the rule. On the STRIP, not the label: `-webkit-box` clips its own
+   pseudo-elements, which is why a ::before on the label itself never appears. */
+.counter .cnt-strip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--magenta, #d21f7d);
+  box-shadow: 0 1px 6px rgba(255, 233, 242, 0.5);
+  transition: width 0.45s var(--ease);
+}
+.counter .cnt-tile:hover .cnt-strip::before { width: 44px; }
+/* The CTA is a real crocheted yarn button, photographed, on alpha —
+   the one saturated element on the sticker and the thing that says
+   pressable rather than decorative.
+
+   It sits at the TOP-right, not the bottom. The bottom-right corner is
+   the peel's, and two objects competing for one corner is why the first
+   pass had the button half-buried under the curl. */
+.counter .cnt-arrow {
+  flex: none;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  bottom: auto;
+  width: 54px;
+  height: 54px;
+  z-index: 4;
+  border: 0;
+  border-radius: 50%;
+  background: url('/img/wool/buttons/wool-button-256.webp') center / contain no-repeat;
+  /* the shadow is on the element, not in the asset — a baked shadow can
+     only ever be right for one background, and this sits on eight */
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.55));
+  opacity: 1;
+  transition: transform 0.5s var(--ease);
+}
+/* it turns like a button being done up, rather than sliding like a chevron */
+.counter .cnt-tile:hover .cnt-arrow {
+  transform: rotate(-14deg) scale(1.07);
+}
+
+.counter .cnt-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(16px, 2vw, 28px);
+  padding: clamp(34px, 4vw, 52px) var(--pad) 0;
+}
+.counter .cnt-foot-link {
+  font-weight: 640;
+  font-size: 0.95rem;
+  color: var(--ink-dim);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 3px;
+  transition: color 0.3s, border-color 0.3s;
+  position: relative;
+}
+/* TOUCH TARGET — 150.8 x 28.3. Underlined link: the rule is the affordance, so
+   the box cannot grow downward without detaching it. Invisible centred 44px
+   band. It is the last thing in the section and nothing sits under it. */
+.counter .cnt-foot-link::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%);
+}
+.counter .cnt-foot-link:hover { color: var(--ink); border-color: var(--magenta); }
+.counter .cnt-foot-link:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; border-radius: 4px; }
+
+@media (max-width: 1000px) {
+  .counter .cnt-medal { --wool-icon: 58px; left: 13px; top: 15px; }
+  .counter .cnt-label { font-size: 1.12rem; }
+}
+/* 8 items only ever form a clean rectangle — 4×2 or 2×4, never a ragged 3×3−1.
+   On a phone that rectangle is now a STACK of 21:9 banners, one per row.
+   The 2-up square grid this used to be was chosen so peripheral scanning
+   still worked; a 21:9 still cannot survive a square box (object-fit:cover
+   would throw away two thirds of a panorama shot to make it), so the shape
+   follows the art, and the scan is bought back by the banner being short —
+   a 21:9 row is ~160px tall on a 375px phone, so three still land in one
+   screenful. Anything squarer here and the eight tiles become a scroll. */
+@media (max-width: 719px) {
+  .counter .cnt-grid { grid-template-columns: 1fr; }
+  /* Neither aspect-ratio nor the scrim height is restated here any more:
+     21/9 and 72% are the BASE values now, at every width. All that is left
+     for a phone is the radius and the furniture sitting on the banner. */
+  .counter .cnt-tile { border-radius: 20px; }
+  .counter .cnt-strip { left: 16px; right: 68px; bottom: 14px; }
+  .counter .cnt-arrow { width: 44px; height: 44px; right: 15px; top: 15px; }
+}
+@media (max-width: 400px) {
+  .counter .cnt-medal { --wool-icon: 44px; left: 11px; top: 12px; }
+  .counter .cnt-label { font-size: 1.02rem; padding-top: 11px; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   1b · THE TREE — moved out of this file
+   The bloom tree and its petals now close the page: markup in Chrome.jsx's
+   `Footer`, styles in styles.css under `.footer--bloom`. `.treebreak`,
+   `.tb-glow`, `.tb-stage`, `.tb-tree`, `.tb-petals` and the `tb-float` /
+   `tb-breathe` / `tb-fall` keyframes are deleted here, not overridden.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════
+   2 · THE FORK — the switch
+
+   Third rebuild. V1 was two knitted panels on the near-black page. V2 was
+   paper wish tags flanking the bloom tree on a pink sky, legible only because
+   the tree stood between them — it has since moved to the footer, so that
+   ground is gone. V3 kept the section on `--bg` but not the shape: two
+   full-bleed woven panels on a yarn seam, `1fr 1fr` expanding to 1.34:0.66 on
+   `:has(:hover)`/`:has(:focus-within)`. Rejected a third time.
+
+   All three put up TWO COLOURED BLOCKS and asked the visitor to pick a side
+   of the page — a hallway, not a question — and the material each was cut
+   from (knit, paper, knit) never changed that shape. This version has ONE
+   panel on screen at a time. `.offer-toggle` is a small physical switch
+   (`role="radiogroup"`, two `role="radio"` buttons, one decorative thumb) set
+   by `onClick` in Banners.jsx, not `:hover` — a tap is real click-driven
+   state, so there is nothing for a touchscreen to leave stuck the way
+   `:hover` did in V3. `.offer-stage` holds a single `.offer-card`, swapped
+   with Motion's `AnimatePresence mode="wait"` (opacity + a 14px settle — the
+   same crossfade idiom Solutions.jsx already uses for its search answer).
+
+   `.offer-sky`, `.wish-*`, `.fork-*`, `@keyframes wish-sway` and the
+   `main > section.offer::before` rail override are all DELETED here, not
+   overridden — fx.css's section rail is live on `.offer` again.
+
+   MATERIAL: staying IN the wool language, not departing from it. `.felt` on
+   the toggle track (hardware, like the counter's medallions or the bolt's
+   rivet) and `.blk` dye on the answer card (the same paint recipe the fork's
+   panels used) are unchanged; what changed is the SHAPE around them — one
+   centred object instead of a full-bleed pair.
+   ═══════════════════════════════════════════════════════════ */
+.offer { position: relative; padding: 0 0 clamp(80px, 11vh, 140px); }
+
+.offer .offer-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(28px, 4.5vh, 44px);
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+}
+
+/* ── the toggle ──────────────────────────────────────────────
+   A felt track the width of its own content (not the section) — this is a
+   control, not a banner, and sizing it like one would put the section's
+   loudest object where the least text lives. */
+.offer .offer-toggle {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 999px;
+}
+/* the thumb: one flat dye pill under whichever option is active. `--i` (0 or
+   1, set inline from React state) is the only value JS ever hands CSS —
+   `translateX(calc(var(--i) * 100%))` is the entire mechanic, same shape as
+   the fork's old `flex-grow` transition but on ONE element instead of a pair
+   racing each other. Width is exactly one option's share of the track, so it
+   never overshoots the felt on either side. */
+.offer .offer-toggle-thumb {
+  position: absolute;
+  z-index: 0;
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
+  width: calc(50% - 8px);
+  border-radius: 999px;
+  transform: translateX(calc(var(--i, 0) * 100%));
+  transition: transform 0.5s var(--ease);
+}
+.offer .offer-toggle-thumb--magenta { background: #b3126a; }
+.offer .offer-toggle-thumb--violet { background: #d1a6ba; }
+.offer .offer-toggle-opt {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 22px 11px 14px;
+  /* 167 x 42 on a phone — two pixels short. The sliding thumb behind it is
+     inset 6px from the rail, so a taller option grows the rail and the thumb
+     together and the design is unchanged. */
+  min-height: 44px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-dim);
+  transition: color 0.4s var(--ease);
+}
+.offer .offer-toggle-opt.is-active { color: var(--ink); }
+.offer .offer-toggle-opt:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.offer .offer-toggle-icon { --wool-icon: 26px; }
+
+/* ── the stage + card ────────────────────────────────────────
+   `.offer-stage` reserves nothing itself — `min-height` on the card keeps the
+   crossfade from jumping the layout height between a two-line and a
+   three-line answer. `.blk` is the fork's own paint recipe: flat dye as the
+   value floor, the real knit photograph over it, one tint rect compressing
+   its swing — wool.css:174 already records why no filter/hue-rotate. */
+.offer .offer-stage { width: 100%; }
+.offer .offer-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100%;
+  min-height: clamp(300px, 40vh, 400px);
+  border-radius: var(--radius);
+  padding: clamp(30px, 4vw, 52px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;      /* copy sits on the hem, ordinal at the head */
+  gap: 12px;
+  box-shadow: 0 26px 60px -30px rgba(0, 0, 0, 0.75);
+}
+/* the value floor for the copy — same job `.fork-half::after` did: the knit
+   is photographed, so its darkest and lightest stitches are ~0.5 stops apart
+   and white text can land on a slub. One bottom-weighted scrim over the
+   `.blk` tint (z 0) and under the copy (z 2) guarantees the lower half, where
+   every word lives, sits at a value white clears comfortably. Static — the
+   old version's ONLY reason to animate this was the two-panel "step back"
+   dim, which no longer exists now that there is one card, not two. */
+.offer .offer-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to top,
+    rgba(255, 238, 245, 0.74) 0%,
+    rgba(255, 238, 245, 0.42) 40%,
+    rgba(255, 238, 245, 0.1) 72%,
+    rgba(255, 238, 245, 0) 100%);
+}
+/* the ordinal — small now, a corner mark rather than the panel's one huge
+   object. The fork's version bled off the edge because it had a whole panel
+   to counterweight; a centred card this size would have the numeral crowding
+   the headline instead of sitting behind it. */
+.offer .offer-card-ord {
+  position: absolute;
+  z-index: 2;                     /* above the ::after scrim (z 1) */
+  top: clamp(20px, 3vw, 30px);
+  right: clamp(24px, 3.4vw, 40px);
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  color: rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+  user-select: none;
+}
+.offer .offer-card-h {
+  position: relative;
+  z-index: 2;
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.7rem, 3vw, 2.7rem);
+  line-height: 1.06;
+  color: var(--ink);
+  max-width: 18ch;
+}
+.offer .offer-card-body {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.88);
+  max-width: 46ch;
+}
+.offer .offer-card-foot {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px 26px;
+  margin-top: 4px;
+}
+.offer .offer-card-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 30px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff7fb;
+  color: #eadee3;                 /* ~15:1 */
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 16px 30px -16px rgba(0, 0, 0, 0.8);
+  transition: background-color 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.offer .offer-card-cta:hover { background: #fff; transform: translateY(-2px); }
+.offer .offer-card-cta:active { transform: translateY(0); }
+.offer .offer-card-cta:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.offer .offer-card-link {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.9);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.32);
+  padding-bottom: 3px;
+  transition: border-color 0.3s;
+  position: relative;
+}
+/* TOUCH TARGET — 102.5 x 27.5, sitting on the same flex line as
+   `.offer-card-cta`. Horizontal neighbour only, so the invisible centred 44px
+   band cannot swallow the CTA's tap. */
+.offer .offer-card-link::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%);
+}
+.offer .offer-card-link:hover { border-color: rgba(255, 255, 255, 0.9); }
+.offer .offer-card-link:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* ═══════════════════════════════════════════════════════════
+   3 · THE BOLT — the one full-width claim
+   The FIELD is dark felt (.felt) and the one knit OBJECT in it is the woven
+   lockup. Material contrast does the work colour contrast does on a flat
+   banner — and it is what stops a wide knit panel reading as wallpaper.
+   ═══════════════════════════════════════════════════════════ */
+.bolt { padding: clamp(50px, 7vh, 90px) var(--pad); }
+
+.bolt .bolt-frame {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1000 / 300;
+  max-height: 440px;
+  padding: clamp(34px, 4vw, 64px);
+  /* radius stays var(--radius) at every width — a wide box with a big radius
+     starts reading as a pill and loses the field quality the shape needs */
+  border-radius: var(--radius);
+  max-width: 1560px;
+  margin-inline: auto;
+  /* background, box-shadow and the dashed seam all come from .felt + .stitched
+     in wool.css — this file only supplies geometry */
+}
+
+.bolt .bolt-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 5px;
+  z-index: 3;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px
+  );
+}
+.bolt .bolt-rail--top { top: 0; }
+.bolt .bolt-rail--bot { bottom: 0; }
+
+/* the shuttle. ONE of these on the whole page, transform-only, plays once and
+   ends off-frame. It is never repeated per card — a permanently composited
+   gradient layer over a textured box is exactly what got the previous version
+   reverted (wool.css:79). */
+.bolt .bolt-weft {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 32%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(242, 240, 247, 0) 0%,
+    rgba(242, 240, 247, 0.08) 44%,
+    rgba(242, 240, 247, 0.20) 62%,
+    rgba(214, 36, 126, 0.26) 74%,
+    rgba(242, 240, 247, 0) 100%
+  );
+}
+
+.bolt .bolt-inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  /* copy and the CTA both size to their own content now, not to a 1fr track —
+     the middle column is what used to be dead air between them. A wide claim
+     is short (15ch, two lines) and the button is a fixed-ish pill, so on a
+     1560px frame that void used to run past 600px. Giving it to .bolt-seam
+     instead of the copy column is the actual fix; the seam is what makes the
+     leftover width look chosen rather than left over. */
+  /* minmax(0, …) on the outer two, not bare max-content — a bare max-content
+     track never shrinks below its intrinsic size, so at ~800-900px (the claim
+     still two lines, the button still full width) the row's true width beat
+     the frame's padding box and the CTA got clipped by .bolt-frame's own
+     overflow: hidden instead of wrapping. minmax(0, …) is what lets the grid
+     actually give ground under the felt's padding instead of pushing past it */
+  grid-template-columns: minmax(0, max-content) minmax(40px, 1fr) minmax(0, max-content);
+  align-items: center;
+  gap: clamp(20px, 3vw, 40px);
+  width: 100%;
+}
+/* grid items default to an automatic minimum width of their own min-content,
+   not 0 — the same overflow the track fix above solves, one layer down. The
+   cities line is one unbroken run with no wrap point, so without this it was
+   the actual floor forcing the row wider than the frame at ~820px. */
+.bolt .bolt-copy,
+.bolt .bolt-cta { min-width: 0; }
+.bolt .bolt-lockup {
+  width: clamp(140px, 14vw, 220px);
+  height: auto;
+  opacity: 0.95;
+  margin-bottom: 18px;
+}
+/* (0,2,0) — beats styles.css:117 `.sw { display: inline }` outright, which a
+   bare `.bolt-claim` rule would NOT, because this file loads first */
+.bolt .bolt-claim {
+  display: block;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.8rem, 4.2vw, 3.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.022em;
+  color: var(--ink);
+  max-width: 15ch;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.12), 0 8px 26px rgba(10, 2, 16, 0.55);
+}
+.bolt .bolt-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.bolt .bolt-sub .wool-icon { --wool-icon: 26px; }
+
+/* the seam — the fork's vertical device (banners.css:585) reused for a
+   single fold instead of a fork between two panels. Same repeating four-yarn
+   gradient turned on its side, so it reads as the SAME fastening system as
+   the rest of the page, not a new motif invented for one band. Static: this
+   band already has its one animated element, and a second permanently-live
+   layer is exactly the mistake wool.css:79 paid for once already. */
+.bolt .bolt-seam {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 100%;
+}
+.bolt .bolt-yarn {
+  flex: 1 1 auto;
+  width: 5px;
+  min-height: 24px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    180deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px
+  );
+  opacity: 0.55;
+}
+/* the rivet holding the fold shut — felt, not knit, the same material swap
+   the fork's knot uses to read as a fastening rather than a third panel */
+.bolt .bolt-rivet {
+  flex: 0 0 auto;
+  width: 15px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 2px dashed rgba(242, 240, 247, 0.3);
+}
+
+@media (max-width: 1199px) {
+  .bolt .bolt-frame { aspect-ratio: 1000 / 380; max-height: none; }
+}
+/* a wide claim crushed to phone width is where the claim stops being readable —
+   let the banner get TALL, not small */
+@media (max-width: 767px) {
+  .bolt .bolt-frame {
+    aspect-ratio: auto;
+    padding: clamp(30px, 7vw, 48px);
+  }
+  .bolt .bolt-inner { grid-template-columns: 1fr; gap: 28px; }
+  .bolt .bolt-cta { justify-self: start; }
+  /* stacked, copy sits directly above the CTA — there is no gap left to fold,
+     so the fastening disappears rather than floating as a stray dash */
+  .bolt .bolt-seam { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REDUCED MOTION — one block, all three shapes.
+   Freeze the affordance rather than delete it, following wool.css:458's
+   precedent of holding the halo static instead of removing it. The weft bar is
+   removed from the React tree entirely by useReducedMotion(), so there is no
+   layer to freeze.
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .counter .cnt-tile,
+  .counter .cnt-medal,
+  .counter .cnt-arrow,
+  .counter .cnt-foot-link { transition: none; }
+
+  .counter .cnt-tile:hover,
+  .counter .cnt-tile:active { transform: none; }
+  .counter .cnt-tile:hover .cnt-medal { transform: none; }
+  /* the chip is the only hover affordance left, so it stays — just static.
+     Its rest transform is none now (the arrowhead's rotate lives on the
+     ::after), so freezing it means exactly that. */
+  .counter .cnt-tile:hover .cnt-arrow { transform: none; }
+  .counter .cnt-tile:hover .cnt-strip { transform: none; }
+  .counter .cnt-peel,
+  .counter .cnt-tile:hover .cnt-peel { transform: none; }
+
+  /* the switch holds still — the thumb keeps its resting slot, no glide
+     between options — and the card crossfade's own duration already drops to
+     0.01s in Banners.jsx (`reduced ? 0.01 : 0.45`), so this block only has to
+     freeze the CSS transitions the JS crossfade doesn't touch. */
+  .offer .offer-toggle-thumb { transition: none; }
+  .offer .offer-toggle-opt { transition: none; }
+  .offer .offer-card-cta { transition: none; }
+  .offer .offer-card-cta:hover { transform: none; }
+  .offer .offer-card-link { transition: none; }
+}
+
+/* ═══ THE FORK, SMALL SCREENS — must stay LAST in this file ═══
+   No layout to un-stack any more — one card was already the mobile-first
+   shape, not a fallback bolted onto a two-panel desktop one, so there is
+   nothing here to delete the way the old `:hover`-driven expansion was. This
+   block only resizes the same objects for a narrower box: the toggle's two
+   labels ("Already trading" / "Starting out") are content-sized on desktop,
+   and at 390px two content-sized pills plus an icon each do not reliably fit
+   the felt track — so under 480px the track goes `width: 100%` and both
+   options become equal flex children instead of racing their own text width
+   for room, which is the one thing this section learned NOT to do twice. */
+@media (max-width: 600px) {
+  .offer .offer-card { min-height: clamp(320px, 52vh, 420px); }
+  .offer .offer-card-h { max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .offer .offer-toggle { width: 100%; }
+  .offer .offer-toggle-opt {
+    flex: 1 1 0;
+    justify-content: center;
+    padding: 11px 8px;
+    gap: 6px;
+    font-size: 0.7rem;
+  }
+  .offer .offer-toggle-icon { --wool-icon: 20px; }
+  .offer .offer-card-ord { font-size: clamp(1.3rem, 5vw, 1.7rem); }
+}
+/* ═══════════════════ THE FORK — #offer (redesigned 10 Aug 2026) ═══════════
+   Replaces `.offer-*` (toggle + one-card stage). Both branches are on screen
+   at once; hover/focus grows one and dims the other. See Banners.jsx for why
+   the toggle had to go — it hid half of a question whose entire job is
+   offering two answers. */
+
+.ofk {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  padding: clamp(52px, 7vh, 92px) 0 clamp(48px, 6.5vh, 84px);
+}
+.ofk-head {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--pad) clamp(20px, 2.8vw, 34px);
+}
+.ofk-h2 { max-width: 14ch; }
+.ofk-wrap { max-width: 1180px; margin: 0 auto; padding: 0 var(--pad); }
+
+/* ——— the fork ———
+   Flex, not grid, because the hover response IS a flex-basis change: the
+   branch the pointer is on takes more of the row and the other gives it up.
+   A grid would need its template rewritten per state. */
+.ofk-fork {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border-radius: clamp(16px, 1.6vw, 22px);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  min-height: clamp(300px, 40vh, 400px);
+}
+
+.ofk-branch {
+  position: relative;
+  isolation: isolate;
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(22px, 2.6vw, 36px);
+  /* `flex-basis` is what animates — transitioning `flex-grow` alone does not
+     reflow smoothly across browsers, and transitioning `width` fights the
+     flex algorithm. */
+  transition: flex-basis 0.55s var(--ease), filter 0.55s var(--ease), opacity 0.55s var(--ease);
+}
+/* LEGIBILITY OVER THE KNIT. The dyed wool photograph is high-frequency —
+   stitch after stitch of near-equal luminance — and body copy laid straight
+   onto it sat around 3:1. This is a plain vertical scrim, darkest where the
+   copy actually is, rather than a filter on the photograph: dimming the whole
+   image would flatten exactly the texture the section is made of. */
+.ofk-branch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 236, 244, 0.18) 0%,
+    rgba(255, 236, 244, 0.52) 42%,
+    rgba(255, 236, 244, 0.66) 100%
+  );
+}
+/* The choosing, felt. `:has()` on the parent is what lets the OTHER branch
+   react — without it a branch can only style itself, and "one grows" without
+   "the other yields" reads as a layout glitch rather than as a choice. Where
+   :has() is unsupported nothing moves, which is a perfectly good static fork. */
+.ofk-fork:has(.ofk-branch:hover) .ofk-branch:not(:hover),
+.ofk-fork:has(.ofk-branch:focus-within) .ofk-branch:not(:focus-within) {
+  flex-basis: 42%;
+  filter: saturate(0.72) brightness(0.86);
+  opacity: 0.86;
+}
+.ofk-branch:hover,
+.ofk-branch:focus-within { flex-basis: 58%; }
+
+/* the seam — one thread down the join, in the four yarns */
+.ofk-seam {
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  width: 2px;
+  transform: translateX(-1px);
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--yarn-gold) 12%,
+    var(--yarn-pink) 38%,
+    var(--yarn-violet) 62%,
+    var(--yarn-blue) 88%,
+    transparent
+  );
+  opacity: 0.5;
+  /* the seam belongs to the JOIN, and the join moves when a branch grows —
+     but only by ~8% of the row, so a static centre line reads as intentional
+     rigging rather than as a misalignment. Fading the ends is what sells it. */
+}
+
+.ofk-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: clamp(16px, 2vw, 24px);
+}
+.ofk-mark { width: 30px; height: 30px; display: grid; place-items: center; }
+.ofk-mark img, .ofk-mark svg { width: 100%; height: 100%; }
+.ofk-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  /* The scrim under this fork flipped from near-black to near-white with the
+     rest of the page (.ofk-branch::after above), so every value here that was
+     drawn to sit ON a dark scrim now sits on a light one. This eyebrow, the
+     body copy and the CTA below all kept their white and had to come back to
+     ink. Full --ink rather than --ink-dim: the eyebrow sits at the TOP of the
+     branch, where that scrim is only 0.18 opacity and the knit shows through
+     at nearly full strength. --ink-dim survives lower down; it does not here. */
+  color: var(--ink);
+}
+.ofk-ord {
+  margin-left: auto;
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+  line-height: 1;
+  color: var(--ink);
+  opacity: 0.22;
+}
+
+.ofk-h {
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.5rem, 2.9vw, 2.4rem);
+  line-height: 1.02;
+  color: var(--ink);
+  max-width: 15ch;
+}
+.ofk-body {
+  margin-top: clamp(10px, 1.2vw, 15px);
+  font-size: clamp(0.92rem, 1.05vw, 1.02rem);
+  line-height: 1.5;
+  color: var(--ink-dim);
+  max-width: 38ch;
+  text-wrap: pretty;
+}
+
+.ofk-foot {
+  margin-top: auto;
+  padding-top: clamp(18px, 2.2vw, 28px);
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.8vw, 22px);
+  flex-wrap: wrap;
+}
+.ofk-cta {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 13px clamp(18px, 2vw, 26px);
+  background: #fff;
+  /* This was #14091f — a literal dark ink on a white pill — and the ground
+     flip swept it to pink along with the real backgrounds, which left the
+     section's primary CTA reading white on white. It is a button ON white:
+     it does not follow the ground. */
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 0.94rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.ofk-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35); }
+.ofk-cta:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.ofk-link {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(51, 36, 61, 0.45);
+  padding-bottom: 2px;
+  transition: border-color 0.3s var(--ease);
+}
+.ofk-link:hover { border-color: var(--ink); }
+
+@media (max-width: 820px) {
+  /* stacked: the two branches become two full-width bands, the seam turns
+     horizontal, and the hover grow/yield is dropped entirely — on a touch
+     device there is no hover, and a flex-basis change on tap would move the
+     thing the finger is already on. */
+  .ofk-fork { flex-direction: column; min-height: 0; }
+  .ofk-branch,
+  .ofk-fork:has(.ofk-branch:hover) .ofk-branch:not(:hover),
+  .ofk-fork:has(.ofk-branch:focus-within) .ofk-branch:not(:focus-within),
+  .ofk-branch:hover,
+  .ofk-branch:focus-within {
+    flex-basis: auto;
+    filter: none;
+    opacity: 1;
+  }
+  .ofk-seam {
+    left: 0; right: 0; top: 50%; bottom: auto;
+    width: auto; height: 2px;
+    transform: translateY(-1px);
+    background: linear-gradient(to right, transparent, var(--yarn-pink) 30%, var(--yarn-violet) 70%, transparent);
+  }
+  .ofk-h, .ofk-body { max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ofk-branch, .ofk-cta { transition: none; }
+}

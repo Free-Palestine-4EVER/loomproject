@@ -1,0 +1,9 @@
+/* heads-v7.css — copy-pass staging: Apps live-status row.
+   Owned by Products.jsx. Do not import into textile*.css or HQ.jsx. */
+
+/* ——— Apps: live-status row under the section lede ——— */
+.apps-status {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  margin-top: 18px;
+}
+.apps-status .rc-live { opacity: 0.82; }

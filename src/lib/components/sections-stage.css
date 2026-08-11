@@ -1,0 +1,125 @@
+/* ————————————————————————————————————————————————————————
+   sections-stage.css — signature scroll mechanics for Manifesto,
+   Process and Studios. Pure additive layer over styles.css; nothing
+   here redefines a selector that file already owns.
+   ———————————————————————————————————————————————————————— */
+
+/* ——— Manifesto: ink-through headline ——— */
+/* block, not inline: the h2 holds inline-block words that each take a 3D
+   transform, and an inline parent can't establish a proper containing box for
+   them (it also silently swallows the margin-bottom styles.css sets on it,
+   which is why the rule below now owns the whole gap). */
+.manifesto-ink { display: block; margin-bottom: 0; }
+.ink-word {
+  display: inline-block;
+  /* pivots up off its own baseline rather than through its middle, so a word
+     rotating in reads as landing on the line instead of spinning in place */
+  transform-origin: 50% 88%;
+  will-change: transform, opacity;
+}
+
+/* The rule is a track (unlit hairline) + a gradient fill that wipes across it +
+   a spark head that rides the leading edge. Everything moves on transform and
+   opacity only — no background-position, no filter. */
+.manifesto-ink-rule {
+  position: relative; display: block;
+  width: clamp(120px, 20vw, 210px); height: 3px;
+  margin: 30px 0 0;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.09);
+}
+.manifesto-ink-fill {
+  position: absolute; inset: 0;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--violet), var(--magenta), var(--cyan));
+  border-radius: inherit;
+}
+/* Full-width so its own 0 → -100% x range maps exactly onto the rule's length;
+   the visible dot is the ::after pinned to its right edge. */
+.manifesto-ink-head {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.manifesto-ink-head::after {
+  content: '';
+  position: absolute; top: 50%; left: 100%;
+  width: 13px; height: 13px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--magenta) 42%, rgba(242, 28, 140, 0) 72%);
+  box-shadow: 0 0 14px 2px rgba(242, 28, 140, 0.55);
+}
+
+/* ——— Process: the line ——— */
+
+.pt-node {
+  fill: var(--ink-faint);
+  transition: fill 0.4s, filter 0.4s;
+}
+.pt-node.is-lit {
+  fill: var(--magenta);
+  filter: drop-shadow(0 0 7px rgba(242, 28, 140, 0.8));
+}
+.pt-line { transition: stroke 0.4s; }
+
+@media (min-width: 1000px) {
+}
+@media (max-width: 639px) {
+}
+
+/* ——— Studios: the thread between cities ——— */
+/* Was desktop-only (`display: none` below 1000px) — on a site where mobile
+   is 80% of traffic that meant the thread, the section's best idea, was
+   invisible to most readers. `useTwoCityArc` in Sections.jsx now detects a
+   stacked (1-column) layout straight off the measured card positions and
+   bulges the control point sideways instead of upward, so the same path
+   formula reads correctly whether the cards sit side by side or stacked. */
+.studios-stage { position: relative; }
+.studios-thread { position: absolute; inset: 0; pointer-events: none; }
+.studios-arc { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* A blurred duplicate under the crisp dashed line reads as the thread
+   actually glowing rather than just being a brighter stroke — the single
+   biggest reason the original arc felt like the faintest thing in the
+   section next to two solid card outlines. */
+.studios-arc path { filter: drop-shadow(0 0 5px rgba(89, 230, 255, 0.35)) drop-shadow(0 0 5px rgba(242, 28, 140, 0.2)); }
+.studios-arc-pulse {
+  position: absolute; top: 0; left: 0;
+  width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--cyan) 45%, transparent 75%);
+  box-shadow: 0 0 16px 4px rgba(89, 230, 255, 0.75);
+  animation: studios-pulse-move 3.6s ease-in-out infinite;
+  will-change: offset-distance, opacity;
+}
+@keyframes studios-pulse-move {
+  0% { offset-distance: 0%; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+.studios-arc-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--display);
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+.studios-arc-label i {
+  display: block; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--cyan); box-shadow: 0 0 8px 1px rgba(89, 230, 255, 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Reduced motion lands the whole thing in its resolved state: white words,
+     no transforms, a fully drawn rule, no spark. InkWord's `reduced` branch
+     already renders plain white spans; these rules cover the case where the
+     media query flips after mount, before React re-renders. */
+  .ink-word { transform: none !important; opacity: 1 !important; color: var(--ink) !important; }
+  .manifesto-ink-fill { transform: none !important; }
+  .manifesto-ink-head { display: none; }
+  .manifesto-media { transform: none !important; opacity: 1 !important; }
+  .studios-arc-pulse { display: none; }
+}

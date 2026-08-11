@@ -1,0 +1,61 @@
+/* ————————————————————————————————————————————————————————
+   FX pack — velocity marquee, scramble, glitch, threads, edge glow, shimmer
+   ———————————————————————————————————————————————————————— */
+
+/* 1. velocity marquee — skew/speed driven by CSS vars set from fx.js */
+.marquee-track {
+  transform: skewX(var(--mq-skew, 0deg));
+  animation-duration: calc(46s / var(--mq-speed, 1));
+}
+
+/* 3. stat glitch — quick chromatic-aberration flicker */
+@keyframes fx-glitch {
+  0% { text-shadow: none; transform: translate3d(0, 0, 0); }
+  20% { text-shadow: -2px 0 var(--magenta), 2px 0 var(--cyan); transform: translate3d(-1px, 0, 0); }
+  40% { text-shadow: 2px 0 var(--magenta), -2px 0 var(--cyan); transform: translate3d(1px, 0, 0); }
+  60% { text-shadow: -1px 0 var(--magenta), 1px 0 var(--cyan); transform: translate3d(0, 0, 0); }
+  100% { text-shadow: none; transform: translate3d(0, 0, 0); }
+}
+.stat-value.fx-glitch { animation: fx-glitch 0.42s steps(2, end); }
+
+/* 4. confetti threads canvas */
+.fx-threads-canvas {
+  position: fixed; inset: 0; z-index: 9998;
+  pointer-events: none; mix-blend-mode: screen;
+}
+
+/* 5. section-edge glow */
+main > section { position: relative; }
+main > section::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--magenta), var(--cyan), transparent);
+  opacity: 0; transform: scaleX(0.6); transform-origin: center;
+  transition: opacity 0.6s var(--ease, ease), transform 0.6s var(--ease, ease);
+  pointer-events: none; z-index: 3;
+}
+main > section.fx-edge-glow::before {
+  opacity: 0.7; transform: scaleX(1);
+}
+
+/* 6. hero type shimmer — a light sweep, subtle */
+.fx-shimmer-host { position: relative; }
+.fx-shimmer-host::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%);
+  background-size: 260% 100%;
+  background-position: 140% 0;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  opacity: 0;
+}
+.fx-shimmer-host.fx-shimmer::after {
+  opacity: 1;
+  background-position: -60% 0;
+  transition: background-position 1.1s ease-out, opacity 1.1s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { transform: none !important; }
+  main > section::before { display: none; }
+  .fx-shimmer-host::after { display: none; }
+}

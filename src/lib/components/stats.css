@@ -1,0 +1,103 @@
+/* ————————————————————————————————————————————————————————
+   stats.css — the numbers band. styles.css still owns `.stats` (the
+   textured backdrop, the border-block/gradient veil) and `.stats-grid`'s
+   column count at each breakpoint; this file restyles what sits inside each
+   `.stat` cell. Selectors are scoped under `.stats` (`.stats .stat-value`,
+   not `.stat-value`) so they win on specificity over styles.css's bare
+   classes regardless of import order — see the CASCADE NOTE at the top of
+   banners.css for why a bare rule here would lose that tie.
+   ———————————————————————————————————————————————————————— */
+
+.stats .stats-grid {
+  /* styles.css sets the column count; this adds room for the divider rules
+     between cells (row-gap stays generous on the 2-col mobile stack, the
+     4-col desktop row gets the same so the plus-shaped divider below reads
+     evenly in both directions) */
+  row-gap: clamp(36px, 6vw, 56px);
+}
+
+.stats .stat {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4px clamp(10px, 2vw, 22px) 0;
+}
+
+/* Divider cross: a left rule between neighbours in a row, a top rule between
+   rows. Both are drawn from the SAME `.stat::before` / `::after` pair rather
+   than a border (a border on a flex/grid item sits flush on the cell edge —
+   these insets keep clear of the icon badge and the hover lift below). */
+.stats .stat::before,
+.stats .stat::after {
+  content: ''; position: absolute; background: var(--line);
+}
+/* vertical rule, left edge — desktop: every cell but the first in the row */
+@media (min-width: 1001px) {
+  .stats .stat:not(:nth-child(4n + 1))::before {
+    left: 0; top: 14%; bottom: 14%; width: 1px;
+  }
+}
+/* 2-up: a vertical rule between the pair, a horizontal one between the rows */
+@media (max-width: 1000px) {
+  .stats .stat:nth-child(2n)::before {
+    left: 0; top: 10%; bottom: 10%; width: 1px;
+  }
+  .stats .stat:nth-child(n + 3)::after {
+    top: calc(clamp(36px, 6vw, 56px) / -2);
+    left: 16%; right: 16%; height: 1px;
+  }
+}
+
+.stats .stat-index {
+  font-family: var(--display); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.22em; color: var(--accent, var(--magenta));
+  opacity: 0.85;
+}
+
+.stats .stat-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px;
+  margin-top: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  color: var(--accent, var(--magenta));
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.03), transparent 70%);
+  transition: border-color 0.4s, transform 0.4s var(--ease);
+}
+.stats .stat-icon svg { width: 24px; height: 24px; }
+
+.stats .stat-value {
+  margin-top: 16px;
+  /* styles.css's gradient clip (white → magenta) is a fixed two-stop wash —
+     tying its end stop to the per-stat accent instead makes each numeral's
+     own colour agree with its icon and index rather than every one of the
+     four defaulting to magenta */
+  background: linear-gradient(120deg, #fff 30%, var(--accent, var(--magenta)));
+  -webkit-background-clip: text; background-clip: text;
+}
+
+.stats .stat-label { max-width: 22ch; }
+
+.stats .stat-rule {
+  display: block; overflow: hidden;
+  width: clamp(46px, 7vw, 72px); height: 2px;
+  margin-top: 16px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.stats .stat-rule-fill {
+  display: block; width: 100%; height: 100%;
+  transform-origin: left center;
+  background: var(--accent, var(--magenta));
+  border-radius: inherit;
+}
+
+@media (hover: hover) {
+  .stats .stat:hover .stat-icon {
+    border-color: var(--accent, var(--magenta));
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats .stat-icon { transition: none; }
+}

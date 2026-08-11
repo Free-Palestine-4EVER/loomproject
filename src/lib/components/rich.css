@@ -1,0 +1,189 @@
+/* ————————————————————————————————————————————————————————
+   Rich.jsx — small animated diagrams for text-heavy sections.
+   Prefix: rc-  ·  every loop uses transform/opacity only, and
+   .rc-reduced freezes all of it to a settled static frame.
+   ———————————————————————————————————————————————————————— */
+
+.rc-visual { position: relative; width: 100%; aspect-ratio: 1 / 1; display: block; color: var(--ink-faint); }
+.rc-visual svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.rc-glyph { position: relative; width: 100%; aspect-ratio: 1 / 1; display: block; color: var(--ink-faint); }
+.rc-glyph svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+/* kill every animation when reduced-motion / explicit .rc-reduced */
+.rc-reduced * { animation: none !important; transition: none !important; }
+
+/* ───────── shared keyframes ───────── */
+@keyframes rc-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.16); opacity: 1; }
+}
+@keyframes rc-build {
+  0%, 6% { opacity: 0; transform: translateY(3px); }
+  16%, 82% { opacity: 1; transform: translateY(0); }
+  94%, 100% { opacity: 0; transform: translateY(3px); }
+}
+@keyframes rc-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes rc-spin {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+@keyframes rc-sway {
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(9deg); }
+}
+@keyframes rc-rise {
+  0%, 100% { transform: scaleY(0.82); }
+  50% { transform: scaleY(1); }
+}
+@keyframes rc-blink {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+@keyframes rc-shuttle {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(46px); }
+}
+@keyframes rc-ring {
+  0% { transform: scale(0.6); opacity: 0.6; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+/* ───────── 01 · AI & Automation — circuit loop ───────── */
+@keyframes rc-k-sv01 {
+  0%   { transform: translate(30px, 40px); }
+  16.6%{ transform: translate(130px, 40px); }
+  33.3%{ transform: translate(150px, 80px); }
+  50%  { transform: translate(130px, 120px); }
+  66.6%{ transform: translate(30px, 120px); }
+  83.3%{ transform: translate(10px, 80px); }
+  100% { transform: translate(30px, 40px); }
+}
+.rc-sv01-pulse { animation: rc-k-sv01 3.6s linear infinite; transform: translate(30px, 40px); }
+.rc-sv01-node { animation: rc-breathe 2.8s var(--ease) infinite; transform-origin: center; }
+.rc-sv01-node:nth-child(2) { animation-delay: 0.3s; }
+.rc-sv01-node:nth-child(3) { animation-delay: 0.6s; }
+.rc-sv01-node:nth-child(4) { animation-delay: 0.9s; }
+.rc-sv01-node:nth-child(5) { animation-delay: 1.2s; }
+.rc-sv01-node:nth-child(6) { animation-delay: 1.5s; }
+.rc-sv01-core { animation: rc-breathe 2.4s var(--ease) infinite; transform-origin: 80px 80px; }
+
+/* ───────── 02 · Branding — mark from guide grid ───────── */
+.rc-sv02-seg { animation: rc-build 4.5s var(--ease) infinite; }
+.rc-sv02-seg:nth-child(1) { animation-delay: 0s; }
+.rc-sv02-seg:nth-child(2) { animation-delay: 1.1s; }
+.rc-sv02-seg:nth-child(3) { animation-delay: 2.2s; }
+.rc-sv02-dot { animation: rc-breathe 4.5s var(--ease) infinite; animation-delay: 3.2s; transform-origin: center; }
+
+/* ───────── 03 · Social & Content — cards + engagement ───────── */
+.rc-sv03-card { animation: rc-bob 3.4s ease-in-out infinite; transform-origin: center bottom; }
+.rc-sv03-card:nth-child(2) { animation-delay: 0.22s; }
+.rc-sv03-card:nth-child(3) { animation-delay: 0.44s; }
+.rc-sv03-bar { animation: rc-rise 2.2s ease-in-out infinite; transform-origin: bottom; }
+.rc-sv03-bar:nth-child(1) { animation-delay: 0s; }
+.rc-sv03-bar:nth-child(2) { animation-delay: 0.18s; }
+.rc-sv03-bar:nth-child(3) { animation-delay: 0.36s; }
+.rc-sv03-bar:nth-child(4) { animation-delay: 0.54s; }
+
+/* ───────── 04 · Web & App — assembling blocks ───────── */
+.rc-sv04-block { animation: rc-build 3.6s var(--ease) infinite; }
+.rc-sv04-block:nth-child(1) { animation-delay: 0s; }
+.rc-sv04-block:nth-child(2) { animation-delay: 0.4s; }
+.rc-sv04-block:nth-child(3) { animation-delay: 0.8s; }
+.rc-sv04-block:nth-child(4) { animation-delay: 1.4s; }
+.rc-sv04-block:nth-child(5) { animation-delay: 1.8s; }
+.rc-sv04-dot { animation: rc-blink 2.4s ease-in-out infinite; }
+
+/* ───────── 05 · Campaigns — storyboard advancing ───────── */
+@keyframes rc-k-sv05 {
+  0%, 22%  { transform: translateX(0); }
+  33%, 55% { transform: translateX(56px); }
+  66%, 88% { transform: translateX(112px); }
+  100%     { transform: translateX(0); }
+}
+.rc-sv05-highlight { animation: rc-k-sv05 4.8s steps(1, end) infinite; }
+.rc-sv05-play { animation: rc-blink 1.4s ease-in-out infinite; }
+
+/* ───────── 06 · AR & Emerging — rotating wireframe ───────── */
+.rc-sv06-stage { position: absolute; inset: 26%; perspective: 420px; }
+.rc-sv06-cube { position: absolute; inset: 0; transform-style: preserve-3d; animation: rc-spin 7s linear infinite; }
+.rc-sv06-face {
+  position: absolute; inset: 0;
+  border: 1.4px solid rgba(89, 230, 255, 0.55);
+  background: rgba(123, 47, 190, 0.08);
+}
+.rc-sv06-face--front  { transform: translateZ(21px); }
+.rc-sv06-face--back   { transform: translateZ(-21px) rotateY(180deg); }
+.rc-sv06-face--right  { transform: rotateY(90deg) translateZ(21px); }
+.rc-sv06-face--left   { transform: rotateY(-90deg) translateZ(21px); }
+.rc-sv06-face--top    { transform: rotateX(90deg) translateZ(21px); }
+.rc-sv06-face--bottom { transform: rotateX(-90deg) translateZ(21px); }
+.rc-sv06-tick { animation: rc-blink 1.8s ease-in-out infinite; }
+.rc-sv06-tick:nth-child(2) { animation-delay: 0.45s; }
+.rc-sv06-tick:nth-child(3) { animation-delay: 0.9s; }
+.rc-sv06-tick:nth-child(4) { animation-delay: 1.35s; }
+
+/* ───────── Process glyphs ───────── */
+.rc-pg01-needle { animation: rc-sway 3.2s ease-in-out infinite; transform-origin: 50px 50px; }
+.rc-pg01-core { animation: rc-breathe 3.2s ease-in-out infinite; transform-origin: 50px 50px; }
+
+.rc-pg02-shuttle { animation: rc-shuttle 2.6s ease-in-out infinite; }
+
+.rc-pg03-facet { animation: rc-spin 6s linear infinite; transform-origin: 50px 46px; }
+.rc-pg03-gem { animation: rc-breathe 3.6s ease-in-out infinite; transform-origin: 50px 50px; animation-duration: 3.6s; }
+
+.rc-pg04-bar { animation: rc-rise 2s ease-in-out infinite; transform-origin: bottom; }
+.rc-pg04-bar:nth-child(1) { animation-delay: 0s; }
+.rc-pg04-bar:nth-child(2) { animation-delay: 0.16s; }
+.rc-pg04-bar:nth-child(3) { animation-delay: 0.32s; }
+.rc-pg04-bar:nth-child(4) { animation-delay: 0.48s; }
+.rc-pg04-arrow { animation: rc-bob 1.8s ease-in-out infinite; }
+
+/* ───────── ThreadDivider ───────── */
+.rc-thread { position: relative; width: 100%; height: clamp(48px, 8vw, 96px); display: block; color: var(--ink-faint); overflow: visible; }
+.rc-thread svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.rc-thread.rc-flip { transform: scaleY(-1); }
+@keyframes rc-k-thread {
+  0%   { transform: translate(0px, 60px); }
+  16%  { transform: translate(240px, 12px); }
+  33%  { transform: translate(480px, 108px); }
+  50%  { transform: translate(720px, 12px); }
+  66%  { transform: translate(960px, 108px); }
+  83%  { transform: translate(1200px, 12px); }
+  100% { transform: translate(1440px, 60px); }
+}
+.rc-thread-pulse { animation: rc-k-thread 6.5s linear infinite; transform: translate(0px, 60px); }
+
+/* ───────── StatSpark ───────── */
+/* margin-inline: auto — max-width makes this narrower than the .stat column,
+   and text-align: center on the parent can't centre a block box */
+.rc-spark { display: flex; align-items: flex-end; gap: 3px; height: 22px; width: 100%; max-width: 88px; margin-inline: auto; }
+.rc-spark-bar {
+  flex: 1 1 0; min-width: 2px; border-radius: 1.5px 1.5px 0 0;
+  background: linear-gradient(180deg, var(--cyan), var(--violet));
+  transform-origin: bottom;
+  animation: rc-rise 2.4s ease-in-out infinite;
+}
+
+/* ───────── LiveBadge ───────── */
+.rc-live {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px 5px 8px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: rgba(89, 230, 255, 0.06);
+  font-family: var(--body); font-size: 11px; font-weight: 650;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-dim);
+}
+.rc-live-dot-wrap { position: relative; width: 8px; height: 8px; flex: none; }
+.rc-live-dot { position: absolute; inset: 0; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 6px rgba(89, 230, 255, 0.7); }
+.rc-live-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.4px solid var(--cyan); animation: rc-ring 1.8s ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-visual *, .rc-glyph *, .rc-thread *, .rc-spark-bar, .rc-live-ring { animation: none !important; }
+}
+
+/* the six .svc bodies are clipped to grid-template-rows: 0fr when closed —
+   nothing inside them is on screen, so nothing inside needs to animate */
+.svc:not(.is-open) .svc-body * { animation-play-state: paused; }

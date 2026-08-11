@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#120a1f" />
+    <link rel="icon" type="image/png" href="/img/logo/favicon-woven.png" />
+
+    <!-- Body/heading copy sitewide sets in a system font stack (zero bytes,
+         nothing to preload) except the hero headline, which stays on the
+         studio's drawn face. So the whole preload budget goes there: the Daisy
+         "Home" subset (.hero-h1) and the plain cut (.hero-line--accent, the
+         outlined "on the edge"). Clash Display and Satoshi are deliberately
+         NOT on the hero's critical path — see styles.css. -->
+    <link rel="preload" href="/fonts/loom-bloom/LOOMBloomDaisy-Home.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/loom-bloom/LOOMBloom-Regular.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Per-page <title>, description and OG tags come from <svelte:head> in
+         each route, not from here. The React SPA had exactly one <title> in
+         its index.html and assigned document.title in an effect, which meant
+         the HTML on the wire always announced the home page — wrong tab title
+         in a search result, wrong bookmark, wrong first thing a screen reader
+         read on a sub-page. Server-rendered heads make that class of bug
+         impossible: the correct title is in the bytes. -->
+    %sveltekit.head%
+  </head>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>

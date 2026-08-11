@@ -1,0 +1,44 @@
+/* The page-wide butterfly layer.
+
+   z-index 70 puts it over the copy but under everything that is allowed to take
+   the page: the menu (75), the nav (80), the scroll bar (90), the mobile chrome
+   (92), overlays (95), the wizard (96) and the loader (100). So the butterfly
+   flies across the reading surface and never once lands on a modal. */
+.flyer-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  /* Its own layer, so the compositor never repaints the page behind it. */
+  will-change: opacity;
+  transition: opacity 0.45s ease;
+}
+.flyer-layer > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Anything that locks the page takes the frame with it. */
+html.overlay-open .flyer-layer,
+html.menu-open .flyer-layer {
+  opacity: 0;
+}
+
+/* THE DUCK IS GONE (11 Aug 2026, client: "remove it totally, make the
+   butterfly always fully visible"). There is no `.is-ducking` rule here any
+   more and nothing toggles that class on this layer — the butterfly is at full
+   opacity everywhere, on every width, and the only thing that still fades it is
+   an overlay taking the page, above.
+
+   Three rules used to live here and they had drifted into contradicting each
+   other: one fading to 0.4, one overriding that back to 1 "but keeping the
+   mechanism", and a phone-only one taking it to 0.5. The last of those is why
+   the creature looked washed out on a phone. See Flyer.jsx for what was
+   deleted on the JS side. */
+
+/* No `display: none` under reduced motion any more — see the long note in
+   Flyer.jsx. Chrome turns this media query on for every laptop running Energy
+   Saver, and hiding the layer there deleted the site's mascot for a large share
+   of ordinary Chrome visitors. The layer stays; Flyer.jsx renders one static
+   frame into it and attaches no scroll listener, so there is no motion in it. */

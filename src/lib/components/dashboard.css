@@ -1,0 +1,302 @@
+/* ——— /dashboard — the signed-in FORGE account page ———
+   Same idiom as the rest of the site: pink ground, ink text, a magenta
+   thread, pill controls. Built independently of forge.css (a different
+   agent's file) even though the two panels share a family resemblance —
+   nothing here imports or depends on forge.css existing. */
+
+.dash-page {
+  min-height: 100svh;
+  padding: clamp(100px, 12vw, 150px) var(--pad) clamp(60px, 8vw, 100px);
+}
+
+.dash-wrap {
+  max-width: 880px;
+  margin: 0 auto;
+}
+.dash-wrap--auth,
+.dash-wrap--loading {
+  max-width: 560px;
+}
+.dash-wrap--loading {
+  padding-top: clamp(40px, 8vw, 80px);
+  text-align: center;
+}
+
+.dash-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  padding: 10px 4px;
+  transition: color 0.25s, transform 0.25s var(--ease);
+}
+.dash-back:hover { color: var(--magenta-deep); transform: translateX(-3px); }
+.dash-back--bottom { margin-top: clamp(36px, 6vw, 56px); }
+
+.dash-kicker {
+  font-size: 0.78rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 12px;
+}
+.dash-kicker span { color: var(--magenta); margin-right: 10px; }
+
+.dash-h1 {
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: clamp(1.5rem, 3.4vw, 2.2rem);
+  line-height: 1.1;
+  color: var(--ink);
+  word-break: break-word;
+}
+.dash-h2 {
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+  color: var(--ink);
+  margin-bottom: 18px;
+}
+
+.dash-lede {
+  color: var(--ink-dim);
+  font-size: 0.98rem;
+  line-height: 1.6;
+  max-width: 46ch;
+  margin: 14px 0 0;
+}
+
+/* ——— header (signed in) ——— */
+
+.dash-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 24px 0 clamp(28px, 4vw, 40px);
+  padding-bottom: clamp(24px, 4vw, 36px);
+  border-bottom: 1px solid var(--line);
+}
+.dash-head-copy { flex: 1; min-width: 0; }
+.dash-avatar {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: #fff8fc;
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: 1.3rem;
+}
+.dash-signout {
+  flex: none;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.2);
+  color: var(--ink-dim);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  transition: border-color 0.25s, color 0.25s, background 0.25s;
+}
+.dash-signout:hover { border-color: var(--magenta); color: var(--ink); background: rgba(242, 28, 140, 0.06); }
+
+/* ——— stats ——— */
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: clamp(24px, 4vw, 36px);
+}
+.dash-stat {
+  padding: clamp(18px, 2.4vw, 24px) clamp(14px, 2vw, 20px);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(51, 36, 61, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dash-stat-n {
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  color: var(--magenta-deep);
+}
+.dash-stat-l {
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.dash-note {
+  color: var(--ink-dim);
+  font-size: 0.92rem;
+  margin-bottom: 20px;
+}
+.dash-note--warn {
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(242, 28, 140, 0.07);
+  border: 1px solid rgba(242, 28, 140, 0.2);
+  color: var(--ink);
+}
+.dash-note--warn a { color: var(--magenta-deep); text-decoration: underline; text-underline-offset: 3px; }
+
+.dash-empty { color: var(--ink-dim); font-size: 0.95rem; }
+.dash-empty a { color: var(--magenta-deep); text-decoration: underline; text-underline-offset: 3px; }
+
+.dash-error {
+  color: #a3143f;
+  background: rgba(242, 28, 140, 0.08);
+  border: 1px solid rgba(242, 28, 140, 0.22);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  margin: 10px 0 18px;
+}
+
+/* ——— job list ——— */
+
+.dash-job-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+}
+.dash-job {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(51, 36, 61, 0.1);
+}
+.dash-job-thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(51, 36, 61, 0.08);
+}
+.dash-job-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.dash-job-ph {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(150deg, rgba(242, 28, 140, 0.18), rgba(123, 47, 190, 0.18));
+}
+.dash-job-meta { flex: 1; min-width: 0; }
+.dash-job-name {
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-job-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+.dash-job-status {
+  padding: 2px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+}
+.dash-job-status--succeeded { background: rgba(89, 230, 255, 0.18); color: var(--cyan-ink); }
+.dash-job-status--failed { background: rgba(242, 28, 140, 0.14); color: var(--magenta-deep); }
+.dash-job-status--pending,
+.dash-job-status--in_progress { background: rgba(51, 36, 61, 0.08); color: var(--ink-dim); }
+
+.dash-job-files {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 40%;
+}
+.dash-job-files a {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.2);
+  color: var(--ink);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.dash-job-files a:hover { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+
+/* ——— auth card (signed out) ——— */
+
+.dash-auth-card {
+  padding: clamp(24px, 4vw, 36px);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(51, 36, 61, 0.1);
+  margin-top: 18px;
+}
+
+.dash-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 24px 0 20px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(51, 36, 61, 0.06);
+}
+.dash-tabs button {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 999px;
+  color: var(--ink-faint);
+  font-size: 0.88rem;
+  transition: background 0.25s, color 0.25s;
+}
+.dash-tabs button.is-on { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(51, 36, 61, 0.1); }
+
+.dash-field { display: block; margin-bottom: 14px; }
+.dash-field span {
+  display: block;
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 7px;
+}
+.dash-field input {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(51, 36, 61, 0.18);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--ink);
+  /* 16px — under this iOS Safari zooms the page on focus */
+  font-size: 16px;
+  font-family: inherit;
+}
+.dash-field input:focus { outline: 2px solid var(--magenta); outline-offset: 1px; }
+
+.dash-auth-card .wool-btn { margin-top: 8px; }
+.wool-btn.is-busy { opacity: 0.55; pointer-events: none; }
+
+@media (max-width: 640px) {
+  .dash-stats { grid-template-columns: 1fr; }
+  .dash-head { flex-wrap: wrap; }
+  .dash-signout { margin-left: 70px; }
+  .dash-job { flex-wrap: wrap; }
+  .dash-job-files { max-width: 100%; justify-content: flex-start; margin-left: 72px; }
+}

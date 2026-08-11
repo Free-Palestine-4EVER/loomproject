@@ -1,0 +1,697 @@
+/* ——— LOOM FORGE — the 2D→3D band and its popup ———
+
+   The modal deliberately mirrors needmodal.css's layout contract: a scrim at
+   z-index 94 (above the nav at 80 and the floating CTAs at 92, below .overlay
+   at 95 and .wmodal at 96), a flex-column panel, and ONE scroller inside it.
+   Two different overlay geometries on one site is how you end up with two
+   different close buttons in two different places. */
+
+/* ——————————————————————————————————————————————————————————
+   the woven side tab — the second explicit way to open the popup (the
+   section CTA below is the first). Pinned to the right edge on every
+   viewport, phone and desktop alike, clear of the two other fixed
+   right/bottom elements: .wa-fab-stack sits at the bottom-right corner and
+   .mobile-cta-pill spans the bottom edge on phones. Parking this at
+   vertical center keeps it off both regardless of which one is on screen,
+   and regardless of html.sol-tour-live's swap of the FAB for the tour bar
+   (solutions.css) — this tab never shares its slot with either, so that
+   rule has nothing to fight here.
+   —————————————————————————————————————————————————————————— */
+
+.fg-side-tab {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  z-index: 91; /* below .wa-fab/.mobile-cta-pill (92), well below .fg-scrim (94) */
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: 0;
+  border-radius: 14px 0 0 14px;
+  background: linear-gradient(165deg, var(--magenta) 0%, var(--magenta-deep) 55%, var(--violet) 100%);
+  box-shadow:
+    -10px 12px 32px -14px rgba(40, 8, 40, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  cursor: pointer;
+  transition: transform 0.3s var(--ease), padding 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.fg-side-tab span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--display);
+  font-size: 0.86rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff8fc;
+  white-space: nowrap;
+}
+.fg-side-tab:hover,
+.fg-side-tab:focus-visible {
+  transform: translateY(-50%) translateX(-4px);
+  padding-left: 14px;
+  box-shadow:
+    -14px 16px 38px -14px rgba(40, 8, 40, 0.62),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+.fg-side-tab:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+.fg-side-tab:active { transform: translateY(-50%) translateX(-1px); }
+
+@media (max-width: 767px) {
+  .fg-side-tab { padding: 14px 7px; }
+  .fg-side-tab span { font-size: 0.76rem; letter-spacing: 0.1em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg-side-tab { transition: none; }
+  .fg-side-tab:hover, .fg-side-tab:focus-visible, .fg-side-tab:active { transform: translateY(-50%); }
+}
+
+/* ——————————————————————————————————————————————————————————
+   the section
+   —————————————————————————————————————————————————————————— */
+
+.forge {
+  position: relative;
+  padding: clamp(70px, 9vw, 130px) clamp(20px, 5vw, 80px);
+}
+
+.forge-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(28px, 5vw, 70px);
+  align-items: center;
+}
+
+.forge-kicker {
+  font-size: 0.78rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 18px;
+}
+.forge-kicker span { color: var(--magenta); margin-right: 10px; }
+
+.forge-h2 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+
+.forge-lede {
+  color: var(--ink-dim);
+  max-width: 46ch;
+  font-size: clamp(1rem, 1.35vw, 1.12rem);
+  line-height: 1.6;
+}
+
+.forge-price {
+  margin-top: 22px;
+  font-size: clamp(1.05rem, 1.6vw, 1.28rem);
+  color: var(--ink);
+}
+.forge-price strong { color: var(--magenta-deep); font-weight: 700; }
+.forge-price em { font-style: normal; color: var(--ink-dim); }
+
+.forge-cta {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.forge-formats {
+  font-size: 0.74rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.forge-media {
+  position: relative;
+  border-radius: clamp(16px, 2vw, 24px);
+  overflow: hidden;
+  /* The gradient is the fallback, not decoration — Forge.jsx's onError hides
+     a failed decode and this is what stays behind it. */
+  background: linear-gradient(150deg, #2a1430 0%, #3a1a44 55%, #241028 100%);
+  box-shadow:
+    0 30px 70px -34px rgba(40, 8, 40, 0.6),
+    0 20px 60px -30px color-mix(in srgb, var(--magenta) 40%, transparent);
+}
+.forge-media img { display: block; width: 100%; height: auto; }
+
+@media (max-width: 900px) {
+  .forge-inner { grid-template-columns: 1fr; }
+  /* Art above the copy on a phone: it is the whole pitch in one frame, and
+     below the fold it is a picture nobody scrolls back up for. */
+  .forge-media { order: -1; }
+}
+
+/* ——————————————————————————————————————————————————————————
+   the popup
+   —————————————————————————————————————————————————————————— */
+
+.fg-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 94;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vh, 48px) clamp(12px, 3vw, 40px);
+  background: rgba(255, 238, 245, 0.72);
+  backdrop-filter: blur(10px) saturate(0.9);
+  -webkit-backdrop-filter: blur(10px) saturate(0.9);
+}
+
+.fg-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: min(90vh, 900px);
+  border-radius: clamp(18px, 2vw, 26px);
+  overflow: hidden;
+  background: linear-gradient(168deg, #ebe1e6 0%, #f0e8eb 58%, #f2ebee 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 40px 90px -30px rgba(0, 0, 0, 0.55),
+    0 30px 100px -36px color-mix(in srgb, var(--magenta) 55%, transparent);
+}
+.fg-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 5;
+  background: linear-gradient(90deg, transparent, var(--magenta), transparent);
+  pointer-events: none;
+}
+
+.fg-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 6;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(51, 36, 61, 0.16);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.3s var(--ease), background 0.3s;
+}
+.fg-close svg { width: 18px; height: 18px; }
+.fg-close:hover { transform: scale(1.08); background: #fff; }
+
+.fg-body {
+  /* .fg-panel is a flex column with overflow: hidden. Without flex + a
+     min-height reset, a flex child never shrinks below its own content size —
+     so when the content was taller than the panel's max-height, the panel's
+     overflow:hidden just clipped the excess instead of fg-body scrolling to
+     it. This is the actual mechanism behind "Sign in" rendering past the
+     panel bottom with scrollHeight === clientHeight. flex + min-height: 0
+     makes fg-body the one real scroller, so any future overflow is reachable
+     instead of silently invisible. */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ——— hero ———
+   Was aspect-ratio 16/9 at full panel width — 427px tall on a 760px-wide
+   desktop panel, on its own more than half the client's reported 810px
+   popup. A pitch does not need a hero that big: capped to a short banner
+   strip via an explicit height + object-fit: cover instead of letting the
+   image dictate its own height from width. */
+
+.fg-hero { position: relative; }
+.fg-hero-img {
+  display: block;
+  width: 100%;
+  height: clamp(78px, 11vw, 132px);
+  object-fit: cover;
+  object-position: center 38%;
+  background: linear-gradient(150deg, #2a1430 0%, #3a1a44 55%, #241028 100%);
+}
+.fg-hero-ink {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: clamp(10px, 2vw, 18px) clamp(16px, 3vw, 26px);
+  background: linear-gradient(to top, rgba(26, 10, 30, 0.94), rgba(26, 10, 30, 0.6) 60%, transparent);
+  color: #f6eef4;
+}
+.fg-kicker {
+  font-size: 0.62rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 3px;
+}
+.fg-title {
+  font-family: var(--display);
+  font-size: clamp(1.08rem, 2.6vw, 1.56rem);
+  line-height: 1.04;
+  color: #fff;
+}
+
+/* ——— steps ———
+   Was a 3-column grid with a title AND a full sentence under each number —
+   ~150-160px of the panel on its own. Compressed to one tight, centred row
+   of "01 Send one photo" chips; the full sentence (`fg-step-d`) stays in the
+   DOM for screen readers and find-in-page, just visually clipped, rather
+   than being deleted — the client's own note says this content is fine and
+   it is only the LAYOUT that needed the work. */
+
+.fg-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px clamp(14px, 2.6vw, 22px);
+  padding: clamp(10px, 1.8vw, 16px) clamp(18px, 3vw, 30px) 2px;
+  list-style: none;
+}
+.fg-steps li { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.fg-step-n {
+  font-family: var(--display);
+  font-size: 0.72rem;
+  color: var(--magenta);
+  letter-spacing: 0.08em;
+}
+.fg-step-t {
+  font-size: 0.82rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+/* Visually hidden, not display:none — still reachable by a screen reader
+   and by browser find-in-page. */
+.fg-step-d {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 620px) {
+  .fg-steps { flex-direction: column; align-items: center; gap: 4px; }
+  .fg-steps li { white-space: normal; text-align: center; }
+}
+
+/* ——— the working half ——— */
+
+.fg-tool {
+  padding: clamp(14px, 2.2vw, 22px);
+  border-top: 1px solid rgba(51, 36, 61, 0.09);
+  margin-top: clamp(8px, 1.4vw, 14px);
+}
+
+.fg-note { color: var(--ink-dim); font-size: 0.92rem; }
+.fg-fine { color: var(--ink-faint); font-size: 0.8rem; line-height: 1.55; margin-top: 12px; }
+.fg-error {
+  color: #a3143f;
+  background: rgba(242, 28, 140, 0.08);
+  border: 1px solid rgba(242, 28, 140, 0.22);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  margin-top: 14px;
+}
+
+.fg-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--magenta-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.fg-account {
+  margin-top: 20px;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+}
+
+/* ——— step 1: the pitch ———
+   This is the whole reason the panel got taller than the viewport: the price
+   line, the button and the sign-in link used to sit under a 427px hero and a
+   160px explainer grid, so by the time the layout reached them there was no
+   room left and they rendered off the bottom of the panel. Hero + steps are
+   now a fraction of that height (see above); what's left is tightened too,
+   and the button itself is pushed up in size/weight so it reads as the one
+   unmistakable thing on the screen rather than just another line of copy. */
+
+.fg-pitch { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.fg-pitch-price {
+  font-size: clamp(0.92rem, 1.3vw, 1.02rem);
+  color: var(--ink-dim);
+  line-height: 1.45;
+  max-width: 38ch;
+  margin: 0 auto 18px;
+}
+.fg-pitch-price strong { color: var(--magenta-deep); font-weight: 700; }
+/* The primary CTA: bigger type, wider hit area, a glow of its own — nothing
+   else on this step competes with it for attention. */
+.fg-pitch .wool-btn { min-width: min(300px, 100%); }
+.fg-pitch .wool-btn--css {
+  padding: 20px 44px;
+  font-size: 1.08rem;
+  box-shadow: 0 18px 40px -16px color-mix(in srgb, var(--magenta) 65%, transparent);
+}
+.fg-pitch-signin {
+  margin-top: 14px;
+  font-size: 0.84rem;
+  color: var(--ink-faint);
+}
+.fg-pitch-signin .fg-link { color: var(--ink-dim); }
+
+/* ——— step 2: compact header (no hero repeat — that already did its job on
+   step 1) with a back arrow and a two-dot progress read ——— */
+
+.fg-compact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Right padding clears the close button (42px circle at top:14/right:14) —
+     without it the step dots render directly underneath it. */
+  padding: clamp(18px, 3vw, 26px) 70px 0 clamp(18px, 3vw, 30px);
+}
+.fg-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px 6px 4px;
+  border: 0;
+  background: none;
+  color: var(--ink-dim);
+  font-family: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: color 0.2s, background 0.2s;
+}
+.fg-back svg { width: 16px; height: 16px; }
+.fg-back:hover { color: var(--ink); background: rgba(51, 36, 61, 0.06); }
+
+.fg-stepnav { display: flex; gap: 6px; }
+.fg-stepnav i {
+  display: block;
+  width: 16px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(51, 36, 61, 0.16);
+  font-style: normal;
+}
+.fg-stepnav i.is-on { background: var(--magenta); }
+
+.fg-auth-title {
+  font-family: var(--display);
+  font-size: clamp(1.3rem, 2.6vw, 1.7rem);
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
+/* ——— auth ——— */
+
+.fg-auth-lede { color: var(--ink-dim); font-size: 0.95rem; line-height: 1.55; }
+
+.fg-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 18px 0;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(51, 36, 61, 0.06);
+}
+.fg-tabs button {
+  flex: 1;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+.fg-tabs button.is-on { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(51, 36, 61, 0.1); }
+
+.fg-field { display: block; margin-bottom: 14px; }
+.fg-field span {
+  display: block;
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 7px;
+}
+.fg-field input {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(51, 36, 61, 0.18);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--ink);
+  /* 16px is the threshold under which iOS Safari zooms the page on focus —
+     a form that zooms on the first tap has to be pinched back out by hand. */
+  font-size: 16px;
+  font-family: inherit;
+}
+.fg-field input:focus { outline: 2px solid var(--magenta); outline-offset: 1px; }
+
+.fg-auth-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.wool-btn.is-busy { opacity: 0.55; pointer-events: none; }
+
+/* ——— dropzone ——— */
+
+.fg-drop {
+  border: 2px dashed rgba(242, 28, 140, 0.35);
+  border-radius: 18px;
+  padding: clamp(22px, 4vw, 34px);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.5);
+  transition: border-color 0.25s, background 0.25s;
+}
+.fg-drop.is-over { border-color: var(--magenta); background: rgba(242, 28, 140, 0.07); }
+.fg-drop.is-busy { opacity: 0.7; }
+
+.fg-drop-badge {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--magenta);
+  color: #fff;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.fg-drop-lead { font-size: 1.05rem; color: var(--ink); }
+.fg-drop-sub { font-size: 0.8rem; color: var(--ink-faint); margin: 8px 0; }
+
+.fg-pick {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #fff8fc;
+  font-size: 0.92rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.25s var(--ease), background 0.25s;
+}
+.fg-pick:hover { transform: translateY(-2px); background: var(--magenta-deep); border-color: var(--magenta-deep); }
+.fg-pick:disabled { opacity: 0.5; pointer-events: none; }
+
+/* ——— running / done ——— */
+
+.fg-job { text-align: center; }
+.fg-job-art {
+  width: min(320px, 100%);
+  margin: 0 auto 18px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(51, 36, 61, 0.06);
+}
+.fg-job-art img { display: block; width: 100%; height: auto; }
+.fg-job-art img.is-working { filter: saturate(0.35) brightness(1.03); }
+
+.fg-job-status { color: var(--ink); font-size: 1rem; }
+
+.fg-bar {
+  margin: 14px auto 0;
+  width: min(420px, 100%);
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(51, 36, 61, 0.12);
+  overflow: hidden;
+}
+.fg-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--magenta), var(--violet), var(--cyan));
+  transition: width 0.6s var(--ease);
+}
+
+.fg-files {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.fg-file {
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.22);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  transition: background 0.25s, border-color 0.25s;
+}
+.fg-file:hover { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+
+.fg-job .fg-pick { margin-top: 18px; }
+
+/* ——— payment ——— */
+
+.fg-pay-lead { font-size: 1.05rem; color: var(--ink); }
+
+.fg-qty {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 18px 0;
+}
+.fg-qty button {
+  padding: 12px 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(51, 36, 61, 0.18);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s;
+}
+.fg-qty button span { display: block; font-size: 0.72rem; color: var(--ink-faint); margin-top: 3px; }
+.fg-qty button.is-on { border-color: var(--magenta); background: rgba(242, 28, 140, 0.1); }
+.fg-qty button.is-on span { color: var(--magenta-deep); }
+
+.fg-order-total { font-size: 1.05rem; color: var(--ink); margin-bottom: 14px; }
+.fg-order-total strong { font-family: var(--display); color: var(--magenta-deep); }
+
+/* The payment instruction. Every row is a value the visitor has to retype into
+   a banking app, so each one that can be copied carries its own button — a
+   CliQ alias mistyped by one character is somebody else's money. */
+.fg-paylines {
+  border: 1px solid rgba(51, 36, 61, 0.14);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+}
+.fg-payline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+.fg-payline + .fg-payline { border-top: 1px solid rgba(51, 36, 61, 0.1); }
+.fg-payline dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.fg-payline dd { display: flex; align-items: center; gap: 10px; margin: 0; }
+.fg-payline dd span {
+  color: var(--ink);
+  font-size: 0.98rem;
+  /* Digits and a reference code are read character by character — a
+     proportional face makes 1/l and 0/O the reader's problem. */
+  font-variant-numeric: tabular-nums;
+}
+.fg-payline dd .fg-ref { font-family: var(--display); letter-spacing: 0.08em; color: var(--magenta-deep); }
+
+.fg-copy {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 36, 61, 0.2);
+  background: transparent;
+  color: var(--ink-dim);
+  font-family: inherit;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.fg-copy:hover { background: var(--ink); border-color: var(--ink); color: #fff8fc; }
+
+.fg-order .fg-pick { margin-top: 16px; }
+.fg-order .fg-fine strong { color: var(--ink); }
+
+/* ——— phone: the shared bottom sheet ——— */
+
+@media (max-width: 767px) {
+  .fg-scrim { place-items: end stretch; padding: 0; }
+  .fg-panel.is-sheet {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 22px 22px 0 0;
+    border-bottom: 0;
+    /* THE HOME INDICATOR. As a bottom sheet this panel's last row sits on the
+       very edge of the viewport — measured, the "Already have an account?
+       Sign in" link ended 14px above it at both 390x667 and 390x844. An iPhone
+       reserves roughly 34px there for the home indicator, so the popup's
+       secondary action was landing underneath it: still inside the viewport by
+       the numbers, and still not tappable in the hand. Pad by the real inset
+       rather than a guessed constant, so a device without one loses nothing. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .fg-close { width: 38px; height: 38px; }
+  .fg-qty { grid-template-columns: repeat(2, 1fr); }
+  /* A label, a value and a Copy button do not fit on one 390px row once the
+     value is a full CliQ alias — stack rather than let the button squeeze the
+     alias into an ellipsis, which is the one thing on this panel that must
+     never be truncated. */
+  .fg-payline { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .fg-payline dd { width: 100%; justify-content: space-between; }
+  .fg-auth-actions { flex-direction: column; align-items: stretch; }
+  .fg-auth-actions .wool-btn { width: 100%; }
+  .fg-pick { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg-close:hover, .fg-pick:hover { transform: none; }
+}

@@ -1,0 +1,175 @@
+/* ————————————————————————————————————————————————————————
+   LOOM — the living background
+
+   The whole page sits inside a loom that is still running. Three layers,
+   fixed behind everything:
+
+     warp   — the vertical threads strung on the frame, drifting down
+     aurora — three slow dye-blooms in the brand yarns
+     weft   — a single lit thread crossing the frame, once a minute
+
+   Everything animates on transform / opacity only, so it stays on the
+   compositor and never repaints. No canvas, no WebGL, no JS.
+   ———————————————————————————————————————————————————————— */
+
+.loom-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+  /* the hero's own WebGL canvas sits above this; everything else is
+     transparent, so this reads through the entire page */
+  background: var(--bg);
+}
+
+/* ——— the rose light ———
+   The footer's bloom-sky is the pinkest surface on the site, and the page
+   above it used to be a different temperature entirely — the join worked only
+   because the footer spends 260px of masked seam dissolving into it.
+
+   This puts the same light over the whole document: two very soft washes in
+   the footer's OWN stop colours (rgba(247,176,202) and rgba(196,116,172),
+   copied rather than re-eyeballed, exactly as .sol-console::before does), one
+   warm from the top and one from the lower right.
+
+   Deliberately weak — 0.10 and 0.055. This is a temperature, not a tint: the
+   body ink is #f2f0f7 and every section on the page was contrast-checked
+   against a near-black ground, so the wash has to stay under the level where
+   it starts lifting the floor. It sits on `.loom-bg`, which is `position:
+   fixed`, so it costs one composited layer for the whole page and scrolls
+   with nothing. */
+.loom-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 78% at 50% -10%, rgba(247, 176, 202, 0.10), rgba(196, 116, 172, 0.045) 45%, transparent 72%),
+    radial-gradient(90% 70% at 88% 108%, rgba(196, 116, 172, 0.055), transparent 68%);
+}
+
+/* ——— warp: the threads on the frame ——— */
+.loom-bg-warp {
+  position: absolute;
+  /* oversized so the drift never exposes an edge */
+  inset: -20% 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(242, 240, 247, 0.028) 0 1px,
+    transparent 1px 3px,
+    rgba(242, 240, 247, 0.014) 3px 4px,
+    transparent 4px 74px
+  );
+  animation: loom-warp-drift 38s linear infinite;
+  will-change: transform;
+}
+@keyframes loom-warp-drift {
+  from { transform: translateY(0); }
+  to { transform: translateY(74px); }
+}
+
+/* ——— aurora: dye blooming through the cloth ——— */
+.loom-bg-dye {
+  position: absolute;
+  inset: -30%;
+  will-change: transform;
+}
+.loom-bg-dye i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  /* deliberately no filter: blur() — a radial-gradient is already a soft
+     falloff, so the blur only added a huge rasterised layer for nothing */
+  opacity: 0.72;
+}
+/* three blooms, three yarns, three different long loops so they never
+   settle into a visible rhythm */
+.loom-bg-dye i:nth-child(1) {
+  width: 46vw; height: 46vw;
+  left: 4%; top: 6%;
+  background: radial-gradient(circle, rgba(242, 28, 140, 0.62), transparent 70%);
+  animation: loom-dye-a 52s ease-in-out infinite;
+}
+.loom-bg-dye i:nth-child(2) {
+  width: 54vw; height: 54vw;
+  right: 2%; top: 22%;
+  background: radial-gradient(circle, rgba(123, 47, 190, 0.58), transparent 70%);
+  animation: loom-dye-b 67s ease-in-out infinite;
+}
+.loom-bg-dye i:nth-child(3) {
+  width: 38vw; height: 38vw;
+  left: 34%; bottom: 4%;
+  background: radial-gradient(circle, rgba(89, 230, 255, 0.3), transparent 70%);
+  animation: loom-dye-c 81s ease-in-out infinite;
+}
+@keyframes loom-dye-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(14vw, 8vh, 0) scale(1.18); }
+  66% { transform: translate3d(-6vw, 16vh, 0) scale(0.9); }
+}
+@keyframes loom-dye-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  40% { transform: translate3d(-18vw, 10vh, 0) scale(0.88); }
+  70% { transform: translate3d(-4vw, -8vh, 0) scale(1.2); }
+}
+@keyframes loom-dye-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.95); }
+  50% { transform: translate3d(10vw, -14vh, 0) scale(1.25); }
+}
+
+/* ——— weft: one lit thread crossing the frame ——— */
+.loom-bg-weft {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  height: 1px;
+  top: 38%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(242, 28, 140, 0.5) 35%,
+    rgba(89, 230, 255, 0.55) 55%,
+    transparent
+  );
+  opacity: 0;
+  animation: loom-weft-pass 26s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+@keyframes loom-weft-pass {
+  0% { transform: translate3d(-60%, 0, 0) scaleX(0.6); opacity: 0; }
+  6% { opacity: 0.85; }
+  18% { opacity: 0.85; }
+  26% { transform: translate3d(60%, 0, 0) scaleX(1); opacity: 0; }
+  100% { transform: translate3d(60%, 0, 0) scaleX(1); opacity: 0; }
+}
+
+/* a second pass lower down, offset, so the loom feels continuously worked */
+.loom-bg-weft--low {
+  top: 74%;
+  animation-duration: 34s;
+  animation-delay: -13s;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 199, 64, 0.42) 45%,
+    rgba(123, 47, 190, 0.45) 62%,
+    transparent
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loom-bg-warp,
+  /* The three blooms have to be reset through the SAME `:nth-child()`
+     selectors that declared them. A bare `.loom-bg-dye i` is (0,1,1) and
+     `.loom-bg-dye i:nth-child(1)` is (0,2,1) — the reset simply lost the
+     cascade, and all three kept reporting animation-name loom-dye-a/b/c with
+     playState `running` under reduce. Matching the specificity is the fix;
+     `!important` would only have papered over it. */
+  .loom-bg-dye i:nth-child(1),
+  .loom-bg-dye i:nth-child(2),
+  .loom-bg-dye i:nth-child(3),
+  .loom-bg-weft { animation: none; }
+  /* the dye blooms stay — they are the room's colour, not its motion */
+  .loom-bg-weft { opacity: 0; }
+}

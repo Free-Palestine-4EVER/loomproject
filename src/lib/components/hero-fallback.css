@@ -1,0 +1,58 @@
+/* The `pointer: fine` fallback for a no-WebGL or reduced-motion hero visitor.
+   See Sections.jsx's `.hero-static-planet` comment for the two cases this
+   covers, and CLAUDE.md's "planet in the hero ... missing" report for why it
+   exists at all: PlanetField.js's canvas is only ever hidden on failure
+   (`canvas.style.display = 'none'` in the try/catch around its construction),
+   and reduced-motion readers never even attempt to construct it — either way
+   nothing was left behind to carry the subject. This file is separate from
+   `styles.css` on purpose (another agent owns that file concurrently); it is
+   imported only by Sections.jsx.
+
+   Hidden by default and only shown via the JS-added `.is-visible` class,
+   computed synchronously on first render (see the `noGL` useState in
+   Sections.jsx) — so a normal WebGL visitor never has this element painted
+   even for one frame. Positioned to land roughly where PlanetField.js's
+   billboard sits at rest (right two-thirds of the frame, a little above
+   centre) — same `/img/hero/planet.webp` source the WebGL canvas textures
+   onto its own plane, so the two never look like two different assets to a
+   visitor who reloads with WebGL back on.
+
+   `display: none !important` under `pointer: coarse` is a second, CSS-only
+   guard on top of the JS condition already excluding touch: `.hero-mobile-
+   planet` (styles.css) is the one that owns those devices already, and a
+   corner case where both classes ended up true must never show a planet
+   twice. */
+.hero-static-planet {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  display: none;
+}
+.hero-static-planet.is-visible { display: block; }
+@media (pointer: coarse) {
+  .hero-static-planet { display: none !important; }
+}
+.hero-static-planet-inner {
+  position: absolute;
+  top: 44%; right: 2%;
+  translate: 0 -50%;
+  width: min(46vw, 640px);
+  aspect-ratio: 1;
+  background: url('/img/hero/planet.webp') no-repeat center / contain;
+  /* AVIF is 38% smaller (221 KB vs 354 KB) at matched quality; browsers that
+     don't understand image-set() ignore this whole declaration and keep the
+     plain url() above, so there is no unsupported-browser fallback to wire
+     up by hand. */
+  background: image-set(url('/img/hero/planet.avif') type('image/avif'), url('/img/hero/planet.webp') type('image/webp')) no-repeat center / contain;
+  filter: drop-shadow(0 0 60px rgba(255, 200, 230, 0.35));
+  opacity: 0.95;
+  animation: hero-static-planet-float 7s ease-in-out infinite;
+}
+@keyframes hero-static-planet-float {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); }
+  50%  { transform: translateY(-14px) rotate(1.6deg) scale(1.035); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-static-planet-inner { animation: none; }
+}

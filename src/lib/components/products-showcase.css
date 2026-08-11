@@ -1,0 +1,585 @@
+/* ————————————————————————————————————————————————————————
+   products-showcase.css — everything AROUND the app-phone frame and
+   AROUND the lab screenshot: card rhythm, empty states, animated glyphs,
+   and the "considered frame" treatment for the 3D Lab shots.
+
+   Several selectors below deliberately carry two class names even where
+   one would read more simply (e.g. `.lab-preview-wrap .lab-chrome` instead
+   of `.lab-chrome`). This file is bundled ahead of styles.css in the final
+   build (Products.jsx is reached before the top-level styles.css import),
+   so ties are not decided in our favour by source order — a bare-class
+   rule here can lose to a same-specificity rule declared later in
+   styles.css (this is exactly how the existing `.lab-real` override in
+   styles.css already protects itself). Pairing two classes keeps every
+   override here correct regardless of import order.
+   ———————————————————————————————————————————————————————— */
+
+/* ═══════════════════════ Apps showcase ═══════════════════════ */
+
+/* A woven rhythm across the row — the centre card sits a touch lower,
+   like a weft thread crossing over. Pure margin, so it never competes
+   with the perspective-tilt transform the shared card rule already
+   drives on .app-card, and it only applies once there really are three
+   columns to weave. */
+@media (min-width: 1001px) {
+  .apps-grid--woven .app-cell:nth-child(3n+2) { margin-top: clamp(16px, 2.2vw, 30px); }
+}
+
+/* .lab and .crew both clip at the section level (their own ambient bg blooms
+   bleed past -10/-12%); .apps never got the same treatment in styles.css.
+   The new drifting aura below bleeds a card's ::after past its own edge the
+   same way, and on a narrow viewport with nothing clipping it that reads as
+   real horizontal scroll — so .apps gets the same containment its siblings
+   already have. */
+.apps { overflow-x: clip; }
+
+/* A bottom accent thread, matching the lab cards' visual language. Scoped
+   with the parent class (not just `.app-thread`) so it beats the shared
+   `.app-card > *` rule in styles.css, which otherwise forces every direct
+   child back to position:relative. */
+.app-card > .app-thread {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: linear-gradient(90deg, var(--magenta), var(--violet));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.6s var(--ease);
+  pointer-events: none;
+}
+.app-card:hover > .app-thread,
+.app-card:focus-within > .app-thread { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) {
+  .app-card > .app-thread { transition: none; }
+}
+
+/* Empty-state pill for the one app with no capture yet (TrueSize AR) — same
+   corner language as REAL BUILD, but honest about what it actually is: a
+   procedural screen, not a photograph of a running build. Sits below the
+   mockup's Dynamic Island rather than beside it, since the island is painted
+   into the frame PNG and owns the top-centre of the glass. */
+/* Insets clear the mockup's own bezel (5.71% of the frame's width, ~15px at
+   the 260px cap) — the frame PNG paints over anything that strays under it. */
+.app-phone .app-concept {
+  position: absolute; top: 46px; left: 23px; z-index: 3;
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 0.16em;
+  color: var(--ink); background: rgba(123, 47, 190, 0.28);
+  border: 1px solid rgba(123, 47, 190, 0.6);
+  border-radius: 999px; padding: 4px 9px;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.3s;
+}
+.app-card:hover .app-concept { opacity: 0; }
+
+/* ───────── Card material + hierarchy — brought up to the Crew cards' bar ─────────
+   crew.css set the standard: mascot on a tinted aura, a coloured role
+   eyebrow, strong name type, a discipline pill, a divider before the detail.
+   These cards were flat rectangles next to that — no knit, no aura, uneven
+   internal rhythm (blurb length pushed the CTA row to a different height on
+   every card in the row), and a dashed low-contrast CTA that read as
+   disabled. Two-class selectors win the specificity tie against styles.css
+   (see this file's header note), so every rule below can safely redeclare a
+   property styles.css already set. */
+
+/* equal card height across a row, CTA pinned to the card's own bottom edge —
+   independent of how many lines any one blurb runs to */
+.apps-grid .app-cell { height: 100%; }
+.apps-grid .app-card { display: flex; flex-direction: column; }
+.apps-grid .app-card .app-meta {
+  flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;
+}
+.apps-grid .app-card .app-meta > p { margin: 8px 0 0; }
+
+/* a dark wash over the same woven-label grain the chips use (textile-
+   details.css's --tex-fabric) — just enough knit to tie the panel to the
+   wool language without fighting the phone sitting on top of it */
+.apps-grid .app-card {
+  background-color: transparent;
+  background-image:
+    linear-gradient(165deg, rgba(28, 17, 44, 0.9), rgba(255, 233, 242, 0.86)),
+    var(--tex-fabric);
+  background-blend-mode: normal;
+  background-size: auto, 130px 14px;
+  background-repeat: no-repeat, repeat;
+}
+
+/* the brand-pair bloom becomes a slow drifting aura instead of a static
+   bleed — same --g1/--g2 the phone body already reads off the cell, so nei
+   can drift out of sync if APPS is ever reordered */
+.apps-grid .app-card::after {
+  inset: -10% -14%;
+  /* styles.css's own two corner-bleed gradients kept (they're what makes the
+     card's own bounce light read as g1/g2, not one flat colour), plus a
+     third, stronger, centred layer behind the phone itself — the crew cards'
+     move: a glow the mascot visibly stands on, not just a tint at the edges */
+  background:
+    radial-gradient(52% 46% at 50% 20%, color-mix(in srgb, var(--g1) 50%, transparent), transparent 72%),
+    radial-gradient(46% 40% at 26% 14%, color-mix(in srgb, var(--g1) 55%, transparent), transparent 70%),
+    radial-gradient(44% 38% at 80% 90%, color-mix(in srgb, var(--g2) 50%, transparent), transparent 72%);
+  filter: blur(30px);
+  opacity: 0.55;
+}
+.apps-grid .app-card:hover::after { opacity: 0.8; }
+@media (prefers-reduced-motion: no-preference) {
+  .apps-grid .app-card::after { animation: card-aura-drift 9s ease-in-out infinite; }
+}
+@keyframes card-aura-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(2%, -3%) scale(1.04); }
+}
+/* respects the same off-screen animation budget as everything else on this
+   page (see the block at the bottom of this file) — ::after isn't matched
+   by the `*` in that rule, so it needs its own line */
+.app-card:not(.is-live)::after { animation-play-state: paused !important; }
+
+/* eyebrow (platform) + name + discipline pill (category) — the same
+   role/owns split crew.css uses, both pulled from the one `tag` string
+   already in the data ("iOS · Events") rather than inventing new copy */
+.apps-grid .app-card .app-eyebrow {
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--g1, var(--magenta));
+}
+.apps-grid .app-card .app-meta h3 {
+  font-weight: 640; font-size: clamp(1.22rem, 1.7vw, 1.5rem); letter-spacing: -0.01em;
+}
+/* the real app icon, worn as the iOS squircle rather than a plain square, so
+   it reads as "this is the thing on your home screen" at a glance. The
+   gradient ring is the card's own --g1/--g2, so it never fights the art. */
+.apps-grid .app-card .app-meta h3.has-mark {
+  display: flex; align-items: center; gap: 11px;
+}
+.apps-grid .app-card .app-mark {
+  width: 34px; height: 34px; flex: none;
+  border-radius: 10px; /* ~30% — iOS squircle proportion at this size */
+  object-fit: cover;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--g1, var(--magenta)) 45%, transparent),
+    0 6px 14px rgba(0, 0, 0, 0.42);
+  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+}
+.app-card:hover .app-mark,
+.app-card:focus-within .app-mark {
+  transform: translateY(-2px) rotate(-3deg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--g2, var(--magenta)) 70%, transparent),
+    0 10px 22px rgba(0, 0, 0, 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .apps-grid .app-card .app-mark { transition: none; }
+  .app-card:hover .app-mark, .app-card:focus-within .app-mark { transform: none; }
+}
+.apps-grid .app-card .app-pill {
+  font-size: 0.72rem; font-weight: 700; color: var(--ink-dim);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px 11px; width: fit-content;
+}
+
+/* a divider before the CTA — same language as crew-quote's border-top */
+.apps-grid .app-card .app-meta-divider {
+  display: block; height: 1px; margin: 12px 0 2px;
+  background: linear-gradient(90deg, var(--line), transparent 85%);
+}
+.apps-grid .app-card .app-meta .dl-row { margin-top: 8px; }
+
+/* ───────── Platform / store marks — always drawn, alive on interaction ─────────
+   These glyphs render fully-formed the instant they mount (see PlatformMark's
+   header comment in Products.jsx for why a scroll-gated draw-in was dropped);
+   what's left here is pure CSS hover/active/focus-visible choreography. */
+
+.platform-mark { overflow: visible; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .pm-leaf, .pm-screen, .pm-globe, .pm-plane, .pm-arrow, .pm-triangle {
+    transform-box: fill-box;
+    transition: transform 0.22s var(--ease);
+  }
+  .pm-q { transition: transform 0.22s var(--ease); }
+
+  /* iOS — the leaf catches a breeze */
+  .platform-mark--ios .pm-leaf { transform-origin: 70% 60%; }
+  .dl-btn:hover .platform-mark--ios .pm-leaf,
+  .dl-btn:active .platform-mark--ios .pm-leaf { transform: rotate(16deg); }
+
+  /* macOS — the screen wakes */
+  .platform-mark--macos .pm-screen { transform-origin: center; }
+  .dl-btn:hover .platform-mark--macos .pm-screen,
+  .dl-btn:active .platform-mark--macos .pm-screen { transform: scale(1.1); }
+
+  /* Windows — the four tiles fan apart, the way the real boot mark does */
+  .dl-btn:hover .platform-mark--windows .pm-q1,
+  .dl-btn:active .platform-mark--windows .pm-q1 { transform: translate(-1.3px, -1.3px); }
+  .dl-btn:hover .platform-mark--windows .pm-q2,
+  .dl-btn:active .platform-mark--windows .pm-q2 { transform: translate(1.3px, -1.3px); }
+  .dl-btn:hover .platform-mark--windows .pm-q3,
+  .dl-btn:active .platform-mark--windows .pm-q3 { transform: translate(-1.3px, 1.3px); }
+  .dl-btn:hover .platform-mark--windows .pm-q4,
+  .dl-btn:active .platform-mark--windows .pm-q4 { transform: translate(1.3px, 1.3px); }
+
+  /* Linux — Tux tips its head */
+  .platform-mark--linux { transition: transform 0.22s var(--ease); transform-origin: 50% 65%; }
+  .dl-btn:hover .platform-mark--linux,
+  .dl-btn:active .platform-mark--linux { transform: rotate(-9deg); }
+
+  /* Web — the globe turns a quarter */
+  .platform-mark--web { transition: transform 0.32s var(--ease); transform-origin: center; }
+  .dl-btn:hover .platform-mark--web,
+  .dl-btn:active .platform-mark--web { transform: rotate(54deg); }
+
+  /* App Store — the arrow nudges toward its own point */
+  .platform-mark--appstore .pm-arrow { transform-origin: center; }
+  .dl-btn:hover .platform-mark--appstore .pm-arrow,
+  .dl-btn:active .platform-mark--appstore .pm-arrow { transform: translate(1.4px, -1.4px); }
+
+  /* TestFlight — the plane lifts off */
+  .platform-mark--testflight .pm-plane { transform-origin: 35% 65%; }
+  .dl-btn:hover .platform-mark--testflight .pm-plane,
+  .dl-btn:active .platform-mark--testflight .pm-plane { transform: translate(2.6px, -2.6px) rotate(10deg); }
+
+  /* Google Play — the triangle noses forward, toward its own point */
+  .platform-mark--googleplay .pm-triangle { transform-origin: 30% 50%; }
+  .dl-btn:hover .platform-mark--googleplay .pm-triangle,
+  .dl-btn:active .platform-mark--googleplay .pm-triangle { transform: translate(1.6px, 0) scale(1.05); }
+
+  /* All of the above, again for keyboard focus — these marks now sit inside
+     real <button>s (.dl-btn), so a tab-stop deserves the same life a mouse
+     hover gets, not just a bare outline. */
+  .dl-btn:focus-visible .platform-mark--ios .pm-leaf { transform: rotate(16deg); }
+  .dl-btn:focus-visible .platform-mark--macos .pm-screen { transform: scale(1.1); }
+  .dl-btn:focus-visible .platform-mark--windows .pm-q1 { transform: translate(-1.3px, -1.3px); }
+  .dl-btn:focus-visible .platform-mark--windows .pm-q2 { transform: translate(1.3px, -1.3px); }
+  .dl-btn:focus-visible .platform-mark--windows .pm-q3 { transform: translate(-1.3px, 1.3px); }
+  .dl-btn:focus-visible .platform-mark--windows .pm-q4 { transform: translate(1.3px, 1.3px); }
+  .dl-btn:focus-visible .platform-mark--web { transform: rotate(54deg); }
+  .dl-btn:focus-visible .platform-mark--appstore .pm-arrow { transform: translate(1.4px, -1.4px); }
+  .dl-btn:focus-visible .platform-mark--testflight .pm-plane { transform: translate(2.6px, -2.6px) rotate(10deg); }
+  .dl-btn:focus-visible .platform-mark--googleplay .pm-triangle { transform: translate(1.6px, 0) scale(1.05); }
+}
+
+/* ─────────────────────── Download / store buttons ───────────────────────
+   Mock CTAs (see the DOWNLOADS / TOOL_DOWNLOADS maps in Products.jsx — every
+   href is a '#' placeholder). Deliberately NOT `.app-badge` — that class is
+   the site-wide "woven care label" chip (textile-details.css paints it with
+   a dashed border and a faint fabric texture, correct for a passive filter
+   tag, wrong for a primary CTA: it read as a disabled control). This is its
+   own fully self-contained solid button: real border, real fill, a two-line
+   "eyebrow + title" label in the convention real store badges use, a
+   per-platform accent, and a considered lift + glow on hover AND keyboard
+   focus. Selectors carry two-plus classes on purpose — see this file's
+   header note on why ties are not decided by source order. */
+.dl-row {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-top: 4px;
+}
+.dl-row .dl-btn {
+  appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color: transparent;
+  display: inline-flex; align-items: center; gap: 10px;
+  font: inherit; font-size: 0.8rem; color: var(--ink); cursor: pointer;
+  border: 1.5px solid color-mix(in srgb, var(--dl-accent, var(--line)) 42%, var(--line));
+  border-radius: 14px;
+  padding: 9px 16px 9px 12px;
+  /* measured 41.5px tall on a phone — 2.5px under the floor, and on the
+     `@media (max-width: 480px)` padding below it drops further. */
+  min-height: 44px;
+  position: relative; isolation: isolate; overflow: hidden;
+  /* The chip's OWN ground, and it had to move with the page. This was
+     rgba(18, 11, 28, 0.72) — a dark plate that the ground flip never touched,
+     because it is not one of the literal --bg copies that were grepped for.
+     Its two labels DID flip to var(--ink), so every download button on the
+     page rendered dark ink on a dark plate. */
+  background: color-mix(in srgb, var(--dl-accent, var(--magenta)) 11%, rgba(255, 233, 242, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 10px 22px rgba(120, 40, 90, 0.16);
+  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease),
+    box-shadow 0.3s var(--ease), background-color 0.3s var(--ease);
+}
+/* a richer tinted wash that crossfades in on interaction, keyed to the
+   platform's own accent — this is what stops six buttons from reading as
+   one generic template repeated six times */
+.dl-row .dl-btn::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0;
+  background: linear-gradient(155deg, color-mix(in srgb, var(--dl-accent, var(--magenta)) 40%, transparent), transparent 74%);
+  transition: opacity 0.35s var(--ease);
+}
+.dl-row .dl-btn:hover,
+.dl-row .dl-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--dl-accent, var(--magenta)) 78%, transparent);
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 32px rgba(0, 0, 0, 0.45),
+    0 0 0 1px color-mix(in srgb, var(--dl-accent, var(--magenta)) 25%, transparent);
+}
+.dl-row .dl-btn:hover::before,
+.dl-row .dl-btn:focus-visible::before { opacity: 1; }
+.dl-row .dl-btn:active { transform: translateY(-1px) scale(0.985); }
+.dl-row .dl-btn:focus-visible {
+  outline: 2px solid var(--dl-accent, var(--magenta)); outline-offset: 3px;
+}
+.dl-row .dl-btn svg { width: 19px; height: 19px; color: var(--dl-accent, var(--ink)); flex: none; }
+
+/* The chip rendered as a real <a> rather than a dead <button>: same box, but
+   it needs the anchor defaults stripped, and it earns a small live dot so a
+   working link is visibly different from the placeholders beside it. */
+.dl-row .dl-btn--real { text-decoration: none; padding-right: 26px; }
+.dl-row .dl-btn--real::after {
+  content: ''; position: absolute; top: 10px; right: 10px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--dl-accent, var(--magenta));
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--dl-accent, var(--magenta)) 60%, transparent);
+  animation: dl-live-pulse 2.4s var(--ease) infinite;
+}
+@keyframes dl-live-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--dl-accent, var(--magenta)) 55%, transparent); }
+  55%      { box-shadow: 0 0 0 4px color-mix(in srgb, var(--dl-accent, var(--magenta)) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dl-row .dl-btn--real::after { animation: none; }
+}
+
+.dl-btn-copy { display: flex; flex-direction: column; gap: 1px; text-align: left; line-height: 1.15; }
+.dl-btn-copy em {
+  font-style: normal; font-size: 0.53rem; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-dim);
+}
+.dl-btn-copy strong { font-size: 0.86rem; font-weight: 800; letter-spacing: 0.005em; color: var(--ink); }
+
+/* per-platform accent — App Store/TestFlight keep the site's existing cyan
+   "store" convention, the rest each get their own so a row of two or three
+   buttons never reads as one colour repeated */
+.dl-btn--appstore, .dl-btn--testflight { --dl-accent: var(--cyan); }
+.dl-btn--googleplay { --dl-accent: #34d399; }
+.dl-btn--macos { --dl-accent: var(--violet); }
+.dl-btn--windows { --dl-accent: var(--gold); }
+.dl-btn--web { --dl-accent: var(--magenta); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dl-row .dl-btn,
+  .dl-row .dl-btn::before { transition: none; }
+  .dl-row .dl-btn:hover,
+  .dl-row .dl-btn:focus-visible,
+  .dl-row .dl-btn:active { transform: none; }
+}
+
+@media (max-width: 480px) {
+  .dl-row { gap: 8px; }
+  .dl-row .dl-btn { padding: 7px 12px 7px 10px; border-radius: 12px; gap: 8px; }
+  .dl-row .dl-btn svg { width: 17px; height: 17px; }
+  .dl-btn-copy strong { font-size: 0.8rem; }
+}
+
+/* ═══════════════════════════ 3D Lab ═══════════════════════════ */
+
+/* ───────── Card material + hierarchy — matching the App cards above ─────────
+   Same brief as the apps grid: equal height, CTA pinned to the bottom edge,
+   knit ground, a drifting aura keyed to each tool's own accent, a divider
+   before the CTA. The kicker ("Talk-to-3D studio") already reads like a role
+   eyebrow — Products.jsx now renders it above the name instead of below,
+   coloured per-tool via the --tool-accent already set inline on the card. */
+.lab-grid .lab-card {
+  display: flex; flex-direction: column; gap: 2px;
+  background-color: transparent;
+  background-image:
+    linear-gradient(165deg, rgba(22, 13, 35, 0.86), rgba(255, 236, 244, 0.88)),
+    var(--tex-fabric);
+  background-blend-mode: normal;
+  background-size: auto, 130px 14px;
+  background-repeat: no-repeat, repeat;
+}
+.lab-grid .lab-card::after {
+  content: ''; position: absolute; inset: -4%; z-index: 0;
+  background: radial-gradient(56% 46% at 50% 0%, color-mix(in srgb, var(--tool-accent, var(--cyan)) 34%, transparent), transparent 74%);
+  filter: blur(28px);
+  opacity: 0.42;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease);
+}
+.lab-grid .lab-card:hover::after { opacity: 0.78; }
+@media (prefers-reduced-motion: no-preference) {
+  .lab-grid .lab-card::after { animation: lab-aura-drift 10s ease-in-out infinite; }
+}
+@keyframes lab-aura-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-2%, 2%) scale(1.05); }
+}
+.lab-card:not(.is-live)::after { animation-play-state: paused !important; }
+
+.lab-grid .lab-card .lab-kicker {
+  color: var(--tool-accent, var(--magenta));
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+  margin: 0 0 3px;
+}
+.lab-grid .lab-card header { margin-top: 1px; }
+.lab-grid .lab-card .lab-blurb { margin-top: 4px; }
+
+/* a divider before the CTA — same language as crew-quote's border-top and
+   the app cards' own .app-meta-divider above */
+.lab-grid .lab-card .lab-meta-divider {
+  display: block; height: 1px; margin: 14px 0 8px;
+  background: linear-gradient(90deg, var(--line), transparent 85%);
+}
+
+/* ——— the machine ———
+   public/img/devices/macbook-frame.png is the stock MacBook Pro render keyed
+   to alpha by scripts/make-device-frames.mjs. Unlike the phone its display is
+   left painted (nothing has to sit on top of the screen), so the frame goes
+   BEHIND and the preview is pinned to the display's measured rect: 1600 x 930,
+   display at 12.07% / 6.09% / 78.31% / 86.14% — a hair wider than the 16:10 the
+   preview used to be, which the shots absorb via object-fit: cover. Re-run the
+   script and copy its numbers here if the art is ever swapped. */
+.lab-mac {
+  position: relative; width: 100%; aspect-ratio: 1600 / 930;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.5));
+}
+.lab-mac .lab-mac-frame {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; object-fit: fill;
+  pointer-events: none; user-select: none;
+}
+/* Two classes so this beats `.lab-preview-wrap` in styles.css whichever way
+   the bundle orders them — see this file's header note. The mockup's bezel is
+   the frame now, so the wrapper drops its own border, radius and margin. */
+.lab-mac .lab-preview-wrap {
+  position: absolute; z-index: 1;
+  left: 12.07%; top: 6.09%; width: 78.31%; height: 86.14%;
+  margin: 0; aspect-ratio: auto;
+  border: 0; border-radius: 0;
+  background: #fff4f9;
+}
+
+/* The window chrome — a slim titlebar pinned over every card, screenshot
+   or generative fallback alike, so all six read as one family of "live
+   windows" rather than five screenshots and one blank one. Two class
+   names on the selector to out-rank `.lab-preview-wrap > *` in styles.css,
+   which would otherwise stretch this bar to fill the whole frame. */
+.lab-preview-wrap .lab-chrome {
+  position: absolute; inset: 0 0 auto 0; width: 100%; height: auto;
+  z-index: 4; display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px;
+  background: linear-gradient(180deg, rgba(255, 238, 245, 0.86) 0%, rgba(255, 238, 245, 0) 100%);
+  pointer-events: none;
+}
+.lab-chrome-dots { display: inline-flex; gap: 4px; }
+.lab-chrome-dots i {
+  width: 6px; height: 6px; border-radius: 50%;
+  border: 1px solid var(--ink-faint); background: transparent;
+}
+.lab-chrome-name {
+  font-family: var(--body); font-weight: 700; font-size: 0.66rem;
+  letter-spacing: 0.1em; color: var(--ink-dim);
+}
+.lab-chrome-status {
+  margin-left: auto; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--tool-accent, var(--cyan));
+  box-shadow: 0 0 7px var(--tool-accent, var(--cyan));
+  transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.lab-card:hover .lab-chrome-status { box-shadow: 0 0 12px var(--tool-accent, var(--cyan)); transform: scale(1.3); }
+@media (prefers-reduced-motion: reduce) {
+  .lab-chrome-status { transition: none; }
+  .lab-card:hover .lab-chrome-status { transform: none; }
+}
+
+/* A floor shadow, so every card's bottom edge reads the same regardless
+   of how the source screenshot was lit. */
+.lab-preview-wrap .lab-floor {
+  position: absolute; inset: auto 0 0 0; height: 42%; z-index: 2;
+  background: linear-gradient(0deg, rgba(255, 238, 245, 0.6), transparent);
+  pointer-events: none;
+}
+
+/* The contrast wash. Real tool screenshots come from five different apps
+   at five different exposures — this is what makes them read as one
+   deliberate, dark product-shot family instead of five raw grabs. It
+   fades with the shot on hover/tap, same as the REAL TOOL pill, since
+   the generative x-ray view underneath needs no correction. */
+.lab-veil {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 105%, rgba(255, 233, 242, 0.6), transparent 62%),
+    linear-gradient(180deg, rgba(255, 233, 242, 0.28) 0%, transparent 26%, transparent 70%, rgba(255, 233, 242, 0.4) 100%);
+  transition: opacity 0.5s var(--ease);
+}
+.lab-card:hover .lab-veil { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .lab-veil { transition: none; }
+}
+/* KUN's cream terminal and ATELIER's washed render need real correction,
+   not just a vignette, to sit at the same contrast as the dark-UI tools */
+.lab-preview-wrap[data-tone="light"] .lab-veil {
+  background:
+    radial-gradient(120% 90% at 50% 105%, rgba(255, 233, 242, 0.68), transparent 62%),
+    linear-gradient(180deg, rgba(255, 233, 242, 0.42) 0%, rgba(255, 233, 242, 0.06) 30%, rgba(255, 233, 242, 0.1) 68%, rgba(255, 233, 242, 0.52) 100%),
+    linear-gradient(155deg, rgba(123, 47, 190, 0.22), rgba(89, 230, 255, 0.1) 60%, transparent);
+}
+
+/* SPLAT LAB (and any future tool shipped with no `shot`) gets the same
+   chrome as everything else, wearing an honest label — the animated SVG
+   underneath *is* the content here, not a placeholder standing in for a
+   missing screenshot. */
+.lab-preview-wrap .lab-live-badge {
+  position: absolute; bottom: 10px; right: 10px; z-index: 3;
+  width: auto; height: auto;
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 0.16em;
+  color: var(--ink); background: rgba(255, 199, 64, 0.2);
+  border: 1px solid rgba(255, 199, 64, 0.55);
+  border-radius: 999px; padding: 4px 9px;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.3s;
+}
+.lab-card:hover .lab-live-badge { opacity: 0; }
+
+/* Move REAL TOOL down out of the new titlebar's way, onto the floor
+   gradient instead of crowding the top edge. */
+.lab-preview-wrap .lab-real { top: auto; bottom: 10px; right: 10px; }
+
+/* The display is 77% of the card's width now that the machine is around it,
+   so both pills come down a step to keep the same weight against the shot.
+   Three classes to clear the two-class rules above regardless of order. */
+.lab-mac .lab-preview-wrap .lab-real,
+.lab-mac .lab-preview-wrap .lab-live-badge {
+  bottom: 7px; right: 7px;
+  font-size: 0.52rem; letter-spacing: 0.14em; padding: 3px 7px;
+}
+
+.lab-preview-wrap.is-tappable:focus-visible {
+  outline: 2px solid var(--tool-accent, var(--cyan));
+  outline-offset: 3px;
+}
+
+/* Hover glow keys off each tool's own accent instead of one fixed cyan —
+   three extra classes' worth of specificity to beat styles.css's
+   `.lab-card:hover` regardless of bundle order. */
+.lab-grid .lab-card:hover { border-color: color-mix(in srgb, var(--tool-accent, var(--cyan)) 55%, transparent); }
+.lab-grid .lab-card::before {
+  background: radial-gradient(340px circle at var(--mx) var(--my), color-mix(in srgb, var(--tool-accent, var(--magenta)) 20%, transparent), transparent 62%);
+}
+
+@media (max-width: 480px) {
+  /* has to carry the parent class: the base rule is `.lab-preview-wrap
+     .lab-chrome`, and a media query adds no specificity of its own */
+  .lab-preview-wrap .lab-chrome { padding: 7px 10px; }
+  .lab-chrome-name { font-size: 0.6rem; }
+}
+
+/* Same tie-break as .app-thread above: the shared `.lab-card > *` tilt rule in
+   styles.css sets position:relative at equal specificity and later in source
+   order, which silently drops this bar out of its absolute placement. */
+.lab-card > .lab-thread { position: absolute; }
+
+/* ═══════════════════════════════════════════════════════════
+   OFF-SCREEN BUDGET — see src/lib/viewportBudget.js
+
+   Between them appscreens.css and labpreviews.css run 23 `infinite`
+   animations: six phone UIs and six tool previews, every one of them looping
+   for the whole session whether or not the reader is near it. Twelve
+   permanently-animating composited cards is where this page starts to drag —
+   measurably, on desktop as much as on phones.
+
+   So the loops are parked by default and only run on the card the reader has
+   actually reached. `is-live` is added by an IntersectionObserver with a
+   quarter-viewport of lead-in, so a card is always mid-cycle by the time it is
+   legible — nothing ever appears to start when you look at it.
+
+   !important is deliberate and load-bearing: these keyframes are declared on
+   dozens of nested selectors across two other stylesheets, and this one rule
+   has to outrank all of them without naming any.
+   ═══════════════════════════════════════════════════════════ */
+.app-card:not(.is-live),
+.app-card:not(.is-live) *,
+.lab-card:not(.is-live),
+.lab-card:not(.is-live) * {
+  animation-play-state: paused !important;
+}

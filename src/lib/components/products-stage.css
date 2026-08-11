@@ -1,0 +1,310 @@
+/* ————————————————————————————————————————————————————————————————
+   products-stage.css — `#apps`, "THE STAGE".
+
+   One product centre stage, an icon rail of real tabs switching what is on
+   it. The client rejected the flat six-card grid `suite.css` shipped
+   ("not designed... make it change on scroll like it used to do"), so this
+   restores the OLD AppsShowcase design — re-plumbed onto SUITE's six items
+   (Products.jsx) instead of the old seven-app roster.
+
+   PERFORMANCE CONTRACT, carried over from the design this replaces:
+
+     · Nothing loops unconditionally. There is no shot-cycle interval and no
+       motes layer left in this version — SUITE items carry one image each,
+       so there is nothing to cycle.
+     · Only `transform`, `opacity` and colour are animated. No `filter: blur`
+       on any element with children, no canvas, no backdrop-filter.
+     · Only the SELECTED item's image is ever in the DOM (Products.jsx keys
+       it on `item.key`), so switching never crossfades six pre-loaded
+       images — it swaps one DOM node and plays one entrance animation.
+
+   `#lab` / the old "THE DECK" turntable is gone — its whole ruleset (`.dk-*`)
+   was removed with it rather than kept dead, since nothing references those
+   classes any more. `git show` on this file's earlier revision is the way
+   back if the deck is ever wanted again.
+   ———————————————————————————————————————————————————————————————— */
+
+.apps { overflow-x: clip; }
+
+/* ═══════════════════════════════════════════════════════════════
+   THE ICON — the rail and the identity row both use it.
+
+   Four of the six items ship a real icon file (public/img/suite/*-icon.webp).
+   2D3D and KUN don't — they're desktop tools, not app-store products with a
+   square glyph — so those fall back to a gradient squircle carrying the
+   product's own initial. Flat gradient, one inset highlight, one letter — no
+   image request, no filter, no pseudo-3D.
+   ═══════════════════════════════════════════════════════════════ */
+.pi {
+  display: flex; align-items: center; justify-content: center;
+  position: relative; flex: none;
+  border-radius: 23%; overflow: hidden;
+  background: linear-gradient(146deg, var(--g1), var(--g2));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 -8px 18px -10px rgba(0, 0, 0, 0.6) inset,
+    0 8px 20px -12px rgba(0, 0, 0, 0.9);
+}
+.pi::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 46%);
+}
+.pi em {
+  position: relative; z-index: 2; font-style: normal;
+  font-family: var(--display); font-weight: 700;
+  font-size: 52%; color: #fff; opacity: 0.96; line-height: 1;
+}
+.pi img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pi--photo::after { background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 50%); }
+
+/* The status chip. Every SUITE item states its own status honestly (see
+   data/suite.js) rather than a store badge that might 404 — the two "real"
+   ones (App Store / TestFlight) get their accent colour, the rest sit dim. */
+.pstore {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--display); font-weight: 560;
+  font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+  white-space: nowrap; border-radius: 999px; padding: 5px 10px;
+  border: 1px solid rgba(242, 240, 247, 0.18); color: var(--ink-dim);
+}
+.pstore i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex: none; }
+/* the BORDER keeps the bright status colour; the LABEL does not, so the
+   badge still colour-codes at a glance while the word stays readable */
+.pstore[data-s='On the App Store'] { color: #17694b; border-color: rgba(46, 230, 168, 0.55); }
+.pstore[data-s='TestFlight'] { color: #7a5410; border-color: rgba(255, 199, 64, 0.55); }
+.pstore[data-s='Submitted'] { color: #145f75; border-color: rgba(89, 230, 255, 0.6); }
+.pstore[data-s='Built — in review'] { color: #145f75; border-color: rgba(89, 230, 255, 0.4); }
+
+/* This file's own visually-hidden helper — there is no global one. */
+.p-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   #apps · THE STAGE
+   rail (tabs) | copy (.stg-info) | imagery (.stg-panel)
+   Identity sits beside the rail; the imagery is the right-hand column.
+   ═══════════════════════════════════════════════════════════════ */
+/* ——— the scroll timeline. One viewport to read the stage in, plus 0.62 of
+   one per item to travel through; `--steps` comes from JSX (SUITE.length -
+   1), so adding a product lengthens the timeline on its own. The card itself
+   is unchanged — it is simply held still by a sticky parent while the page
+   scrolls past it, and Products.jsx reads how far in the reader is.
+
+   Below 761px wide or 620px tall the whole mechanism folds flat: the track
+   loses its height, the pin stops sticking, and the section is exactly the
+   ordinary click-driven card it was before. Same for reduced motion. ——— */
+.stg-scroll {
+  height: calc(100vh + var(--steps) * 62vh);
+  position: relative;
+}
+.stg-pin {
+  position: sticky; top: 0;
+  min-height: 100vh;
+  display: grid; align-content: center;
+}
+.stg-scroll--flat { height: auto; }
+.stg-scroll--flat .stg-pin { position: static; height: auto; min-height: 0; padding-block: clamp(40px, 6vh, 80px); }
+/* THE OTHER HALF OF `STAGE_PIN` in Products.jsx — same rule, stated for the
+   layout. Edit both or neither: a driver that believes it is pinned, over a
+   track that is `position: static`, walks an index nobody is looking at. */
+@media (max-height: 619px), (max-width: 760px) and (max-height: 759px) {
+  .stg-scroll, .stg-pin { height: auto; min-height: 0; position: static; }
+}
+/* svh, not vh, on the phone track: vh freezes at the tallest layout viewport,
+   so a URL bar sliding away mid-scroll would leave the last product with
+   less travel than the five before it. */
+@media (max-width: 760px) and (min-height: 760px) {
+  .stg-scroll { height: calc(100svh + var(--steps) * 55svh); }
+  .stg-pin { min-height: 100svh; }
+}
+
+.stg {
+  position: relative; isolation: isolate;
+  margin: clamp(26px, 4vh, 46px) var(--pad) 0;
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(18px, 3vw, 40px); align-items: center;
+  border: 1px solid var(--line); border-radius: 28px;
+  background: var(--bg-2);
+  padding: clamp(20px, 2.6vw, 36px);
+  overflow: hidden;
+}
+/* the card's own light, in the SELECTED item's colours (`--g1`/`--g2` are
+   set inline from suite.js). Two pools and a floor: a wash behind the
+   device, a cooler one behind the copy, and an elliptical pool the device
+   stands in so it isn't floating on a flat rectangle. Only colour
+   transitions, and it is the ONE thing here allowed to be slow, since it is
+   a `background` cross-fade behind everything else, not a per-frame paint. */
+.stg-aura {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(46% 60% at 34% 34%, color-mix(in oklab, var(--g1) 20%, transparent), transparent 70%),
+    radial-gradient(40% 50% at 78% 74%, color-mix(in oklab, var(--g2) 14%, transparent), transparent 72%),
+    radial-gradient(30% 12% at 34% 84%, color-mix(in oklab, var(--g1) 22%, transparent), transparent 70%);
+  transition: background 0.8s var(--ease);
+}
+/* a hairline the device stands on, so the pool reads as a floor and not a blur */
+.stg-aura::after {
+  content: ''; position: absolute; left: 8%; width: 46%; bottom: 14%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(242, 240, 247, 0.14) 26%, rgba(242, 240, 247, 0.14) 74%, transparent);
+}
+/* ——— the tabpanel: identity LEFT, imagery RIGHT ———
+   The client's order, and the order the markup is written in, so DOM order
+   and visual order agree — there is no `order` property anywhere in this
+   file. The copy takes the flexible track (it is text, it reflows); the
+   imagery takes an auto track whose width `.stg-panel` states outright. */
+.stg-stage {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  justify-content: center; align-items: center;
+  gap: clamp(20px, 3vw, 48px);
+}
+.stg-panel { min-width: 0; width: clamp(200px, 26vw, 300px); }
+
+/* ——— the rail: a real tablist, vertical on desktop ——— */
+.stg-rail { display: flex; flex-direction: column; gap: 12px; }
+.stg-rail button {
+  position: relative; padding: 0; border: 0; background: none; cursor: pointer;
+  border-radius: 19px; flex: none;
+  transition: transform 0.3s var(--ease);
+}
+.stg-rail .pi { width: clamp(46px, 4.2vw, 58px); aspect-ratio: 1; opacity: 0.5; transition: opacity 0.35s var(--ease); }
+.stg-rail button:hover .pi { opacity: 0.85; }
+.stg-rail button[aria-selected='true'] .pi { opacity: 1; }
+.stg-rail button[aria-selected='true'] { transform: translateX(4px); }
+.stg-rail button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+/* the selection mark — a magenta tick that grows out of the rail's edge */
+.stg-rail button::before {
+  content: ''; position: absolute; left: -11px; top: 50%;
+  width: 3px; height: 0; margin-top: 0; border-radius: 3px; background: var(--magenta);
+  transition: height 0.4s var(--ease), margin-top 0.4s var(--ease);
+}
+.stg-rail button[aria-selected='true']::before { height: 26px; margin-top: -13px; }
+
+/* ——— the device: a portrait phone capture (Evora Scan, Quran Noor, KwaKwa,
+   Ellie) inside the site's own iPhone 14 Pro mockup
+   (public/img/devices/iphone-frame.png). Every number below is measured from
+   that PNG — 900 x 1813, display at 5.71% / 2.39% / 88.52% / 95.19%. One
+   device on the page, one image in it — no crossfade, no cycle. ——— */
+.stg-phone {
+  position: relative; width: clamp(190px, 46vw, 264px);
+  aspect-ratio: 900 / 1813; margin: 0 auto;
+  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.6)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  animation: stg-in 0.5s var(--ease) both;
+}
+.stg-glass {
+  position: absolute; z-index: 1; overflow: hidden;
+  left: 5.71%; top: 2.39%; width: 88.52%; height: 95.19%;
+  border-radius: 11.5% / 5.6%;
+  background: var(--bg-3);
+}
+.stg-glass img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 0;
+}
+.stg-glass img.is-contain { object-fit: contain; }
+.stg-frame {
+  position: absolute; inset: 0; z-index: 5;
+  width: 100%; height: 100%; object-fit: fill;
+  pointer-events: none; user-select: none;
+}
+
+/* ——— the wide plate: a desktop capture (2D3D, KUN) that was never shot for
+   a phone screen, so it gets its own panel instead of being crammed behind
+   the iPhone glass. Same gradient-plate idea `suite.css` used, sized to sit
+   in the same column the phone occupies. ——— */
+.stg-wide {
+  position: relative; width: 100%; max-width: 300px;
+  aspect-ratio: 16 / 9; margin: 0 auto;
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(242, 240, 247, 0.14);
+  box-shadow: 0 22px 40px -14px rgba(0, 0, 0, 0.6);
+  animation: stg-in 0.5s var(--ease) both;
+}
+.stg-wide img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0.96;
+}
+@keyframes stg-in {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ——— the copy beside it ——— */
+.stg-info { min-width: 0; max-width: 46ch; }
+.stg-id { display: flex; align-items: center; gap: 14px; }
+.stg-icon { width: clamp(46px, 3.8vw, 58px); aspect-ratio: 1; }
+.stg-info h3 {
+  font-family: var(--display); font-weight: 620;
+  font-size: clamp(1.5rem, 2.6vw, 2rem); letter-spacing: -0.015em; line-height: 1.05;
+}
+.stg-info .stg-tag {
+  font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--magenta); margin-top: 12px;
+}
+.stg-info .stg-blurb { color: var(--ink-dim); line-height: 1.66; margin-top: 14px; font-size: 0.95rem; }
+.stg-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+/* the one real link in the section — Quran Noor only, see Products.jsx */
+.stg-open {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 14px; font-size: 0.85rem; font-weight: 700; color: var(--magenta);
+  transition: color 0.25s var(--ease);
+}
+.stg-open:hover { color: var(--magenta-deep, var(--magenta)); }
+.stg-count {
+  position: relative;
+  font-family: var(--display); font-weight: 620;
+  font-size: 0.72rem; letter-spacing: 0.2em; color: var(--ink-dim);
+  margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line);
+}
+.stg-count b { color: var(--ink); font-weight: 620; }
+/* how far through the six the scroll has carried the stage */
+.stg-count i {
+  position: absolute; left: 0; top: -1px; height: 2px; width: var(--w, 0%);
+  background: linear-gradient(90deg, var(--magenta), var(--cyan));
+  transition: width 0.5s var(--ease);
+}
+
+@media (max-width: 1080px) {
+  .stg { grid-template-columns: auto minmax(0, 1fr); }
+  /* the two columns stack IDENTITY FIRST, imagery second — the same order
+     they are read in side by side, and the order the markup is already in,
+     so the stack costs no `order` and no re-ordering for the keyboard */
+  .stg-stage { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+  .stg-panel { width: min(100%, 320px); }
+  .stg-info { max-width: 52ch; }
+  .stg-id { justify-content: center; }
+  .stg-meta { justify-content: center; }
+}
+@media (max-width: 760px) {
+  .stg { grid-template-columns: minmax(0, 1fr); gap: 22px; border-radius: 22px; }
+  /* the rail lies down and scrolls sideways inside its own box — the page
+     itself never scrolls horizontally */
+  .stg-rail {
+    flex-direction: row; gap: 10px; overflow-x: auto; padding: 2px 2px 10px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .stg-rail::-webkit-scrollbar { display: none; }
+  .stg-rail button[aria-selected='true'] { transform: translateY(-3px); }
+  .stg-rail button::before {
+    left: 50%; top: auto; bottom: -7px; width: 0; height: 3px; margin: 0;
+    transition: width 0.4s var(--ease), margin-left 0.4s var(--ease);
+  }
+  .stg-rail button[aria-selected='true']::before { width: 24px; margin-left: -12px; height: 3px; margin-top: 0; }
+  .stg-phone { width: clamp(190px, 56vw, 224px); }
+  .stg-wide { max-width: 260px; }
+}
+
+/* ═══════════ reduced motion ═══════════
+   The pin is the animation in the stage, so it is removed outright rather
+   than damped (`.stg-scroll--flat` above): the section collapses to its
+   sticky child's height, the stage holds whatever the rail last selected,
+   and the rail is an ordinary tablist. */
+@media (prefers-reduced-motion: reduce) {
+  .stg *, .stg *::before, .stg *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,1724 @@
+/* ——— Solutions ———
+   REDESIGN (verdict: "too long, too much, too retarded"): the old build was
+   a 30-row scrolling rack beside a sticky detail panel, bounded to a shared
+   ~520-700px pane height, with a filter row on top — every row wearing the
+   exact same yarn-pill icon as every other row, an icon that told you
+   nothing thirty times over. Replaced with one idea, demonstrated instead
+   of explained: type your trade (or tap it below) and ONE tailored answer
+   resolves right under the search field. No list to scroll to get there.
+   The 30-strong index that used to be the whole section is now a compact
+   newspaper-style, multi-column index below the answer — plain grouped
+   type, a fraction of the old height (one icon per CATEGORY now, not one
+   per row — see the GroupIcon comment in Solutions.jsx). */
+.solutions {
+  padding-bottom: clamp(36px, 5vh, 64px);
+  position: relative;
+  isolation: isolate;
+  /* the pink bloom below bleeds well past the console's own box on purpose
+     (see .sol-console::before) — clip X here so that bleed can never be the
+     thing that opens a horizontal scrollbar, the same belt-and-suspenders
+     move every other full-bleed section on the page already makes. */
+  overflow-x: clip;
+}
+/* this section trades the shared section-head's usual generous air for
+   density on purpose — the whole redesign is about proving "a fraction of
+   the height," and the boilerplate title block was over a third of the old
+   section's weight on its own. Scoped here only: every other section keeps
+   the full-size rhythm from styles.css untouched. */
+.solutions .section-head {
+  padding-top: clamp(30px, 3.8vh, 48px);
+  padding-bottom: clamp(4px, 0.6vh, 8px);
+}
+.solutions .kicker { margin-bottom: 8px; }
+/* the headline stays the same confident display type as every other
+   section — just dialled down a size step. This is a dense search-and-index
+   tool, not a hero; a slightly smaller, single-line title is the honest
+   scale for it, and it's what buys back the room the console needs. */
+.solutions .h2 {
+  font-size: clamp(1.6rem, 3.4vw, 2.5rem);
+  max-width: 28ch;
+}
+.solutions::before {
+  content: '';
+  position: absolute; z-index: -1;
+  inset: clamp(60px, 10vh, 110px) 0 auto 0;
+  height: min(60vh, 640px);
+  background: radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, var(--sol-tint, var(--magenta)) 10%, transparent), transparent 72%);
+  pointer-events: none;
+}
+
+/* ——————————————————————————————————————————————
+   MERGED MODE — act two of the Counter, not a section (App.jsx mounts it as
+   <Counter><Solutions merged /></Counter>). It keeps every rule above; all
+   this does is take the section furniture off, because the block already sat
+   under "We can help you in any phase of your business journey."
+
+   The seam is the whole job here. Two stacked sections each paid their own
+   vertical padding, so the join read as a gap with nothing in it — and the
+   bloom, anchored 60-110px down from the top of a section that no longer
+   starts there, was blooming over the tail of the needs grid.
+   —————————————————————————————————————————————— */
+.solutions--merged {
+  /* it is a div inside .counter now; the section's own bottom air is the
+     counter's job, and the counter's CTA follows immediately below */
+  padding-bottom: 0;
+}
+/* re-anchor the bloom to act two's own head rather than to a section top
+   that is now 900px further up the page */
+.solutions--merged::before { inset: 0 0 auto 0; height: min(46vh, 480px); }
+
+.sol-act2 {
+  padding: clamp(46px, 6vh, 78px) var(--pad) clamp(4px, 0.6vh, 8px);
+}
+/* the seam made visible instead of left as dead air: one hairline that says
+   "same section, next move" where a second kicker used to say "new section" */
+.sol-act2-rule {
+  display: block;
+  width: min(180px, 30%);
+  height: 2px;
+  margin-bottom: clamp(20px, 2.6vh, 30px);
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--sol-tint, var(--magenta)), transparent);
+}
+/* an h3, and it has to LOOK like one: a step under .h2 so the merged block
+   still reads as one section with one headline. Same display face, same
+   confidence, smaller. */
+.sol-act2-h {
+  /* --bloom, the same token .h2 uses (styles.css:183) — LOOM's own display
+     face, not `--display`. An h3 that drops to the body face stops reading as
+     the same section's voice, which is the one thing this merge is for. */
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+  line-height: 1.06;
+  letter-spacing: 0;
+  color: var(--ink);
+  max-width: 24ch;
+  margin: 0;
+}
+.sol-act2-lede {
+  margin-top: 12px;
+  max-width: 46ch;
+  color: var(--ink-dim);
+  font-size: clamp(0.98rem, 1.2vw, 1.08rem);
+  line-height: 1.55;
+}
+
+/* ——————————————————————————————————————————————
+   The console — search field + the one resolved answer, on its own pink
+   ground. This is the site's SECOND pink surface (the footer's bloom-sky
+   is the first) and it borrows that surface's exact grammar rather than
+   inventing a new one: ink re-pointed once for everything nested inside
+   (same three tokens, same #33243d family footer--bloom uses in
+   styles.css), and the join to the dark page is a soft radial bloom
+   bleeding across the edge — never a hard rule. Unlike the footer, this
+   pink is a contained, rounded card rather than a full-bleed photograph:
+   there's no "sky" image to mask here, so the same eased-crossing move is
+   built from two gradients instead — a soft bloom escaping the card
+   (::before) plus a gradient fill inside it, both using the footer's own
+   pink values so the two surfaces read as the same decision, not two. */
+.sol-console {
+  /* ——— THE SECTION FITS ONE SCREEN, INCLUDING A SHORT ONE (10 Aug 2026) ———
+     The card was already a true 21:9, but the card is not the section: head +
+     search console + card + the thirty-industry index still ran past the fold
+     on any window under ~700px of viewport, which is an ordinary laptop with
+     a tab strip and a bookmarks bar.
+
+     The card's width is set by THIS element, and its height follows from the
+     ratio — so capping the console's width by the height available is what
+     actually shortens the card. The subtrahend is the section's other height:
+     head (~165) + search row (57) + panel padding (~48) + index (~130) + the
+     section's own margins. Everything else in the section is already sized in
+     cqw against the card (see the has-photo block below), so it all comes
+     down together.
+
+     svh, not vh — on iOS vh is the LARGER viewport and would put the index
+     back under the toolbar. */
+  /* clamp, not min: a bare `min()` collapsed the console to 222px on a 525px
+     viewport — the formula went negative-ish and every line inside wrapped,
+     making the section TALLER than before. The floor is the narrowest card
+     this layout still reads at; below that the height has to come from the
+     section's own chrome instead, which is what the max-height block at the
+     bottom of this file does. */
+  /* FULL-BLEED, EDGE TO EDGE (client, 10 Aug 2026: "make this element's width
+     full screen, from left to right"). The width cap that used to live here —
+     a height-derived clamp that kept the stage narrow so the section cleared
+     the fold — is gone; the fold is now held by `max-height` on `.sol-stage`
+     instead, which lets the photograph crop rather than forcing the box to
+     shrink. `margin-inline: calc(50% - 50vw)` breaks it out of the centred
+     column without needing a different wrapper.
+
+     50vw, not 50%, and no `100vw` width: vw includes the scrollbar on Windows,
+     so `width: 100vw` on a page that scrolls opens a horizontal scrollbar.
+     Negative margins on both sides let the element take exactly the viewport
+     the layout actually has. */
+  /* `calc(50% - 50vw)` alone is not enough: the 50% resolves against the
+     PARENT's content box, which already has the page gutter taken out of it,
+     so the stage came out 40px narrower than the viewport. Setting the width
+     to 100vw as well pins it to the viewport exactly. Safe against a
+     scrollbar because `.solutions` is `overflow-x: clip` (see the top of this
+     file) — verified: no horizontal scrollbar at 1000/1280/1440/1920. */
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0 calc(50% - 50vw) clamp(18px, 2.6vh, 32px);
+  padding: 0;
+  position: relative;
+}
+.sol-console::before {
+  content: '';
+  position: absolute; z-index: -1;
+  left: 50%; top: -12%;
+  width: min(1500px, 160%); height: 128%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  /* the exact two stops footer--bloom's own ::before uses (styles.css) —
+     reused verbatim, not re-eyeballed, so this bloom and the footer's read
+     as the same pink rather than a close guess at it. */
+  background: radial-gradient(58% 62% at 50% 38%,
+    rgba(247, 176, 202, 0.42) 0%,
+    rgba(196, 116, 172, 0.19) 46%,
+    rgba(255, 233, 242, 0) 78%);
+}
+.sol-console-panel {
+  /* re-pointed once, exactly like .footer--bloom does in styles.css — every
+     descendant that already reaches for var(--ink)/var(--ink-dim)/
+     var(--ink-faint) (the search label, the placeholder, every line inside
+     the answer card) flips to house-ink-on-paper for free, no per-element
+     overrides. */
+  --ink: #33243d;
+  --ink-dim: #4a3652;
+  --ink-faint: #6b5273;
+  --line: rgba(96, 40, 76, 0.2);
+  position: relative;
+  isolation: isolate;
+  border-radius: calc(var(--radius) * 1.5);
+  padding: clamp(20px, 2.6vw, 30px) clamp(20px, 3vw, 34px) clamp(24px, 3vw, 34px);
+  /* three soft radial washes over one base tone rather than a flat fill —
+     a single solid pink behind white paragraph text read as a sticker; this
+     reads as the same felted-paper warmth the rest of the site's yarn
+     textures carry, at a fraction of the cost of an actual photograph. */
+  background:
+    radial-gradient(120% 140% at 12% -10%, rgba(255, 255, 255, 0.5), transparent 55%),
+    radial-gradient(90% 120% at 100% 0%, rgba(255, 197, 223, 0.55), transparent 60%),
+    linear-gradient(165deg, #ffe4f0 0%, #fbd0e6 55%, #f3b4d5 100%);
+  box-shadow: 0 30px 60px -32px rgba(90, 24, 66, 0.55);
+}
+
+/* label sits INLINE to the left of the field rather than stacked above it
+   — one row instead of two. Below 700px there's no width to spare for
+   both, so it drops back to a caption above the input (see media query). */
+/* LEFT, not full width. The field used to stretch the whole console — 736px
+   of input for a two-word query — which made the search read as the section's
+   headline rather than as one control above the answer. Capped and pinned
+   left, over the same calm left third the answer card's copy column sits on,
+   so the search and the answer it produces share one edge down the card. */
+.sol-search-row {
+  display: flex; align-items: center; gap: 16px;
+  max-width: min(620px, 100%);
+  margin-right: auto;
+}
+.sol-search-label {
+  flex-shrink: 0;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-faint); white-space: nowrap;
+}
+.sol-search-field { position: relative; flex: 1; min-width: 0; }
+.sol-search-glass {
+  position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; pointer-events: none;
+  color: var(--ink-faint);
+}
+.sol-search {
+  width: 100%;
+  font-family: var(--display); font-weight: 560;
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  color: var(--ink);
+  /* translucent white over the pink, not an opaque plate — the same move
+     .footer--bloom .footer-contact makes over the sky, so the field reads
+     as sitting IN the pink rather than punched out of it. */
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(96, 40, 76, 0.18);
+  border-radius: calc(var(--radius) * 0.55);
+  padding: 13px 50px 13px 50px;
+  transition: border-color 0.3s var(--ease), background 0.3s var(--ease), box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.sol-search::placeholder { color: var(--ink-faint); font-weight: 480; }
+.sol-search:hover { border-color: rgba(96, 40, 76, 0.3); background: rgba(255, 255, 255, 0.74); }
+.sol-search:focus-visible {
+  outline: none;
+  border-color: var(--magenta);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--magenta) 22%, transparent);
+  transform: translateY(-1px);
+}
+/* a small arrow, same corner-fold mark the rack rows used to carry — reads
+   as "this resolves to something," not decoration for its own sake */
+.sol-search-arrow {
+  position: absolute; right: 22px; top: 50%; margin-top: -5px;
+  width: 9px; height: 9px; pointer-events: none;
+  border-right: 1.5px solid var(--ink-faint); border-bottom: 1.5px solid var(--ink-faint);
+  transform: rotate(-45deg);
+}
+
+.sol-answer-slot { margin-top: clamp(8px, 1vw, 10px); }
+
+/* visually hidden but announced — the ticked list under a resolved name
+   and hook already reads as "what you get" at a glance, so the label that
+   used to sit above it as its own line is here for screen readers only. */
+.sol-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* the answer card itself: a wide, low, two-column card rather than a tall
+   single column — the whole point is that this replaces a much taller list,
+   so it spends the site's generous width instead of the old rack's height.
+   The right column carries the denser copy (four deliverable sentences vs.
+   a one-line hook), so it gets the bigger share of the grid — narrower text
+   measure was the single biggest hidden cost, forcing every deliverable
+   onto two lines instead of one. */
+.sol-answer {
+  position: relative;
+  display: grid;
+  grid-template-columns: 0.86fr 1.14fr;
+  gap: 6px clamp(28px, 4vw, 48px);
+  padding: clamp(16px, 2vw, 20px) clamp(20px, 2.4vw, 26px) clamp(16px, 1.8vw, 18px);
+  border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.1);
+  /* translucent white over the pink panel, same "still visibly the pink
+     underneath" call .footer--bloom .footer-contact makes over the sky —
+     an opaque plate here would have read as a second, unrelated surface
+     stacked on the first instead of one console with two layers of depth. */
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.4));
+  overflow: hidden;
+}
+.sol-answer::after {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(55% 65% at 100% 0%, color-mix(in srgb, var(--panel-yarn, var(--magenta)) 20%, transparent), transparent 70%);
+}
+.sol-answer > * { position: relative; z-index: 1; }
+
+/* ——————————————————————————————————————————————
+   The answer card's photographic background — a 21:9 wool render, subject
+   grouped in its right two thirds, becomes the card's full-bleed ground the
+   instant it decodes (`.has-photo`, set from Solutions.jsx's onLoad, never
+   assumed). `.sol-answer-bg` is not caught by the `.sol-answer > *` rule
+   above: the <picture> wrapping it renders `display: contents`, so the img
+   is a grandchild, not a direct child, and gets its own absolute box here
+   instead of the relative/z:1 every real content child gets. Below the
+   `.has-photo` gate, an errored or not-yet-rendered niche paints nothing —
+   `object-fit` never runs on a display:none img — so today's plain pink
+   card is exactly what a visitor still sees. */
+.sol-answer-bg {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+/* transparent until there's actually a photo under it, so it never dims the
+   plain pink card that ships for the seven niches still without art. */
+/* `.sol-answer .sol-answer-scrim`, not `.sol-answer-scrim`. The card carries
+   BOTH classes (`sol-card sol-answer`), and styles.css:1426 ends with
+   `.sol-card > * { position: relative; z-index: 1 }` — same (0,1,0)
+   specificity as a bare `.sol-answer-scrim`, in a stylesheet that lands after
+   this one, so it won on source order and computed the scrim to
+   `position: relative`. A relative <i> with no content is a 0px-tall box:
+   measured 854x0 at 1440, i.e. the scrim has never painted a single pixel on
+   this card, which is why the copy column read straight off the render. The
+   descendant selector takes it to (0,2,0) and out of that collision. */
+.sol-answer .sol-answer-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: none;
+}
+/* THE PLATE IS THE FLOOR, and it stays down. `background: none` used to live
+   here, on the reasoning that the render replaces the translucent-white fill
+   outright — which is only true while `.has-photo` is a reliable proxy for
+   "a bitmap is actually painting behind this copy". It is not. That class is
+   set from the img's own `load`, and a 1x1 blank gif fires `load` too: the
+   touch-only eviction pass in viewportBudget.js used to swap a 404'd render
+   for one, the gif decoded, the class came back, and the card was left with
+   no photo AND no plate — copy sitting on the bare console. That specific
+   route is closed in viewportBudget.js now; this is the belt to its braces,
+   and it costs nothing, because where the render really is a full-bleed
+   backdrop (>=1060, `.sol-answer-bg` absolute at inset 0 with object-fit:
+   cover) it covers the plate completely and nothing of it is visible.
+
+   Below 1060 the render is a BAND in flow rather than a backdrop, so the
+   plate is what the copy underneath it sits on — the same plate the seven
+   niches still awaiting art already show at that width. The two cases now
+   match instead of diverging, which is the point.
+
+   The panel-yarn radial tint is still dropped, though: that one genuinely
+   would wash colour over the artwork, which is the move the brief rules out. */
+.sol-answer.has-photo::after { content: none; }
+
+/* 1060, not 720. The overlay layout — copy floated over the render's calm
+   left third — only works where the copy column is wide enough to keep the
+   deliverables off five and six lines. Below this the same copy overran a
+   true 21:9 box by 42-87px and the card was silently CUTTING it, because the
+   card is overflow:hidden and aspect-ratio on a flex container sets the box
+   rather than a floor (min-height: fit-content does not rescue it; it was
+   tried, and measured, and it clips anyway). Under 1060 the card falls back
+   to the stacked band below, which holds the same 21:9 render and lets the
+   copy run underneath it in flow. */
+@media (min-width: 940px) {
+  /* Desktop mock: the card becomes a wide 21:9 banner, and every piece of
+     copy — badge, name, hook, deliverables, agent note, CTA — collapses
+     into one narrow column that sits over the render's calm LEFT THIRD.
+     `.sol-answer-left`/`-right` were a 0.86fr/1.14fr GRID pair for the
+     plain card; here they stack as flex children of the same fixed-width
+     column instead, so the two-column grid never fights a right column
+     the render itself already carries the weight of. */
+  .sol-answer.has-photo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(4px, 0.7vw, 8px);
+    /* 21/9 — the render's OWN ratio (every niche shot is 1400x600). It used
+       to be `min-height: min(44vh, 420px)` and nothing else, on the reasoning
+       that a fixed ratio would clip the copy; what actually happened is that
+       the copy simply won every time and the card settled at 908x523 (1.74),
+       cover-fitting a 2.33 panorama into a 1.74 box — a third of the width
+       thrown away, on the one section whose whole job is showing the render.
+
+       aspect-ratio is not a clamp: it sets the box, and a flex column whose
+       content is taller than that box still grows. So the ratio is safe on
+       its own, and the fix for the height was to make the copy fit rather
+       than to give up on the ratio — the column widened to 40% (fewer wrapped
+       lines is the cheapest height there is) and the list/agent leading came
+       in below. Verified at 1440, 1100 and 820: 2.33 at all three. */
+    aspect-ratio: 21 / 9;
+
+    /* ——— A TRUE 21:9, AND THE WHOLE SECTION ON ONE SCREEN (10 Aug 2026) ———
+       `min-height: fit-content` used to sit here as a seatbelt against the
+       card clipping its own copy. It worked, and that was the problem: the
+       copy never fitted, so the belt was engaged permanently and the card
+       settled ~134px taller than its own ratio (measured 908x523 = 1.74 at
+       1440, cover-fitting a 2.33 panorama into a 1.74 box). Head + lede +
+       search console + that card came to more than one viewport, so its
+       bottom edge sat on the fold.
+
+       THE CARD'S WIDTH IS NOT NEGOTIABLE — the console panel sets it (908px
+       at 1440), so `width: auto` cannot derive a narrower card from a capped
+       height; it only makes the box FATTER than 21:9. Driving `height` from
+       the viewport was tried and measured: 2.05 at 1440, 2.18 at 1100. The
+       only lever that keeps the ratio is the copy.
+
+       So the copy shrinks instead, and the ratio is left to do its job
+       unassisted. This is the "smaller but nicer" trade, made explicitly. */
+    container-type: inline-size;
+  }
+
+  /* ——— copy sized against the CARD, not the viewport ———
+     `cqw` against the card's own inline size, so the copy holds its
+     proportion of the card at every width instead of being a fixed rem that
+     the ratio has to make room for. The coefficients are ~0.8x of the rem
+     sizes they replaced, which is what buys back the 134px the card was
+     overrunning its box by; each keeps a rem floor so the type cannot go
+     unreadable on the narrowest card that still uses this layout.
+
+     If a floor ever starts winning, the card has got too small for the
+     overlay and the stacked layout below 1060 is the right answer — do not
+     shave the coefficients further. Verify with qa-solutions-fit.mjs: it
+     fails on BOTH a broken ratio and a clipped card, which is the pair that
+     has to hold together. */
+  .sol-answer.has-photo .sol-answer-name { font-size: max(1rem, 1.85cqw); }
+  .sol-answer.has-photo .sol-answer-hook { font-size: max(0.8rem, 1.14cqw); }
+  .sol-answer.has-photo .sol-deliverables li { font-size: max(0.7rem, 0.86cqw); }
+  .sol-answer.has-photo .sol-agent-copy { font-size: max(0.7rem, 0.86cqw); }
+  .sol-answer.has-photo .sol-answer-kicker,
+  .sol-answer.has-photo .sol-answer-label { font-size: max(0.58rem, 0.72cqw); }
+  .sol-answer.has-photo .sol-agent-kicker { font-size: max(0.54rem, 0.66cqw); }
+  /* the gaps go with the type — leading and spacing are most of the height a
+     six-line column spends, not the glyphs */
+  .sol-answer.has-photo .sol-answer-hook { line-height: 1.3; }
+  .sol-answer.has-photo .sol-deliverables { gap: 3px; }
+  .sol-answer.has-photo .sol-deliverables li { line-height: 1.28; }
+  .sol-answer.has-photo .sol-cta { padding-top: 4px; }
+  .sol-answer.has-photo .sol-answer-thread { flex: none; }
+  .sol-answer.has-photo .sol-answer-left,
+  .sol-answer.has-photo .sol-answer-right {
+    width: 100%;
+    /* 40%, up from 34%. The render reserves a calm left third, but the copy
+       was wrapping to five and six lines inside 34% and paying for it in card
+       height — and the scrim below already carries legibility out to 55%, so
+       the extra 6% costs the artwork nothing it was showing. */
+    max-width: min(470px, 46%);
+  }
+  /* Between 720 and 1080 the console is narrow enough that 40% is only ~276px
+     and the same copy wraps onto four extra lines — which is what pushed the
+     card 79px past its own 21:9 box at 820. The render's calm zone is a
+     PROPORTION of the shot, so it scales with the card; the copy does not.
+     Give it the room rather than let the ratio break. */
+  @media (max-width: 1080px) {
+    .sol-answer.has-photo .sol-answer-left,
+    .sol-answer.has-photo .sol-answer-right { max-width: 47%; }
+    /* the copy column is 47% of the card in this band, so the plate is solid
+       to 47% and only starts giving the render back after it. */
+    .sol-answer.has-photo .sol-answer-scrim {
+      background: linear-gradient(90deg,
+        #ffe4f0 0%, #ffe4f0 47%,
+        color-mix(in srgb, #ffe4f0 86%, transparent) 55%,
+        color-mix(in srgb, #ffe4f0 42%, transparent) 65%,
+        transparent 78%);
+    }
+  }
+  /* the two blocks that set the card's height. Tighter leading and a smaller
+     agent note buy back the ~65px that stood between the copy and a true
+     21:9 box; nothing is hidden or truncated. */
+  /* the badge is decoration and the head gap is air; the agent note is the
+     copy that was being cut. Take the 20px out of the first two. */
+  .sol-answer.has-photo .sol-answer-badge { width: 38px; height: 38px; border-radius: 12px; }
+  .sol-answer.has-photo .sol-answer-gicon { width: 20px; height: 20px; }
+  .sol-answer.has-photo .sol-answer-head { gap: 10px; }
+  .sol-answer.has-photo .sol-answer-hook { line-height: 1.35; }
+  .sol-answer.has-photo .sol-deliverables { gap: 4px; }
+  .sol-answer.has-photo .sol-deliverables li { line-height: 1.32; }
+  .sol-answer.has-photo .sol-agent { font-size: 0.82rem; line-height: 1.38; }
+  /* The plate, and it has to reach as far as the COPY does, not as far as the
+     render's calm zone happens to go. `.sol-answer-left/-right` are
+     `min(470px, 46%)` wide, so the last words of the longest deliverable sit
+     at 46% of the card — under the old 32%/48% ramp they were landing on bare
+     artwork. Three of the 23 renders are dark enough for that to be
+     unreadable: measured against the card's own ink, jewelry 2.14:1, law
+     2.43:1 and fine-dining 3.39:1 over the copy column at 1440.
+
+     Solid to 42%, still 86% at 50%, gone by 74% — no filter on the artwork
+     (wool.css:191) and no tint over the render as a whole, just an opaque
+     paper plate under the column that is actually read. */
+  .sol-answer.has-photo .sol-answer-scrim {
+    background: linear-gradient(90deg,
+      #ffe4f0 0%, #ffe4f0 42%,
+      color-mix(in srgb, #ffe4f0 86%, transparent) 50%,
+      color-mix(in srgb, #ffe4f0 42%, transparent) 60%,
+      transparent 74%);
+  }
+}
+
+@media (max-width: 939px) {
+  /* Mobile mock ("just vertical and horizontal"): no overlay at all — the
+     render sits as an ordinary horizontal band above the copy, and every
+     line of copy stacks underneath it in normal document flow. The scrim
+     only exists to fight legibility over an underlying photo, so it has no
+     job here and is switched off rather than left compositing for nothing. */
+  .sol-answer.has-photo {
+    display: flex;
+    flex-direction: column;
+  }
+  .sol-answer.has-photo .sol-answer-bg {
+    position: static;
+    display: block;
+    width: 100%;
+    /* 9/16 to match the `-9x16` render exactly, so the phone shows the whole
+       portrait rather than a slice of it. Capped at 58vh because a true 9:16
+       band on a 390px screen is ~693px tall and would push the industry name,
+       the deliverables and the CTA entirely below the fold — the card would
+       read as a photo with no answer attached. object-fit: cover on the img
+       takes the crop off the top and bottom, which is where the render was
+       told to leave calm backdrop anyway. */
+    /* 21/9 by default — between 720 and 1059 the <picture> is still serving
+       the 1400x600 landscape render, and forcing a 9:16 box onto it would
+       cover-crop away three quarters of the shot. The portrait ratio belongs
+       only to the width where the -9x16 source actually loads, so it is
+       restated in the 719 block below, on the same breakpoint the media
+       attribute in Solutions.jsx uses. A ratio and its source must switch
+       together — that pairing is the whole reason the need tiles were wrong
+       on production tonight. */
+    aspect-ratio: 21 / 9;
+    max-height: 58vh;
+    object-fit: cover;
+    /* 0, not a margin. The card's own row-gap already separates the band from
+       the thread rule below it; a margin here stacked on top of that gap and
+       left ~84px of dead pink between the photo and the first line of copy,
+       which read as a loading failure rather than as spacing. */
+    margin-bottom: 0;
+    order: -1;
+  }
+  /* the card is a flex column here, so ONE row-gap governs every seam in it —
+     band to thread, thread to copy, copy to CTA. Set it once, in one place. */
+  .sol-answer.has-photo { row-gap: clamp(10px, 2.5vw, 14px); }
+  .sol-answer.has-photo .sol-answer-scrim { display: none; }
+  .sol-answer.has-photo .sol-answer-left,
+  .sol-answer.has-photo .sol-answer-right {
+    max-width: none;
+  }
+}
+
+/* THE PAIR. Under 719 the <picture> in Solutions.jsx swaps to the -9x16
+   portrait render (720x1280), so the box has to swap with it — same
+   breakpoint, same commit, always. Above it the landscape 1400x600 loads and
+   the 21/9 in the block above is the correct box for it. A ratio switching on
+   a different breakpoint than its source is exactly what put a gut-cropped
+   need tile on production tonight; this is the same shape of bug, pre-empted. */
+@media (max-width: 719px) {
+  .sol-answer.has-photo .sol-answer-bg { aspect-ratio: 9 / 16; }
+}
+
+.sol-answer-thread {
+  grid-column: 1 / -1;
+  display: block;
+  height: 2px; width: 100%; margin-bottom: clamp(10px, 1.4vw, 14px);
+  background: linear-gradient(90deg, var(--panel-yarn, var(--magenta)), transparent 88%);
+  transform-origin: left;
+}
+
+.sol-answer-left, .sol-answer-right { display: flex; flex-direction: column; min-width: 0; }
+.sol-answer-left { gap: 6px; }
+/* the badge sits on its OWN cross-axis-centred row with the kicker+name
+   stack, not sharing their baseline — a 44px icon has no sane baseline to
+   share with 0.7rem uppercase type, and trying just pushed the kicker down
+   into the icon's optical centre instead. */
+.sol-answer-head {
+  display: flex; align-items: center; gap: 14px;
+}
+.sol-answer-headtext { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* the group-icon badge — SEE the file-top comment on GroupIcon for why this
+   is a hand-drawn SVG and not a WoolIcon medallion. Tinted from the same
+   --panel-yarn this card's thread and radial glow already use, so the
+   badge reads as part of the same colour decision instead of a fourth hue
+   arriving on the card. */
+.sol-answer-badge {
+  flex: none;
+  display: grid; place-items: center;
+  width: 46px; height: 46px;
+  border-radius: 14px;
+  color: var(--panel-yarn, var(--magenta));
+  background: color-mix(in srgb, var(--panel-yarn, var(--magenta)) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--panel-yarn, var(--magenta)) 30%, transparent);
+}
+.sol-answer-gicon { width: 24px; height: 24px; }
+.sol-answer-kicker {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--panel-yarn, var(--magenta));
+}
+/* the matched industry, 30px — all 30 names ("Cafés & Coffee" included) are
+   covered; the é and the & are both in Bloom. Ink, not a hardcoded white —
+   this card sits on the pink console now, and #fff here was the one spot
+   in the whole component that ignored the re-pointed --ink token. */
+.sol-answer-name {
+  font-family: var(--bloom); font-weight: 560; color: var(--ink);
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.08; letter-spacing: 0;
+}
+.sol-answer-hook {
+  font-family: var(--display); font-weight: 500;
+  font-size: clamp(1rem, 1.4vw, 1.15rem); line-height: 1.38;
+  color: var(--ink-dim);
+  max-width: 40ch;
+}
+.sol-cta { width: fit-content; margin-top: auto; padding-top: 8px; }
+
+.sol-answer-right { gap: 6px; }
+.sol-answer-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.sol-deliverables {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.sol-deliverables li {
+  display: flex; align-items: flex-start; gap: 9px;
+  color: var(--ink-dim); font-size: 0.83rem; line-height: 1.35;
+}
+.sol-stitch {
+  flex-shrink: 0; width: 12px; height: 12px; margin-top: 3px; position: relative;
+}
+.sol-stitch::before, .sol-stitch::after {
+  content: ''; position: absolute; top: 55%; left: 45%; height: 1.4px;
+  background: var(--panel-yarn, var(--magenta)); border-radius: 1px;
+  transform-origin: left center;
+}
+.sol-stitch::before { width: 5px; transform: translate(-100%, -50%) rotate(45deg); }
+.sol-stitch::after { width: 9px; transform: translate(-3px, -50%) rotate(-50deg); }
+
+/* one running line instead of a boxed kicker-then-copy callout — a border-
+   left accent carries the "this is the agent talking" cue on its own, so
+   the tag and the sentence can share a line instead of stacking two. */
+.sol-agent {
+  padding: 6px 0 6px 12px;
+  border-left: 2px solid var(--cyan);
+  margin-top: 2px;
+}
+.sol-agent-kicker {
+  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--cyan);
+  margin-right: 7px;
+}
+.sol-agent-copy { color: var(--ink); font-size: 0.84rem; line-height: 1.45; }
+/* --cyan (#59e6ff) is tuned for the dark page — on the pink console it sat
+   under 2:1 against the panel, close to invisible. A deeper teal off the
+   same hue keeps the "this is the agent talking" cue legible without
+   reaching for a colour no other agent-tag on the site uses. */
+.sol-console-panel .sol-agent { border-left-color: #0d7f97; }
+.sol-console-panel .sol-agent-kicker { color: #0a6c81; }
+
+.sol-answer--empty { grid-template-columns: 1fr; }
+.sol-answer--empty .sol-answer-hook { max-width: 56ch; }
+
+/* ——————————————————————————————————————————————
+   The index — every one of the thirty, as one continuous run of plain
+   grouped type poured into balanced newspaper columns. This is the whole
+   "breadth is the claim" promise, kept without a single row of chrome: no
+   borders, no per-NICHE icon, no fixed-height scroll pane. It's deliberately
+   ONE paragraph rather than seven boxed groups — plain text wraps line by
+   line, so the browser's column-balance has fine-grained material to work
+   with and no single category can strand a column half-empty next to a full
+   one. Each of the seven group LABELS does carry the same small GroupIcon
+   the answer card's badge uses — one icon per category, not one per row, so
+   the index still reads as a dense list of names rather than a grid of art. */
+.sol-index {
+  padding-top: clamp(14px, 1.6vw, 18px);
+  border-top: 1px solid var(--line);
+  margin: 0 var(--pad);
+}
+.sol-idx-flow {
+  columns: 3 220px;
+  column-gap: clamp(28px, 4vw, 56px);
+  font-family: var(--display); font-size: 0.86rem; line-height: 1.5;
+  color: var(--ink-dim);
+}
+.sol-idx-label {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--grp-yarn, var(--ink-faint));
+}
+.sol-idx-gicon { width: 13px; height: 13px; flex: none; }
+.sol-idx-sep { color: var(--ink-faint); margin: 0 3px 0 1px; }
+.sol-idx-gap { color: var(--ink-faint); opacity: 0.5; }
+
+.sol-idx-btn {
+  background: none; border: none; padding: 1px 2px;
+  font: inherit; color: inherit; cursor: pointer;
+  border-radius: 3px;
+  position: relative;
+  transition: color 0.2s var(--ease);
+}
+.sol-idx-btn::after {
+  content: ''; position: absolute; left: 2px; right: 2px; bottom: -1px; height: 1.5px;
+  background: var(--grp-yarn, var(--magenta));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s var(--ease);
+}
+.sol-idx-btn:hover { color: var(--ink); }
+.sol-idx-btn:hover::after { transform: scaleX(1); }
+.sol-idx-btn:focus-visible {
+  outline: 2px solid var(--cyan); outline-offset: 2px;
+  border-radius: 3px;
+}
+.sol-idx-btn.is-active { color: var(--ink); font-weight: 600; }
+.sol-idx-btn.is-active::after { transform: scaleX(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sol-search, .sol-idx-btn, .sol-idx-btn::after { transition-duration: 0.01ms !important; }
+}
+
+/* ——————————————————————————————————————————————
+   Responsive
+   —————————————————————————————————————————————— */
+@media (max-width: 880px) {
+  .sol-answer { grid-template-columns: 1fr; gap: 18px; }
+  .sol-cta { margin-top: 6px; }
+  .sol-idx-flow { columns: 2 200px; }
+}
+
+@media (max-width: 700px) {
+  /* no width left to run label and field side by side without crushing
+     the input — back to a caption sitting above it. */
+  .sol-search-row { flex-direction: column; align-items: stretch; gap: 8px; }
+}
+
+@media (max-width: 640px) {
+  .sol-idx-flow { columns: 1; }
+  .sol-answer-name { font-size: 1.5rem; }
+  .sol-answer-head { gap: 10px; }
+  .sol-answer-badge { width: 38px; height: 38px; border-radius: 11px; }
+  .sol-answer-gicon { width: 20px; height: 20px; }
+  /* less padding to spare on a phone, and the bloom is sized off the
+     panel's own box — shrinking one without the other left an oversized
+     glow crowding the headline above it at 390px. */
+  .sol-console-panel { padding: 18px 18px 22px; border-radius: calc(var(--radius) * 1.1); }
+  .sol-console::before { top: -8%; height: 122%; }
+}
+
+
+/* ——— SHORT WINDOWS ———
+   A laptop with a tab strip and a bookmarks bar leaves ~520-700px of viewport,
+   and on those the console alone cannot give back enough height (it has a
+   floor — see .sol-console). So the section's own chrome compresses instead:
+   the act-two head, the seam rule, the lede and the index all step down.
+
+   Keyed on height, not width, because this is a height problem — a 1512px-wide
+   window 700px tall has exactly the same fold as a 1100px one. */
+@media (max-height: 820px) and (min-width: 940px) {
+  .sol-act2 { padding-top: clamp(22px, 3vh, 38px); padding-bottom: 4px; }
+  .sol-act2-rule { margin-bottom: clamp(10px, 1.4vh, 16px); }
+  .sol-act2-h { font-size: clamp(1.3rem, 2.4vw, 1.85rem); }
+  .sol-act2-lede { margin-top: 8px; font-size: 0.94rem; line-height: 1.45; }
+  .sol-console { margin-bottom: clamp(10px, 1.6vh, 18px); }
+  .sol-console-panel { padding: clamp(12px, 1.6vw, 18px); }
+  .sol-search-row { margin-bottom: clamp(10px, 1.4vh, 14px); }
+
+  /* THE CARD'S COPY STOPS SHRINKING HERE, so the card sheds a line instead.
+     Below ~865px of card width the `cqw` sizes fall under their rem floors and
+     the type cannot get smaller without becoming unreadable — at which point a
+     21:9 box that is `overflow: hidden` starts CUTTING the copy (measured:
+     138px cut on a 525px viewport). The agent note is what goes: it is the
+     only line in the card whose claim is repeated verbatim in the need panel
+     the CTA opens, so nothing is lost that the visitor cannot reach in one
+     click. Everything above it — name, hook, the four deliverables, the CTA —
+     stays. */
+  .sol-answer.has-photo .sol-agent { display: none; }
+  /* and the deliverables with it. At this height the 21:9 box is ~250px tall
+     and the copy has already hit its rem floors, so the choice is a card that
+     CUTS four bullets mid-word or a card that does not carry them. What is
+     left — the industry, the one-line promise and the CTA — is the whole
+     argument; the four deliverables and the agent note are both in the need
+     panel that CTA opens, one click away. Measured before/after: 76px of
+     silently cut copy, then none. */
+  .sol-answer.has-photo .sol-deliverables { display: none; }
+  .sol-answer.has-photo .sol-answer-right { display: none; }
+}
+@media (max-height: 660px) and (min-width: 940px) {
+  /* the last thing to go is the lede — it is the only element in the block
+     whose sentence is already carried by the search field's placeholder */
+  .sol-act2 { padding-top: clamp(14px, 2vh, 24px); }
+  .sol-act2-lede { display: none; }
+  .sol-act2-h { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+  /* and the fourth deliverable, on the shortest windows only — four lines of
+     list is the single biggest block left inside the card */
+  .sol-console { margin-bottom: 8px; }
+  .sol-search-row { margin-bottom: 8px; }
+  .sol-index { font-size: 0.78rem; line-height: 1.5; }
+  /* The rem floors come down one last step here and ONLY here. Everywhere
+     above they exist to stop the card's copy going unreadable; on a 525px
+     viewport the alternative is not bigger type, it is type that gets cut in
+     half by the card's own overflow. Small and whole beats large and sliced. */
+  .sol-answer.has-photo .sol-answer-name { font-size: max(0.86rem, 1.85cqw); }
+  .sol-answer.has-photo .sol-answer-hook { font-size: max(0.72rem, 1.14cqw); }
+  .sol-answer.has-photo .sol-answer-kicker { font-size: max(0.5rem, 0.72cqw); }
+}
+
+
+/* ——— THE EXTREME CASE: under ~580px of viewport ———
+   A window this short (a laptop with a tab strip, a bookmarks bar and a
+   downloads shelf) cannot hold the head, the console AND the thirty-industry
+   index. The index is what goes, and it goes rather than the card because the
+   card is the section's demonstration while the index is its appendix — every
+   name in it is reachable by typing two letters into the search field
+   immediately above.
+
+   Dropping it frees ~110px, which is then spent WIDENING the console: a wider
+   card is a taller card at a fixed 21:9, and the copy inside had run out of
+   room to shrink. That is the trade — fewer elements, each whole. */
+@media (max-height: 580px) and (min-width: 940px) {
+  .sol-index { display: none; }
+  .sol-act2 { padding-top: 10px; padding-bottom: 2px; }
+  .sol-act2-rule { display: none; }
+}
+
+/* ═══════════ THE STAGE — one 21:9 photo, two white cards on it ═══════════
+   Built to the client's Photopea mock (10 Aug 2026): a wide crocheted render
+   with the search box and the resolved-industry card as two white panels down
+   its LEFT, characters visible on the right. Replaces the pink console that
+   stacked a search ROW above a separate photo card — that stack was most of
+   the height that kept this section past the fold, and it read as two objects
+   where the mock has one.
+
+   The ratio lives here now, not on the card. `.sol-console` still sets the
+   width (and is still capped by viewport height above), so the stage's height
+   follows from it and the whole section stays on one screen. */
+.sol-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* HEIGHT IS COMPUTED, NOT A RATIO + max-height. `aspect-ratio: 21/9` with a
+     `max-height` does not crop — it shrinks the WIDTH to preserve the ratio,
+     which is exactly what kept the stage 110px narrower than the viewport
+     after it was made full-bleed (measured 1330/1440). Stating the height
+     directly keeps the width at 100vw unconditionally: 21:9 whenever there is
+     room, and capped by the fold when there is not, with the photograph
+     cropping via object-fit rather than the box narrowing. */
+  height: min(calc(100vw * 9 / 21), calc(100svh - 330px));
+  border-radius: 0;
+  background: var(--bg-3);
+  container-type: inline-size;
+}
+.sol-stage-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  /* the renders leave their LEFT third calm on purpose — that is where the
+     two white cards land */
+  object-position: 62% center;
+}
+/* a soft wash from the left so a white card never sits on a busy stitch —
+   much lighter than the old scrim because the cards are opaque now */
+.sol-stage-scrim {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 228, 240, 0.55) 0%, rgba(255, 228, 240, 0.18) 38%, transparent 62%);
+}
+
+/* the left column of cards */
+.sol-ov {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1cqw, 12px);
+  /* the page gutter, restored INSIDE the stage — the stage is now edge to
+     edge, so without this the white cards would touch the viewport edge */
+  padding: clamp(12px, 1.4cqw, 26px) var(--pad);
+  width: min(48%, 680px);
+}
+
+/* ——— white card one: the search box ——— */
+.sol-searchbox {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1cqw, 14px);
+  padding: clamp(8px, 0.9cqw, 13px) clamp(10px, 1.1cqw, 16px);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 6px 22px rgba(60, 20, 50, 0.14);
+}
+.sol-searchbox .sol-search-label {
+  flex: 0 0 auto;
+  font-size: max(0.5rem, 0.72cqw);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6b5273;
+  margin: 0;
+}
+.sol-searchbox .sol-search-field { flex: 1 1 auto; min-width: 0; position: relative; }
+.sol-searchbox .sol-search {
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 2px 0 2px 20px;
+  font-family: var(--display);
+  font-size: max(0.72rem, 1.15cqw);
+  color: #33243d;
+}
+.sol-searchbox .sol-search:focus-visible { outline: 2px solid #c474ac; outline-offset: 4px; border-radius: 6px; }
+.sol-searchbox .sol-search-glass {
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: max(11px, 1.1cqw); height: max(11px, 1.1cqw);
+  color: #6b5273;
+}
+.sol-searchbox .sol-search-arrow { display: none; }
+
+/* ——— white card two: the answer ——— */
+.sol-answer-slot { flex: 1 1 auto; min-height: 0; display: flex; }
+.sol-panelcard {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 1.3cqw, 20px) clamp(12px, 1.4cqw, 22px);
+  border-radius: clamp(12px, 1.2vw, 18px);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 30px rgba(60, 20, 50, 0.16);
+  /* ink on paper, exactly as the old pink panel re-pointed it */
+  --ink: #33243d;
+  --ink-dim: #4a3652;
+  --ink-faint: #6b5273;
+  --line: rgba(96, 40, 76, 0.2);
+  color: var(--ink);
+  overflow: hidden;
+}
+.sol-panelcard .sol-answer-left,
+.sol-panelcard .sol-answer-right { max-width: none; width: 100%; }
+/* NOT `margin-top: auto`. Pinning the deliverables to the bottom of the card
+   left a hole between the CTA and them whenever the hook ran short — the copy
+   should sit as one block under the heading, and the card's own height is
+   already fixed by the stage. */
+.sol-panelcard .sol-answer-right { margin-top: clamp(8px, 0.9cqw, 14px); }
+.sol-panelcard .sol-answer-left { flex: 0 0 auto; }
+.sol-panelcard .sol-cta { margin-top: clamp(6px, 0.8cqw, 12px); }
+
+/* everything inside is sized against the STAGE, so it scales with the photo
+   rather than with the viewport — same technique the card used before, moved
+   up one level now that the stage owns the ratio */
+.sol-panelcard .sol-answer-name { font-size: max(0.9rem, 1.5cqw); }
+.sol-panelcard .sol-answer-hook { font-size: max(0.72rem, 1cqw); line-height: 1.3; }
+.sol-panelcard .sol-answer-kicker { font-size: max(0.48rem, 0.62cqw); }
+.sol-panelcard .sol-deliverables { gap: 2px; }
+.sol-panelcard .sol-deliverables li { font-size: max(0.62rem, 0.78cqw); line-height: 1.25; }
+.sol-panelcard .sol-agent { display: none; }
+.sol-panelcard .sol-answer-badge { width: max(22px, 2cqw); height: max(22px, 2cqw); border-radius: 8px; }
+.sol-panelcard .sol-cta { transform-origin: left center; }
+
+/* the old scrim/thread belonged to the photo card and have no job here */
+.sol-panelcard .sol-answer-scrim { display: none; }
+
+@media (max-width: 939px) {
+  /* stacked: the stage becomes a plain band and the two cards sit under it in
+     normal flow, which is what the phone mock shows */
+  .sol-stage { aspect-ratio: auto; container-type: normal; background: none; overflow: visible; }
+  .sol-stage-bg { position: static; aspect-ratio: 21 / 9; border-radius: 14px; }
+  .sol-stage-scrim { display: none; }
+  .sol-ov { position: static; width: 100%; padding: 12px 0 0; gap: 10px; }
+  .sol-searchbox { background: rgba(255, 255, 255, 0.96); }
+  .sol-searchbox .sol-search-label { font-size: 0.6rem; }
+  .sol-searchbox .sol-search { font-size: 0.95rem; }
+  .sol-searchbox .sol-search-glass { width: 15px; height: 15px; }
+  .sol-panelcard .sol-answer-name { font-size: 1.25rem; }
+  .sol-panelcard .sol-answer-hook { font-size: 0.95rem; }
+  .sol-panelcard .sol-answer-kicker { font-size: 0.62rem; }
+  .sol-panelcard .sol-deliverables li { font-size: 0.82rem; line-height: 1.4; }
+  .sol-panelcard .sol-agent { display: block; }
+}
+
+/* ═══════════════ SOLUTIONS — the makeover (10 Aug 2026) ═══════════════
+   Client brief: keep the photograph very wide but off the screen edge, move
+   and restyle the search box, move and restyle the answer, restyle the index
+   under it. Everything below overrides the earlier full-bleed stage.
+
+   THE SHAPE. Three stacked rows instead of one image with things floating on
+   it: a search bar that owns its own line, a wide inset render, and an answer
+   card that straddles the render's bottom edge. The straddle is the whole
+   idea — the picture owns everything above the seam, the copy owns everything
+   below it, and neither is asked to be legible on top of the other. */
+
+.sol-console {
+  /* WIDE, BUT NOT TO THE EDGE. Full-bleed made the render read as a page
+     background rather than as a piece of work — and on a 1990px window it ran
+     past the measure everything else on the page is set to. */
+  width: auto;
+  max-width: min(1560px, 94vw);
+  margin: 0 auto clamp(20px, 3vh, 34px);
+  padding: 0;
+}
+
+/* ——— the search bar ——— */
+.sol-bar {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.6vw, 22px);
+  margin-bottom: clamp(14px, 1.8vw, 22px);
+  padding: clamp(10px, 1.1vw, 15px) clamp(16px, 1.8vw, 24px);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(96, 40, 76, 0.14);
+  box-shadow: 0 10px 30px rgba(120, 40, 90, 0.08);
+  backdrop-filter: blur(8px);
+}
+.sol-bar-label {
+  flex: 0 0 auto;
+  font-family: var(--body);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8a6a90;
+  padding-right: clamp(12px, 1.6vw, 20px);
+  border-right: 1px solid rgba(96, 40, 76, 0.16);
+}
+.sol-bar-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sol-bar-glass { flex: 0 0 auto; width: 19px; height: 19px; color: #a07fa8; }
+.sol-console .sol-search {
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  /* the studio's own display face, at a size you would actually type into —
+     it was 0.72rem of cqw inside the old in-image pill */
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.05rem, 1.5vw, 1.5rem);
+  letter-spacing: 0;
+  color: var(--ink);
+}
+.sol-console .sol-search::placeholder { color: #b294b8; font-weight: 560; }
+.sol-console .sol-search:focus-visible { outline: 0; }
+.sol-bar:focus-within { border-color: rgba(242, 28, 140, 0.4); box-shadow: 0 10px 34px rgba(242, 28, 140, 0.14); }
+.sol-bar-count {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a07fa8;
+}
+
+/* ——— the stage ——— */
+.sol-console .sol-stage {
+  position: relative;
+  width: 100%;
+  /* height is the ratio again, not a viewport formula: the card below it is
+     no longer inside the box, so the box has nothing to clip */
+  height: auto;
+  aspect-ratio: 21 / 9;
+  max-height: none;
+  border-radius: clamp(18px, 1.8vw, 28px);
+  overflow: visible;          /* the card straddles the edge */
+  container-type: normal;
+  /* the render needs a floor to sit on while it decodes */
+  background: linear-gradient(140deg, #ffd9e9, #f6e3f2);
+  /* room underneath for the half of the card that hangs below */
+  margin-bottom: clamp(74px, 9vw, 128px);
+}
+.sol-console .sol-stage-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 60% center;
+  border-radius: inherit;
+}
+/* a soft light on the left third only, so the straddling card has something
+   calm to sit against where it overlaps */
+.sol-console .sol-stage-scrim {
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(100deg, rgba(255, 240, 247, 0.5) 0%, rgba(255, 240, 247, 0.12) 34%, transparent 56%);
+}
+
+/* ——— the answer, straddling the seam ——— */
+.sol-console .sol-answer-slot {
+  position: absolute;
+  left: clamp(18px, 3.2vw, 56px);
+  right: auto;
+  bottom: clamp(-96px, -7vw, -58px);
+  width: min(560px, 46%);
+  display: block;
+  z-index: 3;
+}
+.sol-console .sol-panelcard {
+  width: 100%;
+  padding: clamp(20px, 1.9vw, 30px) clamp(22px, 2vw, 32px);
+  border-radius: clamp(16px, 1.5vw, 22px);
+  background: #fff;
+  border: 1px solid rgba(96, 40, 76, 0.1);
+  box-shadow: 0 26px 60px rgba(96, 30, 70, 0.18), 0 3px 10px rgba(96, 30, 70, 0.06);
+  overflow: visible;
+}
+/* type is real rem again — the card is no longer a slice of a container query */
+.sol-console .sol-answer-kicker {
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+  color: #b0508c;
+}
+.sol-console .sol-answer-name {
+  font-size: clamp(1.5rem, 2.3vw, 2.1rem);
+  line-height: 1.02;
+  margin-top: 4px;
+  color: var(--ink);
+}
+.sol-console .sol-answer-hook {
+  font-family: var(--display);
+  font-size: clamp(0.95rem, 1.1vw, 1.08rem);
+  line-height: 1.4;
+  margin-top: 8px;
+  color: #5c4566;
+  max-width: none;
+}
+.sol-console .sol-answer-right { display: block; margin-top: clamp(12px, 1.3vw, 18px); }
+.sol-console .sol-deliverables { gap: 6px; }
+.sol-console .sol-deliverables li {
+  font-size: clamp(0.8rem, 0.9vw, 0.88rem);
+  line-height: 1.4;
+  color: #6b5273;
+}
+.sol-console .sol-agent { display: none; }
+.sol-console .sol-cta { margin-top: clamp(14px, 1.5vw, 20px); }
+.sol-console .sol-answer-badge { width: 34px; height: 34px; border-radius: 11px; }
+
+/* ——— the index below ——— */
+.sol-index {
+  max-width: min(1560px, 94vw);
+  margin: 0 auto;
+  padding: clamp(18px, 2.4vw, 30px) 0 0;
+  border-top: 1px solid rgba(96, 40, 76, 0.14);
+}
+.sol-idx-flow {
+  columns: 4;
+  column-gap: clamp(22px, 3vw, 48px);
+  font-size: clamp(0.84rem, 0.95vw, 0.94rem);
+  line-height: 1.85;
+  color: #5c4566;
+}
+.sol-idx-label {
+  display: inline-block;
+  margin-right: 6px;
+  font-family: var(--body);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #a5638f;
+}
+
+@media (max-width: 1000px) {
+  .sol-idx-flow { columns: 2; }
+}
+@media (max-width: 939px) {
+  /* stacked: the card stops straddling and simply follows the picture */
+  .sol-console .sol-stage {
+    aspect-ratio: 16 / 10;
+    margin-bottom: 0;
+  }
+  .sol-console .sol-answer-slot {
+    position: static;
+    width: 100%;
+    margin-top: clamp(12px, 3vw, 18px);
+  }
+  .sol-console .sol-stage-scrim { display: none; }
+  .sol-bar { flex-wrap: wrap; gap: 8px 14px; border-radius: 20px; }
+  .sol-bar-label { border-right: 0; padding-right: 0; }
+  .sol-bar-count { display: none; }
+  .sol-bar-field { flex-basis: 100%; }
+}
+@media (max-width: 600px) {
+  .sol-idx-flow { columns: 1; }
+}
+
+/* ——— the card straddles, it does not colonise ———
+   First pass put a full-height card over the left half of the render: the
+   straddle only reads if most of the card is BELOW the seam, which means the
+   card has to be short. Everything here is about height. */
+.sol-console .sol-panelcard {
+  /* solid, and no inherited gradient — the earlier build let the render show
+     through the card's top third, which is exactly the fight this layout
+     exists to end */
+  background-image: none;
+  background-color: #fff;
+  padding: clamp(16px, 1.4vw, 22px) clamp(18px, 1.6vw, 26px);
+}
+.sol-console .sol-answer-slot {
+  /* pinned to the seam: a fixed overhang, so the card hangs the same amount
+     below the picture at every width instead of being positioned by a
+     percentage of its own height */
+  bottom: clamp(-88px, -6vw, -54px);
+  width: min(500px, 42%);
+}
+.sol-console .sol-answer-name { font-size: clamp(1.3rem, 1.9vw, 1.75rem); }
+.sol-console .sol-answer-hook {
+  font-size: clamp(0.88rem, 1vw, 0.98rem);
+  line-height: 1.35;
+  margin-top: 6px;
+}
+.sol-console .sol-answer-right { margin-top: clamp(10px, 1vw, 14px); }
+.sol-console .sol-deliverables { gap: 4px; }
+.sol-console .sol-deliverables li { font-size: clamp(0.76rem, 0.85vw, 0.83rem); line-height: 1.32; }
+/* the two least load-bearing rows go: the badge is decoration and the fourth
+   deliverable is the one the need panel repeats anyway */
+.sol-console .sol-answer-badge { display: none; }
+.sol-console .sol-answer-head { gap: 0; }
+.sol-console .sol-deliverables li:nth-child(n + 4) { display: none; }
+.sol-console .sol-cta { margin-top: clamp(10px, 1.1vw, 15px); }
+.sol-console .sol-answer-thread { display: none; }
+
+@media (max-width: 939px) {
+  .sol-console .sol-deliverables li:nth-child(n + 4) { display: flex; }
+  .sol-console .sol-answer-slot { bottom: auto; width: 100%; }
+}
+
+/* ═══════════ THE PINNED TOUR — one screen, thirty industries ═══════════
+   Client brief: the whole section fits the frame, and scrolling walks the
+   visitor through every industry rather than letting them flick past. Search
+   still overrides — see the `query.length` guard in Solutions.jsx.
+
+   The track is tall; the thing inside it is `position: sticky` and exactly one
+   viewport. That is the whole mechanism — no scroll listener moves anything,
+   no transform is written per frame. The only JS is one motion-value read that
+   swaps which industry is showing. */
+.sol-pin.is-pinned {
+  /* 30 industries x 20svh of scroll each, plus the 100svh the stage occupies
+     while pinned = 7 screens total.
+     History, because this number has been wrong in both directions: the first
+     pass used 34svh (11.2 screens measured — a hostage situation), which was
+     then cut to 12svh (~108px per industry) and read as a flicker. Thirty
+     photographs going past at 108px each is not a tour either; nobody can see
+     what an industry IS in that distance, which defeats the section. 20svh
+     gives each one ~180px — slow enough to land, short enough that the whole
+     run is under the seven screens where forced scrolling starts to feel like
+     a trap. If it is ever retuned again, move THIS number and the phone's
+     below together: they are the same decision at two widths. */
+  height: calc(100svh + 30 * 20svh);
+  position: relative;
+}
+.sol-pin.is-pinned .sol-pin-inner {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(8px, 1.2vh, 16px);
+  overflow: hidden;
+  padding-block: clamp(10px, 2vh, 22px);
+}
+/* everything inside stops paying its own vertical rhythm — the screen is the
+   budget now and each row takes what it needs from it */
+.sol-pin.is-pinned .sol-act2 { padding: 0 var(--pad); }
+.sol-pin.is-pinned .sol-act2-rule { display: none; }
+.sol-pin.is-pinned .sol-act2-h { font-size: clamp(1.3rem, 2.4vw, 2rem); }
+.sol-pin.is-pinned .sol-act2-lede { margin-top: 4px; font-size: 0.92rem; }
+.sol-pin.is-pinned .sol-console { margin-bottom: 0; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.sol-pin.is-pinned .sol-bar { margin-bottom: clamp(8px, 1.2vh, 14px); flex: 0 0 auto; }
+
+/* THE STAGE TAKES THE SLACK. No ratio here: the picture is whatever height is
+   left after the head, the bar and the index have taken theirs, and
+   object-fit: cover crops it. A fixed 21:9 is what stopped this fitting. */
+.sol-pin.is-pinned .sol-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: auto;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+/* THE CARD MOVES UP ONTO THE PICTURE. It no longer straddles the bottom edge
+   — that overhang is exactly the height the section could not afford. */
+.sol-pin.is-pinned .sol-answer-slot {
+  position: absolute;
+  left: clamp(14px, 2.4vw, 40px);
+  bottom: clamp(14px, 2.4vw, 40px);
+  width: min(460px, 44%);
+}
+.sol-pin.is-pinned .sol-panelcard {
+  background-color: rgba(255, 255, 255, 0.93);
+  backdrop-filter: blur(6px);
+}
+/* THE CARD IS BOTTOM-ANCHORED, SO ITS HEIGHT IS ITS TOP EDGE.
+   Every industry the tour walks past re-flows this card, and the only thing
+   that changes size is the deliverable list: measured across all thirty, each
+   row runs 2 or 3 lines (59 two-line rows, 31 three-line, at 1440). Three rows
+   free to disagree gave the card a 48.4px range at 1440 and 31.2 at 820 — the
+   top edge stepping up and down as the scrub went by. Reserving the tallest
+   case costs nothing visually (the card was already sized for it on a third of
+   the industries) and holds the edge still. `min-height`, never `height`: a
+   row that runs longer than the measured max still grows rather than clipping.
+   The phone's own version of this is at the foot of the file, with two more
+   blocks to reserve — see there for the full reasoning. */
+.sol-pin.is-pinned .sol-deliverables li {
+  min-height: calc(clamp(0.76rem, 0.85vw, 0.83rem) * 1.32 * 3);
+}
+/* The other variable row. The button carries the industry's OWN name, so
+   "Build my Med Spas & Aesthetics system" wraps where "Build my Law Firms
+   system" does not — and whether it wraps depends on the card's width, which
+   is `min(460px, 44%)`: at 1440 the card is a full 460 and nothing wraps, at
+   1024 it is ~440 and eight of the thirty do. That is why this looked fixed at
+   one desktop width and still stepped 25.6px at another. Shortening the label
+   would cost the personalisation the button exists for, so the row reserves
+   two lines and a one-line label sits centred in it. */
+.sol-pin.is-pinned .sol-cta { min-height: 87px; display: flex; align-items: center; }
+
+/* the index, compressed to a single reading band at the foot of the screen */
+.sol-pin.is-pinned .sol-index {
+  flex: 0 0 auto;
+  margin-top: clamp(8px, 1.2vh, 14px);
+  padding-top: clamp(8px, 1.2vh, 14px);
+}
+.sol-pin.is-pinned .sol-idx-flow {
+  columns: 5;
+  font-size: clamp(0.7rem, 0.78vw, 0.8rem);
+  line-height: 1.55;
+  max-height: clamp(76px, 13vh, 116px);
+  overflow: hidden;
+}
+/* the industry the tour is on, lit in the index so the two stay tied together */
+.sol-idx-item.is-now { color: var(--ink); font-weight: 700; }
+
+/* ——— the tour progress ——— */
+.sol-tour {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(1560px, 94vw);
+  margin: clamp(8px, 1.2vh, 14px) auto 0;
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: 0.82rem;
+  color: #a5638f;
+}
+.sol-tour-track {
+  flex: 1 1 auto;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(96, 40, 76, 0.14);
+  overflow: hidden;
+}
+.sol-tour-fill {
+  display: block;
+  height: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--yarn-gold), var(--magenta));
+  transition: transform 0.5s var(--ease);
+}
+
+/* ——— MOBILE: full screen, same tour ——— */
+@media (max-width: 939px) {
+  /* the phone's half of the same decision as the 20svh above — retune both or
+     neither. Slightly shorter per industry than desktop because a phone's
+     100svh is taller relative to a thumb's travel, so the same svh costs more
+     swipes. */
+  .sol-pin.is-pinned { height: calc(100svh + 30 * 17svh); }
+  .sol-pin.is-pinned .sol-pin-inner { height: 100svh; padding-block: clamp(8px, 1.6vh, 16px); }
+  .sol-pin.is-pinned .sol-stage { aspect-ratio: auto; flex: 1 1 auto; }
+  /* on a phone the card cannot sit beside the picture — it sits ON it, full
+     width, at the bottom, where a thumb already is */
+  .sol-pin.is-pinned .sol-answer-slot {
+    position: absolute;
+    left: 10px; right: 10px;
+    bottom: 10px;
+    width: auto;
+    margin-top: 0;
+  }
+  .sol-pin.is-pinned .sol-panelcard { padding: 14px 16px; }
+  .sol-pin.is-pinned .sol-answer-name { font-size: 1.2rem; }
+  .sol-pin.is-pinned .sol-answer-hook { font-size: 0.86rem; }
+  /* two rows here, not three, and each one tops out at two lines at this
+     width — so the reservation above is re-stated against these metrics
+     rather than left holding three desktop-sized lines open. */
+  .sol-pin.is-pinned .sol-deliverables li { font-size: 0.74rem; min-height: calc(0.74rem * 1.32 * 2); }
+  /* The CTA reservation above is a DESKTOP problem and is given back here.
+     Below 940 the card stops sitting beside the picture and goes full width
+     (left/right 10px), so the button has ~700px to set "Build my Med Spas &
+     Aesthetics system" on one line and no industry wraps — reserving a second
+     line here would just take 25px off the photograph to hold space nothing
+     ever uses. The phone, at 320-430, wraps again and re-reserves its own
+     (smaller) two lines further down. */
+  .sol-pin.is-pinned .sol-cta { min-height: 0; }
+  .sol-pin.is-pinned .sol-deliverables li:nth-child(n + 3) { display: none; }
+  .sol-pin.is-pinned .sol-idx-flow { columns: 2; max-height: clamp(52px, 9vh, 74px); }
+  .sol-pin.is-pinned .sol-act2-lede { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE PHONE. One picture, one answer, nothing else.
+
+   Measured before this block, at 390x844: the stage came out 367x552 with a
+   12px inset — ratio 0.665 — while `Solutions.jsx` was already serving the
+   720x1280 `-9x16` portrait render to exactly this width. The render was
+   therefore being cover-cropped into a letterbox: three quarters of a shot
+   commissioned as a portrait, thrown away. THE SOURCE AND THE BOX HAVE TO
+   SWITCH ON THE SAME BREAKPOINT — that pairing is stated twice above this
+   block and was still only half true on a phone.
+
+   Everything else in the section is switched off here rather than shrunk.
+   `.sol-idx-flow` measured scrollWidth 1921 inside a 367 box: it was not a
+   dense index on a phone, it was seven columns of type with their left edge
+   sliced off ("afés & Coffee", "ast Food & Burgers"). A control that cannot
+   be read is not a smaller control, it is a broken one.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 719px) {
+  /* the picture takes the whole phone. No page gutter, no rounding, no
+     padding above or below it — `calc(50% - 50vw)` + `100vw` is the same
+     full-bleed escape the desktop stage documents at the top of this file. */
+  .sol-pin.is-pinned .sol-pin-inner { padding-block: 0; gap: 0; }
+  .sol-pin.is-pinned .sol-stage {
+    margin-inline: calc(50% - 50vw);
+    width: 100vw;
+    flex: 1 1 auto;
+    border-radius: 0;
+    aspect-ratio: auto;
+  }
+  /* object-position moves to the TOP on a phone. The desktop crop is pushed
+     to 62% because the left third is reserved for two white cards; in
+     portrait the card is a band across the bottom instead, so the subject
+     belongs high where the copy is not. */
+  .sol-pin.is-pinned .sol-stage-bg { object-position: center 32%; }
+
+  /* THE EXTRAS, REMOVED — not miniaturised.
+     The index is the whole thirty-industry list; it is the desktop's proof of
+     breadth and unreadable at this width. The count and the label are
+     scaffolding around a search field that explains itself. */
+  .sol-pin.is-pinned .sol-index,
+  .sol-pin.is-pinned .sol-idx-flow,
+  .sol-pin.is-pinned .sol-tour { display: none; }
+  .sol-bar-label, .sol-bar-count { display: none; }
+
+  /* the search bar floats ON the picture, top-left, instead of taking a row
+     above it — the row is what was stealing the height the portrait needed */
+  .sol-pin.is-pinned .sol-console { position: relative; }
+  .sol-pin.is-pinned .sol-bar {
+    /* 74px, not 12: the nav is sticky and paints OVER this stage now that the
+       stage runs to the top of the viewport. At 12px the field sat underneath
+       the bar and the section's only control was invisible. */
+    position: absolute; z-index: 4;
+    top: 74px; left: 12px; right: 12px;
+    margin: 0; padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(14px) saturate(1.15);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    box-shadow: 0 8px 26px -12px rgba(90, 30, 70, 0.45);
+  }
+
+  /* THE ANSWER CARD — a bottom sheet, which is the shape a thumb expects */
+  .sol-pin.is-pinned .sol-answer-slot { left: 0; right: 0; bottom: 0; }
+  .sol-pin.is-pinned .sol-panelcard {
+    border-radius: 22px 22px 0 0;
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -18px 44px -20px rgba(60, 20, 50, 0.5);
+  }
+  .sol-pin.is-pinned .sol-answer-name { font-size: 1.3rem; }
+  .sol-pin.is-pinned .sol-answer-hook { font-size: 0.92rem; }
+  .sol-pin.is-pinned .sol-deliverables li { font-size: 0.8rem; line-height: 1.42; }
+
+  /* THE CTA GOES LAST. `.sol-answer-left` holds head + hook + CTA and
+     `.sol-answer-right` holds the deliverables, so stacking the two columns
+     put the button in the MIDDLE of the card — offer, then button, then more
+     offer. `display: contents` dissolves the two columns so all four blocks
+     order against the card itself and the button ends where a button ends.
+
+     NOT scoped to `.has-photo`: the pinned phone card carries only
+     `sol-panelcard sol-answer` — the photo lives on the stage behind it, not
+     on the card — so a `.has-photo` qualifier here matches nothing and the
+     button silently stays mid-card. */
+  .sol-pin.is-pinned .sol-answer-left { display: contents; }
+  .sol-pin.is-pinned .sol-answer-head { order: 1; }
+  .sol-pin.is-pinned .sol-answer-hook { order: 2; margin-top: 2px; }
+  .sol-pin.is-pinned .sol-answer-right { order: 3; margin-top: 10px; }
+  .sol-pin.is-pinned .sol-cta { order: 4; }
+
+  /* ONE deliverable on a phone, not two. Two ran past the bottom of the
+     screen — the second was cut mid-sentence and the first lost its last
+     line, which reads as a rendering fault rather than as an edited card.
+     The card is a summary here; the full list is one tap away behind the
+     CTA. Clamped at three lines so a long line cannot reintroduce the
+     overflow on a narrower phone. */
+  .sol-pin.is-pinned .sol-deliverables li:nth-child(n + 2) { display: none; }
+  .sol-pin.is-pinned .sol-deliverables li > :last-child {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ——— THE SHEET HOLDS ITS HEIGHT ———
+     This card is anchored by its BOTTOM edge, so every pixel of height
+     variance between two industries is a jump of its TOP edge — and the tour
+     walks thirty industries past it. Measured at 390x844 the card came out
+     261.8 / 279.9 / 305.5px, a 43.7px swing, which the scrub rendered as the
+     top of the sheet lurching up and down: half of "the section shakes".
+     (The other half was the remount — see Solutions.jsx.)
+
+     Exactly two things vary, and both are reserved rather than trimmed:
+
+     1. The single deliverable clamps at three lines but often runs two. The
+        min-height is those same three lines stated in the same units the
+        rule above uses, so it tracks the font instead of being a magic
+        number that rots the next time the type changes.
+     2. The CTA carries the industry's own name — "Build my Med Spas &
+        Aesthetics system" wraps to two lines where "Build my Law Firms
+        system" does not, on 8 of the 30. Shortening the label would cost the
+        personalisation that is the whole point of the button, so the row
+        reserves two lines and short labels sit centred in it.
+     3. The hook is one line on a 390 and two on a 360 — "The regulars come
+        back without being asked." does not fit 360px of type. Same treatment,
+        with the line-height stated locally so the reservation and the thing
+        it is reserving for cannot drift apart. Verified flat at 320 / 360 /
+        390 / 430.
+
+     Both are min-height, never height: a narrower phone that wraps something
+     further still grows rather than clipping its own copy. */
+  .sol-pin.is-pinned .sol-answer-hook {
+    line-height: 1.35;
+    /* ONE line, reserved and clamped. Two was the stable-but-fat choice; the
+       brief is that the PHOTOGRAPH is the section and this card is a caption
+       under it, so the hook gets the one line it needs at 390 and the couple
+       of hooks that wrapped at 360 are clamped instead of given a second. */
+    min-height: calc(0.92rem * 1.35);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* two lines, not three — same trade */
+  .sol-pin.is-pinned .sol-deliverables li { min-height: calc(0.8rem * 1.42 * 2); }
+  .sol-pin.is-pinned .sol-deliverables li > :last-child { -webkit-line-clamp: 2; }
+  .sol-pin.is-pinned .sol-cta { min-height: 69px; display: flex; align-items: center; }
+
+  /* THE CTA WAS CLIPPED. Measured scrollWidth 335 inside clientWidth 293, so
+     "Build my Restaurants system" lost its last word on every industry whose
+     name is long. It is a full-width button here and the label is allowed to
+     wrap rather than being cut. */
+  .sol-pin.is-pinned .sol-cta {
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 0;
+  }
+  .sol-pin.is-pinned .sol-cta > * {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+    overflow: visible;
+  }
+}
+
+/* Reduced motion never pins — `.is-pinned` is simply absent, and everything
+   above is scoped to it, so the section renders as an ordinary block. */
+
+/* AUTO MARGINS DEFEAT `align-items: stretch`. `.sol-pin-inner` is a flex
+   column, and a flex child with `margin-inline: auto` is NOT stretched to the
+   cross size — it is centred at its CONTENT width. That is why the stage came
+   out 664px inside a 1440px screen while its own max-width said 1353. Stating
+   the width explicitly restores the intent: fill the row, cap at the measure,
+   centre the remainder. */
+.sol-pin.is-pinned .sol-console,
+.sol-pin.is-pinned .sol-index,
+.sol-pin.is-pinned .sol-tour {
+  width: 100%;
+  align-self: center;
+}
+
+/* ——— THE FOUR EVERYONE GETS ———————————————————————————————————————————
+   The universal half of the offer, rendered ONCE beneath the console. It is
+   deliberately quieter than the answer card: numbered, ruled, no wool, no
+   photograph. The industry card above is the argument; this is the invoice.
+   Numbering is honest here — CORE_SERVICES is a fixed set of four sold as a
+   bundle, not a reorderable list, which is the one case where 01–04 carries
+   information rather than decorating. */
+.sol-core {
+  margin: clamp(26px, 3.4vw, 44px) var(--pad) 0;
+  padding-top: clamp(16px, 2vw, 24px);
+  border-top: 1px solid var(--line);
+}
+.sol-core-head {
+  display: flex; align-items: baseline; gap: 14px;
+  flex-wrap: wrap; margin-bottom: clamp(14px, 1.8vw, 20px);
+}
+.sol-core-title {
+  font-family: var(--bloom); text-transform: uppercase;
+  font-size: clamp(1.05rem, 1.9vw, 1.5rem); letter-spacing: 0.01em; color: var(--ink);
+}
+.sol-core-sub { font-size: 0.86rem; color: var(--ink-faint); }
+
+.sol-core-grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+}
+.sol-core-card {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: clamp(13px, 1.3vw, 17px);
+  border: 1px solid var(--line); border-radius: 14px;
+  background: rgba(255, 255, 255, 0.42);
+}
+.sol-core-n {
+  font-family: var(--bloom); font-size: 0.72rem; letter-spacing: 0.14em;
+  color: var(--magenta);
+}
+.sol-core-h {
+  font-family: var(--display); font-weight: 600; line-height: 1.2;
+  font-size: clamp(0.95rem, 1.15vw, 1.08rem); color: var(--ink);
+}
+.sol-core-b { font-size: 0.855rem; line-height: 1.45; color: var(--ink-dim); }
+.sol-core-pts {
+  margin: 3px 0 0; padding-left: 15px;
+  font-size: 0.8rem; line-height: 1.45; color: var(--ink-faint);
+}
+.sol-core-pts li { margin-bottom: 2px; }
+
+/* The entry offer. One row, priced — the only fixed figure on the page, and
+   the reason it reads as a tripwire rather than a rate card. */
+.sol-entry {
+  margin-top: clamp(10px, 1.2vw, 16px);
+  display: flex; align-items: baseline; gap: clamp(10px, 1.4vw, 20px);
+  flex-wrap: wrap;
+  padding: clamp(13px, 1.4vw, 18px) clamp(15px, 1.8vw, 24px);
+  border: 1.5px solid var(--magenta); border-radius: 14px;
+  background: linear-gradient(105deg, rgba(242, 28, 140, 0.09), rgba(255, 255, 255, 0.4) 62%);
+}
+.sol-entry-tag {
+  font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 700; color: var(--magenta);
+  border: 1px solid currentColor; border-radius: 99px; padding: 3px 10px;
+  align-self: center;
+}
+.sol-entry-title {
+  font-family: var(--bloom); text-transform: uppercase;
+  font-size: clamp(1.05rem, 2vw, 1.6rem); color: var(--ink); flex: 1 1 auto; min-width: 0;
+}
+.sol-entry-price {
+  margin-left: auto; flex: none;
+  font-family: var(--bloom); font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  line-height: 0.9; color: var(--magenta);
+}
+.sol-entry-blurb {
+  flex: 0 0 100%; min-width: 100%; font-size: 0.855rem; line-height: 1.45;
+  color: var(--ink-dim); max-width: 78ch;
+}
+
+/* Bolded head of each of the three offers — see AnswerCard's split. */
+.sol-deliv-t { font-weight: 700; color: var(--ink); }
+
+@media (max-width: 1080px) {
+  .sol-core-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .sol-core-grid { grid-template-columns: 1fr; }
+  .sol-entry { gap: 8px; }
+  .sol-entry-title { min-width: 0; }
+}
+
+/* The strip lives OUTSIDE `.sol-pin` in the JSX, not inside it hidden by a
+   `display: none`. Inside, it was unreachable: the pin holds for the whole
+   scrub of the thirty, so a rule that hid it while pinned hid it always. Its
+   place in the argument is after the scrub anyway — you meet your own trade
+   first, then read what everybody gets. */
+
+
+/* ——— THE GLOBAL MOBILE PILL STANDS DOWN OVER THIS SECTION ———
+   `.mobile-cta-pill` is fixed at the bottom of every phone screen, and the
+   pinned tour's answer card is a bottom sheet — so the site's generic "Start a
+   project" button sat directly on top of "Build my <industry> system", the one
+   conversion this section exists to offer. Two buttons, one of them covering
+   the more specific one.
+
+   Padding the sheet to clear it was the first fix and it was wrong: it made the
+   card 363px tall on an 844px screen, eating the photograph the section is
+   built around. So the generic pill yields instead. `Solutions.jsx` puts
+   `sol-tour-live` on <html> while the pinned tour is on screen; the moment the
+   reader scrolls out, the pill fades straight back. Nothing is lost — the
+   specific CTA is right there, and it opens the same wizard. */
+html.sol-tour-live .mobile-cta-pill {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* THE FAB NEEDS `visibility`, NOT `opacity`, AND THAT IS NOT A STYLE CHOICE.
+   `.wa-fab-stack` is `display: contents` (whatsapp-fab.css) — it generates no
+   box at all, so `opacity: 0` on it is a no-op that still reports "0" from
+   getComputedStyle. That is exactly how this was nearly shipped broken: the
+   probe read 0, agreed with itself, and the screenshot showed the button
+   sitting on the CTA anyway. Its two children are each `position: fixed` and
+   the button is a Framer `motion.a` carrying an INLINE opacity, which beats
+   any stylesheet rule short of !important.
+   `visibility` is inherited, so it passes straight through a display:contents
+   parent to both children, and Framer never writes it. */
+html.sol-tour-live .wa-fab-stack {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* The WhatsApp button is in that list for a reason worth writing down. It used
+   to carry its own text-duck — it measured whether it was sitting on rendered
+   copy and shrank to 56% — and that duck was deleted on 11 Aug at the client's
+   request, along with the butterfly's. Correct call: the machinery was absurd.
+   But the duck WAS the thing keeping the FAB off this card, and with it gone
+   the button sat squarely on top of "Build my <industry> system" — measured
+   over: true, opacity 1, against a CTA spanning 760-829px on a 390x844 phone.
+   Fixing that by reinstating a 160ms document-wide scan would be undoing the
+   thing that was asked for. Standing the FAB down over exactly one section
+   costs nothing (WhatsApp is reachable from the nav, the footer and the
+   wizard) and needs no measurement at all. */

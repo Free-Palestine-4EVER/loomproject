@@ -1,0 +1,297 @@
+/* ——— The need panel ———
+   Layout contract: the panel is a flex COLUMN with a fixed head (the close
+   button floats over the hero) and a fixed foot (the CTA), and only .nm-body
+   scrolls between them. A single scrolling panel would let the CTA leave the
+   screen, which on a 90vh panel means the reader has to go looking for the
+   one thing the panel exists to offer. */
+
+/* ——— per-need accent lookup ———
+   NEEDS (needs.js) names seven `yarn` values: magenta, violet, blue, crimson,
+   grey, gold, felt. The site's global --yarn-* tokens (banners.css's tile
+   stripe) only ever needed FOUR at once and only ever named four: pink,
+   violet, blue, gold. `var(--yarn-crimson, var(--magenta))` and its grey/
+   magenta/felt siblings were therefore never resolving anything — they hit
+   the fallback every time, and five of the eight panels (Brand identity,
+   Social content, AI systems, Launch campaign, Not sure yet) rendered the
+   exact same plain magenta. This is the panel's own table: it borrows a
+   global token wherever one already answers to that name (pink/violet/blue/
+   gold/cream are the tile stripe's own set) and states the two hues that
+   token set never had a name for, rather than inventing a fifth naming
+   scheme to solve a four-token shortage. */
+:root {
+  --nm-accent-magenta: var(--yarn-pink);
+  --nm-accent-violet: var(--yarn-violet);
+  --nm-accent-blue: var(--yarn-blue);
+  --nm-accent-gold: var(--yarn-gold);
+  --nm-accent-felt: var(--yarn-cream);
+  --nm-accent-grey: var(--cyan); /* AI systems reads as tech-cool, not neutral-dull */
+  --nm-accent-crimson: #ef4d6b; /* the one hue with no existing token to borrow */
+}
+
+.nm-scrim {
+  position: fixed;
+  inset: 0;
+  /* 94: above the nav (80), the flyer and the floating CTAs (92) — and
+     deliberately BELOW .overlay (95) and .wmodal (96).
+
+     It was 120, on a comment that said "over the nav (100)". The nav is 80;
+     100 is the LOADER. So 120 bought nothing it needed and cost something
+     real: `start()` opens the wizard and closes this panel a frame later, so
+     the two are on screen together for the length of this panel's exit
+     animation — measured at ~800ms with two [role="dialog"] elements live —
+     and at 120 the panel spent all of it painted on top of the wizard the
+     reader had just asked for. Under it, the exit reads as the panel sliding
+     out from behind the thing that replaced it, which is what it is. */
+  z-index: 94;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vh, 48px) clamp(12px, 3vw, 40px);
+  background: rgba(255, 238, 245, 0.72);
+  /* the page behind is dark and busy; a plain dim leaves the tile grid
+     legible through it and the panel stops reading as a layer */
+  backdrop-filter: blur(10px) saturate(0.9);
+  -webkit-backdrop-filter: blur(10px) saturate(0.9);
+}
+
+.nm-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(940px, 100%);
+  max-height: min(88vh, 860px);
+  border-radius: clamp(18px, 2vw, 26px);
+  overflow: hidden;
+  background: linear-gradient(168deg, #ebe1e6 0%, #f0e8eb 58%, #f2ebee 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  /* The plain black drop-shadow used to be the only thing separating the
+     panel from the page behind it, and both are near-black — dark-on-dark,
+     no read as a layer. The second shadow is a wide, soft cast of the
+     panel's OWN accent (now that --nm-yarn actually resolves to seven real
+     colours instead of one fallback magenta, see the lookup table above) —
+     it is what a coloured object does to the dark it sits on, not a border. */
+  box-shadow:
+    0 40px 90px -30px rgba(0, 0, 0, 0.85),
+    0 30px 100px -36px color-mix(in srgb, var(--nm-yarn, var(--magenta)) 55%, transparent);
+}
+/* A hairline of the same accent across the very top edge — the one line of
+   colour that survives even when the reader has scrolled .nm-body past the
+   hero art, so the panel never fully reverts to plain dark-on-dark once
+   they're a screen deep into the copy. */
+.nm-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 5;
+  background: linear-gradient(90deg, transparent, var(--nm-yarn, var(--magenta)), transparent);
+  pointer-events: none;
+}
+
+/* ——— the hero ——— */
+.nm-hero {
+  position: relative;
+  flex: none;
+  /* the ratio the art is rendered at. Stated on the BOX so nothing reflows
+     when the image decodes — the same contract the Counter tiles run on. */
+  aspect-ratio: 21 / 9;
+  overflow: hidden;
+}
+.nm-hero-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* bottom-anchored scrim only — the title sits on it, and a full-surface
+   wash would flatten the render the panel is here to show */
+.nm-hero::after {
+  content: '';
+  position: absolute; inset: auto 0 0 0;
+  height: 74%;
+  background: linear-gradient(to top, rgba(251, 226, 238, 1) 0%, rgba(251, 226, 238, 0.94) 6%, rgba(251, 226, 238, 0.72) 42%, rgba(251, 226, 238, 0) 100%);
+  pointer-events: none;
+}
+.nm-hero-ink {
+  position: absolute;
+  left: clamp(18px, 3vw, 34px);
+  right: clamp(60px, 8vw, 90px);
+  bottom: clamp(14px, 2vw, 22px);
+  z-index: 2;
+}
+.nm-kicker {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--nm-yarn, var(--magenta));
+  margin-bottom: 6px;
+}
+.nm-title {
+  font-family: var(--bloom); font-weight: 560;
+  font-size: clamp(1.7rem, 4vw, 2.8rem);
+  line-height: 1.04; letter-spacing: 0;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ——— the close button ——— */
+.nm-close {
+  position: absolute;
+  top: clamp(12px, 1.6vw, 18px);
+  right: clamp(12px, 1.6vw, 18px);
+  z-index: 6;
+  width: 42px; height: 42px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  background: rgba(12, 6, 20, 0.6);
+  backdrop-filter: blur(6px);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.25s, border-color 0.25s, transform 0.25s var(--ease);
+}
+.nm-close svg { width: 18px; height: 18px; }
+.nm-close:hover { background: rgba(12, 6, 20, 0.86); border-color: var(--nm-yarn, var(--magenta)); transform: rotate(90deg); }
+.nm-close:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 3px; }
+
+/* ——— the scrolling middle ——— */
+.nm-body {
+  flex: 1 1 auto;
+  min-height: 0; /* without this a flex child refuses to shrink and the panel grows past max-height instead of scrolling */
+  overflow-y: auto;
+  overscroll-behavior: contain; /* stops a flick at the end of the panel scrolling the page underneath */
+  padding: clamp(18px, 2.6vw, 30px) clamp(18px, 3vw, 36px) clamp(20px, 3vw, 32px);
+}
+.nm-hero { margin: 0; }
+/* the hero is inside .nm-body so it scrolls away with the copy — the panel
+   is not tall enough to justify pinning a 21:9 image AND a foot */
+.nm-body > .nm-hero {
+  margin: calc(-1 * clamp(18px, 2.6vw, 30px)) calc(-1 * clamp(18px, 3vw, 36px)) clamp(18px, 2.4vw, 26px);
+}
+
+.nm-hook {
+  font-family: var(--bloom); font-weight: 560;
+  font-size: clamp(1.1rem, 1.9vw, 1.45rem);
+  line-height: 1.24;
+  color: var(--ink);
+  margin: 0 0 12px;
+  max-width: 40ch;
+}
+.nm-para {
+  color: var(--ink-dim);
+  font-size: clamp(0.95rem, 1.15vw, 1.03rem);
+  line-height: 1.62;
+  margin: 0 0 clamp(20px, 2.6vw, 28px);
+  max-width: 62ch;
+}
+
+.nm-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: clamp(20px, 3vw, 40px);
+  padding-top: clamp(16px, 2vw, 22px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.nm-h3 {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 12px;
+}
+.nm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.nm-list li {
+  position: relative;
+  display: flex; align-items: flex-start; gap: 10px;
+  color: var(--ink);
+  font-size: clamp(0.92rem, 1.05vw, 0.99rem);
+  line-height: 1.45;
+}
+.nm-tick {
+  flex: none;
+  width: 15px; height: 15px;
+  margin-top: 3px;
+  border-radius: 3px;
+  background: var(--nm-yarn, var(--magenta));
+  /* a stitch, not a checkmark glyph — the same two-notch shape the
+     deliverables list in Solutions uses, drawn in CSS rather than shipped */
+  clip-path: polygon(14% 46%, 0 62%, 38% 100%, 100% 20%, 84% 4%, 36% 66%);
+}
+
+.nm-col--side { display: flex; flex-direction: column; gap: clamp(16px, 2vw, 22px); }
+.nm-fact-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 7px;
+}
+.nm-fact-value {
+  font-family: var(--bloom); font-weight: 560;
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+  color: var(--ink);
+  margin: 0;
+}
+.nm-pairs { display: flex; flex-wrap: wrap; gap: 7px; }
+.nm-pair {
+  font-size: 0.85rem; font-weight: 600;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s, color 0.25s;
+}
+.nm-pair:hover { border-color: var(--nm-yarn, var(--magenta)); background: rgba(255, 255, 255, 0.1); color: var(--ink); }
+.nm-pair:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 2px; }
+
+.nm-proof {
+  margin: clamp(20px, 2.6vw, 28px) 0 0;
+  padding-left: 14px;
+  border-left: 2px solid var(--nm-yarn, var(--magenta));
+  color: var(--ink-dim);
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+.nm-proof span {
+  display: block;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--nm-yarn, var(--magenta));
+  margin-bottom: 5px;
+}
+
+/* ——— the pinned foot ——— */
+.nm-foot {
+  flex: none;
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: clamp(14px, 2vw, 24px);
+  padding: clamp(14px, 2vw, 20px) clamp(18px, 3vw, 36px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 5, 17, 0.6);
+}
+.nm-foot-link {
+  font-weight: 640; font-size: 0.92rem;
+  color: var(--ink-dim);
+  background: none; border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 0 0 3px;
+  cursor: pointer;
+  transition: color 0.3s, border-color 0.3s;
+}
+.nm-foot-link:hover { color: var(--ink); border-color: var(--nm-yarn, var(--magenta)); }
+.nm-foot-link:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 3px; }
+
+/* ——— phone: the shared bottom sheet ——— */
+@media (max-width: 767px) {
+  .nm-scrim { place-items: end stretch; padding: 0; }
+  .nm-panel.is-sheet {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 22px 22px 0 0;
+    border-bottom: 0;
+  }
+  .nm-grid { grid-template-columns: 1fr; gap: 22px; }
+  .nm-close { width: 38px; height: 38px; }
+  /* the foot is the thumb's target on a phone — full-width button, and the
+     secondary link drops below it rather than competing on the same row */
+  .nm-foot { flex-direction: column; align-items: stretch; gap: 12px; }
+  .nm-foot .wool-btn { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nm-close:hover { transform: none; }
+}
