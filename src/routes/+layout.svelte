@@ -42,10 +42,6 @@
   import '$lib/styles/brand-skin.css'
   import '$lib/styles/sheet.css'
   import '$lib/styles/wool.css'
-  // The unfinished-build curtain. Wraps EVERYTHING below, chrome included, so
-  // the nav/footer/loader are not visible either. See Gate.svelte — it is a
-  // curtain, not security.
-  import Gate from '$lib/components/Gate.svelte'
 
   let { children } = $props()
 
@@ -113,39 +109,37 @@
   })
 </script>
 
-<Gate>
-  <!-- The loom never stops running — a fixed, compositor-only backdrop behind
-       every section (see loom-bg.css). Pure CSS, so it is in the server HTML and
-       painting before a single byte of JS has been parsed. -->
-  <div class="loom-bg" aria-hidden="true">
-    <div class="loom-bg-warp"></div>
-    <div class="loom-bg-dye"><i></i><i></i><i></i></div>
-    <div class="loom-bg-weft"></div>
-    <div class="loom-bg-weft loom-bg-weft--low"></div>
-  </div>
+<!-- The loom never stops running — a fixed, compositor-only backdrop behind
+     every section (see loom-bg.css). Pure CSS, so it is in the server HTML and
+     painting before a single byte of JS has been parsed. -->
+<div class="loom-bg" aria-hidden="true">
+  <div class="loom-bg-warp"></div>
+  <div class="loom-bg-dye"><i></i><i></i><i></i></div>
+  <div class="loom-bg-weft"></div>
+  <div class="loom-bg-weft loom-bg-weft--low"></div>
+</div>
 
-  <Loader />
-  <Cursor />
-  <ScrollProgress />
-  <Nav />
+<Loader />
+<Cursor />
+<ScrollProgress />
+<Nav />
 
-  <main>
-    {@render children()}
-  </main>
+<main>
+  {@render children()}
+</main>
 
-  <Footer />
+<Footer />
 
-  <!-- the butterfly rides the whole page, above the copy and under the nav -->
-  <Flyer />
+<!-- the butterfly rides the whole page, above the copy and under the nav -->
+<Flyer />
 
-  <MobileChrome />
+<MobileChrome />
 
-  <!-- The persistent CTA. MobileChrome already carries an identical pill below
-       768px, so this one mounts only above it — one per viewport. Bottom-centre,
-       because WhatsAppFab owns the right corner and the client asked for both to
-       stay. -->
-  <StartProject />
-  <WhatsAppFab />
+<!-- The persistent CTA. MobileChrome already carries an identical pill below
+     768px, so this one mounts only above it — one per viewport. Bottom-centre,
+     because WhatsAppFab owns the right corner and the client asked for both to
+     stay. -->
+<StartProject />
+<WhatsAppFab />
 
-  <WizardModal />
-</Gate>
+<WizardModal />
