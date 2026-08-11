@@ -18,7 +18,6 @@
   import { auth } from '$lib/auth.svelte.js'
 
   import Loader from '$lib/components/Loader.svelte'
-  import Cursor from '$lib/components/Cursor.svelte'
   import ScrollProgress from '$lib/components/ScrollProgress.svelte'
   import Nav from '$lib/components/Nav.svelte'
   import Footer from '$lib/components/Footer.svelte'
@@ -120,7 +119,6 @@
 </div>
 
 <Loader />
-<Cursor />
 <ScrollProgress />
 <Nav />
 
