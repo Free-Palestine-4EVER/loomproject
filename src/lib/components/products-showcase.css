@@ -41,7 +41,7 @@
   position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
   background: linear-gradient(90deg, var(--magenta), var(--violet));
   transform: scaleX(0); transform-origin: left;
-  transition: transform 0.6s var(--ease);
+  transition: transform 0.4s var(--ease);
   pointer-events: none;
 }
 .app-card:hover > .app-thread,
@@ -383,7 +383,7 @@
   filter: blur(28px);
   opacity: 0.42;
   pointer-events: none;
-  transition: opacity 0.5s var(--ease);
+  transition: opacity 0.35s var(--ease);
 }
 .lab-grid .lab-card:hover::after { opacity: 0.78; }
 @media (prefers-reduced-motion: no-preference) {
@@ -490,7 +490,7 @@
   background:
     radial-gradient(120% 90% at 50% 105%, rgba(255, 233, 242, 0.6), transparent 62%),
     linear-gradient(180deg, rgba(255, 233, 242, 0.28) 0%, transparent 26%, transparent 70%, rgba(255, 233, 242, 0.4) 100%);
-  transition: opacity 0.5s var(--ease);
+  transition: opacity 0.35s var(--ease);
 }
 .lab-card:hover .lab-veil { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {

@@ -175,7 +175,7 @@
 
 <header class="nav {scrolled ? 'nav--scrolled' : ''}">
   <a class="nav-logo" href="#top" onclick={(e) => go(e, '#top')} aria-label="LOOM — home">
-    <img class="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" />
+    <img class="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" width="480" height="162" />
   </a>
 
   <nav class="nav-links" aria-label="Primary">
@@ -278,12 +278,11 @@
 {#if open}
   <div
     class="menu"
-    data-lenis-prevent
     bind:this={menuEl}
     role="dialog"
     aria-modal="true"
     aria-label="Main menu"
-    transition:slide={{ duration: 700, easing: cubicOut }}
+    transition:slide={{ duration: 480, easing: cubicOut }}
   >
     <!-- Three layers: a soft gradient ground, two woven hatch passes at a
          whisper of opacity, and a small drift of petals reusing the footer's
@@ -308,14 +307,14 @@
           <a
             href={l.href}
             onclick={(e) => go(e, l.href)}
-            in:fly={{ y: 60, duration: 400, delay: 40 + i * 30, easing: cubicOut }}
+            in:fly={{ y: 60, duration: 300, delay: 20 + i * 28, easing: cubicOut }}
           >{l.label}</a>
         {/each}
       </div>
 
       <!-- The industries are a secondary way in, not competing with WORK /
            SOLUTIONS / PRICING for the same scale of type. -->
-      <div in:fly={{ y: 24, duration: 400, delay: 40 + LINKS.length * 30, easing: cubicOut }}>
+      <div in:fly={{ y: 24, duration: 300, delay: 20 + LINKS.length * 28, easing: cubicOut }}>
         <div class="menu-industries">
           <button
             type="button"
@@ -346,7 +345,7 @@
         </div>
       </div>
 
-      <div class="menu-meta" in:fly={{ y: 0, duration: 400, delay: 550, easing: cubicOut }}>
+      <div class="menu-meta" in:fly={{ y: 0, duration: 300, delay: 300, easing: cubicOut }}>
         <WoolButton label="Start weaving" size="big" onclick={() => { open = false; wizard.open({}) }} />
         <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>
         <a href="mailto:{BRAND.email}">{BRAND.email}</a>

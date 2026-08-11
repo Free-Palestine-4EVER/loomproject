@@ -332,7 +332,7 @@ h1 { font-family: 'LOOM Bloom', sans-serif; }`
       </p>
       <div class="tf-species">
         {#each CUTS.filter((c) => c.id !== 'regular') as c, i (c.id)}
-          <SpecWord cut={c} delay={0.05 + i * 0.06} />
+          <SpecWord cut={c} delay={0.03 + i * 0.03} />
         {/each}
       </div>
       <p class="tf-poster-orn" style:font-family={family} use:reveal={{ delay: 0.2 }}>❀ ✿ ❦</p>

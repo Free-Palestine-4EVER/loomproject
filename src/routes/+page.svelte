@@ -53,6 +53,24 @@
   <meta property="og:image" content="/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
 
+  <!-- Measured with a PerformanceObserver('largest-contentful-paint') at
+       390×844 (throttled): the LCP element there is Hero's own "See the
+       work" WoolButton photograph, not the headline text (which wins at
+       tablet/desktop widths instead — nothing to preload for a text node).
+       It has no responsive ladder (img/wool is excluded from
+       scripts/responsive.mjs — see that file), so this href is the exact
+       and only file the <img> ever requests; no imagesrcset/imagesizes
+       needed because there is no srcset to match. `media` keeps the
+       preload off the desktop/tablet document, where a different element
+       is LCP and this bytes would be pure waste. -->
+  <link
+    rel="preload"
+    as="image"
+    href="/img/wool/buttons/see-the-work.webp"
+    media="(max-width: 767px)"
+    fetchpriority="high"
+  />
+
   {@html `<script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Organization',

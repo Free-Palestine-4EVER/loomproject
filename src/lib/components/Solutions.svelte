@@ -309,6 +309,97 @@
     const cut = d.indexOf(' — ')
     return cut < 0 ? { title: d, rest: '' } : { title: d.slice(0, cut), rest: d.slice(cut + 3) }
   }
+
+  /* ——— THE CARD'S HEIGHT, RESERVED FROM THE REAL DATA — the fix for the
+     client-reported "jiggle" ———
+     The card is bottom-anchored (`.sol-answer-slot { position: absolute;
+     bottom: … }`, see solutions.css) so it can sit straddling the seam of
+     the photograph. That means its HEIGHT is its TOP edge: whatever grows
+     or shrinks the card pushes the top up or drags it down, and the tour
+     changes card thirty times as it scrolls.
+
+     A round of per-element `min-height`s (the deliverable rows, the CTA)
+     already reserves the two most obviously variable rows — see the
+     comments lower in solutions.css — but measuring the live section still
+     showed the card swinging ~100px at 1440 (450px → 552px) because two more
+     things were never pinned down: the one-line hook ("A full room on a
+     Tuesday.") vs the two-line one ("Own the order before the aggregator
+     takes its cut.") is a 17px difference nothing was reserving, and the
+     per-row reservations only cover EACH row in isolation, not the sum.
+
+     Rather than add yet another hand-measured magic number (the ones in the
+     CSS already required three separate corrections as edge cases were
+     found), this reserves the card's height directly from the real copy:
+     clone the card that's actually on screen, drop the clone off-screen at
+     the SAME width, swap in every industry's name/hook/deliverables/CTA
+     label in turn, and take the tallest result. That number becomes
+     `--sol-card-h`, which `.sol-panelcard` reserves as a `min-height` (never
+     `height` — a row that somehow runs longer than every industry measured
+     here still grows instead of clipping). Recomputed on resize because the
+     wrap points move with the card's width at every breakpoint (measured
+     stable at 390/820/1440). */
+  function measureCardHeight() {
+    if (!browser || !pinEl) return
+    const liveSlot = pinEl.querySelector('.sol-answer-slot')
+    const liveCard = liveSlot?.querySelector('.sol-panelcard.has-photo')
+    if (!liveSlot || !liveCard) return
+
+    const ghostSlot = liveSlot.cloneNode(true)
+    ghostSlot.removeAttribute('id')
+    ghostSlot.setAttribute('aria-hidden', 'true')
+    ghostSlot.style.visibility = 'hidden'
+    ghostSlot.style.pointerEvents = 'none'
+    const ghostCard = ghostSlot.querySelector('.sol-panelcard')
+    // clear any previously-set reservation so this measures NATURAL height
+    ghostCard.style.minHeight = '0'
+    liveSlot.parentElement.appendChild(ghostSlot)
+
+    const nameEl = ghostCard.querySelector('.sol-answer-name')
+    const hookEl = ghostCard.querySelector('.sol-answer-hook')
+    const kickerEl = ghostCard.querySelector('.sol-answer-head .sol-answer-kicker')
+    const items = ghostCard.querySelectorAll('.sol-deliverables li > span')
+    const ctaText = ghostCard.querySelector('.sol-cta .wool-btn-text, .sol-cta .wool-btn-label')
+
+    let max = 0
+    for (const n of NICHES) {
+      if (nameEl) nameEl.textContent = n.name
+      if (hookEl) hookEl.textContent = n.hook
+      if (kickerEl) kickerEl.textContent = GROUP_LABEL[n.group]
+      n.deliverables.forEach((d, i) => {
+        const span = items[i]
+        if (!span) return
+        const parts = deliverableParts(d)
+        span.textContent = ''
+        const b = document.createElement('b')
+        b.className = 'sol-deliv-t'
+        b.textContent = parts.title
+        span.appendChild(b)
+        if (parts.rest) span.appendChild(document.createTextNode(' — ' + parts.rest))
+      })
+      if (ctaText) ctaText.textContent = `Build my ${n.name} system`
+      max = Math.max(max, ghostCard.getBoundingClientRect().height)
+    }
+
+    ghostSlot.remove()
+    if (max > 0) pinEl.style.setProperty('--sol-card-h', `${Math.ceil(max)}px`)
+  }
+
+  // Runs once the real card exists, and again whenever the width it wraps
+  // at changes — a resize handler, debounced with the same rAF-coalescing
+  // idiom the tour's own scroll listener uses just above, so a drag-resize
+  // does not re-measure thirty industries on every intermediate pixel.
+  $effect(() => {
+    if (!browser || !pinEl) return
+    let raf = 0
+    const run = () => { raf = 0; measureCardHeight() }
+    const schedule = () => { if (!raf) raf = requestAnimationFrame(run) }
+    schedule()
+    window.addEventListener('resize', schedule)
+    return () => {
+      if (raf) cancelAnimationFrame(raf)
+      window.removeEventListener('resize', schedule)
+    }
+  })
 </script>
 
 {#snippet groupIcon(group, cls = '')}
@@ -326,7 +417,7 @@
 <!-- `merged` = this is act two of the Counter section, not a section of its
      own (the long page mounts it as <Solutions merged />). -->
 <svelte:element this={Tag}
-  class="solutions{merged ? ' solutions--merged' : ''}"
+  class="solutions{merged ? ' solutions--merged' : ''} section-anchor"
   id="solutions"
   style="--sol-tint:{sectionAccent}"
   aria-label={merged ? 'Solutions by industry' : undefined}

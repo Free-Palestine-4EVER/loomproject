@@ -1,76 +1,28 @@
 /**
- * Lenis smooth scroll + anchor navigation.
+ * Anchor navigation — native smooth scroll.
  *
  * Everything in here is client-only by construction: it is called from
  * onMount, and it touches window on every line.
+ *
+ * ── LENIS WAS REMOVED — DO NOT RE-ADD IT FOR "SMOOTHNESS" ──
+ * This file used to hand every scroll to Lenis, which intercepts wheel/touch
+ * input and interpolates toward a target position frame by frame. That is
+ * smooth-LOOKING but, by construction, always at least one frame behind the
+ * input — real, measurable latency between the wheel turning and the page
+ * moving. Native scroll on macOS/iOS/Chrome is already smooth (the compositor
+ * does it) AND has zero input latency. The client's own words were "lenis is
+ * making the scrooooool slooooow" — they were right, and it is not a tuning
+ * problem (lerp, wheelMultiplier), it is the whole approach.
+ *
+ * Reduced-motion visitors were ALREADY on this exact native path — Lenis's
+ * old `startLenis()` was a no-op under `reducedMotion.current`, so every
+ * call site already had a working native fallback before this file lost the
+ * Lenis branch entirely. Nothing here is new; the fallback is just the only
+ * path now.
  */
 
 import { browser } from '$app/environment'
 import { goto } from '$app/navigation'
-import { reducedMotion } from '$lib/motion.svelte.js'
-
-/** The live Lenis instance, or null under reduced motion. */
-let lenis = null
-export const getLenis = () => lenis
-
-/**
- * The sticky header's height is NOT a constant: it shrinks once the page is
- * scrolled, and the mobile bar is a different size again. A hardcoded offset
- * left five of the eight nav targets landing with their kicker and the top of
- * their h2 tucked behind a 96px header. Measure it at click time instead.
- *
- * ── LENIS ALREADY READS `scroll-margin-top` — DO NOT ADD IT TWICE ──
- * Since lenis 1.3, `scrollTo(element)` subtracts the target's own computed
- * `scroll-margin-top` before it scrolls, and styles.css gives every
- * `section[id]` 114px (92px under 900px) for the CSS-only path — the one used
- * by reduced-motion readers and by a hash typed straight into the address bar.
- * Handing Lenis the measured header gap ON TOP of that applies the inset
- * twice: every <section> anchor parks ~114px too low, so the kicker lands in
- * the middle of the viewport under a header-sized hole.
- *
- * Measured on the real page when this was wrong: eight of the nine nav anchors
- * landed at rect.top 228 with an 86px header; the ninth, `#solutions`, is a
- * DIV (merged mode) with no scroll-margin and was the only one landing
- * correctly at 114.
- *
- * So: add the element's OWN scroll-margin back, and both paths agree at one
- * gap.
- */
-export function anchorOffset(el) {
-  const h = document.querySelector('header')?.getBoundingClientRect().height || 70
-  const sm = el?.nodeType === 1 ? parseFloat(getComputedStyle(el).scrollMarginTop) || 0 : 0
-  return -(Math.round(h) + 18) + sm
-}
-
-/** Start Lenis. Returns a teardown. No-op under reduced motion — those users
- *  get the browser's native scroll and none of this file's behaviour. */
-export function startLenis(Lenis) {
-  if (!browser || reducedMotion.current) return () => {}
-
-  lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1.02 })
-  window.__lenis = lenis // programmatic scroll hook (QA + integrations)
-
-  let raf
-  const loop = (t) => { lenis.raf(t); raf = requestAnimationFrame(loop) }
-  raf = requestAnimationFrame(loop)
-
-  // Pause smooth scroll while the menu or any overlay locks the page.
-  const obs = new MutationObserver(() => {
-    if (!lenis) return
-    const root = document.documentElement
-    const locked = root.classList.contains('overlay-open') || root.classList.contains('menu-open')
-    locked ? lenis.stop() : lenis.start()
-  })
-  obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-
-  return () => {
-    cancelAnimationFrame(raf)
-    obs.disconnect()
-    lenis.destroy()
-    lenis = null
-    delete window.__lenis
-  }
-}
 
 /**
  * Navigate to a hash anchor or a route.
@@ -94,24 +46,27 @@ export async function navigate(href) {
 }
 
 function scrollToHash(href) {
-  const el = href === '#top' ? document.body : document.querySelector(href)
-  if (!el) return
-
   const run = () => {
-    if (lenis) {
-      lenis.scrollTo(href === '#top' ? 0 : el, {
-        offset: href === '#top' ? 0 : anchorOffset(el),
-        duration: 1.4,
-      })
-    } else {
-      el.scrollIntoView({ behavior: 'smooth' })
+    if (href === '#top') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
     }
+    const el = document.querySelector(href)
+    if (!el) return
+    // NO manual offset here. `scrollIntoView` on a target with a CSS
+    // `scroll-margin-top` (styles.css sets 114px / 92px under 900px on every
+    // `section[id]`, to clear the sticky header) already parks the section
+    // correctly under the header — adding a second, hand-measured header-gap
+    // offset on top of that was the exact bug `anchorOffset()` used to carry
+    // a long comment about: it applied the inset TWICE and parked every
+    // anchor ~114px too low. Do not reintroduce a manual offset here.
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  // The menu/overlay lock is released in the SAME commit as this click, and
-  // lenis.start() runs reset() → animate.stop(), which cancels any in-flight
-  // scrollTo. Wait for the unlock to land before scrolling, or the scroll is
-  // silently thrown away.
+  // The menu/overlay lock is released in the SAME commit as this click.
+  // Waiting a couple of frames for the unlock (and any layout it triggers,
+  // e.g. the drawer's scroll-lock removing a body inset) to land keeps the
+  // scroll targeting the FINAL layout rather than one still mid-close.
   const root = document.documentElement
   if (root.classList.contains('menu-open') || root.classList.contains('overlay-open')) {
     requestAnimationFrame(() => requestAnimationFrame(run))

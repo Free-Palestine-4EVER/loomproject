@@ -3,11 +3,11 @@
   anywhere via `wizard.open(...)` (see $lib/wizard.svelte.js).
 
   Overlay contract (also carried by Nav's drawer and NeedModal): toggle
-  `.overlay-open` on <html> — the layout's Lenis watches that class and stops
-  itself, so this is the ONLY scroll-lock mechanism, no second one needed —
-  close on Escape, trap Tab inside, restore focus to the trigger on every
-  close path. `data-lenis-prevent` on the scrollable panel so Lenis's own
-  wheel handling never fights the modal's internal scroll.
+  `.overlay-open` on <html> — styles.css sets `html.overlay-open,
+  html.menu-open { overflow: hidden }`, which is the scroll lock (this used
+  to be reinforced by Lenis also stopping on that class; Lenis is gone, this
+  CSS rule was always the real lock and still is) — close on Escape, trap Tab
+  inside, restore focus to the trigger on every close path.
 -->
 <script>
   import { browser } from '$app/environment'
@@ -114,7 +114,7 @@
           <span class="wmodal-brand">LOOM — Start a project</span>
           <button class="wmodal-close" onclick={requestClose} aria-label="Close">✕</button>
         </header>
-        <div class="wmodal-scroll" data-lenis-prevent bind:this={bodyEl} {...handoff}>
+        <div class="wmodal-scroll" bind:this={bodyEl} {...handoff}>
           {#key wizard.seed?._t}
             <ContactWizard seed={wizard.seed} />
           {/key}
@@ -134,7 +134,7 @@
           <span class="wmodal-brand">LOOM — Start a project</span>
           <button class="wmodal-close" onclick={requestClose} aria-label="Close">✕</button>
         </header>
-        <div class="wmodal-scroll" data-lenis-prevent>
+        <div class="wmodal-scroll">
           {#key wizard.seed?._t}
             <ContactWizard seed={wizard.seed} />
           {/key}

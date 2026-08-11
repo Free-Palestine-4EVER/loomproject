@@ -3,7 +3,7 @@ const b = await chromium.launch()
 const ctx = await b.newContext({ viewport:{width:1440,height:900}, deviceScaleFactor:2 })
 const p = await ctx.newPage()
 await p.goto('http://localhost:4941',{waitUntil:'networkidle'})
-await p.evaluate(async()=>{const h=document.documentElement.scrollHeight;for(let y=0;y<h;y+=800){window.__lenis?window.__lenis.scrollTo(y,{immediate:true}):window.scrollTo(0,y);await new Promise(r=>setTimeout(r,50))}})
+await p.evaluate(async()=>{const h=document.documentElement.scrollHeight;for(let y=0;y<h;y+=800){window.scrollTo(0,y);await new Promise(r=>setTimeout(r,50))}})
 await p.waitForTimeout(3500)
 const r = await p.evaluate(() => {
   const out={}

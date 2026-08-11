@@ -23,6 +23,17 @@
   import { FOOT_COLS } from './nav-links.js'
   import FootIcon from './FootIcon.svelte'
   import LoomMark from './LoomMark.svelte'
+  import { webpSrcset, variantsFor } from './Pic.svelte'
+
+  // avif equivalent of webpSrcset (Pic.svelte only exports the webp helper —
+  // this tree is the one caller on the page still hand-writing a two-format
+  // <picture> instead of using <Pic>, because the wrapper carries a
+  // `media="(max-width: 767px)"` sibling <source> pair ahead of these that
+  // <Pic> has no prop for).
+  const avifSrcset = (src) => {
+    const set = variantsFor(src)
+    return set ? set.variants.map((v) => `${v.avif} ${v.w}w`).join(', ') : undefined
+  }
 
   /* SHARE, not follow. LOOM has no social handles anywhere in the repo, and a
      footer that links to an Instagram account nobody has typed in is a broken
@@ -62,10 +73,7 @@
   }
 
   function toTop() {
-    // window.__lenis does not exist under reduced motion, hence the native
-    // fallback rather than a guard that silently does nothing.
-    if (window.__lenis) window.__lenis.scrollTo(0, { duration: 1.4 })
-    else window.scrollTo({ top: 0, behavior: reducedMotion.current ? 'auto' : 'smooth' })
+    window.scrollTo({ top: 0, behavior: reducedMotion.current ? 'auto' : 'smooth' })
   }
 
   // Same rule as Nav's go(): only hash links are scroll targets. Path links are
@@ -176,7 +184,23 @@
       <picture style="display: contents">
         <source media="(max-width: 767px)" type="image/avif" srcset="/img/tree/bloom-tree-hq-sm.avif" />
         <source media="(max-width: 767px)" type="image/webp" srcset="/img/tree/bloom-tree-hq-sm.webp" />
-        <source type="image/avif" srcset="/img/tree/bloom-tree-hq.avif" />
+        <!-- >767px only (the branch above wins below that): the box is
+             min(560px, 100%) between 767-1180px and 620px above — never the
+             full 1860px original, which was the single biggest oversized
+             file on the page (236 KB avif into a ~437px box measured at
+             1440/DPR2). A width-ladder srcset + sizes replaces the flat
+             full-size source so the browser picks the rung the box actually
+             needs. -->
+        <source
+          type="image/avif"
+          srcset={avifSrcset('/img/tree/bloom-tree-hq.webp')}
+          sizes="(max-width: 1180px) 560px, 620px"
+        />
+        <source
+          type="image/webp"
+          srcset={webpSrcset('/img/tree/bloom-tree-hq.webp')}
+          sizes="(max-width: 1180px) 560px, 620px"
+        />
         <img
           class="foot-tree"
           src="/img/tree/bloom-tree-hq.webp"
@@ -185,6 +209,7 @@
           height="1723"
           loading="lazy"
           decoding="async"
+          fetchpriority="low"
         />
       </picture>
     </div>

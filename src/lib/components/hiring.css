@@ -301,7 +301,7 @@
     radial-gradient(circle, color-mix(in srgb, var(--accent) 15%, transparent), transparent 70%),
     rgba(255, 238, 245, 0.55);
   box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 6%, transparent);
-  transition: transform 0.55s var(--ease), box-shadow 0.55s var(--ease);
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
 }
 .hire .hire-card:hover .hire-ring,
 .hire .hire-card:focus-within .hire-ring {
@@ -314,7 +314,7 @@
 .hire .hire-ring .wool-icon {
   --wool-icon: clamp(44px, 4.4vw, 58px);
   opacity: 0.5;
-  transition: opacity 0.5s var(--ease);
+  transition: opacity 0.35s var(--ease);
 }
 .hire .hire-card:hover .hire-ring .wool-icon,
 .hire .hire-card:focus-within .hire-ring .wool-icon { opacity: 0.68; }

@@ -188,7 +188,7 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)) ,
     var(--bg-2);
-  transition: transform 0.5s var(--ease), border-color 0.5s var(--ease), box-shadow 0.5s var(--ease);
+  transition: transform 0.32s var(--ease), border-color 0.32s var(--ease), box-shadow 0.32s var(--ease);
 }
 
 /* the accent only arrives on hover/focus — at rest the three cards read as one
@@ -211,7 +211,7 @@
   border-radius: 2px;
   background: var(--accent);
   opacity: 0.55;
-  transition: opacity 0.5s var(--ease);
+  transition: opacity 0.35s var(--ease);
 }
 .mcp .mcp-card:hover::before,
 .mcp .mcp-card:focus-within::before { opacity: 1; }

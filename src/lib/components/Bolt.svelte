@@ -63,22 +63,26 @@
 
       <div class="bolt-inner">
         <div class="bolt-copy">
-          <!-- the same file the nav, fullscreen menu and footer already load
-               — a cache hit, not a new download -->
-          <!-- 1579px of woven wordmark for a 335px box on a phone — 3.37 MB
-               decoded. The phone cut is 760px (2.3x that box). NOT the same
-               file as the nav mark: that one is `loom-woven-sm.webp` at
-               480px, which is right for a 113px nav box and soft at 335. The
-               full file stays the desktop candidate, where the footer word
-               paints it at 880px. -->
+          <!-- WAS the 1579px full wordmark (189 KB) painted into
+               `.bolt-lockup`'s clamp(140px, 14vw, 220px) box — up to 11x the
+               pixels the box can show, on the theory that "the footer word"
+               shared the same file at 880px elsewhere and this was a cache
+               hit rather than a new download. Measured 11 Aug 2026: nothing
+               else on the page references loom-woven.webp at all, so that
+               reuse never existed and this was a pure loss. The nav mark's
+               `loom-woven-sm.webp` (480px, 29 KB) is claimed elsewhere in
+               this same comment history to read soft past ~300px, but this
+               box tops out at 220px — well inside what a 480px source
+               resolves sharp at, so it is now the only file this lockup
+               loads on every breakpoint, avif first. -->
           <picture style="display: contents">
-            <source media="(max-width: 767px)" type="image/webp" srcset="/img/logo/loom-woven-phone.webp" />
+            <source type="image/avif" srcset="/img/logo/loom-woven-sm.avif" />
             <img
               class="bolt-lockup"
-              src="/img/logo/loom-woven.webp"
+              src="/img/logo/loom-woven-sm.webp"
               alt={BRAND.name}
-              width="1579"
-              height="534"
+              width="480"
+              height="162"
               loading="lazy"
               decoding="async"
             />

@@ -182,7 +182,7 @@
       {#each cities as c, i (c.name)}
         {@const isAwake = c.clock.hour >= STUDIO_OPEN && c.clock.hour < STUDIO_CLOSE}
         {@const isDay = c.clock.hour >= 6 && c.clock.hour < 19}
-        <div use:reveal={{ delay: i * 0.1 }}>
+        <div use:reveal={{ delay: i * 0.03 }}>
           <article
             class="studio-card {isDay ? 'is-day' : 'is-night'}"
             bind:this={cardEls[i]}

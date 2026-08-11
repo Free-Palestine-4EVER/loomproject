@@ -64,18 +64,15 @@
   // unpin `.stg-scroll` / `.stg-pin`; the two must always agree.
   const STAGE_PIN = '(min-width: 761px) and (min-height: 620px), (max-width: 760px) and (min-height: 760px)'
 
-  /** Scroll to a product's slice of the pin. Lenis owns window.scrollTo on
-   *  this site, so it is asked directly when it exists. Falls back to
-   *  setting state when the section isn't pinned (short viewport / reduced
-   *  motion). */
+  /** Scroll to a product's slice of the pin. Falls back to setting state
+   *  when the section isn't pinned (short viewport / reduced motion). */
   function goTo(n) {
     const total = wrap ? wrap.offsetHeight - window.innerHeight : 0
     const pinned = !reducedMotion.current && window.matchMedia(STAGE_PIN).matches && total > 0
     if (!pinned) { i = n; return }
     const top = wrap.getBoundingClientRect().top + window.scrollY
     const y = top + (n / (N - 1)) * total
-    if (window.__lenis) window.__lenis.scrollTo(y)
-    else window.scrollTo({ top: y, behavior: 'smooth' })
+    window.scrollTo({ top: y, behavior: 'smooth' })
   }
 
   /* Shared tab keyboard behaviour for the rail: one tab stop for the whole

@@ -4,14 +4,9 @@
  *
  *   node qa/shots.mjs [baseUrl]     default http://localhost:4941 (preview)
  *
- * Two traps this script is written around, both from CLAUDE.md:
+ * One trap this script is written around, from CLAUDE.md:
  *
- * 1. LENIS HIJACKS window.scrollTo. Use window.__lenis.scrollTo(y, { immediate:
- *    true }). It does not exist under reduced motion, and it does not exist
- *    until the instance is created — so every scroll here goes through
- *    scrollTo() below, which falls back correctly.
- *
- * 2. SCREENSHOTS TAKEN RIGHT AFTER LOAD CATCH THE HERO MID-ANIMATION and look
+ * SCREENSHOTS TAKEN RIGHT AFTER LOAD CATCH THE HERO MID-ANIMATION and look
  *    blank or wrong. Wait for the scroll chase to settle (~2s) before judging a
  *    frame, and give lazy images time to decode — a footer shot taken too early
  *    shows an empty pink box, not a missing tree.
@@ -30,12 +25,7 @@ const WIDTHS = [
 
 const ROUTES = ['/', '/type', '/ai-workshops']
 
-const scrollTo = (y) => `
-  (() => {
-    if (window.__lenis) window.__lenis.scrollTo(${y}, { immediate: true })
-    else window.scrollTo(0, ${y})
-  })()
-`
+const scrollTo = (y) => `window.scrollTo(0, ${y})`
 
 const problems = []
 

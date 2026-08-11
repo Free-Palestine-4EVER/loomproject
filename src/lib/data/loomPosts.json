@@ -1,9 +1,11 @@
 [
  {
-  "key": "loom-01",
+  "id": "loom-01",
+  "key": "spool",
   "src": "/img/loom/post-01.webp",
   "width": 640,
   "height": 800,
+  "alt": "A spool of pink wool with a face, knitted",
   "variants": [
    {
     "w": 160,
@@ -25,14 +27,15 @@
     "webp": "/img/loom/post-01-640.webp",
     "avif": "/img/loom/post-01-640.avif"
    }
-  ],
-  "from": "lineup-spool"
+  ]
  },
  {
-  "key": "loom-02",
+  "id": "loom-02",
+  "key": "robot",
   "src": "/img/loom/post-02.webp",
   "width": 640,
   "height": 800,
+  "alt": "A small knitted robot with a glowing face",
   "variants": [
    {
     "w": 160,
@@ -54,14 +57,15 @@
     "webp": "/img/loom/post-02-640.webp",
     "avif": "/img/loom/post-02-640.avif"
    }
-  ],
-  "from": "lineup-camera"
+  ]
  },
  {
-  "key": "loom-03",
+  "id": "loom-03",
+  "key": "camera",
   "src": "/img/loom/post-03.webp",
   "width": 640,
   "height": 800,
+  "alt": "A camera knitted from wool",
   "variants": [
    {
     "w": 160,
@@ -83,14 +87,15 @@
     "webp": "/img/loom/post-03-640.webp",
     "avif": "/img/loom/post-03-640.avif"
    }
-  ],
-  "from": "lineup-bot"
+  ]
  },
  {
-  "key": "loom-04",
+  "id": "loom-04",
+  "key": "planet",
   "src": "/img/loom/post-04.webp",
   "width": 640,
   "height": 800,
+  "alt": "A knitted planet with a gold ring",
   "variants": [
    {
     "w": 160,
@@ -112,14 +117,15 @@
     "webp": "/img/loom/post-04-640.webp",
     "avif": "/img/loom/post-04-640.avif"
    }
-  ],
-  "from": "studio-a"
+  ]
  },
  {
-  "key": "loom-05",
+  "id": "loom-05",
+  "key": "butterfly",
   "src": "/img/loom/post-05.webp",
   "width": 640,
   "height": 800,
+  "alt": "A butterfly with knitted wings",
   "variants": [
    {
     "w": 160,
@@ -141,14 +147,15 @@
     "webp": "/img/loom/post-05-640.webp",
     "avif": "/img/loom/post-05-640.avif"
    }
-  ],
-  "from": "studio-b"
+  ]
  },
  {
-  "key": "loom-06",
+  "id": "loom-06",
+  "key": "flower",
   "src": "/img/loom/post-06.webp",
   "width": 640,
   "height": 800,
+  "alt": "A flower crocheted from wool",
   "variants": [
    {
     "w": 160,
@@ -170,14 +177,15 @@
     "webp": "/img/loom/post-06-640.webp",
     "avif": "/img/loom/post-06-640.avif"
    }
-  ],
-  "from": "fragrance-a"
+  ]
  },
  {
-  "key": "loom-07",
+  "id": "loom-07",
+  "key": "coffee",
   "src": "/img/loom/post-07.webp",
   "width": 640,
   "height": 800,
+  "alt": "A knitted takeaway coffee cup",
   "variants": [
    {
     "w": 160,
@@ -199,14 +207,15 @@
     "webp": "/img/loom/post-07-640.webp",
     "avif": "/img/loom/post-07-640.avif"
    }
-  ],
-  "from": "fragrance-b"
+  ]
  },
  {
-  "key": "loom-08",
+  "id": "loom-08",
+  "key": "sneaker",
   "src": "/img/loom/post-08.webp",
   "width": 640,
   "height": 800,
+  "alt": "A high-top sneaker knitted from wool",
   "variants": [
    {
     "w": 160,
@@ -228,14 +237,15 @@
     "webp": "/img/loom/post-08-640.webp",
     "avif": "/img/loom/post-08-640.avif"
    }
-  ],
-  "from": "ui-a"
+  ]
  },
  {
-  "key": "loom-09",
+  "id": "loom-09",
+  "key": "perfume",
   "src": "/img/loom/post-09.webp",
   "width": 640,
   "height": 800,
+  "alt": "A perfume bottle wrapped in knitted wool",
   "variants": [
    {
     "w": 160,
@@ -257,14 +267,15 @@
     "webp": "/img/loom/post-09-640.webp",
     "avif": "/img/loom/post-09-640.avif"
    }
-  ],
-  "from": "ui-b"
+  ]
  },
  {
-  "key": "loom-10",
+  "id": "loom-10",
+  "key": "headphones",
   "src": "/img/loom/post-10.webp",
   "width": 640,
   "height": 800,
+  "alt": "Knitted over-ear headphones",
   "variants": [
    {
     "w": 160,
@@ -286,14 +297,15 @@
     "webp": "/img/loom/post-10-640.webp",
     "avif": "/img/loom/post-10-640.avif"
    }
-  ],
-  "from": "sheet0-0"
+  ]
  },
  {
-  "key": "loom-11",
+  "id": "loom-11",
+  "key": "phone",
   "src": "/img/loom/post-11.webp",
   "width": 640,
   "height": 800,
+  "alt": "A phone knitted from wool",
   "variants": [
    {
     "w": 160,
@@ -315,14 +327,15 @@
     "webp": "/img/loom/post-11-640.webp",
     "avif": "/img/loom/post-11-640.avif"
    }
-  ],
-  "from": "sheet0-1"
+  ]
  },
  {
-  "key": "loom-12",
+  "id": "loom-12",
+  "key": "laptop",
   "src": "/img/loom/post-12.webp",
   "width": 640,
   "height": 800,
+  "alt": "A laptop knitted from wool",
   "variants": [
    {
     "w": 160,
@@ -344,14 +357,15 @@
     "webp": "/img/loom/post-12-640.webp",
     "avif": "/img/loom/post-12-640.avif"
    }
-  ],
-  "from": "sheet0-2"
+  ]
  },
  {
-  "key": "loom-13",
+  "id": "loom-13",
+  "key": "bag",
   "src": "/img/loom/post-13.webp",
   "width": 640,
   "height": 800,
+  "alt": "A knitted shopping bag with blossom",
   "variants": [
    {
     "w": 160,
@@ -373,14 +387,15 @@
     "webp": "/img/loom/post-13-640.webp",
     "avif": "/img/loom/post-13-640.avif"
    }
-  ],
-  "from": "sheet1-0"
+  ]
  },
  {
-  "key": "loom-14",
+  "id": "loom-14",
+  "key": "rocket",
   "src": "/img/loom/post-14.webp",
   "width": 640,
   "height": 800,
+  "alt": "A knitted rocket mid-launch",
   "variants": [
    {
     "w": 160,
@@ -402,14 +417,15 @@
     "webp": "/img/loom/post-14-640.webp",
     "avif": "/img/loom/post-14-640.avif"
    }
-  ],
-  "from": "sheet1-1"
+  ]
  },
  {
-  "key": "loom-15",
+  "id": "loom-15",
+  "key": "armchair",
   "src": "/img/loom/post-15.webp",
   "width": 640,
   "height": 800,
+  "alt": "A knitted armchair",
   "variants": [
    {
     "w": 160,
@@ -431,14 +447,15 @@
     "webp": "/img/loom/post-15-640.webp",
     "avif": "/img/loom/post-15-640.avif"
    }
-  ],
-  "from": "sheet1-2"
+  ]
  },
  {
-  "key": "loom-16",
+  "id": "loom-16",
+  "key": "crown",
   "src": "/img/loom/post-16.webp",
   "width": 640,
   "height": 800,
+  "alt": "A crown knitted from gold wool",
   "variants": [
    {
     "w": 160,
@@ -460,14 +477,15 @@
     "webp": "/img/loom/post-16-640.webp",
     "avif": "/img/loom/post-16-640.avif"
    }
-  ],
-  "from": "sheet2-0"
+  ]
  },
  {
-  "key": "loom-17",
+  "id": "loom-17",
+  "key": "cupcake",
   "src": "/img/loom/post-17.webp",
   "width": 640,
   "height": 800,
+  "alt": "A cupcake knitted from wool",
   "variants": [
    {
     "w": 160,
@@ -489,14 +507,15 @@
     "webp": "/img/loom/post-17-640.webp",
     "avif": "/img/loom/post-17-640.avif"
    }
-  ],
-  "from": "sheet2-1"
+  ]
  },
  {
-  "key": "loom-18",
+  "id": "loom-18",
+  "key": "glasses",
   "src": "/img/loom/post-18.webp",
   "width": 640,
   "height": 800,
+  "alt": "Eyeglasses knitted from wool",
   "variants": [
    {
     "w": 160,
@@ -518,14 +537,15 @@
     "webp": "/img/loom/post-18-640.webp",
     "avif": "/img/loom/post-18-640.avif"
    }
-  ],
-  "from": "sheet2-2"
+  ]
  },
  {
-  "key": "loom-19",
+  "id": "loom-19",
+  "key": "watch",
   "src": "/img/loom/post-19.webp",
   "width": 640,
   "height": 800,
+  "alt": "A wristwatch knitted from wool",
   "variants": [
    {
     "w": 160,
@@ -547,14 +567,15 @@
     "webp": "/img/loom/post-19-640.webp",
     "avif": "/img/loom/post-19-640.avif"
    }
-  ],
-  "from": "sheet3-0"
+  ]
  },
  {
-  "key": "loom-20",
+  "id": "loom-20",
+  "key": "heart",
   "src": "/img/loom/post-20.webp",
   "width": 640,
   "height": 800,
+  "alt": "A heart knitted from pink wool",
   "variants": [
    {
     "w": 160,
@@ -576,7 +597,6 @@
     "webp": "/img/loom/post-20-640.webp",
     "avif": "/img/loom/post-20-640.avif"
    }
-  ],
-  "from": "sheet3-1"
+  ]
  }
 ]

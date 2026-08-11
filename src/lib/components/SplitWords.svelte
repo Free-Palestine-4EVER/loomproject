@@ -17,7 +17,7 @@
 -->
 <script>
   import { onMount } from 'svelte'
-  import { EASE, reducedMotion } from '$lib/motion.svelte.js'
+  import { EASE, reducedMotion, prefersReduced } from '$lib/motion.svelte.js'
 
   let {
     text,
@@ -34,8 +34,26 @@
 
   const words = $derived(String(text).split(' '))
 
+  /* Per-word stagger step, clamped so a long headline does not run away.
+     30ms/word is the house stagger ceiling, but on a long headline that
+     alone still pushes the last word out arbitrarily far — so the total
+     spread across all words is ALSO capped at 100ms, and the per-word step
+     is whichever of the two is smaller. A 3-word headline gets ~30ms steps;
+     a 9-word one compresses to ~12.5ms steps. Either way the whole headline
+     is fully underway within ~400ms of the reveal (100ms max spread + the
+     320ms rise itself). */
+  const WORD_DURATION = 0.32
+  const STEP_CEILING = 0.03
+  const SPREAD_CEILING = 0.1
+  const step = $derived(
+    words.length > 1 ? Math.min(STEP_CEILING, SPREAD_CEILING / (words.length - 1)) : 0
+  )
+
   onMount(() => {
-    if (reducedMotion.current) return
+    // See motion.svelte.js's `prefersReduced()` comment: the shared rune may
+    // not be set yet this early in mount order on a genuinely reduced-motion
+    // browser, so it is checked directly too, not just the rune.
+    if (reducedMotion.current || prefersReduced()) return
     const rect = root.getBoundingClientRect()
     // On screen at hydration — leave it finished rather than flashing it in.
     if (rect.top < window.innerHeight * 0.92) return
@@ -53,7 +71,7 @@
         // compositor layer for the entire session — 82 layers at rest on a
         // 390px phone. Layerisation of that order is paid in style, paint and
         // GPU memory, and shows up nowhere in a JS profile.
-        setTimeout(() => { settled = true }, (delay + words.length * 0.045 + 0.9) * 1000)
+        setTimeout(() => { settled = true }, (delay + (words.length - 1) * step + WORD_DURATION) * 1000)
         if (once) io.disconnect()
       } else if (!once) {
         shown = false
@@ -85,7 +103,7 @@
       <span
         class="sw-word"
         style:transform={shown ? 'translateY(0%) rotate(0deg)' : 'translateY(110%) rotate(4deg)'}
-        style:transition={armed ? `transform 0.9s ${EASE} ${delay + i * 0.045}s` : 'none'}
+        style:transition={armed ? `transform ${WORD_DURATION}s ${EASE} ${delay + i * step}s` : 'none'}
         style:will-change={animating ? 'transform' : ''}
       >{w}&nbsp;</span>
     </span>

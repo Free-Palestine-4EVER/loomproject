@@ -1579,6 +1579,60 @@
   align-self: center;
 }
 
+/* ——— THE CARD'S HEIGHT, RESERVED FROM THE REAL DATA (client-reported
+   "jiggle" — measured at 1440: the bottom-anchored card swung from 450px to
+   552px tall as the tour scrubbed past different industries, and since its
+   height is its top edge (see the comment on `.sol-pin.is-pinned
+   .sol-answer-slot` above), that swing was the top of the card — and the
+   photo underneath it — visibly bobbing up and down between steps).
+
+   The per-row `min-height`s above (deliverables, CTA) already reserve the
+   two most obviously variable ROWS, but they don't add up to the card's
+   total, and they never touched the hook line, which is one line for some
+   industries and two for others. Rather than hand-measure a fourth number,
+   `Solutions.svelte` clones the on-screen card off-screen, swaps in every
+   industry's real name/hook/deliverables/CTA label in turn, and writes the
+   tallest result here as `--sol-card-h` (see `measureCardHeight()`).
+   `min-height`, never `height`: content nobody measured yet still grows the
+   box instead of getting clipped by it. This is what actually stops the
+   jiggle — the per-row reservations below it are left in place because
+   they're still true and still cheap, not because they're still load-bearing
+   on their own. */
+.sol-panelcard { min-height: var(--sol-card-h, auto); }
+
+/* THE OLD FULL-BLEED CARD'S OWN `aspect-ratio` NEVER GOT SCOPED OUT.
+   `.sol-answer.has-photo` (≥940px, declared far above under "THE STAGE — one
+   21:9 photo, two white cards on it") still sets `aspect-ratio: 21/9` and
+   caps `.sol-answer-left`/`.sol-answer-right` at `max-width: min(470px,46%)`
+   — a design where the copy sat in a narrow column beside a wide render
+   inside its OWN full-bleed card. Both the "makeover" straddle card and this
+   pinned-tour card carry the same `sol-answer has-photo` classes, so both
+   inherited that ratio and that 46% cap by accident: measuring showed the
+   card locking to ~197px (460 × 9 ÷ 21) regardless of the `--sol-card-h`
+   reservation above, because `aspect-ratio` was still setting the box's
+   preferred size and `justify-content: center` from the same old rule was
+   then centring the (much taller) real content inside it — the reservation
+   and the box fighting each other, which is worse than the original jiggle:
+   a fixed-height box with its own copy sliding up through its top edge.
+
+   `.sol-console` is the one ancestor both of these newer cards always render
+   inside (there is no bare, unwrapped `.sol-answer.has-photo` left in this
+   file's markup), so scoping the corrections there reaches every card this
+   component ever draws without touching a selector anyone else might still
+   depend on. `justify-content: flex-start` (not the old rule's `center`) so
+   copy sits at the top of the reserved box and stays there regardless of how
+   short the other column runs — centring would have re-introduced a smaller
+   version of the same jiggle, just inside the now-stable card instead of
+   under it. */
+.sol-console .sol-answer.has-photo {
+  aspect-ratio: auto;
+  justify-content: flex-start;
+}
+.sol-console .sol-answer.has-photo .sol-answer-left,
+.sol-console .sol-answer.has-photo .sol-answer-right {
+  max-width: none;
+}
+
 /* ——— THE FOUR EVERYONE GETS ———————————————————————————————————————————
    The universal half of the offer, rendered ONCE beneath the console. It is
    deliberately quieter than the answer card: numbered, ruled, no wool, no

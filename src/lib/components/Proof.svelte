@@ -40,7 +40,7 @@
   import { onMount } from 'svelte'
   import { browser } from '$app/environment'
   import { CLIENT_WALL, STATS } from '$data/site.js'
-  import { EASE, reducedMotion, reveal } from '$lib/motion.svelte.js'
+  import { EASE, reducedMotion, reveal, prefersReduced } from '$lib/motion.svelte.js'
   import SplitWords from './SplitWords.svelte'
   import CountUp from './CountUp.svelte'
   import './proof.css'
@@ -57,6 +57,17 @@
 
   const ANCHORS = new Set(['United Colors of Benetton', 'UNICEF', 'Vodafone'])
   const STAT_YARN = ['var(--magenta)', 'var(--yarn-blue)', 'var(--yarn-violet)', 'var(--yarn-gold)']
+
+  // The wall is 18 names long. A flat 30ms-per-name step (the old value) put
+  // the last name landing 540ms after the first before it had even started
+  // its own transition — clamp the SPREAD across the whole wall instead of
+  // the per-name step, same fix as SplitWords' headline stagger.
+  const WALL_DURATION = 0.3
+  const WALL_STEP_CEILING = 0.03
+  const WALL_SPREAD_CEILING = 0.25
+  const wallStep = CLIENT_WALL.length > 1
+    ? Math.min(WALL_STEP_CEILING, WALL_SPREAD_CEILING / (CLIENT_WALL.length - 1))
+    : 0
 
   let sectionEl = $state(null)
   let bgEl = $state(null)
@@ -95,7 +106,9 @@
   let wallIn = $state(false)
   onMount(() => {
     if (!browser || !wallEl) return
-    if (reducedMotion.current) { wallIn = true; return }
+    // Direct matchMedia check too, not just the rune — see motion.svelte.js's
+    // `prefersReduced()` comment for why the rune alone can lag this early.
+    if (reducedMotion.current || prefersReduced()) { wallIn = true; return }
     // Same gate `reveal()` uses: already on screen at hydration -> render
     // finished immediately rather than flashing the wall in.
     if (wallEl.getBoundingClientRect().top < window.innerHeight * 0.92) { wallIn = true; return }
@@ -113,7 +126,7 @@
       <source media="(max-width: 767px)" type="image/avif" srcset="/img/weave-alt-sm.avif" />
       <source media="(max-width: 767px)" type="image/webp" srcset="/img/weave-alt-sm.webp" />
       <source type="image/avif" srcset="/img/weave-alt.avif" />
-      <img src="/img/weave-alt.webp" alt="" loading="lazy" decoding="async" />
+      <img src="/img/weave-alt.webp" alt="" width="1400" height="782" loading="lazy" decoding="async" />
     </picture>
   </div>
 
@@ -139,7 +152,7 @@
           style:transform={reducedMotion.current ? 'none' : wallIn ? 'none' : 'translateY(12px)'}
           style:transition={reducedMotion.current
             ? 'none'
-            : `opacity 0.5s ${EASE} ${i * 0.03}s, transform 0.5s ${EASE} ${i * 0.03}s`}
+            : `opacity ${WALL_DURATION}s ${EASE} ${i * wallStep}s, transform ${WALL_DURATION}s ${EASE} ${i * wallStep}s`}
         >
           {name}
           {#if i < CLIENT_WALL.length - 1}<i class="proof-sep" aria-hidden="true">✳</i>{/if}
@@ -152,7 +165,7 @@
         the whole chrome budget, replacing the old divider cross. -->
     <div class="proof-rail">
       {#each STATS as s, i (s.label)}
-        <div class="proof-stat" style="--yarn: {STAT_YARN[i % 4]}" use:reveal={{ delay: i * 0.07, y: 16 }}>
+        <div class="proof-stat" style="--yarn: {STAT_YARN[i % 4]}" use:reveal={{ delay: i * 0.03, y: 16 }}>
           <div class="proof-value"><CountUp value={s.value} suffix={s.suffix} /></div>
           <div class="proof-stat-copy">
             <p class="proof-label">{s.label}</p>

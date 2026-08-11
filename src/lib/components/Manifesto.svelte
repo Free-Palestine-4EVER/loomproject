@@ -215,6 +215,7 @@
           class="manifesto-laptop"
           src="/img/manifesto/laptop-mascot-cutout.webp"
           alt="The LOOM website on a laptop, with the studio's yarn-ball mascot climbing out of the screen"
+          width="1700" height="1275"
           loading="lazy"
         />
       </picture>

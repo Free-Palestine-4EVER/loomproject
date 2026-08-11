@@ -4,18 +4,35 @@
   two-column panel, then a dedicated native-Arabic passage. `mo-` class
   prefix, scoped in machine-offer.css only.
 
-  The "month grid" used to be 22 empty divs standing in for a calendar shape.
-  It now renders MACHINE_WORK — real files on disk (see the header comment in
-  data/machineWork.js for exactly what they are and are not). The counters
-  and the caption are both DERIVED from that array's length and `kind`, never
-  typed as literals here, so the grid can never claim a count the data
-  doesn't back.
+  The "month grid" used to be 22 empty divs standing in for a calendar shape,
+  then 20 tiles derived from CASES. It now renders LOOM's OWN posts from
+  data/loomPosts.json — see the long note at the import for why that changed
+  and what had to change in the copy alongside it. The counters and the
+  caption are both DERIVED from that array's length and `kind`, never typed as
+  literals here, so the grid can never claim a count the data doesn't back.
 -->
 <script>
   import Pic from './Pic.svelte'
   import { reducedMotion, reveal, magnetic } from '$lib/motion.svelte.js'
   import { THE_MACHINE } from '$data/offers.js'
-  import { MACHINE_WORK, MACHINE_CLIENT_COUNT } from '$data/machineWork.js'
+  /* ── THE GRID NOW SHOWS LOOM'S OWN POSTS, NOT CLIENT WORK (11 Aug 2026) ──
+     Changed at the client's explicit instruction, after the trade-off was put
+     to them: the previous grid derived every tile, client name, country and
+     year from CASES, and data/machineWork.js opens by explaining why it was
+     built that way — an earlier version ran on generic style pieces attached
+     to no client, "which forced the caption to admit 'not posts published for
+     any one client'. That undercut the section."
+
+     That objection is real and it has NOT gone away, so the copy below now
+     says plainly what these are instead of implying a client roster. The
+     figcaption no longer claims a client count, the per-tile client tag is
+     gone (there is no client to credit), and the reels tally reads zero
+     because none of these are video. Nothing here asserts anything the images
+     do not support.
+
+     data/machineWork.js and its CASES-derived array are untouched and still in
+     the tree — reverting is a two-line import swap. */
+  import LOOM_POSTS from '$data/loomPosts.json'
   import { wizard } from '$lib/wizard.svelte.js'
 
   import SplitWords from './SplitWords.svelte'
@@ -34,12 +51,18 @@
 
   const m = THE_MACHINE
 
-  const postsCount = MACHINE_WORK.filter((w) => w.kind === 'post').length
-  const reelsCount = MACHINE_WORK.filter((w) => w.kind === 'reel').length
-  const totalCount = MACHINE_WORK.length
+  // Every tile carries `kind` so the filter, the tallies and the caption all
+  // stay DERIVED rather than typed — the grid can never claim a count the data
+  // does not back. All nineteen are stills today, so `reelsCount` is 0 and the
+  // caption's own else-branch says so out loud.
+  const WORK = LOOM_POSTS.map((p) => ({ ...p, kind: 'post' }))
+
+  const postsCount = WORK.filter((w) => w.kind === 'post').length
+  const reelsCount = WORK.filter((w) => w.kind === 'reel').length
+  const totalCount = WORK.length
 
   let filter = $state('all')
-  const visible = $derived(filter === 'all' ? MACHINE_WORK : MACHINE_WORK.filter((w) => w.kind === filter))
+  const visible = $derived(filter === 'all' ? WORK : WORK.filter((w) => w.kind === filter))
 
   // The cells' pop-in is a CSS animation with a per-cell delay, and a CSS
   // animation starts the moment the element is parsed — mounted at the top of
@@ -177,7 +200,7 @@
                      the tile for every avif-capable browser. -->
                 <Pic
                   class="mo-cell-photo"
-                  src="{w.src}.webp"
+                  src={w.src}
                   sizes="(max-width: 767px) 22vw, 58px"
                   alt={w.alt}
                   width={w.width}
@@ -186,7 +209,6 @@
                   decoding="async"
                   onerror={onCellError}
                 />
-                {#if w.client}<span class="mo-cell-tag">{w.client}</span>{/if}
               </span>
             {/each}
           {/if}
@@ -204,9 +226,13 @@
           </span>
         </div>
 
+        <!-- Says exactly what these are. No client is named or implied, because
+             none of these were made for one — they are the studio's own feed,
+             which is the honest version of the same argument: this is what a
+             month off the machine looks like. -->
         <figcaption class="mo-grid-caption">
-          {totalCount} real pieces from {MACHINE_CLIENT_COUNT} LOOM client projects, arranged in a
-          month's shape — each tile credited to the client it was made for.
+          {totalCount} pieces from LOOM's own feed, arranged in a month's shape — the studio
+          running the machine on itself.
           {#if reelsCount > 0}
             {` ${postsCount} stills, ${reelsCount} reels.`}
           {:else}

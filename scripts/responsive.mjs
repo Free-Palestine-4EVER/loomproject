@@ -44,8 +44,18 @@ const DRY = process.argv.includes('--dry')
 /** Directories whose contents are photography that scales. Deliberately does
  *  NOT include img/tex, img/wool or img/logo — those are tiling textures, UI
  *  chrome and a wordmark, all of which are either already tiny or must not be
- *  resampled (a tile resized to a non-multiple width seams visibly). */
-const SETS = ['img/cases', 'img/niches', 'img/needs', 'img/apps', 'img/suite', 'img/workshops', 'img/lab', 'img/mcp', 'img/manifesto', 'img/hero', 'img/tree']
+ *  resampled (a tile resized to a non-multiple width seams visibly).
+ *
+ *  img/loom ADDED 11 Aug 2026: TheMachine.svelte's 20-cell "studio's own
+ *  feed" grid (post-01..20.webp, 640px originals rendered at 58 CSS px) was
+ *  the single heaviest image block on the page by its own code comment, and
+ *  already called <Pic sizes="…58px">  expecting a ladder — but this
+ *  directory was never in SETS, so responsive.json had no entry, Pic fell
+ *  back to the unscaled original every time, and the fix that shipped in the
+ *  component was silently inert. (A stray hand-cut set of `-640` files
+ *  already existed on disk from before this directory was wired up; they are
+ *  outside WIDTHS and this script neither reads nor deletes them.) */
+const SETS = ['img/cases', 'img/niches', 'img/needs', 'img/apps', 'img/suite', 'img/workshops', 'img/lab', 'img/mcp', 'img/manifesto', 'img/hero', 'img/tree', 'img/loom']
 
 const WIDTHS = [160, 320, 480, 768, 1024, 1600]
 const SRC_EXT = new Set(['.webp', '.png', '.jpg', '.jpeg'])

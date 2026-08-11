@@ -63,6 +63,25 @@
   import './heads-v7.css'
   import './work-mosaic.css'
 
+  // Real encoded dimensions of each case's cover.webp — `sharp(...).metadata()`,
+  // not assumed — keyed by slug. Same source-of-truth numbers as
+  // machineWork.js's own DIMS table (that file measures the same 16 files for
+  // its own grid), duplicated rather than imported because the two components
+  // pick different files per case (this one is cover-only, machineWork.js
+  // round-robins star frames too) and importing a private, unexported map
+  // across files is more coupling than 16 numbers are worth. Every cover
+  // <img> below carries these so the mosaic tile reserves its box before the
+  // photo lands instead of reflowing — this is what closed the "19 images
+  // with no width/height" gap the image-optimisation pass measured.
+  const COVER_DIMS = {
+    auraa: [960, 733], benetton: [960, 540], bezdrob: [960, 596],
+    boccapiena: [960, 640], ellie: [1040, 715], evorahome: [1040, 715],
+    herbas: [960, 640], maison: [1040, 715], modulart: [960, 1280],
+    ojar: [1040, 1040], place87: [960, 574], scion: [960, 540],
+    shteq: [960, 720], slatko: [960, 540], weitnauer: [960, 640],
+    zen2fit: [960, 540],
+  }
+
   // Spelled-out numerals up to the range this board can plausibly reach;
   // past that the digit is fine and honest.
   const NUMBER_WORD = {
@@ -739,6 +758,7 @@
                 src={c.cover} alt="{c.client} — {c.title}"
                 srcset={webpSrcset(c.cover)}
                 sizes="(max-width: 767px) 92vw, (max-width: 1199px) 46vw, 30vw"
+                width={COVER_DIMS[c.slug]?.[0]} height={COVER_DIMS[c.slug]?.[1]}
                 loading="lazy" decoding="async"
                 use:imgFade onload={onImgLoad}
               />
@@ -819,7 +839,6 @@
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
           class="overlay-scroll"
-          data-lenis-prevent
           bind:this={sheetScrollEl}
           onpointerdown={isMobile ? sheetScrollPointerDown : undefined}
           onpointermove={isMobile ? (e) => sheetScrollPointerMove(e, requestCloseOverlay) : undefined}

@@ -88,7 +88,7 @@
 
   <!-- polite, not assertive: the machine narrates alongside the form, it does not
        interrupt what a screen reader is already saying about the current field. -->
-  <div class="machine-rail" data-lenis-prevent bind:this={railEl} role="log" aria-live="polite" aria-label={ui.transcript}>
+  <div class="machine-rail" bind:this={railEl} role="log" aria-live="polite" aria-label={ui.transcript}>
     {#each log as entry, i (entry.key + '-' + i)}
       <p
         class="machine-line"

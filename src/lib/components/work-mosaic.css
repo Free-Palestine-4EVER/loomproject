@@ -84,7 +84,7 @@
 .wtile .wm-ph {
   position: absolute; inset: 0; z-index: 0;
   transform: scale(1.04);
-  transition: transform 0.7s var(--ease), opacity 0.5s var(--ease);
+  transition: transform 0.55s var(--ease), opacity 0.5s var(--ease);
 }
 .wtile:hover .wm-ph, .wtile:focus-visible .wm-ph { transform: scale(1.1); }
 .wtile .wm-par { position: absolute; inset: 0; transition: transform 0.6s var(--ease); }

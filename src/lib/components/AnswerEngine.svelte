@@ -221,7 +221,7 @@
               class="ae-cite"
               style="--accent: {w.accent}"
               title={w.body}
-              use:reveal={{ delay: 0.1 + i * 0.08, y: 14 }}
+              use:reveal={{ delay: 0.06 + i * 0.03, y: 14 }}
             >
               <span class="ae-cite-n">{w.n}</span>
               <h3 class="ae-cite-h {w.mono ? 'is-mono' : ''}">{w.title}</h3>

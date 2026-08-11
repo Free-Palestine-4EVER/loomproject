@@ -161,7 +161,7 @@
           </svg>
         </button>
 
-        <div class="nm-body" data-lenis-prevent bind:this={bodyEl} {...handoff}>
+        <div class="nm-body" bind:this={bodyEl} {...handoff}>
           {@render body()}
         </div>
 
@@ -187,7 +187,7 @@
           </svg>
         </button>
 
-        <div class="nm-body" data-lenis-prevent bind:this={bodyEl}>
+        <div class="nm-body" bind:this={bodyEl}>
           {@render body()}
         </div>
 

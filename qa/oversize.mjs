@@ -7,7 +7,7 @@ await p.waitForTimeout(2000)
 // scroll the whole page so every lazy image resolves, then compare intrinsic vs displayed
 await p.evaluate(async () => {
   const h = document.documentElement.scrollHeight
-  for (let y=0; y<h; y+=800){ window.__lenis ? window.__lenis.scrollTo(y,{immediate:true}) : window.scrollTo(0,y); await new Promise(r=>setTimeout(r,60)) }
+  for (let y=0; y<h; y+=800){ window.scrollTo(0,y); await new Promise(r=>setTimeout(r,60)) }
 })
 await p.waitForTimeout(4000)
 const rows = await p.evaluate(() => [...document.querySelectorAll('img')]

@@ -345,7 +345,7 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   letter-spacing: 0.01em;
   border: 1px solid transparent;
   position: relative; overflow: hidden;
-  transition: transform 0.5s var(--ease), background 0.35s, color 0.35s, border-color 0.35s, box-shadow 0.5s;
+  transition: transform 0.32s var(--ease), background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.32s;
   white-space: nowrap;
 }
 .btn--ghost { border-color: rgba(242, 240, 247, 0.25); color: var(--ink); }
@@ -1310,14 +1310,14 @@ html.cursor-hot .cursor-ring {
 .svc-title {
   font-family: var(--display); font-weight: 540;
   font-size: clamp(1.5rem, 3.6vw, 2.6rem); letter-spacing: -0.01em;
-  transition: transform 0.5s var(--ease), color 0.3s;
+  transition: transform 0.32s var(--ease), color 0.3s;
 }
-.svc-arrow { font-size: 1.5rem; color: var(--ink-faint); transition: transform 0.5s var(--ease), color 0.3s; }
+.svc-arrow { font-size: 1.5rem; color: var(--ink-faint); transition: transform 0.32s var(--ease), color 0.3s; }
 .svc.is-open .svc-n { color: var(--magenta); }
 .svc.is-open .svc-title { transform: translateX(14px); color: var(--ink); }
 .svc.is-open .svc-arrow { transform: rotate(45deg); color: var(--magenta); }
 .svc-body {
-  display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.55s var(--ease);
+  display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s var(--ease);
 }
 .svc.is-open .svc-body { grid-template-rows: 1fr; }
 .svc-body > * { overflow: hidden; }
@@ -1345,7 +1345,7 @@ html.cursor-hot .cursor-ring {
 .svc::after {
   content: ''; position: absolute; left: 0; bottom: -1px; height: 1px; width: 100%;
   background: linear-gradient(90deg, var(--magenta), var(--violet));
-  transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--ease);
+  transform: scaleX(0); transform-origin: left; transition: transform 0.4s var(--ease);
 }
 .svc.is-open::after { transform: scaleX(1); }
 
@@ -1529,7 +1529,7 @@ html.cursor-hot .cursor-ring {
   padding: clamp(18px, 2.2vw, 26px);
   background: rgba(248, 216, 232, 0.45);
   display: flex; flex-direction: column; gap: 16px;
-  transition: border-color 0.4s, transform 0.5s var(--ease), box-shadow 0.5s;
+  transition: border-color 0.3s, transform 0.32s var(--ease), box-shadow 0.32s;
   height: 100%;
 }
 .app-card:hover {
@@ -1550,7 +1550,7 @@ html.cursor-hot .cursor-ring {
   filter: blur(26px);
   opacity: 0.45;
   pointer-events: none;
-  transition: opacity 0.6s var(--ease);
+  transition: opacity 0.35s var(--ease);
 }
 .app-card:hover::after { opacity: 0.7; }
 
@@ -1567,7 +1567,7 @@ html.cursor-hot .cursor-ring {
   /* the silhouette is the PNG's own alpha, so the shadow has to be a
      drop-shadow filter rather than a box-shadow around a rectangle */
   filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.55)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
-  transition: filter 0.5s var(--ease);
+  transition: filter 0.35s var(--ease);
   animation: phoneidle 8s var(--ease) infinite;
   animation-delay: var(--idle-d, 0s);
 }
@@ -1598,7 +1598,7 @@ html.cursor-hot .cursor-ring {
 }
 .app-shot {
   width: 100%; height: 100%; object-fit: cover; object-position: top;
-  transition: object-position 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+  transition: object-position 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 .app-card:hover .app-shot { object-position: bottom; }
 .app-sheen {
@@ -1607,7 +1607,7 @@ html.cursor-hot .cursor-ring {
   opacity: 0.7;
   transform: translateX(-120%);
 }
-.app-card:hover .app-sheen { animation: sheen 0.9s var(--ease); }
+.app-card:hover .app-sheen { animation: sheen 0.55s var(--ease); }
 @keyframes sheen { to { transform: translateX(120%); } }
 @media (prefers-reduced-motion: reduce) {
   .app-card:hover .app-shot { object-position: top; }
@@ -1664,7 +1664,7 @@ html.cursor-hot .cursor-ring {
   border: 1px solid rgba(242, 240, 247, 0.14); border-radius: var(--radius);
   padding: clamp(22px, 2.8vw, 34px);
   background: rgba(255, 233, 242, 0.55); backdrop-filter: blur(6px);
-  transition: border-color 0.4s, transform 0.5s var(--ease);
+  transition: border-color 0.3s, transform 0.32s var(--ease);
 }
 .lab-card:hover { border-color: rgba(89, 230, 255, 0.5); --lift: -6px; }
 .lab-preview-wrap {
@@ -1678,7 +1678,7 @@ html.cursor-hot .cursor-ring {
 .lab-shot {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; object-position: top left;
-  opacity: 1; transition: opacity 0.5s var(--ease);
+  opacity: 1; transition: opacity 0.35s var(--ease);
 }
 .lab-preview-wrap .lab-real { width: auto; height: auto; }
 .lab-card:hover .lab-shot { opacity: 0; }
@@ -1723,7 +1723,7 @@ html.cursor-hot .cursor-ring {
 .lab-thread {
   position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
   background: linear-gradient(90deg, var(--cyan), var(--violet));
-  transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--ease);
+  transform: scaleX(0); transform-origin: left; transition: transform 0.4s var(--ease);
 }
 .lab-card:hover .lab-thread { transform: scaleX(1); }
 
@@ -1866,7 +1866,7 @@ html.cursor-hot .cursor-ring {
      of replacing the whole transform and wiping the perspective */
   transform: perspective(900px) translate3d(0, var(--lift), 0) rotateX(var(--rx)) rotateY(var(--ry));
   transform-style: preserve-3d;
-  transition: --rx 140ms ease-out, --ry 140ms ease-out, --lift 0.5s var(--ease), border-color 0.4s, box-shadow 0.5s;
+  transition: --rx 140ms ease-out, --ry 140ms ease-out, --lift 0.32s var(--ease), border-color 0.3s, box-shadow 0.32s;
 }
 .studio-card::before, .lab-card::before,
 .app-card::before, .sol-card::before, .wintent::before {
@@ -1978,7 +1978,7 @@ html.cursor-hot .cursor-ring {
   border: 1px solid var(--line); border-radius: var(--radius);
   padding: clamp(26px, 4vw, 44px);
   background: linear-gradient(150deg, rgba(248, 216, 232, 0.8), rgba(251, 226, 238, 0.4));
-  transition: border-color 0.4s, transform 0.5s var(--ease);
+  transition: border-color 0.3s, transform 0.32s var(--ease);
 }
 .studio-card:hover { border-color: rgba(242, 28, 140, 0.45); --lift: -6px; }
 .studio-card header { display: flex; justify-content: space-between; align-items: baseline; }
@@ -2704,4 +2704,71 @@ html.cursor-hot .cursor-ring {
     will-change: transform;
   }
   .wmodal-panel.is-sheet .wmodal-scroll { touch-action: pan-y; overscroll-behavior: contain; }
+}
+
+/* ── content-visibility: skip rendering off-screen sections (SSR-specific) ──
+   Server-rendering puts all 20 of the long page's sections in the DOM at
+   first parse — which also puts every <img> inside them in the DOM. Chrome's
+   lazy-load threshold looks ahead a few thousand px and started prefetching
+   ~55 of the site's 90 images instead of the ~32 the old client-rendered SPA
+   fetched (its DOM did not exist yet at that point, so there was nothing for
+   the threshold to see). The markup is identical between builds; only the
+   timing of when it exists changed.
+
+   `content-visibility: auto` skips layout/paint/fetch-triggering work for a
+   section while it is off-screen and renders it normally the moment it
+   approaches the viewport — this is what actually stops the extra images
+   from being requested, not merely CSS `content-visibility` housekeeping.
+   `contain-intrinsic-size` reserves each section's own measured height (at
+   1440×900 desktop / 390×844 mobile, the two tiers below) so the page's
+   total scrollHeight does not jump once a section is skipped.
+
+   NOT applied to:
+     - .hero — above the fold on every viewport tested, always rendered.
+     - .counter (wraps <Solutions merged>), .stg-stage (AppsShowcase's product
+       stage) and .ts (TypeShowcaseAct) — all three run a scroll-position-
+       driven pinned tour that reads the section's own
+       getBoundingClientRect() on every scroll frame to drive which slide is
+       "selected". content-visibility skipping their layout the instant they
+       are off-screen fights that math (the rect goes stale/zero), so these
+       three are left rendering normally, same as the hero. */
+.proof, .work, .ofk, .price, .mo, .ae, .wkp, .forge, .mcp, .studios,
+.manifesto, .bolt, .faq, .contact, .hire {
+  content-visibility: auto;
+}
+.proof { contain-intrinsic-size: auto 800px; }
+.work { contain-intrinsic-size: auto 1000px; }
+.ofk { contain-intrinsic-size: auto 700px; }
+.price { contain-intrinsic-size: auto 2350px; }
+.mo { contain-intrinsic-size: auto 1850px; }
+.ae { contain-intrinsic-size: auto 1350px; }
+.wkp { contain-intrinsic-size: auto 800px; }
+.forge { contain-intrinsic-size: auto 850px; }
+.mcp { contain-intrinsic-size: auto 3100px; }
+.studios { contain-intrinsic-size: auto 1050px; }
+.manifesto { contain-intrinsic-size: auto 700px; }
+.bolt { contain-intrinsic-size: auto 520px; }
+.faq { contain-intrinsic-size: auto 1350px; }
+.contact { contain-intrinsic-size: auto 2200px; }
+.hire { contain-intrinsic-size: auto 2450px; }
+
+@media (min-width: 768px) {
+  /* desktop (1440×900) measured heights — noticeably shorter than the phone
+     tier above for anything with stacked cards (.price, .mo, .ae, .mcp,
+     .contact, .hire), which go from a grid to one column under 768px. */
+  .proof { contain-intrinsic-size: auto 700px; }
+  .work { contain-intrinsic-size: auto 1450px; }
+  .ofk { contain-intrinsic-size: auto 650px; }
+  .price { contain-intrinsic-size: auto 1550px; }
+  .mo { contain-intrinsic-size: auto 1450px; }
+  .ae { contain-intrinsic-size: auto 900px; }
+  .wkp { contain-intrinsic-size: auto 650px; }
+  .forge { contain-intrinsic-size: auto 750px; }
+  .mcp { contain-intrinsic-size: auto 1600px; }
+  .studios { contain-intrinsic-size: auto 800px; }
+  .manifesto { contain-intrinsic-size: auto 650px; }
+  .bolt { contain-intrinsic-size: auto 520px; }
+  .faq { contain-intrinsic-size: auto 1300px; }
+  .contact { contain-intrinsic-size: auto 1450px; }
+  .hire { contain-intrinsic-size: auto 1250px; }
 }

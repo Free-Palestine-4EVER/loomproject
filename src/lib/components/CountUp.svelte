@@ -13,15 +13,19 @@
 -->
 <script>
   import { onMount } from 'svelte'
-  import { reducedMotion } from '$lib/motion.svelte.js'
+  import { reducedMotion, prefersReduced } from '$lib/motion.svelte.js'
 
-  let { value, suffix = '', duration = 1.6 } = $props()
+  let { value, suffix = '', duration = 0.6 } = $props()
 
   let root = $state(null)
   let n = $state(value) // server + no-JS + reduced motion: the real number
 
   onMount(() => {
-    if (reducedMotion.current) return
+    // Direct matchMedia check too — see motion.svelte.js's `prefersReduced()`
+    // comment. The shared rune is set from +layout.svelte's onMount, which on
+    // a genuinely reduced-motion browser can still be pending when a deeply
+    // nested component's own onMount fires first.
+    if (reducedMotion.current || prefersReduced()) return
     const rect = root.getBoundingClientRect()
     if (rect.top < window.innerHeight * 0.92) return // on screen — leave it
 

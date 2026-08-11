@@ -68,6 +68,27 @@ class ReducedMotion {
 }
 export const reducedMotion = new ReducedMotion()
 
+/**
+ * A direct, synchronous `prefers-reduced-motion` read — NOT the shared rune.
+ *
+ * Every entrance primitive below arms itself the instant it mounts, but
+ * `reducedMotion.start()` (which sets the live rune from matchMedia) runs
+ * from `+layout.svelte`'s `onMount`, and Svelte fires a child's mount effects
+ * — including a `use:` action's own setup, and a child component's own
+ * `onMount` — before its ancestors' `onMount` callbacks complete. On a
+ * genuinely reduced-motion browser (not a mid-session toggle, which the rune
+ * handles fine once it exists) that ordering means a below-the-fold section
+ * can read `reducedMotion.current` as still `false` and arm to opacity 0
+ * before the layout has had a chance to set it — the exact case this file's
+ * top banner promises never happens. Falling back to a direct matchMedia
+ * check at the one moment it matters (the initial gate, before the rune is
+ * guaranteed to exist) closes that gap without every call site needing to
+ * pass a reactive flag through `use:reveal={{ ... }}`. */
+export function prefersReduced() {
+  return browser && typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 /** Live `(pointer: coarse)` — swaps pointer-tilt for scroll-linked sway and
  *  hover-activate for tap-activate. */
 class CoarsePointer {
@@ -102,7 +123,7 @@ export function reveal(node, opts = {}) {
   let armed = false
 
   const finish = () => {
-    node.style.transition = `opacity 0.9s ${EASE} ${delay}s, transform 0.9s ${EASE} ${delay}s`
+    node.style.transition = `opacity 0.32s ${EASE} ${delay}s, transform 0.32s ${EASE} ${delay}s`
     node.style.opacity = '1'
     node.style.transform = 'none'
     // Drop the compositor hint once the element has landed. Leaving
@@ -117,7 +138,7 @@ export function reveal(node, opts = {}) {
   }
 
   const arm = () => {
-    if (reducedMotion.current) return
+    if (reducedMotion.current || prefersReduced()) return
     const rect = node.getBoundingClientRect()
     // Already on screen at hydration: leave it finished. Animating it now
     // reads as a flash, not an entrance.

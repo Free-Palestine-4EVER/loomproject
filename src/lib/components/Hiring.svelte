@@ -72,7 +72,7 @@
 
   <div class="hire-grid">
     {#each ROLES as r, i (r.id)}
-      <div class="hire-cell" use:reveal={{ delay: i * 0.06 }}>
+      <div class="hire-cell" use:reveal={{ delay: i * 0.03 }}>
         <article class="hire-card" style="--accent: {r.accent}">
           <span class="hire-open">Open</span>
 

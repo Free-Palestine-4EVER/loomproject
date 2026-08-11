@@ -231,10 +231,10 @@
       <!-- "Start weaving" is one of the 21 photographed spools — and it is the
            headline's own verb, so the hero CTA is real wool, not a CSS pill -->
       <div class="magnetic" use:magnetic={{ strength: 0.35 }}>
-        <WoolButton label="Start weaving" class="wool-btn--hero" onclick={() => wizard.open({})} />
+        <WoolButton label="Start weaving" class="wool-btn--hero" onclick={() => wizard.open({})} eager />
       </div>
       <div class="magnetic" use:magnetic={{ strength: 0.35 }}>
-        <WoolButton label="See the work" href="#work" data-scroll />
+        <WoolButton label="See the work" href="#work" data-scroll eager />
       </div>
     </div>
   </div>

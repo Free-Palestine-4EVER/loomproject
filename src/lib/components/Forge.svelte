@@ -406,7 +406,7 @@
         </svg>
       </button>
 
-      <div class="fg-body" data-lenis-prevent>
+      <div class="fg-body">
         <!-- ============================= the working half ============================= -->
 
         {#if booting}

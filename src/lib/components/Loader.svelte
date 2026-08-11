@@ -36,7 +36,12 @@
   import { cubicOut } from 'svelte/easing'
   import { reducedMotion } from '$lib/motion.svelte.js'
 
-  const HOLD = 520
+  // Retired per the "make it smooth" pass: the page now SSRs complete,
+  // readable content, so a curtain over it is pure added latency, not a
+  // cover for a blank screen. Flip back to a positive ms value (520 was the
+  // prior hold) to reinstate the brand moment — everything below is
+  // untouched and still switchable on this one constant.
+  const HOLD = 0
 
   // Starts FALSE on the server. The prerendered HTML therefore contains no
   // curtain at all — a crawler, a scripting-off reader and a slow connection
@@ -59,7 +64,7 @@
 </script>
 
 {#if show}
-  <div class="loader" out:fly={{ y: '-100%', duration: 900, easing: cubicOut }}>
+  <div class="loader" out:fly={{ y: '-100%', duration: 500, easing: cubicOut }}>
     <div class="loader-inner">
       <div class="loader-word">
         <img

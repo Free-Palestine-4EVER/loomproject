@@ -43,6 +43,17 @@
   import { BRAND } from '$data/site.js'
   import SplitWords from './SplitWords.svelte'
   import WoolButton from './WoolButton.svelte'
+  import { webpSrcset, variantsFor } from './Pic.svelte'
+
+  const avifSrcset = (src) => {
+    const set = variantsFor(src)
+    return set ? set.variants.map((v) => `${v.avif} ${v.w}w`).join(', ') : undefined
+  }
+  // `.mcp-plate` never exceeds ~320px even on a wide desktop (it is a fixed
+  // fraction of a max-width card, not the viewport); measured 900px source
+  // into a 280px box at 1440/DPR2. Same >720px-only caveat as the footer
+  // tree: the `-sm` <source> above wins under that width.
+  const PLATE_SIZES = '(max-width: 1000px) 40vw, 320px'
   import './loommcp.css'
 
   const SERVERS = [
@@ -134,7 +145,7 @@
         <span
           class="mcp-connector-branch"
           style="--accent: {s.accent}"
-          use:reveal={{ delay: 0.15 + i * 0.12, y: 0 }}
+          use:reveal={{ delay: 0.1 + i * 0.03, y: 0 }}
         ></span>
       {/each}
     </div>
@@ -229,7 +240,7 @@
   <article
     class="mcp-unit is-{state.value} {i % 2 ? 'is-flipped' : ''}"
     style="--accent: {s.accent}"
-    use:reveal={{ delay: i * 0.12, y: 44 }}
+    use:reveal={{ delay: i * 0.03, y: 44 }}
   >
     <!-- THE PLATE. The photograph degrades honestly: the plate carries a
          dyed gradient of the server's own accent underneath, so a missing or
@@ -244,7 +255,8 @@
       <picture>
         <source media="(max-width: 720px)" type="image/avif" srcset="/img/mcp/{s.photo}-sm.avif" />
         <source media="(max-width: 720px)" type="image/webp" srcset="/img/mcp/{s.photo}-sm.webp" />
-        <source type="image/avif" srcset="/img/mcp/{s.photo}.avif" />
+        <source type="image/avif" srcset={avifSrcset(`/img/mcp/${s.photo}.webp`)} sizes={PLATE_SIZES} />
+        <source type="image/webp" srcset={webpSrcset(`/img/mcp/${s.photo}.webp`)} sizes={PLATE_SIZES} />
         <img
           class="mcp-plate-img"
           src="/img/mcp/{s.photo}.webp"
@@ -253,6 +265,7 @@
           height={502}
           loading="lazy"
           decoding="async"
+          fetchpriority="low"
           onerror={(e) => { e.currentTarget.style.display = 'none' }}
         />
       </picture>

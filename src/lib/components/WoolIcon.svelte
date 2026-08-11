@@ -18,9 +18,10 @@
     alt={alt}
     aria-hidden={alt ? undefined : 'true'}
     class={cls}
-    width="320"
-    height="320"
+    width="160"
+    height="160"
     loading="lazy"
     decoding="async"
+    fetchpriority="low"
   />
 {/if}

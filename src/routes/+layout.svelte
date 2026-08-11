@@ -14,7 +14,7 @@
   import { onMount } from 'svelte'
   import { browser } from '$app/environment'
   import { reducedMotion, coarsePointer } from '$lib/motion.svelte.js'
-  import { startLenis, mountAnchorLinks } from '$lib/scroll.svelte.js'
+  import { mountAnchorLinks } from '$lib/scroll.svelte.js'
   import { auth } from '$lib/auth.svelte.js'
 
   import Loader from '$lib/components/Loader.svelte'
@@ -72,15 +72,25 @@
     }
   })
 
-  // Lenis, the interaction pack and the FX pack are torn down and rebuilt when
+  // The interaction pack and the FX pack are torn down and rebuilt when
   // reduced-motion flips, not merely skipped at mount — a user who turns it on
   // mid-session (or whose laptop drops into Battery Saver, which forces the
-  // query on) must lose all three immediately.
+  // query on) must lose both immediately.
   //
-  // All three are dynamically imported, so a reduced-motion visitor never
-  // downloads any of them: Lenis, fx.js and interactions.js are together the
-  // largest block of behaviour-only JS on the site, and this is the branch
-  // where none of it is wanted.
+  // Both are dynamically imported, so a reduced-motion visitor never
+  // downloads either: fx.js and interactions.js are together the largest
+  // block of behaviour-only JS on the site, and this is the branch where
+  // neither is wanted.
+  //
+  // Scrolling itself is no longer part of this branch. The site used to run
+  // Lenis here for "smooth" scroll — removed. Lenis intercepts wheel/touch
+  // input and interpolates toward a target position, which by construction
+  // renders at least a frame behind the input; native scroll on macOS/iOS/
+  // Chrome has zero input latency and is already smooth. Every scroll site in
+  // the codebase now uses the browser's native smooth scroll unconditionally
+  // (see scroll.svelte.js), so there is no reduced-motion branch to gate here
+  // any more — reduced-motion readers were always on native scroll, and now
+  // everyone is.
   $effect(() => {
     if (!browser || reducedMotion.current) return
 
@@ -88,7 +98,6 @@
     let cancelled = false
     const keep = (fn) => { cancelled ? fn?.() : stops.push(fn || (() => {})) }
 
-    import('lenis').then(({ default: Lenis }) => keep(startLenis(Lenis)))
     import('$lib/interactions.js').then((m) => keep(m.mountInteractions?.()))
     import('$lib/fx.js').then((m) => keep(m.mountFx?.()))
 

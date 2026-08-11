@@ -13,6 +13,14 @@
     href = null,
     class: className = '',
     type = 'button',
+    /** The hero's two CTAs are the only WoolButtons above the fold — every
+     *  other one on the page is genuinely below it. Both were shipping
+     *  `loading="lazy"` regardless, which on a phone-width viewport made the
+     *  "See the work" button's own 720px photograph the page's LCP element
+     *  AND a lazy-loaded one — a fetch the browser delays exactly when LCP is
+     *  timing it. `eager` lets Hero.svelte opt its two buttons out of the
+     *  lazy default without changing every other call site's contract. */
+    eager = false,
     ...rest
   } = $props()
 
@@ -38,7 +46,15 @@
 {#snippet inner()}
   <span class="wool-btn-halo" aria-hidden="true"></span>
   {#if asset}
-    <img {src} alt="" width="720" height={h} loading="lazy" decoding="async" />
+    <img
+      {src}
+      alt=""
+      width="720"
+      height={h}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding={eager ? 'sync' : 'async'}
+      fetchpriority={eager ? 'high' : undefined}
+    />
     <span class="wool-btn-label">{label}</span>
   {:else}
     <span class="wool-btn-plate" aria-hidden="true"></span>
