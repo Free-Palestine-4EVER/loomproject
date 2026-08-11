@@ -2706,69 +2706,44 @@ html.cursor-hot .cursor-ring {
   .wmodal-panel.is-sheet .wmodal-scroll { touch-action: pan-y; overscroll-behavior: contain; }
 }
 
-/* ── content-visibility: skip rendering off-screen sections (SSR-specific) ──
-   Server-rendering puts all 20 of the long page's sections in the DOM at
-   first parse — which also puts every <img> inside them in the DOM. Chrome's
-   lazy-load threshold looks ahead a few thousand px and started prefetching
-   ~55 of the site's 90 images instead of the ~32 the old client-rendered SPA
-   fetched (its DOM did not exist yet at that point, so there was nothing for
-   the threshold to see). The markup is identical between builds; only the
-   timing of when it exists changed.
+/* ── content-visibility: REMOVED (11 Aug 2026) ────────────────────────────
+   This block used to put `content-visibility: auto` on fifteen below-fold
+   sections with measured `contain-intrinsic-size` estimates. It was added to
+   claw back the FCP that server-rendering costs us — with the whole DOM
+   present at first parse, Chrome's lazy-load threshold pulls in ~55 images
+   instead of ~32.
 
-   `content-visibility: auto` skips layout/paint/fetch-triggering work for a
-   section while it is off-screen and renders it normally the moment it
-   approaches the viewport — this is what actually stops the extra images
-   from being requested, not merely CSS `content-visibility` housekeeping.
-   `contain-intrinsic-size` reserves each section's own measured height (at
-   1440×900 desktop / 390×844 mobile, the two tiers below) so the page's
-   total scrollHeight does not jump once a section is skipped.
+   IT IS GONE BECAUSE IT BROKE TWO THINGS AND FIXED NOTHING MEASURABLE.
 
-   NOT applied to:
-     - .hero — above the fold on every viewport tested, always rendered.
-     - .counter (wraps <Solutions merged>), .stg-stage (AppsShowcase's product
-       stage) and .ts (TypeShowcaseAct) — all three run a scroll-position-
-       driven pinned tour that reads the section's own
-       getBoundingClientRect() on every scroll frame to drive which slide is
-       "selected". content-visibility skipping their layout the instant they
-       are off-screen fights that math (the rect goes stale/zero), so these
-       three are left rendering normally, same as the hero. */
-.proof, .work, .ofk, .price, .mo, .ae, .wkp, .forge, .mcp, .studios,
-.manifesto, .bolt, .faq, .contact, .hire {
-  content-visibility: auto;
-}
-.proof { contain-intrinsic-size: auto 800px; }
-.work { contain-intrinsic-size: auto 1000px; }
-.ofk { contain-intrinsic-size: auto 700px; }
-.price { contain-intrinsic-size: auto 2350px; }
-.mo { contain-intrinsic-size: auto 1850px; }
-.ae { contain-intrinsic-size: auto 1350px; }
-.wkp { contain-intrinsic-size: auto 800px; }
-.forge { contain-intrinsic-size: auto 850px; }
-.mcp { contain-intrinsic-size: auto 3100px; }
-.studios { contain-intrinsic-size: auto 1050px; }
-.manifesto { contain-intrinsic-size: auto 700px; }
-.bolt { contain-intrinsic-size: auto 520px; }
-.faq { contain-intrinsic-size: auto 1350px; }
-.contact { contain-intrinsic-size: auto 2200px; }
-.hire { contain-intrinsic-size: auto 2450px; }
+   The mechanism: `contain-intrinsic-size` is a GUESS at a section's height,
+   and the moment a section actually renders the guess is replaced by its real
+   height. Measured on the built page, scrolling from #solutions to the footer
+   changed `document.documentElement.scrollHeight` five times — 35901 -> 35896
+   -> 35769 -> 35636 -> 35548, a 353px drift. With the rule disabled the same
+   sweep changed it once.
 
-@media (min-width: 768px) {
-  /* desktop (1440×900) measured heights — noticeably shorter than the phone
-     tier above for anything with stacked cards (.price, .mo, .ae, .mcp,
-     .contact, .hire), which go from a grid to one column under 768px. */
-  .proof { contain-intrinsic-size: auto 700px; }
-  .work { contain-intrinsic-size: auto 1450px; }
-  .ofk { contain-intrinsic-size: auto 650px; }
-  .price { contain-intrinsic-size: auto 1550px; }
-  .mo { contain-intrinsic-size: auto 1450px; }
-  .ae { contain-intrinsic-size: auto 900px; }
-  .wkp { contain-intrinsic-size: auto 650px; }
-  .forge { contain-intrinsic-size: auto 750px; }
-  .mcp { contain-intrinsic-size: auto 1600px; }
-  .studios { contain-intrinsic-size: auto 800px; }
-  .manifesto { contain-intrinsic-size: auto 650px; }
-  .bolt { contain-intrinsic-size: auto 520px; }
-  .faq { contain-intrinsic-size: auto 1300px; }
-  .contact { contain-intrinsic-size: auto 1450px; }
-  .hire { contain-intrinsic-size: auto 1250px; }
-}
+   A document that resizes mid-scroll breaks anything that maps scroll position
+   to state:
+
+     1. #solutions (the 30-industry pinned tour) computes which industry to
+        show from scroll PROGRESS. Resize the document under it and that
+        mapping shifts — the client reported this as "the whole section is
+        jiggling", and they were right.
+     2. Native `scrollIntoView` fixes its pixel target at click time. Move the
+        layout above #apps while that smooth scroll is still animating and it
+        lands somewhere else: the Apps nav tab was overshooting by 460-740px,
+        deep past the start of its pinned stage.
+
+   And the payoff never showed up: FCP measured ~23% behind the React build
+   both WITH and WITHOUT this rule. It was costing two real bugs for a benefit
+   that did not appear in seven-run medians.
+
+   If it is ever reinstated, it must exclude every section ABOVE a pinned tour
+   as well as the tours themselves — the problem is not the tour's own
+   containment, it is anything that can resize while the tour is doing scroll
+   maths. Excluding .counter/.stg-stage/.ts (as this block did) is not enough.
+
+   The real fix for the image weight is the responsive ladder in
+   scripts/responsive.mjs plus honest `sizes` attributes, which is done and
+   which cost nothing in correctness. */
+

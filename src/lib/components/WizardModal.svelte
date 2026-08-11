@@ -32,6 +32,29 @@
     else wizard.close()
   }
 
+  /* THE KEY MUST NOT CHANGE WHEN THE MODAL CLOSES.
+     ────────────────────────────────────────────────────────────────────────
+     The wizard is re-keyed so that opening it a second time with a different
+     context (a different section's CTA, carrying a different `note`) rebuilds
+     the form from step one rather than leaving the previous answers in it.
+     `wizard.seed._t` is the monotonic stamp that makes two opens distinct.
+
+     Keying the block directly on `wizard.seed?._t` looked equivalent and was
+     not: `wizard.close()` sets `seed = null`, so the key flips to `undefined`
+     in the SAME tick the outer `{#if wizard.isOpen}` starts its outro. Svelte
+     then has to tear down and re-create a keyed block inside a block that is
+     already being destroyed, and the outro never runs — the panel stayed
+     mounted at full opacity, marked `inert`, forever.
+
+     It only showed up on the Escape path. The ✕ and the backdrop call the
+     exact same requestClose(), but a click lands in a different task to the
+     keydown handler, so the two state writes did not coincide.
+
+     Latching the last NON-NULL stamp fixes it: the key changes when a new
+     wizard opens (which is what it is for) and never on close. */
+  let seedKey = $state(0)
+  $effect(() => { if (wizard.seed) seedKey = wizard.seed._t })
+
   // Slide the sheet in the instant the modal opens on a phone. Runs whenever
   // isOpen or isMobile.current flips true together — mirrors the React
   // effect's [isOpen, isMobile] dependency pair.
@@ -115,7 +138,7 @@
           <button class="wmodal-close" onclick={requestClose} aria-label="Close">✕</button>
         </header>
         <div class="wmodal-scroll" bind:this={bodyEl} {...handoff}>
-          {#key wizard.seed?._t}
+          {#key seedKey}
             <ContactWizard seed={wizard.seed} />
           {/key}
           <p class="wmodal-direct">
@@ -135,7 +158,7 @@
           <button class="wmodal-close" onclick={requestClose} aria-label="Close">✕</button>
         </header>
         <div class="wmodal-scroll">
-          {#key wizard.seed?._t}
+          {#key seedKey}
             <ContactWizard seed={wizard.seed} />
           {/key}
           <p class="wmodal-direct">

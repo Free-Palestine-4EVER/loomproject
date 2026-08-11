@@ -929,24 +929,51 @@
      flex algorithm. */
   transition: flex-basis 0.55s var(--ease), filter 0.55s var(--ease), opacity 0.55s var(--ease);
 }
-/* LEGIBILITY OVER THE KNIT. The dyed wool photograph is high-frequency —
-   stitch after stitch of near-equal luminance — and body copy laid straight
-   onto it sat around 3:1. This is a plain vertical scrim, darkest where the
-   copy actually is, rather than a filter on the photograph: dimming the whole
-   image would flatten exactly the texture the section is made of. */
-.ofk-branch::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 236, 244, 0.18) 0%,
-    rgba(255, 236, 244, 0.52) 42%,
-    rgba(255, 236, 244, 0.66) 100%
-  );
+/* LEGIBILITY OVER THE KNIT — 11 Aug 2026, narrowed at the client's request
+   ("this images has overlays please remove them").
+
+   This USED to be a full-card vertical scrim washing the whole photograph in
+   rgba(255,236,244,…) from 18% at the top to 66% at the bottom. It was there
+   for a real reason and that reason has not gone away: the dyed wool is a
+   high-frequency image — stitch after stitch of near-equal luminance — and
+   body copy laid straight onto it measured around 3:1, under the 4.5:1 WCAG AA
+   needs for body text.
+
+   But washing the ENTIRE card to fix the bottom third is what the client was
+   objecting to, and they were right: it milked out the top of every photo, the
+   part with no text on it at all, which is the part the section exists to
+   show.
+
+   The first attempt at honouring that was a radial pool behind the copy only.
+   It failed on inspection: the pool cleaned up the picture but left the
+   eyebrow and the h3 sitting dark-plum on saturated magenta/violet, which is
+   WORSE than what it replaced — the eyebrows disappeared outright.
+
+   The actual answer is that the copy was the wrong colour, not that the
+   picture needed dimming. These two knits are saturated mid-tones, so CREAM
+   copy with a soft dark halo clears 4.5:1 against them comfortably and needs
+   no wash whatsoever. The photograph is now completely untouched — no scrim,
+   no filter, no gradient — which is what the client asked for, and the copy is
+   more legible than it was with the full wash.
+
+   The halo is a text-shadow, NOT a box behind the text: a box would be the
+   full-card wash again in miniature, and the whole point is that nothing sits
+   between the reader and the wool. */
+.ofk-branch::after { content: none; }
+
+.ofk-branch .ofk-eyebrow,
+.ofk-branch .ofk-h,
+.ofk-branch .ofk-body,
+.ofk-branch .ofk-link {
+  color: var(--cream, #fff5fa);
+  /* two shadows: a tight one for edge definition against a light stitch, and
+     a wide soft one to lift the glyph off the high-frequency knit underneath */
+  text-shadow:
+    0 1px 2px rgba(28, 10, 34, 0.55),
+    0 2px 14px rgba(28, 10, 34, 0.4);
 }
+.ofk-branch .ofk-ord { color: rgba(255, 245, 250, 0.5); }
+.ofk-branch .ofk-link { text-decoration-color: rgba(255, 245, 250, 0.6); }
 /* The choosing, felt. `:has()` on the parent is what lets the OTHER branch
    react — without it a branch can only style itself, and "one grows" without
    "the other yields" reads as a layout glitch rather than as a choice. Where
