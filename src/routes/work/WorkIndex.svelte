@@ -57,12 +57,8 @@
   // sharp(...).metadata(), same table Work.svelte carries. Present so every
   // card reserves its box before the photograph lands.
   const COVER_DIMS = {
-    auraa: [960, 733], benetton: [960, 540], bezdrob: [960, 596],
-    boccapiena: [960, 640], ellie: [1040, 715], evorahome: [1040, 715],
-    herbas: [960, 640], maison: [1040, 715], modulart: [960, 1280],
-    ojar: [1040, 1040], place87: [960, 574], scion: [960, 540],
-    shteq: [960, 720], slatko: [960, 540], weitnauer: [960, 640],
-    zen2fit: [960, 540],
+    auraa: [960, 733], ellie: [1040, 715], evorahome: [1040, 715],
+    maison: [1040, 715], ojar: [1040, 1040], slatko: [960, 540],
   }
 
   const n2 = (i) => String(i + 1).padStart(2, '0')
