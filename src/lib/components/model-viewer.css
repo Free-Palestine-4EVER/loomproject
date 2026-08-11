@@ -1,0 +1,64 @@
+/* ——— ModelViewer — inline GLB inspector, dashboard.css's idiom ———
+   A fixed-aspect box so mounting the canvas (or swapping loading → ready →
+   error) never shifts anything else in the job list around it. */
+
+.mv-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 420px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(150deg, rgba(242, 28, 140, 0.08), rgba(123, 47, 190, 0.08));
+  border: 1px solid rgba(51, 36, 61, 0.12);
+  touch-action: none;
+}
+
+.mv-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+.mv-wrap canvas:active { cursor: grabbing; }
+
+.mv-loading,
+.mv-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 20px;
+}
+
+.mv-loading-box,
+.mv-fallback-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(51, 36, 61, 0.1);
+  animation: mv-pulse 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mv-loading-box, .mv-fallback-box { animation: none; }
+}
+@keyframes mv-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.94); }
+  50% { opacity: 0.9; transform: scale(1); }
+}
+
+.mv-fallback {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+}
+.mv-fallback img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
+.mv-fallback--error { color: #a3143f; }

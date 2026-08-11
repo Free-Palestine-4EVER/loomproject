@@ -20,6 +20,7 @@
   import { auth } from '$lib/auth.svelte.js'
   import { jobs as fetchJobs, ForgeError } from '$lib/forge.js'
   import WoolButton from '$lib/components/WoolButton.svelte'
+  import ModelViewer from '$lib/components/ModelViewer.svelte'
   import '$components/dashboard.css'
 
   // Same figure Forge.jsx's own copy quotes — marketing copy, not an
@@ -84,6 +85,21 @@
 
   function onJobThumbError(e) {
     e.currentTarget.style.display = 'none'
+  }
+
+  // ─── inline 3D preview: click-to-expand, one WebGL context at a time ─────
+  // Browsers cap concurrent live WebGL contexts (~16), and this page can list
+  // many completed jobs at once — mounting a viewer per row up front would
+  // spend the budget on rows nobody is looking at. `openJobId` holding a
+  // single id means opening a different job's viewer un-mounts the previous
+  // one first (Svelte destroys the old `{#if}` branch before rendering the
+  // new one), which runs ModelViewer's own teardown — geometry/material/
+  // texture disposal, then `releaseRenderer()` handing the GL context back —
+  // before the next viewer ever asks for a context of its own.
+  let openJobId = $state(null)
+
+  function toggleViewer(id) {
+    openJobId = openJobId === id ? null : id
   }
 </script>
 
@@ -215,29 +231,49 @@
               {@const done = job.status === 'SUCCEEDED'}
               {@const failed = job.status === 'FAILED'}
               <li class="dash-job {done ? 'is-done' : failed ? 'is-failed' : 'is-running'}">
-                <div class="dash-job-thumb">
-                  {#if job.thumbnailUrl}
-                    <img src={job.thumbnailUrl} alt="" loading="lazy" decoding="async" onerror={onJobThumbError} />
-                  {:else}
-                    <span class="dash-job-ph" aria-hidden="true"></span>
+                <div class="dash-job-row">
+                  <div class="dash-job-thumb">
+                    {#if job.thumbnailUrl}
+                      <img src={job.thumbnailUrl} alt="" loading="lazy" decoding="async" onerror={onJobThumbError} />
+                    {:else}
+                      <span class="dash-job-ph" aria-hidden="true"></span>
+                    {/if}
+                  </div>
+                  <div class="dash-job-meta">
+                    <p class="dash-job-name">{job.name || 'Untitled model'}</p>
+                    <p class="dash-job-sub">
+                      {#if jobWhen(job)}<span>{jobWhen(job)}</span>{/if}
+                      <span class="dash-job-status dash-job-status--{job.status?.toLowerCase() || 'pending'}">
+                        {JOB_LABEL[job.status] || job.status}
+                      </span>
+                    </p>
+                  </div>
+                  {#if done && job.modelUrls}
+                    <div class="dash-job-files">
+                      {#if job.modelUrls.glb}
+                        <button
+                          type="button"
+                          class="dash-job-view"
+                          onclick={() => toggleViewer(job.id)}
+                          aria-expanded={openJobId === job.id}
+                        >{openJobId === job.id ? 'Hide model' : 'View model'}</button>
+                      {/if}
+                      {#each ['glb', 'usdz', 'fbx', 'obj'] as k (k)}
+                        {#if job.modelUrls[k]}
+                          <a href={job.modelUrls[k]} download target="_blank" rel="noreferrer">{k.toUpperCase()}</a>
+                        {/if}
+                      {/each}
+                    </div>
                   {/if}
                 </div>
-                <div class="dash-job-meta">
-                  <p class="dash-job-name">{job.name || 'Untitled model'}</p>
-                  <p class="dash-job-sub">
-                    {#if jobWhen(job)}<span>{jobWhen(job)}</span>{/if}
-                    <span class="dash-job-status dash-job-status--{job.status?.toLowerCase() || 'pending'}">
-                      {JOB_LABEL[job.status] || job.status}
-                    </span>
-                  </p>
-                </div>
-                {#if done && job.modelUrls}
-                  <div class="dash-job-files">
-                    {#each ['glb', 'usdz', 'fbx', 'obj'] as k (k)}
-                      {#if job.modelUrls[k]}
-                        <a href={job.modelUrls[k]} download target="_blank" rel="noreferrer">{k.toUpperCase()}</a>
-                      {/if}
-                    {/each}
+
+                {#if openJobId === job.id && job.modelUrls?.glb}
+                  <div class="dash-job-viewer">
+                    <ModelViewer
+                      src={job.modelUrls.glb}
+                      poster={job.thumbnailUrl || null}
+                      alt={`3D preview of ${job.name || 'your model'}`}
+                    />
                   </div>
                 {/if}
               </li>

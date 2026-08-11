@@ -1,6 +1,6 @@
 import { chromium } from 'playwright'
 
-const BASE = 'http://localhost:4941'
+const BASE = 'http://localhost:4945'
 const WIDTHS = [
   { name: '390', width: 390, height: 844, mobile: true },
   { name: '820', width: 820, height: 1180, mobile: false },

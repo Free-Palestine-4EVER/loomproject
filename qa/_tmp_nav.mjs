@@ -1,6 +1,6 @@
 import { chromium } from 'playwright'
 
-const BASE = 'http://localhost:4941'
+const BASE = 'http://localhost:4945'
 const HASH_TABS = ['#work', '#solutions', '#pricing', '#the-machine', '#aeo', '#apps', '#mcp', '#faq', '#contact']
 
 const browser = await chromium.launch()

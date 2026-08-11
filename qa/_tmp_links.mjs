@@ -1,6 +1,6 @@
 import { chromium } from 'playwright'
 
-const BASE = 'http://localhost:4941'
+const BASE = 'http://localhost:4945'
 const ROUTES = ['/', '/type', '/ai-workshops', '/dashboard']
 const VALID_ROUTES = new Set(['/', '/type', '/ai-workshops', '/dashboard'])
 
