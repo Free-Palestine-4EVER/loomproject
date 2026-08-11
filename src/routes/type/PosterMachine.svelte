@@ -1,7 +1,20 @@
 <!--
   The Poster Machine — type a line, pick a cut and a palette, get a real
-  1600x2000 poster PNG set in LOOM Bloom. Everything is drawn to a canvas from
-  the live font, so what downloads is exactly what is on screen.
+  1600x2000 poster PNG set in LOOM Patterns. Everything is drawn to a canvas
+  from the live font, so what downloads is exactly what is on screen.
+
+  WEIGHT (11 Aug 2026, with the family change): this used to `document.fonts
+  .load` EVERY cut on mount so the first paint could never come out in Arial.
+  With the pattern family that is 913 KB of display type fetched the moment
+  /type hydrates, most of it for faces the visitor never picks. It now loads
+  ONE face — the selected one — and only once the section is within 400px of
+  the viewport; switching cuts loads the next one and repaints when it lands.
+  The canvas draws from the loaded font rather than from CSS, so `paint()`
+  still has to wait for a real load either way.
+
+  CAPS: every string that reaches the canvas is upper-cased before it is
+  drawn (see drawPoster's `A`/`B` and the footer line) — these faces have no
+  lowercase, and canvas has no `text-transform` to fall back on.
 
   This is the section that closes the argument the typeface opens: we made the
   tool, we made the type, and you leave with a printable artefact.
@@ -16,20 +29,23 @@
   ever asked for a 2D context on the client.
 -->
 <script>
-  import { onMount } from 'svelte'
   import { browser } from '$app/environment'
-  import { reveal, magnetic } from '$lib/motion.svelte.js'
+  import { reveal, magnetic, nearViewport } from '$lib/motion.svelte.js'
   import '$components/postermachine.css'
 
   const W = 1600
   const H = 2000
 
   const CUTS = [
-    { id: 'regular', label: 'Regular', family: 'LOOM Bloom' },
-    { id: 'rose', label: 'Rose', family: 'LOOM Bloom Rose' },
-    { id: 'daisy', label: 'Daisy', family: 'LOOM Bloom Daisy' },
-    { id: 'tulip', label: 'Tulip', family: 'LOOM Bloom Tulip' },
-    { id: 'ivy', label: 'Ivy', family: 'LOOM Bloom Ivy' },
+    { id: 'organic', label: 'Organic', fill: 'LOOM Organic', outline: 'LOOM Organic Outline' },
+    { id: 'retro', label: 'Retro', fill: 'LOOM Retro', outline: 'LOOM Retro Outline' },
+    { id: 'linear', label: 'Linear', fill: 'LOOM Linear', outline: 'LOOM Linear Outline' },
+    { id: 'flora', label: 'Flora', fill: 'LOOM Flora', outline: 'LOOM Flora Outline' },
+  ]
+
+  const STYLES = [
+    { id: 'fill', label: 'Fill' },
+    { id: 'outline', label: 'Outline' },
   ]
 
   const PALETTES = [
@@ -48,7 +64,7 @@
   const ORNS = ['❀', '✿', '❦']
 
   const SEEDS = [
-    ['BLOOM', 'ANYWAY'],
+    ['PATTERN', 'ANYWAY'],
     ['MADE', 'IN AMMAN'],
     ['NO', 'TEMPLATES'],
     ['CUT', 'YOUR OWN'],
@@ -138,7 +154,7 @@
     ctx.fillStyle = p.ink
     ctx.globalAlpha = layout === 'frame' ? 0 : 0.72
     ctx.font = `400 40px "${family}", sans-serif`
-    ctx.fillText('LOOM BLOOM', pad, H - pad - 60)
+    ctx.fillText('LOOM PATTERNS', pad, H - pad - 60)
     ctx.textAlign = 'right'
     ctx.fillText('LOOMSTUDIO-JO.COM', W - pad, H - pad - 60)
     ctx.textAlign = 'left'
@@ -147,28 +163,39 @@
   }
 
   let canvasEl = $state(null)
-  let l1 = $state('BLOOM')
+  let l1 = $state('PATTERN')
   let l2 = $state('ANYWAY')
-  let cut = $state('rose')
+  let cut = $state('organic')
+  let style = $state('fill')
   let palette = $state('atelier')
   let layout = $state('stack')
-  let ready = $state(false)
+  // the face the browser has actually finished loading — NOT a boolean:
+  // switching cuts must repaint only after the NEW face has landed, or the
+  // poster flashes the old one at the new one's widths
+  let loadedFamily = $state('')
 
-  const family = $derived((CUTS.find((c) => c.id === cut) || CUTS[0]).family)
+  const family = $derived((CUTS.find((c) => c.id === cut) || CUTS[0])[style])
+  const ready = $derived(loadedFamily === family)
 
-  // The canvas draws from the loaded font, not from CSS — so the face has to
-  // be explicitly loaded before the first paint or the poster comes out in
-  // Arial. onMount only ever runs on the client.
-  onMount(() => {
+  // Fetch nothing until the section is nearly on screen — /type sets seven
+  // other faces above this one.
+  let near = $state(false)
+  function armNear(node) { return nearViewport(node, { margin: '400px', onNear: () => { near = true } }) }
+
+  // One face at a time, re-run whenever the pick changes. $effect is
+  // client-only, so `document.fonts` is never touched during the prerender.
+  $effect(() => {
+    if (!near) return
+    const want = family
     let live = true
     ;(async () => {
       try {
-        await Promise.all(CUTS.map((c) => document.fonts.load(`400 100px "${c.family}"`)))
+        await document.fonts.load(`400 100px "${want}"`)
         await document.fonts.ready
       } catch {
         /* older browsers just paint a beat later */
       }
-      if (live) ready = true
+      if (live) loadedFamily = want
     })()
     return () => { live = false }
   })
@@ -194,6 +221,7 @@
     const s = SEEDS[Math.floor(Math.random() * SEEDS.length)]
     l1 = s[0]; l2 = s[1]
     cut = CUTS[Math.floor(Math.random() * CUTS.length)].id
+    style = STYLES[Math.floor(Math.random() * STYLES.length)].id
     palette = PALETTES[Math.floor(Math.random() * PALETTES.length)].id
     layout = LAYOUTS[Math.floor(Math.random() * LAYOUTS.length)].id
   }
@@ -206,7 +234,7 @@
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `loom-bloom-poster-${(l1 || 'poster').toLowerCase().replace(/\W+/g, '-')}.png`
+      a.download = `loom-patterns-poster-${(l1 || 'poster').toLowerCase().replace(/\W+/g, '-')}.png`
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -215,16 +243,16 @@
   }
 </script>
 
-<section class="pm" id="poster-machine">
+<section class="pm" id="poster-machine" use:armNear>
   <div class="pm-inner">
     <header class="pm-head">
       <div>
         <p class="tf-tag">The poster machine</p>
         <h2 class="tf-h2">Make something with it, right now</h2>
         <p class="pm-lede">
-          Type a line, pick a cut and a palette. The poster is drawn to a
-          canvas from the live font — what you see is what downloads, at
-          1600 × 2000, free to print.
+          Type a line, pick a cut, fill or outline, and a palette. The poster
+          is drawn to a canvas from the live font — what you see is what
+          downloads, at 1600 × 2000, free to print. Caps only, like the face.
         </p>
       </div>
       <div class="pm-actions">
@@ -241,11 +269,11 @@
       <div class="pm-controls">
         <label class="pm-field">
           <span>Line one</span>
-          <input value={l1} oninput={(e) => (l1 = e.target.value.slice(0, 18))} maxlength="18" spellcheck="false" />
+          <input value={l1} oninput={(e) => (l1 = e.target.value.slice(0, 18).toUpperCase())} maxlength="18" spellcheck="false" autocapitalize="characters" />
         </label>
         <label class="pm-field">
           <span>Line two</span>
-          <input value={l2} oninput={(e) => (l2 = e.target.value.slice(0, 18))} maxlength="18" spellcheck="false" />
+          <input value={l2} oninput={(e) => (l2 = e.target.value.slice(0, 18).toUpperCase())} maxlength="18" spellcheck="false" autocapitalize="characters" />
         </label>
 
         <fieldset class="pm-group">
@@ -258,6 +286,20 @@
                 onclick={() => (cut = c.id)}
                 aria-pressed={cut === c.id}
               >{c.label}</button>
+            {/each}
+          </div>
+        </fieldset>
+
+        <fieldset class="pm-group">
+          <legend>Fill or outline</legend>
+          <div class="pm-chips">
+            {#each STYLES as s (s.id)}
+              <button
+                type="button"
+                class="pm-chip {style === s.id ? 'is-on' : ''}"
+                onclick={() => (style = s.id)}
+                aria-pressed={style === s.id}
+              >{s.label}</button>
             {/each}
           </div>
         </fieldset>

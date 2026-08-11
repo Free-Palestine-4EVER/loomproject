@@ -1,13 +1,29 @@
 /* The page-wide butterfly layer.
 
-   z-index 70 puts it over the copy but under everything that is allowed to take
-   the page: the menu (75), the nav (80), the scroll bar (90), the mobile chrome
-   (92), overlays (95), the wizard (96) and the loader (100). So the butterfly
-   flies across the reading surface and never once lands on a modal. */
+   IT FLIES BEHIND THE COPY NOW — 11 Aug 2026. This sat at z-index 70, which
+   put it OVER the reading surface. The old comment justified that by noting it
+   still passed under the menu, nav, scroll bar, mobile chrome, overlays, the
+   wizard and the loader — all true, and all beside the point: the thing it
+   spent most of its time flying over was body text.
+
+   In a single review pass the client sent screenshots of it sitting on the
+   Benetton case title, the Protocol headline, the Pricing card copy, the
+   Machine's bilingual ledger, the AEO lede, the workshops headline, the Forge
+   paragraph and the Contact lede — eight sections, every one of them with a
+   butterfly parked on a word. A decorative element that lands on type is not
+   charm, it is an obstruction, and it obstructed a different sentence on every
+   scroll.
+
+   z-index 1 keeps it above the fixed page background (.loom-bg and its dye
+   blooms, which are behind everything) and below the content, so it now drifts
+   BEHIND the copy: still visible against the ground and in the gutters, still
+   crossing the page, but never once covering a word. The stacking order above
+   it is unchanged and needs no adjustment — everything that outranked 70 still
+   outranks 1. */
 .flyer-layer {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: 1;
   pointer-events: none;
   /* Its own layer, so the compositor never repaints the page behind it. */
   will-change: opacity;

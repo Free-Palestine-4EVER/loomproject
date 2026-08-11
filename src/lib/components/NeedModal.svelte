@@ -79,6 +79,14 @@
     // Capture BEFORE anything below moves focus into the panel — this is
     // still the tile a mouse click or Enter/Space keypress just activated.
     triggerEl = document.activeElement
+    // `html.overlay-open { overflow: hidden }` (styles.css) is the lock, and
+    // Lenis stops on the same class. What neither of them guarantees is the
+    // position afterwards: Safari in particular can resolve a mid-page scroll
+    // offset back to 0 when the scrolling element's overflow flips, and the
+    // reader closes the panel to find the page at the top instead of at the
+    // tile they clicked. So the offset is captured here and put back on
+    // release, but only if something actually moved it.
+    const scrollY = window.scrollY
     document.documentElement.classList.add('overlay-open')
 
     const onKey = (e) => {
@@ -98,7 +106,10 @@
     return () => {
       // Only release the lock if nothing else has since claimed it — see the
       // comment above this effect.
-      if (!wizard.isOpen) document.documentElement.classList.remove('overlay-open')
+      if (!wizard.isOpen) {
+        document.documentElement.classList.remove('overlay-open')
+        if (Math.abs(window.scrollY - scrollY) > 1) window.scrollTo(0, scrollY)
+      }
       window.removeEventListener('keydown', onKey)
       clearTimeout(t)
       // Not guarded on `document.activeElement` being inside the panel first
@@ -109,10 +120,13 @@
     }
   })
 
-  // Swapping to a paired need scrolls the panel's own scroller back to the
-  // top. Without this the reader lands halfway down a panel they have not
-  // read, because the scroll position belongs to the SCROLLER and the
-  // scroller did not unmount — only its contents changed.
+  // The panel no longer scrolls — every need is composed to fit its window —
+  // but the reset stays: it is one line, it costs nothing when the scroller
+  // is already at 0, and it is the only thing standing between a future
+  // longer need (or a very short viewport) and a swap that lands the reader
+  // halfway down a panel they have not read. Scroll position belongs to the
+  // container, and the container does not unmount on a swap; only its
+  // contents change.
   function swapTo(next) {
     shown = next
     bodyEl?.scrollTo({ top: 0, behavior: reducedMotion.current ? 'auto' : 'smooth' })
@@ -166,7 +180,7 @@
         </div>
 
         <div class="nm-foot">
-          <WoolButton label="Start a project" size="big" onclick={start} />
+          <WoolButton label="Start a project" onclick={start} />
           <button type="button" class="nm-foot-link" onclick={requestClose}>Keep looking</button>
         </div>
       </div>
@@ -191,11 +205,11 @@
           {@render body()}
         </div>
 
-        <!-- Outside .nm-body on purpose: the body scrolls, this does not. A
-             CTA that scrolls out of a 90vh panel is a CTA the reader has to
-             go looking for. -->
+        <!-- Its own flex row, outside .nm-body: the body is the part that
+             gives when the viewport is short, and the CTA is the part that
+             must not. -->
         <div class="nm-foot">
-          <WoolButton label="Start a project" size="big" onclick={start} />
+          <WoolButton label="Start a project" onclick={start} />
           <button type="button" class="nm-foot-link" onclick={requestClose}>Keep looking</button>
         </div>
       </div>
@@ -231,19 +245,28 @@
     </div>
   </div>
 
-  <p class="nm-hook">{d.hook}</p>
-  <p class="nm-para">{d.body}</p>
-
+  <!-- Two columns, not one stack.
+       The panel used to run hook → paragraph → deliverables → facts → proof
+       down a single column ~900px tall inside a ~680px window, so it scrolled
+       and the last line of the paragraph sat under the foot. Splitting the
+       prose from the artefact list halves the height instead of shrinking the
+       type to nothing: the tallest column decides the panel, and neither
+       column is the sum of both. -->
   <div class="nm-grid">
-    <div class="nm-col">
-      <h3 class="nm-h3">What arrives</h3>
-      <ul class="nm-list">
-        {#each d.deliverables as line (line)}
-          <li><i class="nm-tick" aria-hidden="true"></i>{line}</li>
-        {/each}
-      </ul>
+    <div class="nm-col nm-col--say">
+      <p class="nm-hook">{d.hook}</p>
+      <p class="nm-para">{d.body}</p>
+      <p class="nm-proof"><span>Why us</span>{d.proof}</p>
     </div>
     <div class="nm-col nm-col--side">
+      <div class="nm-fact">
+        <h3 class="nm-h3">What arrives</h3>
+        <ul class="nm-list">
+          {#each d.deliverables as line (line)}
+            <li><i class="nm-tick" aria-hidden="true"></i>{line}</li>
+          {/each}
+        </ul>
+      </div>
       <div class="nm-fact">
         <p class="nm-fact-label">Timeline</p>
         <p class="nm-fact-value">{d.timeline}</p>
@@ -258,6 +281,4 @@
       </div>
     </div>
   </div>
-
-  <p class="nm-proof"><span>Why us</span>{d.proof}</p>
 {/snippet}

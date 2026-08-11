@@ -3,16 +3,62 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#120a1f" />
+
+    <!-- THE PAGE IS NOT LETTERBOXED ANY MORE — 11 Aug 2026.
+
+         This said `#120a1f` — the site's OLD dark-violet ground — and it was
+         left behind by the 10 Aug flip to the rose ground (`--bg: #ffe9f2`,
+         styles.css:239). On desktop and in every headless engine that costs
+         nothing, because theme-color is browser chrome, not page paint, so
+         nothing in the DOM, no screenshot and no `scrollWidth === innerWidth`
+         assertion can see it. On a real iPhone it is the whole visible bug the
+         client reported: iOS Safari fills the status-bar band above the page
+         and the toolbar band below it with this colour, so a near-white rose
+         page sat inside a dark violet frame — the header looked like it
+         started an inch down the screen and the layout looked boxed in.
+         Nothing about the layout ever changed; the frame around it did.
+
+         It matches `--bg` exactly, so the chrome now continues the page
+         instead of framing it. If `--bg` is ever retuned, this literal moves
+         with it — it is one of the hardcoded copies the styles.css note
+         warns about.
+
+         `viewport-fit=cover` above is intact and correct, and is what lets
+         `env(safe-area-inset-*)` report real values; it was never the cause. -->
+    <meta name="theme-color" content="#ffe9f2" />
+    <!-- The site has exactly one, light, ground. Declaring it stops iOS/macOS
+         from force-darkening form controls, scrollbars and the rubber-band
+         overscroll gutter for a reader in system dark mode — which is the
+         same class of "a dark band appeared around my page" report as the
+         theme-color above. -->
+    <meta name="color-scheme" content="light" />
     <link rel="icon" type="image/png" href="/img/logo/favicon-woven.png" />
 
     <!-- Body/heading copy sitewide sets in a system font stack (zero bytes,
-         nothing to preload) except the hero headline, which stays on the
-         studio's drawn face. So the whole preload budget goes there: the Daisy
-         "Home" subset (.hero-h1) and the plain cut (.hero-line--accent, the
-         outlined "on the edge"). Clash Display and Satoshi are deliberately
-         NOT on the hero's critical path — see styles.css. -->
-    <link rel="preload" href="/fonts/loom-bloom/LOOMBloomDaisy-Home.woff2" as="font" type="font/woff2" crossorigin />
+         nothing to preload). Clash Display and Satoshi are deliberately NOT on
+         the critical path — see styles.css.
+
+         THE HERO'S PRELOADS ARE NOT HERE ANY MORE (11 Aug 2026). This file is
+         every route, and the hero is one of them; the LOOM Linear subsets the
+         headline now sets in are preloaded from the home route's own
+         <svelte:head> in src/routes/+page.svelte, so /type and /ai-workshops
+         stop paying for a headline they do not render.
+
+         What used to sit here was LOOMBloomDaisy-Home.woff2 (32 KB) for
+         .hero-h1 and LOOMBloom-Regular.woff2 for .hero-line--accent. The
+         Daisy preload is gone with the face — no selector on the site
+         resolves to that family any longer, and a preload is the one thing
+         that will happily download a font nothing uses, at high priority, on
+         every page. (It is exactly how it survived the swap unnoticed: the
+         hero stopped naming Daisy and the bytes kept arriving.)
+
+         LOOMBloom-Regular stays, but it is NOT hero-critical and the comment
+         that said so was wrong after the swap: var(--bloom) is what the
+         Manifesto, FAQ, Hiring and pricing headings set in, all of them below
+         the fold. It is 6.6 KB and it is the studio's own face on the first
+         heading a scroller meets, which is the case for keeping it — if the
+         hero's LCP ever needs the bandwidth back, this is the first line to
+         cut. -->
     <link rel="preload" href="/fonts/loom-bloom/LOOMBloom-Regular.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- Per-page <title>, description and OG tags come from <svelte:head> in

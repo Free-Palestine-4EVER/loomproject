@@ -1,0 +1,22 @@
+<!--
+  THE FORK — warp tile.
+  Generated line-work, not a photograph. A 72px seamless tile of loom warp:
+  dominant vertical threads at two weights, crossed by a dashed weft every
+  24px. Drawn in pure white so the consumer controls the ink with `opacity`
+  on the layer that paints it — that keeps one file usable on any ground.
+  Every path starts and ends exactly on the tile edge, so it repeats without
+  a seam (the artefact the photographic knit had).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72" shape-rendering="crispEdges">
+  <g fill="none" stroke="#ffffff">
+    <g opacity="0.5" stroke-width="1">
+      <path d="M6 0V72M18 0V72M30 0V72M42 0V72M54 0V72M66 0V72" />
+    </g>
+    <g opacity="0.22" stroke-width="1">
+      <path d="M0 0V72M12 0V72M24 0V72M36 0V72M48 0V72M60 0V72" />
+    </g>
+    <g opacity="0.3" stroke-width="1" stroke-dasharray="5 7">
+      <path d="M0 12H72M0 36H72M0 60H72" />
+    </g>
+  </g>
+</svg>

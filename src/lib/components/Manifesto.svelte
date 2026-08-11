@@ -196,24 +196,50 @@
       </p>
     </div>
     <div class="manifesto-media" bind:this={mediaEl}>
-      <!-- 1700x1275 — at 8.27 MB of decoded bitmap this is the single largest
-           resident image on the long page, and `.manifesto-laptop` paints it
-           at 150% of its column: 420px on a 390px phone, 655px at 1440. The
-           phone cut is 900px, 2.1x that box.
+      <!-- 1700x1275 (4:3) — at 8.27 MB of decoded bitmap the full-size cutout
+           is the single largest resident image on the long page.
 
-           `media`, not a `w` descriptor: at DPR 3 a 420px box asks for 1260px
-           and any srcset would skip a 900px cut and take the 1700px original
-           — which is precisely the phone that cannot afford it. `display:
-           contents` keeps the <picture> out of layout, since the img is a
-           grid/flex child of `.manifesto-media` and carries its own `width:
-           150%`. -->
+           REFRAMED 11 Aug 2026. `.manifesto-laptop` used to paint this at 150%
+           of its column (120% under 900px) and let `.manifesto`'s
+           `overflow-x: clip` catch the overflow — which cropped the laptop's
+           right edge instead of bleeding it, and did so at exactly the widths
+           where the column is narrowest. styles.css now CONTAINS the image in
+           its column (see the long note there), so the painted box is knowable
+           and this is back to an ordinary `w`-descriptor ladder against the
+           real cuts in static/img/manifesto:
+
+             <=767px   the full content width, ~350 CSS px at 390
+             <=1000px  capped at 520 (single column, centred)
+             above     capped at 640 (the right-hand grid column)
+
+           `sizes` describes those three cases, so a DPR-3 phone at 350px asks
+           for ~1050px and takes the 1024 cut rather than the 1700 original —
+           the case the old hand-picked `media` cuts existed to protect, now
+           handled by the browser. The intrinsic width/height stay on the <img>
+           so the 4:3 box is reserved before the bytes land and nothing can
+           scale the poster art on one axis (styles.css pins `aspect-ratio` +
+           `object-fit: contain` for the same reason). `display: contents`
+           keeps the <picture> out of layout, since the img is the grid/flex
+           child that carries the sizing. -->
       <picture style="display: contents">
-        <source media="(max-width: 767px)" type="image/avif" srcset="/img/manifesto/laptop-mascot-cutout-sm.avif" />
-        <source media="(max-width: 767px)" type="image/webp" srcset="/img/manifesto/laptop-mascot-cutout-sm.webp" />
-        <source type="image/avif" srcset="/img/manifesto/laptop-mascot-cutout.avif" />
+        <source
+          type="image/avif"
+          sizes="(max-width: 767px) 92vw, (max-width: 1000px) 520px, 640px"
+          srcset="/img/manifesto/laptop-mascot-cutout-320.avif 320w,
+                  /img/manifesto/laptop-mascot-cutout-480.avif 480w,
+                  /img/manifesto/laptop-mascot-cutout-768.avif 768w,
+                  /img/manifesto/laptop-mascot-cutout-1024.avif 1024w,
+                  /img/manifesto/laptop-mascot-cutout-1600.avif 1600w"
+        />
         <img
           class="manifesto-laptop"
-          src="/img/manifesto/laptop-mascot-cutout.webp"
+          src="/img/manifesto/laptop-mascot-cutout-1024.webp"
+          sizes="(max-width: 767px) 92vw, (max-width: 1000px) 520px, 640px"
+          srcset="/img/manifesto/laptop-mascot-cutout-320.webp 320w,
+                  /img/manifesto/laptop-mascot-cutout-480.webp 480w,
+                  /img/manifesto/laptop-mascot-cutout-768.webp 768w,
+                  /img/manifesto/laptop-mascot-cutout-1024.webp 1024w,
+                  /img/manifesto/laptop-mascot-cutout-1600.webp 1600w"
           alt="The LOOM website on a laptop, with the studio's yarn-ball mascot climbing out of the screen"
           width="1700" height="1275"
           loading="lazy"

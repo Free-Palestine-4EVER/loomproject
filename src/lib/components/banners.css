@@ -111,8 +111,13 @@
      (`clip`, not `hidden` — `hidden` would make the tile a scroll container.) */
   background: transparent;
   padding: 0;
-  border-radius: clamp(18px, 1.5vw, 26px);
-  overflow: clip;
+  /* THE RADIUS AND THE CLIP MOVED TO `.cnt-band` (11 Aug 2026). The tile is no
+     longer a single image box: it is the image PLUS a label sitting on the
+     section's own ground beneath it, so a radius on the tile would be rounding
+     a rectangle whose lower strip is bare page. The band carries both now, and
+     the still is still clipped to a rounded corner when it scales on hover. */
+  border-radius: 0;
+  overflow: visible;
   position: relative;
   /* 21/9 at EVERY width, matching the `-wide` still exactly (1100x471).
      It used to be 2/3 here and 21/9 only under 719px, off two separately
@@ -122,7 +127,8 @@
      still IS the shot's frame rather than a window onto it, so nothing is
      cropped and the calm band the render reserves along the bottom is the
      band the label pill sits in. */
-  aspect-ratio: 21 / 9;
+  /* the ratio moved to `.cnt-band` with the radius — the tile is band + label
+     now, so its own height is the still plus one line of type. */
   -webkit-tap-highlight-color: transparent;
   /* box-shadow now, not drop-shadow. The die-cut silhouette was the only
      thing that justified a filter on a parent with children (wool.css:191
@@ -130,8 +136,10 @@
      the page) — the tile is a plain rounded rectangle again, so the cheap
      shadow is also the correct one. */
   filter: none;
-  box-shadow: 0 18px 34px -18px rgba(10, 4, 18, 0.75);
-  transition: transform 0.5s var(--ease), box-shadow 0.45s var(--ease);
+  /* the shadow belongs to the PICTURE, not to the tile — a tile-shaped shadow
+     would now be drawn around the label's strip of bare ground too. */
+  box-shadow: none;
+  transition: transform 0.5s var(--ease);
 }
 /* a sticker is a small object, so it gets the small-object affordance
    wool.css:69 uses — a slight rotate. On the old 290px textured box that
@@ -140,8 +148,8 @@
   /* the rotate goes with the sticker. A framed cut-out can sit askew on the
      page; a full-bleed image tile tilting reads as a broken transform. */
   transform: translateY(-6px);
-  box-shadow: 0 30px 46px -20px rgba(10, 4, 18, 0.82);
 }
+.counter .cnt-tile:hover .cnt-band { box-shadow: 0 30px 46px -20px rgba(10, 4, 18, 0.82); }
 
 /* The peel. A wedge of the sticker's own white back, hinged at the
    bottom-right corner and rotating up off the face. */
@@ -174,41 +182,39 @@
    word, which cropped the knitted set — the spool characters were losing
    their feet — for no gain the pill below does not deliver better. The
    tile's own aspect-ratio reserves the box, so nothing reflows on decode. */
+/* The picture box. It is a real block in the flow now, not an absolute fill of
+   the tile: the label lives BELOW it (see `.cnt-strip`), so the tile's height is
+   this box plus one line of type, and the ratio/radius/clip/shadow that used to
+   sit on `.cnt-tile` all live here instead. */
 .counter .cnt-band {
   display: block;
-  position: absolute;
-  /* full bleed, and the radius is INHERITED rather than restated: the tile's
-     own radius is a clamp now, and two clamps kept in sync by hand is how a
-     1px pink hairline appears in a corner at one viewport width. */
-  inset: 0;
-  border-radius: inherit;
+  position: relative;
+  width: 100%;
+  /* 21/9 at EVERY width, matching the `-wide` still exactly (1100x471) — it
+     used to be 2/3 here and 21/9 only under 719px, off two separately rendered
+     shots. One ratio, one file, nothing to keep in sync, and the box is
+     reserved before decode so nothing reflows. */
+  aspect-ratio: 21 / 9;
+  border-radius: clamp(18px, 1.5vw, 26px);
+  /* `clip`, not `hidden` — `hidden` would make this a scroll container. It is
+     what lets the still scale on hover inside a rounded corner. */
+  overflow: clip;
+  box-shadow: 0 18px 34px -18px rgba(10, 4, 18, 0.75);
+  transition: box-shadow 0.45s var(--ease);
 }
-/* Reads the pill off the photo on a light still without tinting the set:
-   a bottom-anchored scrim only, no blur, no filter on a parent with
-   children. Sits under the pill (z 2) and over the photo (z 1). */
-.counter .cnt-tile::after {
-  content: '';
-  position: absolute;
-  /* to the edges now — there is no white cut line left to protect. Taller and
-     eased in two stops rather than one: the label got bigger, and a scrim that
-     ramps linearly leaves a visible horizon across the middle of the still. */
-  inset: auto 0 0 0;
-  /* 72%, and at EVERY width now. 52% was sized for the 2:3 portrait tile;
-     the tile is a 21:9 banner everywhere since the reorder, and a banner is
-     a third of the portrait height, so the scrim has to be a much bigger
-     fraction of it to seat the same label. This used to be overridden to 72%
-     only under 719px, back when that was the one breakpoint where the tile
-     went wide — the override is gone, because so is the distinction. */
-  height: 72%;
-  border-radius: inherit;
-  z-index: 2;
-  pointer-events: none;
-  background: linear-gradient(to top,
-    rgba(251, 226, 238, 0.78) 0%,
-    rgba(251, 226, 238, 0.52) 26%,
-    rgba(251, 226, 238, 0.22) 56%,
-    rgba(251, 226, 238, 0) 100%);
-}
+/* NO SCRIM — 11 Aug 2026, removed at the client's request ("the artwork must
+   render at full contrast and saturation with nothing tinting it").
+
+   `.counter .cnt-tile::after` used to lay a bottom-anchored
+   rgba(251,226,238,…) gradient over the lower 72% of every still so the label
+   could sit on the photograph and still be read. The gradient is DELETED, not
+   dialled down, and so is the reason for it: the label is no longer on the
+   photograph at all. It sits on the section's own ground under the picture,
+   where --ink on --bg is ~10:1 with nothing between the reader and the art.
+   Nothing else tints these tiles — the `.blk` dye and its `::before` tint rect
+   are both at z 0, UNDER the photo at z 1, and are only ever visible as the
+   paint-in before the webp decodes; `.cnt-photo` carries no filter, no opacity
+   and no blend mode. */
 /* Fixed size, anchored top-left. The instant the medallion out-weighs the word
    the tile reads as clip-art. `--wool-icon` is a custom property, so it beats
    wool.css's `width: var(--wool-icon, 42px)` regardless of source order. */
@@ -251,33 +257,26 @@
    HEIGHT is fixed while only its width follows the word.
    Same cream felt material as before: contrast structure (dark ink on
    near-white photographed felt, ~11:1) is preserved exactly. */
+/* THE LABEL SITS BELOW THE PICTURE (11 Aug 2026). It used to be absolutely
+   positioned inside the still, bottom-left, readable only because a scrim was
+   washing the lower 72% of the photograph. The scrim is gone at the client's
+   request, so the label came out of the image box with it: it is in the tile's
+   normal flow now, under the band, on the section's own ground. --ink (#33243d)
+   on --bg (#ffe9f2) is ~10:1 — no plate, no gradient, no text-shadow needed,
+   and the artwork above it is completely untouched. */
 .counter .cnt-strip {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
+  position: relative;
   z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  /* On a sticker the label is PRINTED ON the artwork, not a chip laid
-     over it. So: no plate, no fill, no shadow of its own — just type on
-     the scrim that ::after already lays down. Anything with its own
-     background here immediately reads as UI sitting on top of a photo,
-     which is the exact thing the die-cut is buying us out of. */
-  /* the peel is gone, so the label gets the full width of the tile back —
-     it only ever stopped at 74px to clear a curl that no longer exists. */
-  left: 20px;
-  right: 20px;
-  bottom: 18px;
+  display: block;
+  /* 2px of optical inset so the type's stem lines up with the picture's edge
+     rather than with its rounded corner. */
+  margin: 12px 2px 0;
   min-height: 0;
   padding: 0;
   border-radius: 0;
   background: none;
   box-shadow: none;
   color: var(--ink);
-  display: block;
   transition: transform 0.5s var(--ease);
 }
 .counter .cnt-tile:hover .cnt-strip { transform: translateY(-3px); }
@@ -311,7 +310,9 @@
   letter-spacing: -0.022em;
   text-wrap: balance;
   padding-top: 13px;
-  text-shadow: 0 1px 6px rgba(255, 233, 242, 0.55);
+  /* no text-shadow: it existed to hold the glyph edge against a photograph,
+     and the label is on flat ground now. A halo here would only smear the type. */
+  color: var(--ink);
 }
 /* the rule. On the STRIP, not the label: `-webkit-box` clips its own
    pseudo-elements, which is why a ::before on the label itself never appears. */
@@ -324,7 +325,7 @@
   height: 3px;
   border-radius: 3px;
   background: var(--magenta, #d21f7d);
-  box-shadow: 0 1px 6px rgba(255, 233, 242, 0.5);
+  /* the glow went with the scrim — on flat ground it was a smudge */
   transition: width 0.45s var(--ease);
 }
 .counter .cnt-tile:hover .cnt-strip::before { width: 44px; }
@@ -399,11 +400,13 @@
    screenful. Anything squarer here and the eight tiles become a scroll. */
 @media (max-width: 719px) {
   .counter .cnt-grid { grid-template-columns: 1fr; }
-  /* Neither aspect-ratio nor the scrim height is restated here any more:
-     21/9 and 72% are the BASE values now, at every width. All that is left
-     for a phone is the radius and the furniture sitting on the banner. */
-  .counter .cnt-tile { border-radius: 20px; }
-  .counter .cnt-strip { left: 16px; right: 68px; bottom: 14px; }
+  /* aspect-ratio is not restated here any more — 21/9 is the BASE value now,
+     at every width — and there is no scrim height left to restate. All that is
+     left for a phone is the picture's radius and the furniture on the banner.
+     The strip needs no override either: it is under the picture, so it never
+     had to dodge the arrow in the top-right corner. */
+  .counter .cnt-band { border-radius: 20px; }
+  .counter .cnt-strip { margin-top: 10px; }
   .counter .cnt-arrow { width: 44px; height: 44px; right: 15px; top: 15px; }
 }
 @media (max-width: 400px) {
@@ -831,6 +834,9 @@
    ═══════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   .counter .cnt-tile,
+  .counter .cnt-band,
+  .counter .cnt-photo,
+  .counter .cnt-strip::before,
   .counter .cnt-medal,
   .counter .cnt-arrow,
   .counter .cnt-foot-link { transition: none; }

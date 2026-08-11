@@ -1,0 +1,326 @@
+/* contact.css — the closing contact band, rebuilt as one machine.
+
+   WHAT WAS WRONG (second pass, Aug 2026). The previous pass had already
+   collapsed three arguing objects into one "console", but the console was
+   pale-on-pale: `rgba(248,216,232,.85)` over the site's #ffe9f2 ground is
+   1.07:1 of separation, so the single surface a client actually uses had no
+   edges, no depth and no hierarchy — the eye had nothing to land on. Above it
+   sat a two-line headline whose second line was set in a 1.5px magenta
+   OUTLINE (`.contact-accent`, styles.css:2585, kept from the dark-ground era)
+   which on a light ground reads as a word that failed to render. And the
+   wizard — the only thing in the band that does any work — was third in the
+   reading order, under a header bar showing a machine avatar and a Sound-off
+   toggle.
+
+   WHAT IT IS NOW. A dark felt CHASSIS holding two halves: the talking half
+   (the ask, the machine's face, its transcript, the direct routes) and the
+   working half — the wizard, on a lit paper SCREEN. The brightest, largest,
+   highest-contrast object in the band is now the form, which is exactly the
+   ranking the client asked for.
+
+   THE WIZARD COMPONENT IS NOT TOUCHED. `WizardModal` mounts the same
+   `ContactWizard` through `display: contents`, so every rule below that
+   reaches inside it is scoped under `.contact` and cannot follow it into the
+   modal. The screen is painted --bg (#ffe9f2), i.e. the exact ground the
+   wizard's own light-theme ink was solved against, so nothing inside it
+   changes contrast either.
+
+   CONTRAST, measured against real painted grounds. The chassis is
+   felt-dark.webp, which rasterises to rgb(29,20,44):
+     --bg    #ffe9f2 on felt    15.30:1   headline, machine's live line
+     --bg-3  #f9d2e3 on felt    12.92:1   lede, transcript, direct row, kicker
+     --hot   #f76ab3 on felt     6.45:1   the accent word "boundaries?"
+   and the screen is --bg #ffe9f2, on which the wizard's existing ink is
+     --ink       #33243d        12.45:1
+     --ink-dim   #4a3652         9.37:1
+     --ink-faint #6b5273         5.91:1
+   — all unchanged from what the wizard already shipped against.
+
+   CASCADE: component stylesheets load BEFORE styles.css in this bundle, so
+   anything that restates a name styles.css owns is written at 0,2,x
+   (`.contact .x`) and wins on specificity rather than order.
+
+   MOTION: no @keyframes. Entry is one-shot (reveal / SplitWords); everything
+   else is a hover/focus transition on the house --ease, frozen at the bottom
+   under prefers-reduced-motion. */
+
+.contact {
+  /* was clamp(90px, 14vh, 180px) — the fold belongs to the wizard */
+  padding: clamp(58px, 8vh, 104px) var(--pad);
+  /* 0,1,0 beats styles.css's `.contact { text-align: center }` on order alone,
+     so state it at 0,2,0 on the shell instead — see .contact-shell below. */
+}
+
+/* ── the chassis ──────────────────────────────────────────────────────── */
+.contact .contact-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(22px, 2.6vw, 44px);
+  /* stretch, not start: the screen is a panel in a chassis and has to end
+     where the talking column ends, or the machine looks half-built */
+  align-items: stretch;
+  max-width: 1320px;
+  margin-inline: auto;
+  padding: clamp(26px, 3vw, 46px);
+  text-align: start;
+  border-radius: calc(var(--radius) * 1.6);
+  border: 1px solid rgba(242, 240, 247, 0.14);
+  /* the site's own material — the same felt the careers board below is cut
+     from, so the page ends on one surface rather than two inventions */
+  background-color: var(--bg-2);
+  background-image: url('/img/wool/tex/felt-dark.webp');
+  background-size: 300px;
+  box-shadow: inset 0 1px 0 rgba(242, 240, 247, 0.08),
+              0 40px 90px -50px rgba(30, 4, 24, 0.85);
+}
+/* the four-yarn stripe as the machine's top edge — one static gradient */
+.contact .contact-rail-yarn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px
+  );
+}
+
+/* ── the talking half ─────────────────────────────────────────────────── */
+.contact .contact-aside {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: clamp(4px, 0.8vw, 12px);
+}
+.contact .contact-aside .kicker {
+  margin-bottom: 16px;
+  color: var(--bg-3);                       /* 12.92:1 on the felt */
+}
+.contact .contact-aside .kicker::after { background: rgba(249, 210, 227, 0.3); }
+
+/* Was clamp(2.3rem, 5.4vw, 4.4rem) centred across the whole band. It is now
+   the aside's own headline, so it sets against a ~40% column and reads as a
+   question asked by the machine rather than a poster over it. */
+.contact .contact-h2 {
+  font-size: clamp(2rem, 3.4vw, 3.1rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--bg);                          /* 15.30:1 on the felt */
+  text-shadow: 0 10px 30px rgba(10, 2, 16, 0.55);
+}
+/* THE OUTLINE IS GONE. `-webkit-text-stroke: 1.5px var(--magenta)` on a
+   transparent fill was drawn for the old dark-violet ground; on anything else
+   it reads as an unfinished word, and it is invisible to every contrast
+   sweep because the computed colour is `transparent`. Solid fill, in magenta
+   lifted 38% toward --bg so it clears 6:1 on the felt (raw --magenta is
+   4.48:1 — legal for display type, but this is the word the whole section
+   turns on and it should not be the dimmest thing in the sentence). */
+.contact .contact-accent {
+  display: inline;
+  color: #f76ab3;                            /* 6.45:1 on the felt */
+  -webkit-text-stroke: 0;
+}
+.contact .contact-sub {
+  margin: 18px 0 0;
+  max-width: 44ch;
+  color: var(--bg-3);                        /* 12.92:1 on the felt */
+  font-size: clamp(0.98rem, 1.2vw, 1.1rem);
+  line-height: 1.55;
+}
+
+/* the machine: face + transcript, one row, and clearly a component of the
+   chassis rather than a second panel */
+.contact .contact-mach {
+  display: grid;
+  grid-template-columns: clamp(66px, 6vw, 84px) minmax(0, 1fr);
+  gap: clamp(12px, 1.4vw, 18px);
+  align-items: start;
+  margin-top: clamp(22px, 2.6vw, 32px);
+  padding-top: clamp(20px, 2.4vw, 28px);
+  border-top: 1px solid rgba(242, 240, 247, 0.14);
+}
+.contact .contact-face { min-width: 0; }
+/* the head keeps its own 4/5 crop and its state glow — it is a chip now.
+   THE VIGNETTE HAD TO FLIP WITH THE GROUND. machine.css washes the head out
+   to rgba(255,233,242,.75/.9) at its edges, which is exactly right on the
+   pale page and turns the face into a pale blank tile on felt — the machine
+   stopped being visible at all. Same gradient, same shape, pitched to the
+   chassis's own rgb(29,20,44) so the face reads as a lit screen in it. */
+.contact .contact-face .loomhead {
+  border-radius: 12px;
+  border-color: rgba(242, 240, 247, 0.18);
+  background: #1d142c;
+}
+.contact .contact-face .loomhead-vignette {
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 46%, rgba(29, 20, 44, 0.72) 100%),
+    linear-gradient(to top, rgba(29, 20, 44, 0.8), transparent 40%);
+}
+.contact .contact-say { min-width: 0; }
+/* the transcript loses its own card chrome: it is inside a machine already */
+.contact .contact-say .machine {
+  margin-top: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.contact .contact-say .machine-bar {
+  padding-bottom: 10px;
+  border-bottom-color: rgba(242, 240, 247, 0.14);
+}
+/* THE LIGHT-THEME INK ON A DARK PLATE, again. machine.css sets --ink-faint /
+   --ink-dim / --ink on all of these; on felt those measure 2.59 / 1.63 /
+   1.23:1. Same fix the hiring head took: the ground stays, the type moves. */
+.contact .contact-say .machine-label { color: var(--bg-3); }      /* 12.92:1 */
+.contact .contact-say .machine-line { color: var(--bg-3); }       /* 12.92:1 */
+.contact .contact-say .machine-line:last-child { color: var(--bg); } /* 15.30:1 */
+.contact .contact-say .machine-note { color: var(--bg-3); opacity: 0.85; }
+.contact .contact-say .machine-btn {
+  color: var(--bg-3);                                              /* 12.92:1 */
+  border-color: rgba(242, 240, 247, 0.22);
+}
+.contact .contact-say .machine-btn:hover,
+.contact .contact-say .machine-btn.is-on {
+  color: var(--bg);
+  border-color: var(--magenta);
+  background: rgba(242, 28, 140, 0.22);
+}
+.contact .contact-say .machine-dot { background: var(--bg-3); }
+.contact .contact-say .machine-btn.is-on .machine-dot { background: var(--magenta); }
+/* two short lines of the conversation, not a scrolling column */
+.contact .contact-say .machine-rail { max-height: 96px; padding-top: 10px; }
+
+/* the direct row — the escape hatch for anyone who will not fill in a form.
+   The label breaks to its own line so the three routes sit on one row under
+   it; left as an inline lead-in it wrapped mid-sentence and stranded the "·"
+   separator at the end of a line. */
+.contact .contact-direct {
+  justify-content: flex-start;
+  margin-top: auto;
+  padding-top: clamp(20px, 2.4vw, 30px);
+  color: var(--bg-3);                        /* 12.92:1 on the felt */
+  row-gap: 10px;
+}
+.contact .contact-direct > span:first-child {
+  flex: 1 0 100%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.contact .contact-direct a { color: var(--bg-3); }                 /* 12.92:1 */
+.contact .contact-direct a:hover { color: #f76ab3; }               /* 6.45:1 */
+.contact .contact-direct i { color: rgba(249, 210, 227, 0.5); font-style: normal; }
+
+/* ── the screen ───────────────────────────────────────────────────────── */
+.contact .contact-screen {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: calc(var(--radius) * 1.25);
+  border: 1px solid rgba(242, 28, 140, 0.22);
+  /* THE GROUND THE WIZARD WAS SOLVED AGAINST. Flat --bg, not a gradient: the
+     wizard's inputs, chips and intent cards all sit on rgba(255,233,242,x)
+     fills and every one of their contrast numbers was measured on this
+     colour. Painting it flat is what keeps them true. */
+  background: var(--bg);
+  box-shadow: 0 30px 70px -34px rgba(10, 2, 16, 0.9),
+              0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+              0 0 90px -40px rgba(242, 28, 140, 0.5);
+}
+/* .wizard carries standalone-modal sizing (46px of top margin, an 880px cap,
+   its own border and gradient). In the screen it is the whole body. */
+.contact .contact-screen .wizard {
+  margin: 0;
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+/* the step rail is the screen's own status bar */
+.contact .contact-screen .wizard-steps {
+  background: rgba(249, 210, 227, 0.55);
+  padding-block: 12px 14px;
+}
+.contact .contact-screen .wizard-stage {
+  padding: clamp(22px, 2.6vw, 34px);
+  min-height: 360px;
+}
+/* the intent cards get a real edge on a real ground instead of a 0.5-alpha
+   wash on a wash — same colours, more of them */
+.contact .contact-screen .wintent {
+  background: rgba(249, 210, 227, 0.5);
+  border-color: rgba(96, 40, 76, 0.24);
+}
+.contact .contact-screen .wintent:hover { background: rgba(242, 28, 140, 0.09); }
+/* ── two inherited contrast failures inside the wizard ────────────────────
+   Both are in styles.css, which this pass does not own, so they are corrected
+   here at 0,3,x for the inline instance and reported upstream for the modal:
+
+     .wstep.is-now i  — the current step's numeral: --ink #33243d on
+       --magenta #f21c8c = 1.80:1. Unreadable.
+     .wchip.is-on     — a selected need chip: same pair, same 1.80:1.
+
+   Both keep the magenta identity and move to --magenta-deep #b3126a with
+   --bg #ffe9f2 on it = 5.66:1. Existing tokens, no new colour. */
+.contact .contact-screen .wstep.is-now i {
+  background: var(--magenta-deep);
+  border-color: var(--magenta-deep);
+  color: var(--bg);                          /* 5.66:1 */
+}
+.contact .contact-screen .wstep.is-done i {
+  border-color: var(--magenta-deep);
+  color: var(--magenta-deep);                /* 5.66:1 on the screen's --bg */
+}
+.contact .contact-screen .wchip.is-on {
+  background: var(--magenta-deep);
+  border-color: var(--magenta-deep);
+  color: var(--bg);                          /* 5.66:1 */
+}
+
+.contact .contact-screen .wform input,
+.contact .contact-screen .wform select,
+.contact .contact-screen .wform textarea {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(96, 40, 76, 0.26);
+}
+
+/* ── responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 1040px) {
+  /* the chassis stacks: machine on top, screen under it. `contact-direct`
+     stops being the column's floor, so its auto margin has to go or it pushes
+     the row away from the transcript. */
+  .contact .contact-shell { grid-template-columns: minmax(0, 1fr); }
+  .contact .contact-direct { margin-top: clamp(18px, 3vw, 26px); }
+  .contact .contact-h2 { font-size: clamp(2.1rem, 5.6vw, 3.2rem); }
+  .contact .contact-sub { max-width: 56ch; }
+}
+@media (max-width: 620px) {
+  .contact { padding-inline: clamp(12px, 4vw, 20px); }
+  .contact .contact-shell { padding: clamp(18px, 4.5vw, 26px); }
+  .contact .contact-mach {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .contact .contact-screen .wizard-stage { padding: clamp(16px, 4.5vw, 22px); min-height: 0; }
+  /* the three routes no longer fit on one line, so the "·" between the phone
+     and the address ends up alone at the end of a row */
+  .contact .contact-direct i { display: none; }
+  /* .wintents / .wform already drop to one column under styles.css's own
+     ≤767 block — nothing to restate here. */
+}
+
+/* ── reduced motion ───────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .contact .contact-say .machine-btn,
+  .contact .contact-direct a { transition: none; }
+}

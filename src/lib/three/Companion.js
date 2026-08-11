@@ -598,9 +598,16 @@ export class Companion {
   }
 
   _updateHud() {
+    // DEV ONLY — 11 Aug 2026. This used to be `dev || isExplicitProfileSelection()`,
+    // and that second clause was a production leak: `isExplicitProfileSelection()`
+    // reads a stored profile id, so any visitor to the LIVE site who ever pressed
+    // 1/2/3 (deliberately or by resting a hand on the number row) would be shown
+    // `flight: b — Flutter   (1/2/3 to switch)` floating over the page — developer
+    // text, on a client-facing marketing site, permanently, with no way to dismiss
+    // it. The hotkeys themselves still work in production for anyone who finds
+    // them; they just no longer paint a debug overlay to prove it.
     const dev = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV
-    const show = dev || isExplicitProfileSelection()
-    if (!show) { if (this._hud) this._hud.style.display = 'none'; return }
+    if (!dev) { if (this._hud) this._hud.style.display = 'none'; return }
     if (!this.profileId) return
     const el = this._ensureHud()
     el.textContent = formatHudText(this.profileId, this.profileLabel)

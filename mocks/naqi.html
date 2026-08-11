@@ -1,0 +1,275 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    width: 540px;
+    height: 1174px;
+    background: #f6f7fb;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Helvetica, Arial, sans-serif;
+    color: #2b2a4a;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 62px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 30px; z-index: 50;
+  }
+  .statusbar .time { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; padding-top: 4px; }
+  .island {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 37px; background: #000; border-radius: 20px; z-index: 51;
+  }
+  .statusbar .right { display: flex; align-items: center; gap: 6px; padding-top: 4px; }
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px; background: rgba(43,42,74,0.55); z-index: 52;
+  }
+
+  /* ---------- page flow ---------- */
+  .page { position: relative; padding-top: 66px; }
+
+  /* nav row */
+  .navbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 16px 0;
+  }
+  .nav-back { display: flex; align-items: center; gap: 3px; font-size: 15.5px; font-weight: 500; color: #6e6e93; }
+  .nav-title { font-size: 17px; font-weight: 600; letter-spacing: -0.1px; }
+  .nav-more { width: 30px; height: 30px; border-radius: 15px; background: rgba(43,42,74,0.06); display: flex; align-items: center; justify-content: center; }
+
+  /* progress */
+  .progress-wrap { padding: 14px 16px 0; }
+  .progress-labels { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+  .progress-labels .l1 { font-size: 13px; font-weight: 600; color: #6e6e93; }
+  .progress-labels .l2 { font-size: 13px; font-weight: 600; color: #b0b0cc; }
+  .progress-track { height: 4px; border-radius: 2px; background: rgba(43,42,74,0.09); overflow: hidden; }
+  .progress-fill { width: 11%; height: 100%; background: #2b2a4a; border-radius: 2px; }
+
+  /* stat chips */
+  .stats-row { display: flex; gap: 8px; padding: 14px 16px 0; }
+  .stat-chip { flex: 1; background: #ffffff; border-radius: 16px; padding: 10px 12px; box-shadow: 0 1px 0 rgba(43,42,74,0.04); border: 1px solid rgba(43,42,74,0.06); }
+  .stat-chip .n { font-size: 19px; font-weight: 800; letter-spacing: -0.3px; }
+  .stat-chip .lab { font-size: 11px; font-weight: 600; color: #9a9ac0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .stat-chip.reviewed .n { color: #2b2a4a; }
+  .stat-chip.kept .n { color: #23a37a; }
+  .stat-chip.queued .n { color: #e0483f; }
+
+  /* ---------- card stack ---------- */
+  .stack { position: relative; height: 618px; margin-top: 20px; }
+  .card {
+    position: absolute; left: 50%; top: 0;
+    width: 424px; height: 588px;
+    border-radius: 30px;
+    background: #ffffff;
+    overflow: hidden;
+  }
+  .card.peek2 {
+    transform: translateX(calc(-50% + 14px)) translateY(14px) rotate(3.5deg);
+    background: #eef0f7;
+    box-shadow: 0 10px 22px rgba(43,42,74,0.10);
+  }
+  .card.peek1 {
+    transform: translateX(calc(-50% - 9px)) translateY(6px) rotate(-2deg);
+    background: #f5f6fb;
+    box-shadow: 0 12px 26px rgba(43,42,74,0.10);
+  }
+  .card.front {
+    transform: translateX(-50%) translateY(0) rotate(-1deg);
+    box-shadow: 0 26px 50px rgba(43,42,74,0.20);
+  }
+
+  /* fake "screenshot of a screenshot" content — a Messages thread */
+  .shot-status {
+    padding: 14px 20px 6px; font-size: 11.5px; font-weight: 600; color: rgba(43,42,74,0.5);
+  }
+
+  .shot-app-header {
+    display: flex; align-items: center; gap: 9px;
+    padding: 2px 20px 12px; border-bottom: 1px solid rgba(43,42,74,0.08);
+  }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #b9bce0, #8d8fc9);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 700;
+  }
+  .shot-app-header .name-block { display: flex; flex-direction: column; gap: 1px; }
+  .shot-app-header .name { font-size: 14px; font-weight: 700; }
+  .shot-app-header .meta { font-size: 11px; font-weight: 500; color: rgba(43,42,74,0.42); }
+
+  .thread { padding: 12px 20px 0; display: flex; flex-direction: column; gap: 8px; }
+  .bubble { max-width: 76%; padding: 8px 12px; border-radius: 17px; font-size: 13px; font-weight: 500; line-height: 1.3; }
+  .bubble.them { align-self: flex-start; background: rgba(43,42,74,0.07); color: rgba(43,42,74,0.82); border-bottom-left-radius: 5px; }
+  .bubble.me { align-self: flex-end; background: #2fbf8f; color: #ffffff; border-bottom-right-radius: 5px; }
+
+  .shot-map { margin-top: 2px; border-radius: 16px; background: #eef0f8; overflow: hidden; max-width: 76%; align-self: flex-start; }
+  .shot-map .map-art { height: 96px; position: relative; background: radial-gradient(60% 60% at 30% 30%, rgba(47,191,143,0.18), transparent 60%), linear-gradient(135deg, #e7e9f5, #dcdff2); }
+  .shot-map .map-art::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(43,42,74,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(43,42,74,0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .shot-map .pin { position: absolute; left: 44%; top: 38%; width: 13px; height: 13px; border-radius: 50% 50% 50% 0; background: #ff5d5d; transform: rotate(-45deg); }
+  .shot-map .cap { padding: 8px 12px; font-size: 11.5px; font-weight: 600; color: rgba(43,42,74,0.75); }
+  .shot-map .cap .sub { display: block; font-size: 10px; font-weight: 500; color: rgba(43,42,74,0.4); margin-top: 1px; }
+
+  .photo-bubble {
+    width: 128px; height: 96px; border-radius: 15px; align-self: flex-start;
+    background: linear-gradient(180deg, #d7e6ec 0%, #cfe0ea 44%, #7f8f6a 46%, #5e6f4a 100%);
+    position: relative; overflow: hidden;
+  }
+
+  .compose {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 56px;
+    background: rgba(255,255,255,0.96); border-top: 1px solid rgba(43,42,74,0.08);
+    display: flex; align-items: center; gap: 9px; padding: 0 14px; z-index: 4;
+  }
+  .compose .pill { flex: 1; height: 32px; border-radius: 16px; background: rgba(43,42,74,0.06); display: flex; align-items: center; padding: 0 13px; font-size: 12.5px; font-weight: 500; color: rgba(43,42,74,0.38); }
+  .compose .send { width: 28px; height: 28px; border-radius: 50%; background: #2fbf8f; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  .stamp {
+    position: absolute; top: 20px; right: 24px;
+    padding: 4px 12px; border: 2.5px solid #ff5d5d; border-radius: 8px;
+    color: #ff5d5d; font-size: 14px; font-weight: 800; letter-spacing: 1.8px;
+    transform: rotate(-11deg); background: rgba(255,93,93,0.06); z-index: 5;
+  }
+
+  /* ---------- action row ---------- */
+  .actions { display: flex; align-items: center; justify-content: center; gap: 30px; margin-top: 22px; }
+  .round-btn { width: 62px; height: 62px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .round-btn.keep { background: #2fbf8f; box-shadow: 0 8px 18px rgba(47,191,143,0.32); }
+  .round-btn.delete { background: #ff5d5d; box-shadow: 0 8px 18px rgba(255,93,93,0.32); }
+  .round-btn.undo { width: 44px; height: 44px; background: #ffffff; border: 1px solid rgba(43,42,74,0.12); box-shadow: 0 3px 8px rgba(43,42,74,0.08); }
+
+  .hint { text-align: center; font-size: 12.5px; font-weight: 600; color: #9a9ac0; letter-spacing: 0.1px; margin-top: 12px; }
+  .hint .k { color: #23a37a; }
+  .hint .d { color: #e0483f; }
+
+  /* ---------- up next filmstrip ---------- */
+  .filmstrip-wrap { margin-top: 22px; padding: 0 16px; }
+  .filmstrip-head { font-size: 12px; font-weight: 700; color: #9a9ac0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .filmstrip { display: flex; gap: 9px; }
+  .film-item { flex-shrink: 0; width: 76px; }
+  .film-thumb { width: 76px; height: 76px; border-radius: 14px; position: relative; overflow: hidden; }
+  .film-cap { margin-top: 5px; font-size: 10px; font-weight: 600; color: #b0b0cc; text-align: center; }
+  .film-thumb.t1 { background: linear-gradient(180deg,#f2f3fa,#e7e9f5); }
+  .film-thumb.t1 .b { position: absolute; left: 10px; right: 10px; height: 8px; border-radius: 4px; background: rgba(43,42,74,0.16); }
+  .film-thumb.t1 .b1 { top: 14px; right: 30px; } .film-thumb.t1 .b2 { top: 30px; background: rgba(47,191,143,0.4); right: 44px; } .film-thumb.t1 .b3 { top: 46px; right: 20px; }
+  .film-thumb.t2 { background: linear-gradient(180deg,#d9e6dd,#c3d9c9); }
+  .film-thumb.t3 { background: linear-gradient(135deg,#e4e7f5,#d5d9ee); }
+  .film-thumb.t3::before { content:""; position:absolute; inset:0; background-image: linear-gradient(rgba(43,42,74,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(43,42,74,0.08) 1px, transparent 1px); background-size: 15px 15px; }
+  .film-thumb.t4 { background: linear-gradient(180deg,#e8d9cf 0%,#e8d9cf 50%,#9c8462 50%,#8a7250 100%); }
+  .film-thumb.t5 { background: #eceef7; }
+  .film-thumb.t5 .l { position: absolute; left: 10px; right: 10px; height: 6px; border-radius: 3px; background: rgba(43,42,74,0.14); }
+  .film-thumb.t5 .l1 { top: 14px; right: 26px; } .film-thumb.t5 .l2 { top: 28px; } .film-thumb.t5 .l3 { top: 42px; right: 34px; }
+  .film-thumb.t6 { background: linear-gradient(180deg,#f2f3fa,#e7e9f5); }
+</style>
+</head>
+<body>
+
+  <div class="page">
+
+    <div class="navbar">
+      <div class="nav-back">
+        <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L1.5 7.5L8 14" stroke="#6e6e93" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Photos
+      </div>
+      <div class="nav-title">Naqi</div>
+      <div class="nav-more">
+        <svg width="15" height="4" viewBox="0 0 15 4" fill="none"><circle cx="2" cy="2" r="1.7" fill="#2b2a4a"/><circle cx="7.5" cy="2" r="1.7" fill="#2b2a4a"/><circle cx="13" cy="2" r="1.7" fill="#2b2a4a"/></svg>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-labels">
+        <div class="l1">142 of 1,284 reviewed</div>
+        <div class="l2">11%</div>
+      </div>
+      <div class="progress-track"><div class="progress-fill"></div></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-chip reviewed"><div class="n">142</div><div class="lab">Reviewed</div></div>
+      <div class="stat-chip kept"><div class="n">96</div><div class="lab">Kept</div></div>
+      <div class="stat-chip queued"><div class="n">46</div><div class="lab">Queued</div></div>
+    </div>
+
+    <div class="stack">
+      <div class="card peek2"></div>
+      <div class="card peek1"></div>
+      <div class="card front">
+        <div class="shot-status">18:52</div>
+        <div class="shot-app-header">
+          <div class="avatar">SC</div>
+          <div class="name-block">
+            <div class="name">Sara Chen</div>
+            <div class="meta">Yesterday &middot; 18:47</div>
+          </div>
+        </div>
+        <div class="thread">
+          <div class="bubble them">hey are we still on for the 2pm at Meridian?</div>
+          <div class="bubble me">yes! grabbing the corner table</div>
+          <div class="shot-map">
+            <div class="map-art"><div class="pin"></div></div>
+            <div class="cap">Meridian Cowork<span class="sub">2.1 mi &middot; open until 9 PM</span></div>
+          </div>
+          <div class="bubble me">on my way, 6 mins out</div>
+          <div class="bubble them">no rush, ordering you a flat white</div>
+          <div class="photo-bubble"></div>
+          <div class="bubble them">that view though, right?</div>
+        </div>
+        <div class="compose">
+          <div class="pill">Message</div>
+          <div class="send"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M12 5L6 11M12 5L18 11" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+        <div class="stamp">DELETE</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="round-btn keep">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="round-btn undo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 8H4V4" stroke="#2b2a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 15A8 8 0 1 0 6 6.5L4 8" stroke="#2b2a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="round-btn delete">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <div class="hint"><span class="k">&larr; keep</span> &middot; <span class="d">delete &rarr;</span></div>
+
+    <div class="filmstrip-wrap">
+      <div class="filmstrip-head">Up next &middot; 1,142 remaining</div>
+      <div class="filmstrip">
+        <div class="film-item"><div class="film-thumb t1"><div class="b b1"></div><div class="b b2"></div><div class="b b3"></div></div><div class="film-cap">IMG_4531</div></div>
+        <div class="film-item"><div class="film-thumb t2"></div><div class="film-cap">IMG_4532</div></div>
+        <div class="film-item"><div class="film-thumb t3"></div><div class="film-cap">IMG_4533</div></div>
+        <div class="film-item"><div class="film-thumb t4"></div><div class="film-cap">IMG_4534</div></div>
+        <div class="film-item"><div class="film-thumb t5"><div class="l l1"></div><div class="l l2"></div><div class="l l3"></div></div><div class="film-cap">IMG_4535</div></div>
+        <div class="film-item"><div class="film-thumb t6"><div class="b b1"></div><div class="b b2"></div><div class="b b3"></div></div><div class="film-cap">IMG_4536</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="statusbar">
+    <div class="time">14:07</div>
+    <div class="right">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 9L1 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/><path d="M5 7L5 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/><path d="M9 5L9 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/><path d="M13 3L13 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 5C4.5 1.5 11.5 1.5 15 5" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8C6 6 10 6 12 8" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="10.5" r="1" fill="#2b2a4a"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="#2b2a4a" stroke-opacity="0.5" stroke-width="1"/><rect x="2.5" y="2.5" width="17" height="7" rx="1.3" fill="#2b2a4a"/><rect x="22" y="4" width="1.6" height="4" rx="0.8" fill="#2b2a4a" fill-opacity="0.5"/></svg>
+    </div>
+  </div>
+  <div class="island"></div>
+  <div class="home-indicator"></div>
+
+</body>
+</html>

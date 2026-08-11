@@ -1,0 +1,385 @@
+/* ═══ /faq — the page's own sheet ═════════════════════════════════════════
+   Prefix `fq-`, used nowhere else. components/faq.css still owns the home
+   page's accordion band and is untouched.
+
+   THE ONE STRUCTURAL DECISION: nothing collapses. The home page's band is an
+   accordion because there the answers are an interruption between the price
+   and the form; here they are the page, so every answer is open, set at a
+   reading measure, and the only interaction is a filter that HIDES what does
+   not match rather than scrolling to what does.
+
+   The two-column item (a big index number in a narrow rail, the question and
+   answer in a wide one) collapses to a single column under 720px — the number
+   moves above the question rather than squeezing a 62ch paragraph into 60% of
+   a phone.
+
+   COLOUR: no new values. Each theme sets --accent to one of the four yarns
+   inline; accent-coloured TEXT always resolves --accent-ink, never the raw
+   yarn, which does not clear 4.5:1 on this ground.
+
+   MOTION: entrance only (`use:reveal`), plus hover/focus transitions on the
+   jump chips and the filter field. All cut at the foot of this file for
+   reduced motion.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.fq-hero,
+.fq-body,
+.fq-stuck {
+  position: relative;
+  padding: clamp(56px, 8vh, 104px) var(--pad);
+}
+.fq-hero-in,
+.fq-body,
+.fq-stuck-in {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+.fq-body {
+  max-width: none;
+}
+
+/* ——— 1. HERO ——————————————————————————————————————————————————————— */
+.fq-hero {
+  padding-top: clamp(40px, 6vh, 72px);
+  isolation: isolate;
+  border-bottom: 1px solid var(--line);
+}
+.fq-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 50% at 18% 0%, rgba(123, 47, 190, 0.14), transparent 70%),
+    radial-gradient(52% 44% at 86% 8%, rgba(242, 28, 140, 0.12), transparent 72%),
+    linear-gradient(to bottom, var(--bg-2), var(--bg));
+}
+.fq-h1 {
+  max-width: 18ch;
+  font-size: clamp(2.1rem, 5.4vw, 4rem);
+  line-height: 1.02;
+}
+.fq-hero-lede {
+  margin-top: 20px;
+  color: var(--ink-dim);
+  max-width: 60ch;
+}
+
+.fq-hero-figs {
+  margin-top: clamp(24px, 3vw, 34px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(14px, 2.4vw, 40px);
+  align-items: flex-end;
+}
+.fq-fig {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.fq-fig b {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.2vw, 3rem);
+  font-weight: 620;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+/* DIRECT CHILD — <CountUp> renders a bare <span> inside the <b>, and a loose
+   descendant rule would shrink the figure itself to label size. */
+.fq-fig > span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.fq-fig--open b { color: var(--magenta-deep); }
+
+/* ——— the filter ——————————————————————————————————————————————————— */
+.fq-find {
+  margin-top: clamp(26px, 3.4vw, 40px);
+  max-width: 560px;
+}
+.fq-find-label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+.fq-find-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 4px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  transition: border-color 0.25s var(--ease), background 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.fq-find-row:focus-within {
+  border-color: var(--magenta);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(242, 28, 140, 0.14);
+}
+.fq-find-icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ink-faint);
+  border-radius: 50%;
+  position: relative;
+}
+.fq-find-icon::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 7px;
+  height: 2px;
+  background: var(--ink-faint);
+  border-radius: 2px;
+  transform: rotate(45deg);
+  transform-origin: left center;
+}
+.fq-find-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: none;
+  padding: 13px 0;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.fq-find-input::placeholder { color: var(--ink-faint); opacity: 0.75; }
+.fq-find-input:focus { outline: none; }
+.fq-find-input::-webkit-search-cancel-button { display: none; }
+.fq-find-clear {
+  flex: none;
+  border: 0;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 9px 16px;
+  background: var(--ink);
+  color: var(--bg);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fq-find-count {
+  margin-top: 10px;
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+}
+
+/* ——— the jump list ————————————————————————————————————————————————— */
+.fq-jump {
+  margin-top: clamp(22px, 3vw, 32px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.fq-jump-a {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: border-color 0.25s var(--ease), background 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.fq-jump-a i {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--accent-ink);
+}
+.fq-jump-a:hover,
+.fq-jump-a:focus-visible {
+  border-color: var(--accent, var(--magenta));
+  background: #fff;
+  transform: translateY(-2px);
+}
+
+/* ——— 2. THE ANSWERS ———————————————————————————————————————————————— */
+.fq-group {
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-block: clamp(28px, 4vw, 46px);
+  scroll-margin-top: 114px;
+}
+.fq-group + .fq-group { border-top: 1px solid var(--line); }
+.fq-group[hidden] { display: none; }
+
+/* ON A WIDE SCREEN THE THEME HEADING IS A RAIL, not a banner. A single
+   column of answers set to a 68ch measure leaves ~380px of dead ground on the
+   right of a 1180px page, and widening the measure to fill it would make the
+   answers harder to read, not easier — 68ch is already the ceiling. So the
+   heading moves INTO that space as a sticky rail: it names the theme you are
+   currently inside for as long as you are inside it, and the width is spent
+   on navigation rather than on nothing. */
+@media (min-width: 1024px) {
+  .fq-group {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: clamp(28px, 4vw, 64px);
+    align-items: start;
+  }
+  .fq-group-head {
+    position: sticky;
+    top: 128px;
+  }
+}
+
+.fq-group-head { position: relative; margin-bottom: clamp(20px, 2.6vw, 30px); }
+.fq-group-h {
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--accent-ink);
+}
+.fq-group-blurb {
+  margin-top: 10px;
+  max-width: 56ch;
+  color: var(--ink-faint);
+  font-size: 0.98rem;
+}
+.fq-group-rule {
+  display: block;
+  margin-top: 16px;
+  height: 3px;
+  width: 84px;
+  border-radius: 3px;
+  background: var(--accent, var(--magenta));
+}
+
+.fq-stack {
+  display: grid;
+  gap: clamp(14px, 1.8vw, 22px);
+}
+.fq-item {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: clamp(12px, 2vw, 28px);
+  align-items: start;
+  padding: clamp(20px, 2.6vw, 30px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.52);
+}
+.fq-n {
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-weight: 640;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--accent-ink);
+  opacity: 0.7;
+}
+.fq-text { min-width: 0; }
+.fq-q {
+  font-family: var(--display);
+  font-size: clamp(1.12rem, 1.9vw, 1.42rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  max-width: 34ch;
+}
+.fq-a {
+  margin-top: 12px;
+  max-width: 68ch;
+  color: var(--ink-dim);
+  font-size: clamp(0.97rem, 1.15vw, 1.06rem);
+  line-height: 1.62;
+}
+
+.fq-empty {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-block: clamp(30px, 5vw, 56px);
+  color: var(--ink-dim);
+  font-size: 1.02rem;
+}
+.fq-empty a { color: var(--magenta-deep); }
+
+/* ——— 3. STILL STUCK ———————————————————————————————————————————————— */
+.fq-stuck {
+  border-top: 1px solid var(--line);
+  background: linear-gradient(to bottom, var(--bg), var(--bg-3));
+}
+.fq-stuck-h { font-size: clamp(1.7rem, 3.4vw, 2.6rem); line-height: 1.05; max-width: 20ch; }
+.fq-stuck-lede {
+  margin-top: 16px;
+  max-width: 58ch;
+  color: var(--ink-dim);
+  font-size: clamp(1rem, 1.2vw, 1.1rem);
+  line-height: 1.6;
+}
+.fq-stuck-cta {
+  margin-top: clamp(24px, 3vw, 34px);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.fq-stuck-alt {
+  color: var(--magenta-deep);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+}
+.fq-stuck-direct {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.94rem;
+  color: var(--ink-faint);
+}
+.fq-stuck-direct a { color: var(--ink-dim); }
+.fq-stuck-direct i { font-style: normal; opacity: 0.5; }
+
+/* ——— RESPONSIVE ——————————————————————————————————————————————————— */
+@media (max-width: 720px) {
+  .fq-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .fq-n { font-size: 1.1rem; letter-spacing: 0.1em; opacity: 0.85; }
+  .fq-q { max-width: none; }
+  .fq-find { max-width: none; }
+  .fq-fig b { font-size: clamp(1.7rem, 9vw, 2.3rem); }
+}
+
+/* ——— REDUCED MOTION ——————————————————————————————————————————————— */
+@media (prefers-reduced-motion: reduce) {
+  .fq-find-row,
+  .fq-jump-a {
+    transition: none;
+  }
+  /* A rail that tracks the scroll is motion the reader did not ask for. */
+  @media (min-width: 1024px) {
+    .fq-group-head { position: static; }
+  }
+  .fq-jump-a:hover,
+  .fq-jump-a:focus-visible {
+    transform: none;
+  }
+  .fq-group { scroll-behavior: auto; }
+}

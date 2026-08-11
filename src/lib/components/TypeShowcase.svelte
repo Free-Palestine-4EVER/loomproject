@@ -1,8 +1,9 @@
 <!--
   #typeface — the home page's own-typeface act. Three screens of scroll
-  pinned to one viewport: the word flies together letter by letter, then
-  blooms through the planted cuts while a petal field drifts behind it, then
-  hands over the copy and the CTAs. The pinned sequence itself lives in
+  pinned to one viewport: the word is set large and centred from the first
+  frame, then cycles through the pattern cuts — fill, outline, fill, outline —
+  while a field of loose glyphs drifts behind it, then hands over the copy and
+  the CTAs. The pinned sequence itself lives in
   TypeShowcaseAct.svelte (the equivalent of TypeShowcase.jsx's internal `Act`
   component) — this file owns only the CHOICE of layout/breakpoint and the
   dev HUD, same split PORTING.md's table already uses for lib/motion.jsx ->

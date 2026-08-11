@@ -1,0 +1,414 @@
+/* ————————————————————————————————————————————————————————————————
+   apps-index.css — the /apps catalogue page. Owned by AppsIndex.svelte and
+   imported by nothing else.
+
+   NO NEW TOKENS. Every value resolves to a variable already declared in
+   styles.css (--ink / --ink-dim / --ink-faint / --magenta / --magenta-deep /
+   --line / --bg-2 / --bg-3 / --pad / --radius / --ease / --bloom). The
+   namespace is `px-`, which exists nowhere else in the app.
+
+   TWO STYLESHEETS ARE BORROWED, NOT COPIED:
+     products-stage.css  → `.pi` (the product icon) and `.pstore` (the status
+                            chip). Both are pure design with no layout of
+                            their own, so they travel. `.pi` deliberately
+                            carries NO size — the caller sizes it, which is
+                            why `.px-icon` below exists.
+     appscreens.css      → the `.dv-*` CSS device frames. Every one of them
+                            sizes itself off ONE custom property, `--dv-h`.
+                            On the home page that token is set by `.stg`;
+                            this page has no `.stg`, so `.px-stagebox` sets
+                            it, and the breakpoints below step it. That is
+                            the whole integration — nothing in appscreens.css
+                            is overridden.
+
+   LAYOUT CONTRACT: no horizontal overflow at any width. The item is a
+   two-column grid on desktop and ONE column below 900px; both tracks are
+   `minmax(0, 1fr)`, and the device stage clips its own bleed (`.px-stagebox`
+   is `overflow: hidden` — the phone fan is designed to spill a little into
+   the gutter it is centred in, and on the home page `.stg` and `.apps` clip
+   it twice; here this is the clip).
+   ———————————————————————————————————————————————————————————————— */
+
+/* ═══════════════════════════════════════════════════════════════
+   1. HERO
+   ═══════════════════════════════════════════════════════════════ */
+.px-hero .section-head { padding-bottom: clamp(20px, 3vh, 34px); }
+.px-hero h1.h2 { max-width: 21ch; }
+
+.px-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 var(--pad);
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.px-stat {
+  min-width: 0;
+  background: var(--bg-2);
+  padding: clamp(16px, 2.2vw, 26px) clamp(14px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.px-stat b {
+  font-family: var(--bloom);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.4vw, 2.6rem);
+  line-height: 1;
+  color: var(--ink);
+}
+.px-stat span {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   2. THE STATUS FILTER
+   ═══════════════════════════════════════════════════════════════ */
+.px-controls { padding: clamp(28px, 5vh, 54px) var(--pad) clamp(8px, 2vh, 20px); }
+.px-ctl-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+.px-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+/* additive on top of styles.css's `.filter` */
+.px-chip { gap: 8px; padding-inline: 16px; }
+.px-chip i {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 999px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+.px-chip.is-active i { color: var(--ink); background: rgba(255, 255, 255, 0.42); }
+.px-result {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  /* same boundary treatment as the band heads: this rule closes the whole
+     control block, so it spans the page rather than the column */
+  margin-inline: calc(var(--pad) * -1);
+  padding-inline: var(--pad);
+  font-size: 0.92rem;
+  color: var(--ink-dim);
+}
+.px-result b {
+  font-family: var(--bloom);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+.px-clear {
+  font-size: 0.82rem;
+  font-weight: 640;
+  color: var(--magenta-deep);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+  transition: color 0.24s var(--ease);
+}
+.px-clear:hover { color: var(--ink); }
+.px-clear:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   3. THE BANDS
+   The band heading is not decoration — it is the claim being made about
+   everything under it, so it gets real type and a rule, not a caption.
+   ═══════════════════════════════════════════════════════════════ */
+.px-band { padding: clamp(34px, 6vh, 66px) var(--pad) 0; }
+.px-band-head {
+  padding-top: clamp(18px, 3vh, 30px);
+  border-top: 1px solid var(--line);
+  /* THE RULE IS A BAND BOUNDARY, NOT A COLUMN DIVIDER. It separates two runs
+     of full-width cards, so it runs the full width of the viewport: the head
+     is pulled out to the page edges by the gutter and pushed back in by an
+     equal padding, which moves the border and leaves the type exactly where
+     `--pad` put it. Negative margin only — no absolute pseudo-element, so
+     nothing can escape the page's scroll width. */
+  margin-inline: calc(var(--pad) * -1);
+  padding-inline: var(--pad);
+}
+.px-band-head h2 {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--bloom);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  line-height: 1.1;
+  color: var(--ink);
+}
+.px-band-n {
+  font-family: var(--display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--magenta);
+}
+.px-band-head h2 i {
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.px-band-head p {
+  margin-top: 12px;
+  /* the RULE spans the page (it separates two bands of full-width cards);
+     only the sentence is measured */
+  max-width: 74ch;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+/* The concept band says its own name in colour as well as in words — it is
+   the one place on this site where a reader could most easily mistake a
+   drawing for a product. Border only; the type stays ink and readable. */
+.px-band--concept .px-band-head { border-top-color: var(--magenta); }
+.px-band--concept .px-band-n { color: var(--magenta-deep); }
+
+/* ── the list ─────────────────────────────────────────────────────── */
+.px-list { display: flex; flex-direction: column; gap: clamp(28px, 4.5vh, 56px); margin-top: clamp(26px, 4vh, 46px); }
+.px-item {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(20px, 3vw, 52px);
+  align-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: clamp(20px, 2.6vw, 36px);
+  overflow: hidden;
+}
+/* alternating sides so nine rows do not read as nine identical slabs. DOM
+   order is unchanged — identity first, imagery second — so the keyboard and
+   screen-reader order is the same on both. */
+.px-item.is-flipped .px-info { order: 2; }
+.px-item.is-flipped .px-stagebox { order: 1; }
+
+.px-info { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.px-index {
+  font-family: var(--display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--ink-faint);
+}
+.px-index i { font-style: normal; opacity: 0.5; }
+.px-id { display: flex; align-items: center; gap: 14px; min-width: 0; }
+/* `.pi` ships without a size on purpose — every caller states its own. */
+.px-icon { width: clamp(48px, 5vw, 62px); height: clamp(48px, 5vw, 62px); }
+.px-id h3 {
+  font-family: var(--bloom);
+  font-weight: 600;
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  line-height: 1.08;
+  color: var(--ink);
+}
+.px-tag {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.px-blurb {
+  font-size: clamp(0.95rem, 1.25vw, 1.06rem);
+  line-height: 1.6;
+  color: var(--ink-dim);
+  max-width: 46ch;
+}
+.px-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.px-kind {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+.px-cta { margin-top: 2px; }
+.px-store {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 640;
+  font-size: 0.94rem;
+  color: #fff;
+  background: var(--magenta);
+  border: 1px solid var(--magenta);
+  transition: background 0.28s var(--ease), transform 0.28s var(--ease);
+}
+.px-store svg {
+  width: 15px; height: 15px;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+  transition: transform 0.34s var(--ease);
+}
+.px-store:hover { background: var(--magenta-deep); border-color: var(--magenta-deep); }
+.px-store:hover svg { transform: translate(2px, -2px); }
+.px-store:active { transform: scale(0.97); }
+.px-store:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+/* NOT a disabled button. A greyed-out "Download" is still a download button,
+   and this is the sentence that replaces it. */
+.px-nolink {
+  font-size: 0.84rem;
+  font-weight: 620;
+  color: var(--ink-faint);
+  border-left: 2px solid var(--line);
+  padding-left: 12px;
+}
+
+/* ── the device stage ─────────────────────────────────────────────── */
+.px-stagebox {
+  min-width: 0;
+  /* THE HEIGHT CONTRACT. Every `.dv-*` frame in appscreens.css is sized off
+     this one token, so stating it here is the whole integration — the fan and
+     the MacBook come out the same height as each other, on every row. */
+  --dv-h: clamp(280px, 34vw, 400px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(14px, 2vw, 28px);
+  border-radius: calc(var(--radius) - 4px);
+  background:
+    radial-gradient(70% 70% at 50% 30%, color-mix(in srgb, var(--g1, var(--magenta)) 16%, transparent), transparent 70%),
+    var(--bg-3);
+  /* the fan is designed to bleed slightly past its centre line; this is the
+     clip that keeps that bleed off the page's scroll width */
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. CLOSING BAND
+   ═══════════════════════════════════════════════════════════════ */
+.px-end {
+  margin-top: clamp(56px, 9vh, 110px);
+  padding: clamp(56px, 9vh, 110px) var(--pad);
+  border-top: 1px solid var(--line);
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgba(242, 28, 140, 0.08), transparent 62%),
+    var(--bg-2);
+}
+.px-end .h2 { max-width: 20ch; }
+.px-end-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 26px; margin-top: 30px; }
+.px-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 640;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 3px;
+  transition: color 0.28s var(--ease), border-color 0.28s var(--ease);
+}
+.px-link svg {
+  width: 15px; height: 15px;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+  transition: transform 0.34s var(--ease);
+}
+.px-link:hover { color: var(--magenta-deep); border-color: var(--magenta); }
+.px-link:hover svg { transform: translate(2px, -2px); }
+.px-link:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE — a real one-column layout on a phone, not a squashed grid
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 1180px) {
+  .px-stagebox { --dv-h: clamp(260px, 30vw, 340px); }
+}
+@media (max-width: 900px) {
+  /* One column. The alternation is dropped with it — flipping the order of a
+     stack would put the pictures above the name of the thing they show on
+     every other row. */
+  .px-item { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .px-item.is-flipped .px-info { order: 0; }
+  .px-item.is-flipped .px-stagebox { order: 0; }
+  .px-stagebox { --dv-h: clamp(260px, 46vw, 340px); }
+}
+@media (max-width: 720px) {
+  .px-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* ≤700px is where appscreens.css drops the two flanking phones and gives the
+   hero the whole stage — "two rotated flanks in a 320px column is a smear,
+   not a mockup". That judgement is right and is NOT overridden here; the only
+   thing this page does is give the surviving phone enough height to be worth
+   looking at, since a catalogue row on a phone has the full screen width to
+   spend and the home page's pinned stage did not. */
+@media (max-width: 700px) {
+  /* THE FIX, AND WHY IT IS A HEIGHT AND NOT A WIDTH.
+     Below 700px `.dv-fan .dv-slot` is `width: min(60%, var(--dv-h) * 0.44)`.
+     Setting a width on the slot here is what the first attempt did and it is
+     the wrong lever: the 60% arm is the design's own answer to "how much of
+     the stage should one phone take", and the reason the surviving phone came
+     out tiny is that the OTHER arm was binding — `--dv-h` was still the value
+     tuned for three phones side by side, so `--dv-h * 0.44` resolved to about
+     130px and won the `min()`.
+     So the only thing changed is `--dv-h`, the token this page is supposed to
+     own, raised until the 60% arm binds again. appscreens.css's rule is
+     untouched and still decides the width; it is simply no longer starved. */
+  .px-stagebox.is-phones { --dv-h: clamp(330px, 100vw, 440px); }
+  /* The laptop is the opposite case: at this width its lid is already pinned
+     to `100%` of the stage, so a tall `--dv-h` buys nothing but empty box
+     under a 16:9 screen. It is sized to just clear the lid's own height. */
+  .px-stagebox.is-laptop { --dv-h: clamp(220px, 62vw, 300px); }
+}
+@media (max-width: 560px) {
+  .px-stagebox { padding: 12px; }
+  .px-chip { padding-inline: 13px; font-size: 0.84rem; }
+}
+@media (max-width: 460px) {
+  .px-stats { grid-template-columns: minmax(0, 1fr); }
+  .px-id { align-items: flex-start; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REDUCED MOTION.
+   Everything this file animates is a hover transform or a colour, and all of
+   it goes. `.dv-slot` carries an unconditional enter animation from
+   appscreens.css (the home stage remounts it on every tab change, so it is
+   right there); a catalogue mounts all nine at once and has no remount to
+   justify it, so it is neutralised for reduced-motion readers here rather
+   than by editing a stylesheet this page does not own.
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .px-store,
+  .px-store svg,
+  .px-link,
+  .px-link svg,
+  .px-clear {
+    transition: none !important;
+  }
+  .px-store:hover svg,
+  .px-link:hover svg { transform: none; }
+  .px-store:active { transform: none; }
+  .px-stagebox .dv-slot { animation: none !important; }
+}

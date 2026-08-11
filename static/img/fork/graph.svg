@@ -1,0 +1,32 @@
+<!--
+  THE FORK — graph tile (branch 02, "starting out").
+
+  The opposite material to cloth.svg: not woven anything, but the ruled paper
+  you draw a thing on before it exists. A 40px seamless grid — one heavy rule
+  and three light ones per axis, plus a registration dot at the centre of
+  every square.
+
+  EVERY LINE SITS ON A HALF-PIXEL. A 1px stroke centred on x=0 straddles the
+  tile edge, so with shape-rendering="crispEdges" half of it is clipped away
+  and the grid renders at half strength or vanishes entirely — which is
+  exactly what happened to the first cut of this file. On x=0.5 the stroke
+  covers 0→1 and lands whole, and the next tile's line lands 40px later, so
+  the repeat is still seamless.
+
+  Drawn in the brand violet's literal hex because a background-image cannot
+  read a custom property; the layer that paints it controls the strength with
+  `opacity`, and this file is only ever used on the pale branch.
+
+  NEVER WRITE A CSS CUSTOM-PROPERTY NAME IN A COMMENT IN HERE. Two hyphens in
+  a row are illegal inside an XML comment, so naming the token directly makes
+  the whole file a parse error — the browser reports nothing, the request
+  still returns 200 image/svg+xml, and the layer just paints nothing. That is
+  exactly how this tile shipped invisible the first time.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" shape-rendering="crispEdges">
+  <g fill="none" stroke="#7b2fbe" stroke-width="1">
+    <g opacity="0.45"><path d="M0.5 0V40M0 0.5H40" /></g>
+    <g opacity="0.22"><path d="M10.5 0V40M20.5 0V40M30.5 0V40M0 10.5H40M0 20.5H40M0 30.5H40" /></g>
+  </g>
+  <circle cx="20.5" cy="20.5" r="1" fill="#7b2fbe" opacity="0.42" />
+</svg>

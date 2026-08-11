@@ -1,0 +1,1106 @@
+/* ════════════════════════════════════════════════════════════════════════
+   LOOM — START A PROJECT · the popup, reworked (11 Aug 2026)
+   Owned by WizardModal.svelte, which imports it. Everything here is scoped
+   under `.wm2` (the dialog root) so it can only ever touch the MODAL copy of
+   the wizard — the identical ContactWizard that sits inline in the Contact
+   section is untouched by every rule in this file.
+
+   ── WHY IT IS BUILT LIKE THIS ─────────────────────────────────────────────
+   The brief was two things: never scroll, at any size, on any of the four
+   steps — and be the best-made thing on the site.
+
+   NEVER SCROLL is a layout problem, not an overflow problem. The old panel
+   was `header + overflow-y:auto body`, which is a machine for producing a
+   scrollbar: content stacks, the box gives way, and on a 430x932 phone the
+   four intent cards ran off the bottom. The rework inverts that:
+
+     1. the panel takes a DEFINITE height — `min(<cap>, 100%)` of the padded
+        viewport box — so every track inside it resolves against a number;
+     2. the interior is ONE grid: masthead / seed / rail / direct line in a
+        left column, the stage in the right, with the stage row `1fr` and
+        `min-height: 0` so it takes the leftover and never more;
+     3. each `.wpane` is a flex column whose ONE elastic child (the intent
+        grid, the form, the brief) carries `flex: 1; min-height: 0`, and
+        whose actions are pushed down with `margin-top: auto`;
+     4. the intent cards became a 2x2 grid of short cards instead of four
+        full-width tall ones — half the height, and four options you can
+        actually compare.
+
+   That grid is only possible because `.wizard` is `display: contents`:
+   ContactWizard's rail and stage become siblings of this shell's own
+   furniture, so the rail can sit in the left column on a laptop and above
+   the stage on a phone WITHOUT ONE LINE OF ContactWizard.svelte CHANGING.
+   Same four steps, same options, same fields, same validation, same
+   WhatsApp/mailto handoff, same `note` passthrough.
+
+   WHAT IS REDUCED RATHER THAN SCROLLED (the brief's escape hatch):
+     • the big 'LOOM' pattern mark is desktop-only — a phone gets the eyebrow
+       line alone (the mark is 3.4rem of display face; it is the first thing
+       that should go when the column disappears);
+     • on a SHORT phone only (<=700px tall, e.g. 360x780 with browser chrome)
+       the one-line intent descriptions are dropped, leaving icon + title.
+       Nothing else is hidden at any size: every option, field and label is
+       present at 360 wide.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.wm2 {
+  --wm-ink: #33243d;
+  --wm-paper: #fff8fb;
+  --wm-paper-2: #ffeaf3;
+  --wm-plum: #34203f;
+  --wm-plum-2: #24132e;
+  --wm-cream: #ffeaf4;
+  --wm-line: rgba(96, 40, 76, 0.16);
+  --wm-line-dark: rgba(255, 233, 242, 0.16);
+  --wm-radius: 24px;
+}
+
+/* ── the ground the panel sits on ─────────────────────────────────────────
+   The old backdrop was rose at 82% over a rose page: the panel had nothing
+   to lift off, and the whole thing read as one flat pink field. A plum scrim
+   gives the panel an edge and the page behind it a depth cue, which is most
+   of why the reworked modal reads as a physical object. */
+.wm2 .wmodal-backdrop {
+  background:
+    radial-gradient(120% 90% at 50% 40%, rgba(52, 32, 63, 0.42), rgba(30, 17, 38, 0.66)),
+    rgba(36, 19, 46, 0.3);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+}
+
+/* ── the panel ────────────────────────────────────────────────────────────
+   `height: min(cap, 100%)` is the whole no-scroll contract in one line: 100%
+   of the grid area .wmodal already padded down from the viewport, capped so
+   a 1440x900 laptop doesn't get a 4:3 wall of modal. */
+.wm2 .wm2-panel {
+  width: min(1024px, 100%);
+  height: min(608px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--wm-radius);
+  border: 1px solid rgba(96, 40, 76, 0.22);
+  background: linear-gradient(168deg, var(--wm-paper), var(--wm-paper-2));
+  box-shadow:
+    0 48px 120px -28px rgba(28, 14, 36, 0.55),
+    0 8px 28px -12px rgba(28, 14, 36, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* the ✕ — floats over the stage rather than sitting in a title bar, because
+   the masthead in the left column is already the title bar */
+.wm2 .wm2-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--wm-line);
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--wm-ink);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.28s, color 0.28s, border-color 0.28s, transform 0.3s var(--ease);
+}
+.wm2 .wm2-close:hover {
+  background: var(--magenta);
+  border-color: var(--magenta);
+  color: #fff;
+  transform: rotate(90deg);
+}
+.wm2 .wm2-close:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 3px; }
+
+/* ── the exit ─────────────────────────────────────────────────────────────
+   Driven by `.is-closing` on the dialog rather than a Svelte `out:` — see the
+   long note in WizardModal.svelte. The scrim goes first and slightly faster,
+   so the page behind is already coming back as the panel drops away. */
+@keyframes wm2-panel-out {
+  to { opacity: 0; transform: translateY(26px) scale(0.985); }
+}
+@keyframes wm2-scrim-out {
+  to { opacity: 0; }
+}
+.wm2.is-closing .wm2-panel {
+  animation: wm2-panel-out 0.32s var(--ease) forwards;
+  pointer-events: none;
+}
+.wm2.is-closing .wmodal-backdrop { animation: wm2-scrim-out 0.28s linear forwards; }
+
+/* ── the interior grid ────────────────────────────────────────────────────
+   `.wmodal-scroll` is kept as a class ONLY because styles.css hangs the
+   sheet's `touch-action: pan-y` off it. It does not scroll: overflow is
+   hidden as a backstop, and nothing inside is ever taller than its track. */
+.wm2 .wm2-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: clamp(196px, 23%, 244px) minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'mast   stage'
+    'seed   stage'
+    'rail   stage'
+    'direct stage';
+}
+
+/* THE HINGE OF THE WHOLE LAYOUT. ContactWizard renders
+   `.wizard > [.wizard-seed, .wizard-steps, .wizard-stage]`; `display: contents`
+   dissolves that wrapper's box so those three become grid items of `.wm2-body`
+   alongside the masthead and the direct line. Nothing about the component
+   changes — its markup, state, validation and submit path are untouched — but
+   its rail can now live in a column of this shell's grid. */
+.wm2 .wm2-body > .wizard { display: contents; }
+
+/* the left column's material: a plum bolt of cloth against the paper stage.
+   Painted as a grid item (a grid container's ::before IS one) so it spans
+   every row of column 1 without a wrapper element existing in the DOM —
+   which matters, because three of the four things standing on it come from
+   ContactWizard and one comes from this shell. */
+.wm2 .wm2-body::before,
+.wm2 .wm2-body::after {
+  content: '';
+  grid-area: 1 / 1 / -1 / 2;
+  pointer-events: none;
+}
+.wm2 .wm2-body::before {
+  background: linear-gradient(168deg, #3d2749 0%, var(--wm-plum) 42%, var(--wm-plum-2) 100%);
+  box-shadow: inset -1px 0 0 rgba(255, 233, 242, 0.14), inset 0 1px 0 rgba(255, 233, 242, 0.1);
+  z-index: 0;
+}
+/* the weave itself — the same fabric tile the rest of the site's panels use */
+.wm2 .wm2-body::after {
+  background-image: url('/img/tex/fabric-tile.webp');
+  background-size: 224px 24px;
+  opacity: 0.16;
+  mix-blend-mode: soft-light;
+  z-index: 1;
+}
+
+.wm2 .wm2-mast,
+.wm2 .wizard-seed,
+.wm2 .wizard-steps,
+.wm2 .wmodal-direct {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── masthead ─────────────────────────────────────────────────────────── */
+.wm2 .wm2-mast {
+  grid-area: mast;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 26px 22px 14px;
+}
+/* 'LOOM Organic' — the studio's own pattern face. One word, caps, 3.4rem:
+   inside every rule those faces carry (display only, never body copy, never
+   under ~40px). Organic is the 30 KB cut, the only one light enough to load
+   for a single word. */
+.wm2 .wm2-mark {
+  font-family: 'LOOM Organic', 'Clash Display', 'Avenir Next', sans-serif;
+  font-size: clamp(2.6rem, 3.4vw, 3.35rem);
+  /* the pattern faces draw well outside their em box (that is the pattern);
+     a line-height under 1 crops the ink AND makes the span overflow its own
+     content box, which is the one measurement this panel is not allowed to
+     fail. 1.16 is the measured ink height of the Organic caps. */
+  line-height: 1.16;
+  letter-spacing: 0.05em;
+  color: #ffd7ea;
+  text-shadow: 0 0 26px rgba(242, 28, 140, 0.45), 0 2px 0 rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+.wm2 .wm2-eyebrow {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 233, 242, 0.6);
+}
+
+/* the seeded-context line ("Building for <niche>") — a tag pinned to the
+   bolt, not a full-width bar with a rule under it */
+.wm2 .wizard-seed {
+  grid-area: seed;
+  margin: 0 22px 6px;
+  padding: 7px 11px;
+  border: 1px solid var(--wm-line-dark);
+  border-radius: 999px;
+  background: rgba(255, 233, 242, 0.07);
+  color: rgba(255, 233, 242, 0.72);
+  font-size: 0.76rem;
+  line-height: 1.3;
+}
+.wm2 .wizard-seed strong { color: #ff9ecb; }
+
+/* ── the step rail ────────────────────────────────────────────────────────
+   Vertical on a laptop: four stations threaded together, the thread between
+   two stations coloured once you have passed it. That is the progress
+   indicator — `.wizard-bar`, whose fill is an INLINE `scaleX()` written by
+   ContactWizard, cannot be turned on its side from CSS, so on this axis it
+   stands down and the connectors do the job. It comes back on the phone,
+   where the rail is horizontal and its scaleX is the right axis again. */
+.wm2 .wizard-steps {
+  grid-area: rail;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-content: start;
+  gap: 0;
+  padding: 10px 16px;
+  border-bottom: 0;
+}
+.wm2 .wizard-steps .wizard-bar { display: none; }
+
+.wm2 .wstep {
+  position: relative;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 9px 10px;
+  min-height: 46px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 620;
+  text-align: left;
+  color: rgba(255, 233, 242, 0.44);
+  transition: color 0.35s var(--ease), background 0.35s var(--ease);
+}
+.wm2 .wstep i {
+  position: relative; /* the tick below is absolutely placed INSIDE the
+                         medallion; without this it resolves against .wstep
+                         and lands on top of the label */
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 233, 242, 0.24);
+  color: rgba(255, 233, 242, 0.6);
+  background: rgba(255, 233, 242, 0.04);
+  transition: background 0.35s var(--ease), border-color 0.35s var(--ease),
+    color 0.35s var(--ease), box-shadow 0.45s var(--ease);
+}
+/* the thread between two stations */
+.wm2 .wstep + .wstep::before {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: -6px;
+  width: 2px;
+  height: 12px;
+  border-radius: 2px;
+  background: rgba(255, 233, 242, 0.2);
+  transition: background 0.45s var(--ease);
+}
+.wm2 .wstep.is-done::before,
+.wm2 .wstep.is-now::before { background: var(--magenta); }
+
+.wm2 .wstep.is-now {
+  color: #fff2f8;
+  background: rgba(255, 233, 242, 0.08);
+}
+.wm2 .wstep.is-now i {
+  background: var(--magenta);
+  border-color: var(--magenta);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(242, 28, 140, 0.22), 0 4px 14px -4px rgba(242, 28, 140, 0.8);
+}
+.wm2 .wstep.is-done { color: rgba(255, 233, 242, 0.78); }
+.wm2 .wstep.is-done i {
+  border-color: var(--magenta);
+  background: rgba(242, 28, 140, 0.16);
+  color: transparent;
+}
+/* a stitched tick replaces the numeral once a step is behind you — the
+   numeral is the label of a step you can still go back and change, the tick
+   is the label of one you finished */
+.wm2 .wstep.is-done i::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #ff9ecb;
+}
+.wm2 .wstep.is-done:hover { color: #fff2f8; background: rgba(255, 233, 242, 0.06); }
+.wm2 .wstep:focus-visible { outline: 2px solid var(--yarn-blue); outline-offset: 2px; }
+
+/* ── the escape hatch, pinned to the bottom of the bolt ─────────────────── */
+.wm2 .wmodal-direct {
+  grid-area: direct;
+  text-align: left;
+  /* 44px of padding-block, not 12 — styles.css gives this link an invisible
+     44px touch band (`.wmodal-direct a::after`), and the paragraph has to be
+     tall enough to contain it or it is a box that overflows its own parent. */
+  padding: 14px 22px 24px;
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: rgba(255, 233, 242, 0.5);
+}
+.wm2 .wmodal-direct a { color: #ffd7ea; }
+.wm2 .wmodal-direct a:hover { color: #ff9ecb; }
+
+/* ── the stage ──────────────────────────────────────────────────────────── */
+.wm2 .wm2-body .wizard-stage {
+  grid-area: stage;
+  position: relative;
+  z-index: 2;
+  min-height: 0;
+  display: grid;
+  padding: clamp(22px, 3vw, 34px) clamp(20px, 3vw, 34px) clamp(18px, 2.4vw, 26px);
+}
+.wm2 .wpane {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.wm2 .wq {
+  font-size: clamp(1.24rem, 2vw, 1.66rem);
+  font-weight: 620;
+  letter-spacing: -0.012em;
+  line-height: 1.14;
+  margin: 0 0 2px;
+  max-width: 20ch;
+  color: var(--wm-ink);
+  padding-right: 48px; /* the ✕ floats here */
+}
+.wm2 .wsub {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--ink-faint);
+}
+
+/* ── step 1 · the four intents, 2x2 ───────────────────────────────────────
+   Bounded height, interior flex: `min(100% - margin, 320px)` is the shape
+   the brief asked for. Two rows of `minmax(0, 1fr)` means the pair of cards
+   in a row are always the same height, whatever their copy does. */
+.wm2 .wintents {
+  flex: 1 1 auto;
+  min-height: 0;
+  /* bounded, as the brief asks: `min(100% - margin, Npx)`. The cap stops a
+     tall laptop from inflating four cards into four posters; the auto bottom
+     margin centres the block in whatever is left instead of leaving a hole
+     under it. */
+  max-height: min(100%, 360px);
+  /* auto on BOTH sides: the card block is centred in whatever the question
+     leaves, rather than hanging off the heading with a hole under it */
+  margin-block: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.wm2 .wintent {
+  position: relative;
+  justify-content: flex-start;
+  gap: 3px;
+  padding: 14px 15px 15px;
+  border-radius: 16px;
+  border: 1px solid var(--wm-line);
+  background: linear-gradient(158deg, rgba(255, 255, 255, 0.92), rgba(255, 226, 240, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 24px -18px rgba(51, 36, 61, 0.7);
+  overflow: hidden;
+  transition: border-color 0.35s var(--ease), transform 0.45s var(--ease),
+    box-shadow 0.45s var(--ease), background 0.35s var(--ease);
+}
+.wm2 .wintent .wool-icon { --wool-icon: clamp(32px, 3.4vw, 44px); }
+/* medallion on the top edge, the words on the floor of the card, whatever
+   height the row resolves to */
+.wm2 .wintent-title { margin-top: auto; }
+.wm2 .wintent-icon { font-size: 0; line-height: 0; }
+.wm2 .wintent-title {
+  font-size: clamp(0.98rem, 1.15vw, 1.08rem);
+  font-weight: 640;
+  letter-spacing: -0.008em;
+  color: var(--wm-ink);
+}
+.wm2 .wintent-sub {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--ink-faint);
+}
+/* the thread that runs under a card as the pointer crosses it */
+.wm2 .wintent::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--magenta), var(--violet));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease);
+}
+.wm2 .wintent:hover,
+.wm2 .wintent:focus-visible {
+  border-color: rgba(242, 28, 140, 0.55);
+  background: linear-gradient(158deg, #fff, rgba(255, 214, 234, 0.85));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 18px 34px -22px rgba(51, 36, 61, 0.85);
+  --lift: -4px;
+}
+.wm2 .wintent:hover::after,
+.wm2 .wintent:focus-visible::after { transform: scaleX(1); }
+.wm2 .wintent:active { transform: translateY(-1px) scale(0.985); transition-duration: 0.12s; }
+/* picked: the card is claimed — magenta ring, a warmer ground, and a stitched
+   dot in the corner. The step advances immediately after a pick, so this has
+   to land in the ~120ms before the pane slides away; it is a colour and a
+   ring, nothing that needs time to play. */
+.wm2 .wintent.is-picked {
+  border-color: var(--magenta);
+  background: linear-gradient(158deg, #fff, rgba(255, 203, 230, 0.9));
+  box-shadow: 0 0 0 2px rgba(242, 28, 140, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.wm2 .wintent.is-picked::after { transform: scaleX(1); }
+.wm2 .wintent:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 2px; }
+
+/* the cards arrive threaded in, one after another */
+@keyframes wm2-card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.wm2 .wintents .wintent { animation: wm2-card-in 0.5s var(--ease) backwards; }
+.wm2 .wintents .wintent:nth-child(1) { animation-delay: 0.04s; }
+.wm2 .wintents .wintent:nth-child(2) { animation-delay: 0.1s; }
+.wm2 .wintents .wintent:nth-child(3) { animation-delay: 0.16s; }
+.wm2 .wintents .wintent:nth-child(4) { animation-delay: 0.22s; }
+
+/* ── step 2 · needs ─────────────────────────────────────────────────────── */
+.wm2 .wchips {
+  flex: 0 1 auto;
+  min-height: 0;
+  align-content: flex-start;
+  margin: 16px 0 0;
+  gap: 9px;
+}
+.wm2 .wchip {
+  position: relative;
+  padding: 10px 15px;
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1px solid var(--wm-line);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--ink-dim);
+  font-size: 0.86rem;
+  font-weight: 620;
+  transition: border-color 0.3s, background 0.3s, color 0.3s, transform 0.3s var(--ease),
+    box-shadow 0.3s;
+}
+.wm2 .wchip:hover {
+  border-color: rgba(242, 28, 140, 0.5);
+  background: #fff;
+  color: var(--wm-ink);
+  transform: translateY(-1px);
+}
+.wm2 .wchip.is-on {
+  background: linear-gradient(150deg, var(--magenta), var(--magenta-deep));
+  border-color: var(--magenta-deep);
+  color: #fff;
+  box-shadow: 0 8px 20px -10px rgba(242, 28, 140, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.wm2 .wchip.is-on::before {
+  content: '✓';
+  margin-right: 7px;
+  font-weight: 800;
+  opacity: 0.9;
+}
+.wm2 .wchip:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 2px; }
+
+/* ── the actions row, always on the floor of the pane ───────────────────── */
+.wm2 .wnav {
+  margin-top: auto;
+  padding-top: 16px;
+  flex: 0 0 auto;
+}
+.wm2 .wnav--end { margin-top: auto; padding-top: 12px; }
+/* the knits are sized by CAP HEIGHT, the way wool.css sizes every other
+   photographed pill on the site — the photograph keeps deciding how wide its
+   own label needs to be. */
+.wm2 .wnav .wool-btn--photo { --wool-btn-h: 54px; }
+/* The fibre halo normally blooms 14% OUTSIDE its button. Inside a panel that
+   must satisfy `scrollHeight <= clientHeight` on every box, that overhang is
+   the one thing that pushes a row past its track — six pixels of glow that
+   nothing can ever see, because the panel clips. Pulled to the button's own
+   edge: same bloom, no overhang. */
+.wm2 .wool-btn-halo { inset: 0; }
+.wm2 .wback {
+  font-size: 0.88rem;
+  padding: 10px 4px;
+  color: var(--ink-faint);
+}
+.wm2 .wback:hover { color: var(--magenta); }
+.wm2 .wback:focus-visible { outline: 2px solid var(--yarn-blue); outline-offset: 3px; border-radius: 8px; }
+
+/* ── step 3 · details ─────────────────────────────────────────────────────
+   Three rows: two rows of short fields, then the message field taking the
+   whole remainder. The textarea is the elastic one, so the form fits any
+   panel height without a scrollbar and without a field being cut off. */
+.wm2 .wform {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 16px 0 0;
+  gap: 11px 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+.wm2 .wform label { min-height: 0; gap: 5px; }
+.wm2 .wform label span {
+  font-size: 0.66rem;
+  letter-spacing: 0.13em;
+  color: var(--ink-faint);
+}
+.wm2 .wform .wfull { grid-column: 1 / -1; min-height: 0; }
+.wm2 .wform input,
+.wm2 .wform select,
+.wm2 .wform textarea {
+  padding: 10px 13px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--wm-line);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--wm-ink);
+  font-size: 0.92rem;
+  transition: border-color 0.28s, box-shadow 0.28s, background 0.28s;
+}
+.wm2 .wform input::placeholder,
+.wm2 .wform textarea::placeholder { color: rgba(107, 82, 115, 0.7); }
+.wm2 .wform input:focus,
+.wm2 .wform select:focus,
+.wm2 .wform textarea:focus {
+  border-color: var(--magenta);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(242, 28, 140, 0.16);
+}
+.wm2 .wform textarea {
+  flex: 1 1 auto;
+  min-height: 56px;
+  height: 100%;
+  resize: none;
+  line-height: 1.45;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   STEP 4 · THE SEND STEP — the last thing a client sees before contacting us
+   ════════════════════════════════════════════════════════════════════════
+   Three moves, in the order they were wrong:
+
+   1. THE DOCUMENT. The brief is not a summary of a form, it is the letter the
+      visitor is about to send. So it is set as a piece of ruled stock: a
+      letterpressed caption band across the head, a stitched selvedge down the
+      left edge (the site's textile language, drawn in CSS rather than
+      photographed), and rules that the copy actually sits ON — the line box
+      is a round 22px and the rule repeat is offset by the header so every
+      line of the generated brief lands on its own rule.
+
+   2. THE RHYTHM. The brief now takes the slack (`flex: 1 1 auto`) instead of
+      hugging its content and leaving a ~200px hole between the buttons and
+      the footer. Document → actions → footer is one composed screen with the
+      actions resting on the floor of the pane, not floating in the middle.
+
+   3. THE ACTIONS. See `.wm2-acts` below. */
+.wm2 .wbrief {
+  position: relative;
+  /* TAKES THE SLACK. It used to be `flex: 0 1 auto`, which is what produced
+     the dead zone: the pane is 1fr of a fixed-height panel, the brief only
+     ever asked for its content height, and everything under it was pushed to
+     the floor by `margin-top: auto` — so the leftover became a hole. The
+     document is the right thing to give the leftover to. */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  margin: 15px 0 0;
+  /* top pad clears the caption band, bottom pad the sheet's foot, left pad
+     the stitched selvedge */
+  padding: 34px 20px 32px 26px;
+  border-radius: 15px;
+  border: 1px solid var(--wm-line);
+  /* three layers: the stitched selvedge down the binding edge, the rules, the
+     stock itself. The selvedge is a BACKGROUND rather than a pseudo-element
+     because this box is a <pre> from ContactWizard — it has exactly two
+     pseudos and both are spoken for (the caption band and the foot). */
+  background-image:
+    repeating-linear-gradient(180deg, rgba(242, 28, 140, 0.8) 0 7px, transparent 7px 13px),
+    repeating-linear-gradient(180deg, rgba(96, 40, 76, 0.06) 0 1px, transparent 1px 25px),
+    linear-gradient(168deg, #fffdfe, rgba(255, 246, 251, 0.92));
+  /* rules offset by 58px = 34px of caption band + 25px of line box − the 1px
+     rule itself, so the first rule sits UNDER the first line, not through it */
+  background-position: 11px 44px, 0 58px, 0 0;
+  background-size: 2px calc(100% - 78px), auto, auto;
+  background-repeat: no-repeat, repeat, no-repeat;
+  color: var(--ink-dim);
+  /* set a notch larger than the old summary: this is the document the client
+     is about to send, not a caption under a form */
+  font-size: 0.9rem;
+  /* an exact px line box, because the ruled stock behind it is drawn on the
+     same 25px pitch — a unitless 1.55 rounds differently per font size and
+     the copy walks off its own rules by the sixth line */
+  line-height: 25px;
+  white-space: pre-wrap;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 14px 34px -26px rgba(51, 36, 61, 0.9);
+}
+/* the caption band — letterpressed into the head of the sheet */
+.wm2 .wbrief::before {
+  content: 'Your brief · ready to send';
+  position: absolute;
+  inset: 0 0 auto 0;
+  padding: 9px 18px 8px;
+  border-bottom: 1px solid var(--wm-line);
+  border-radius: 15px 15px 0 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 235, 245, 0.72));
+  font-family: var(--body);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+/* THE FOOT OF THE SHEET — and the reason the document is allowed to take the
+   pane's slack without reading as an empty box. A ruled page that simply ran
+   out of copy looks unfinished; a ruled page with a printed foot looks like
+   stationery, and the blank rules above it read as room left for more.
+   Its top 24px is a fade from transparent to the stock, which is also how a
+   brief longer than the sheet resolves: the copy passes UNDER the foot rather
+   than being cut mid-letter or producing a scrollbar. */
+.wm2 .wbrief::after {
+  content: 'LOOM · Amman + Sarajevo';
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 24px 18px 10px;
+  border-radius: 0 0 15px 15px;
+  background: linear-gradient(180deg, rgba(255, 250, 252, 0) 0%, #fffbfd 62%, #fff7fb 100%);
+  font-family: var(--body);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-align: right;
+  color: rgba(107, 82, 115, 0.6);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* ── the two send actions ─────────────────────────────────────────────────
+   Built natively here (WizardModal.svelte appends them; see the long note
+   there) instead of using the photographed knits: at the size this row needs
+   them, a 720px knit photograph is a texture, not a control, and a purple
+   pill beside a cyan one is two more colour stories than the panel has room
+   for. What is left is one primary — WhatsApp, the studio's fastest channel,
+   in the brand magenta with the fabric weave over it — and one secondary in
+   the same paper as the panel. Same two hrefs, same brief, same `note`. */
+.wm2 .wsend {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 14px;
+  align-items: center;
+  margin-top: 14px;
+}
+/* the originals stay in the DOM (they are the source of the hrefs) and stop
+   being drawn — which also retires the 1x1 `.wool-btn-label` from this step */
+.wm2 .wsend.is-upgraded { display: block; }
+.wm2 .wsend.is-upgraded > :not(.wm2-acts) { display: none !important; }
+/* the fallback, if the upgrade ever fails to find the two hrefs (ContactWizard
+   changing shape under us): the knits stay, at a cap height this panel can
+   hold, rather than the 88px the send step used to give them */
+.wm2 .wsend:not(.is-upgraded) .wool-btn--photo.is-big { --wool-btn-h: 62px; }
+.wm2 .wsend:not(.is-upgraded) .wool-btn--css.is-big { padding: 13px 22px; font-size: 0.92rem; }
+
+.wm2 .wm2-acts {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.wm2 .wm2-act {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 11px 15px;
+  border-radius: 15px;
+  overflow: hidden;
+  text-decoration: none;
+  transition:
+    transform 0.45s var(--ease),
+    box-shadow 0.45s var(--ease),
+    border-color 0.35s var(--ease),
+    background 0.35s var(--ease);
+}
+.wm2 .wm2-act > * { position: relative; z-index: 1; }
+/* the weave, laid over the ground rather than photographed under the words */
+.wm2 .wm2-act::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url('/img/tex/fabric-tile.webp');
+  background-size: 224px 24px;
+  opacity: 0.2;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+/* a light pass over the nap on hover — the same gesture the wool buttons make,
+   at a size where it reads */
+.wm2 .wm2-act-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    104deg,
+    transparent 34%,
+    rgba(255, 255, 255, 0.34) 50%,
+    transparent 66%
+  );
+  transform: translateX(-110%);
+  transition: transform 0.75s var(--ease);
+}
+.wm2 .wm2-act:hover .wm2-act-sheen,
+.wm2 .wm2-act:focus-visible .wm2-act-sheen { transform: translateX(110%); }
+
+.wm2 .wm2-act-ico {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 12px;
+  transition: transform 0.45s var(--ease);
+}
+.wm2 .wm2-act-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wm2 .wm2-act-lead {
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.012em;
+  line-height: 1.18;
+}
+.wm2 .wm2-act-note {
+  font-size: 0.7rem;
+  line-height: 1.25;
+  opacity: 0.78;
+  /* the note is the one thing here allowed to give way: it is a reassurance,
+     not an instruction, so it truncates rather than adding a line */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wm2 .wm2-act-go {
+  display: grid;
+  place-items: center;
+  opacity: 0.55;
+  transition: transform 0.45s var(--ease), opacity 0.35s var(--ease);
+}
+.wm2 .wm2-act:hover .wm2-act-go { opacity: 1; transform: translateX(3px); }
+
+/* PRIMARY — WhatsApp. The studio answers here first, so it carries the brand
+   colour, the weave and the weight. */
+.wm2 .wm2-act--wa {
+  color: #fff;
+  border: 1px solid var(--magenta-deep);
+  background: linear-gradient(146deg, var(--magenta) 0%, var(--magenta-deep) 100%);
+  box-shadow:
+    0 16px 30px -18px rgba(179, 18, 106, 0.95),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+.wm2 .wm2-act--wa .wm2-act-ico {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+.wm2 .wm2-act--wa:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 24px 44px -20px rgba(179, 18, 106, 1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+.wm2 .wm2-act--wa:hover .wm2-act-ico { transform: scale(1.06); }
+
+/* SECONDARY — email. The same paper as the panel, so the choice reads as one
+   loud door and one quiet one rather than two competing colours. */
+.wm2 .wm2-act--mail {
+  color: var(--wm-ink);
+  border: 1px solid var(--wm-line);
+  background: linear-gradient(158deg, rgba(255, 255, 255, 0.95), rgba(255, 232, 243, 0.8));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 10px 24px -20px rgba(51, 36, 61, 0.85);
+}
+.wm2 .wm2-act--mail::before { opacity: 0.1; }
+.wm2 .wm2-act--mail .wm2-act-ico {
+  background: rgba(242, 28, 140, 0.1);
+  border: 1px solid rgba(242, 28, 140, 0.22);
+  color: var(--magenta-deep);
+}
+.wm2 .wm2-act--mail .wm2-act-note { color: var(--ink-faint); opacity: 1; }
+.wm2 .wm2-act--mail:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 28, 140, 0.5);
+  background: linear-gradient(158deg, #fff, rgba(255, 220, 238, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 18px 32px -22px rgba(51, 36, 61, 0.95);
+}
+.wm2 .wm2-act--mail .wm2-act-sheen {
+  background: linear-gradient(104deg, transparent 34%, rgba(255, 255, 255, 0.75) 50%, transparent 66%);
+}
+
+.wm2 .wm2-act:active { transform: translateY(0) scale(0.988); transition-duration: 0.12s; }
+.wm2 .wm2-act:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 3px; }
+
+/* the footer of the send step — no longer pushed to the floor by `auto`,
+   because the document above it now owns the slack */
+.wm2 .wpane .wnav--end {
+  margin-top: 0;
+  padding-top: 12px;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   PHONE — the same panel as a bottom sheet, single column, still no scroll
+   ════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .wm2 .wm2-panel.is-sheet {
+    width: 100%;
+    height: min(660px, 88dvh);
+    max-height: 88dvh;
+    border-radius: 26px 26px 0 0;
+    border-bottom: 0;
+  }
+
+  .wm2 .wm2-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'mast'
+      'seed'
+      'rail'
+      'stage';
+  }
+  /* the plum bolt becomes a header band across the top three rows */
+  .wm2 .wm2-body::before,
+  .wm2 .wm2-body::after { grid-area: 1 / 1 / 4 / 2; }
+
+  /* the handle sits ABOVE .wm2-body, so the band has to be continued onto it
+     by hand or the sheet opens with a white strip above a plum header */
+  .wm2 .wm2-panel.is-sheet .sheet-handle-wrap {
+    background: #3d2749;
+    border-radius: 26px 26px 0 0;
+  }
+  .wm2 .wm2-close {
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 233, 242, 0.12);
+    border-color: rgba(255, 233, 242, 0.24);
+    color: #ffeaf4;
+  }
+  .wm2 .wm2-mast { padding: 4px 18px 6px; }
+  /* REDUCED AT THIS SIZE: the 3.4rem pattern mark. Its column is gone and the
+     eyebrow carries the same words. */
+  .wm2 .wm2-mark { display: none; }
+  .wm2 .wm2-eyebrow { font-size: 0.62rem; }
+  .wm2 .wizard-seed { margin: 0 18px 4px; padding: 5px 10px; font-size: 0.72rem; }
+
+  /* rail back to horizontal — and with it, ContactWizard's own scaleX
+     progress bar, which is on the right axis again */
+  .wm2 .wizard-steps {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 2px 12px 8px;
+  }
+  .wm2 .wizard-steps .wizard-bar { display: block; bottom: 0; }
+  .wm2 .wstep {
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: 7px;
+    padding: 6px 4px;
+    min-height: 44px;
+    min-width: 0;
+    font-size: 0.74rem;
+    white-space: nowrap;
+  }
+  .wm2 .wstep i { width: 22px; height: 22px; flex-basis: 22px; font-size: 0.64rem; }
+  .wm2 .wstep + .wstep::before {
+    left: auto;
+    right: calc(100% + 1px);
+    top: 50%;
+    width: 8px;
+    height: 2px;
+    transform: translateY(-50%);
+  }
+
+  /* the stage is paper again, edge to edge */
+  .wm2 .wm2-body .wizard-stage { padding: 18px 18px 16px; }
+  .wm2 .wq { font-size: clamp(1.16rem, 5vw, 1.4rem); padding-right: 44px; max-width: 24ch; }
+  .wm2 .wsub { font-size: 0.84rem; }
+
+  /* two-up, not one-up: the four intents are comparable AND they fit */
+  .wm2 .wintents {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    max-height: min(100%, 340px);
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .wm2 .wintent { padding: 12px 12px 13px; border-radius: 14px; }
+  .wm2 .wintent .wool-icon { --wool-icon: 32px; }
+  .wm2 .wintent-title { font-size: 0.94rem; line-height: 1.2; }
+  .wm2 .wintent-sub { font-size: 0.75rem; line-height: 1.3; }
+
+  .wm2 .wchips { margin-top: 12px; gap: 8px; }
+  .wm2 .wchip { padding: 9px 13px; font-size: 0.8rem; min-height: 40px; }
+
+  /* the two selects keep their pair; everything else is full width, so the
+     form is four rows on a phone rather than five */
+  .wm2 .wform {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    gap: 9px 12px;
+    margin-top: 12px;
+  }
+  .wm2 .wform label:nth-of-type(1),
+  .wm2 .wform label:nth-of-type(2) { grid-column: 1 / -1; }
+  .wm2 .wform input,
+  .wm2 .wform select,
+  .wm2 .wform textarea { min-height: 42px; padding: 9px 12px; font-size: 0.9rem; }
+  .wm2 .wform textarea { min-height: 48px; }
+
+  .wm2 .wnav { padding-top: 12px; }
+  .wm2 .wnav .wool-btn--photo { --wool-btn-h: 48px; }
+
+  .wm2 .wbrief {
+    font-size: 0.83rem;
+    line-height: 22px;
+    padding: 30px 15px 28px 22px;
+    background-position: 9px 40px, 0 51px, 0 0;
+    background-size: 2px calc(100% - 68px), auto, auto;
+    margin-top: 11px;
+    border-radius: 13px;
+  }
+  .wm2 .wbrief::before { padding: 8px 15px 7px; font-size: 0.55rem; letter-spacing: 0.15em; }
+  .wm2 .wbrief::after { padding: 20px 15px 9px; font-size: 0.54rem; }
+
+  .wm2 .wsend { margin-top: 11px; }
+  /* STACKED, not side by side. Two 160px columns on a 360 sheet cannot hold
+     "Send via WhatsApp" AND its reassurance line at a readable size, and the
+     stack is what a thumb expects: primary first, under the document. The two
+     rows cost ~112px against ~64px — the document above absorbs it, because
+     it is the elastic child of the pane. */
+  .wm2 .wm2-acts { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .wm2 .wm2-act { min-height: 52px; padding: 8px 12px; gap: 10px; border-radius: 13px; }
+  .wm2 .wm2-act-ico { width: 32px; height: 32px; flex-basis: 32px; border-radius: 10px; }
+  .wm2 .wm2-act-lead { font-size: 0.9rem; }
+  .wm2 .wm2-act-note { font-size: 0.67rem; }
+  .wm2 .wpane .wnav--end { padding-top: 8px; }
+  .wm2 .wpane .wnav--end .wback { padding-block: 8px; }
+
+  /* the direct line moves under the stage and shares the paper */
+  .wm2 .wmodal-direct {
+    display: none; /* see below — restored on tall phones */
+  }
+}
+
+/* On a phone with room for it, the WhatsApp escape hatch stays. It is the
+   first thing to go when the sheet is short, because it duplicates a route
+   the visitor already has (the WhatsApp FAB is on every screen of the site). */
+@media (max-width: 767px) and (min-height: 720px) {
+  .wm2 .wm2-body {
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    grid-template-areas: 'mast' 'seed' 'rail' 'stage' 'direct';
+  }
+  .wm2 .wmodal-direct {
+    display: block;
+    grid-area: direct;
+    text-align: center;
+    padding: 8px 18px 14px;
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+  }
+  .wm2 .wmodal-direct a { color: var(--ink-dim); }
+}
+
+/* REDUCED AT THIS SIZE: on a genuinely short phone the one-line description
+   under each intent goes, leaving the medallion and the title — four options,
+   all four still present and still comparable, in two rows that fit. */
+@media (max-width: 767px) and (max-height: 700px) {
+  .wm2 .wintent-sub { display: none; }
+  .wm2 .wintents { max-height: min(100%, 300px); }
+  .wm2 .wm2-panel.is-sheet { height: 94dvh; max-height: 94dvh; }
+}
+
+/* very narrow (<=360): the rail keeps its four stations but drops to numerals
+   + a tighter label, so it can never wrap onto a second line */
+@media (max-width: 374px) {
+  .wm2 .wstep { font-size: 0.7rem; gap: 5px; padding: 6px 2px; }
+  .wm2 .wstep i { width: 20px; height: 20px; flex-basis: 20px; }
+}
+
+/* ── short laptops: the cap gives way before the viewport does ──────────── */
+@media (min-width: 768px) and (max-height: 760px) {
+  .wm2 .wm2-mast { padding-top: 20px; }
+  .wm2 .wm2-mark { font-size: 2.6rem; }
+  .wm2 .wintents { max-height: min(100%, 300px); }
+}
+
+/* ── reduced motion: fades only, no transform anywhere ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  /* the exit loses its drop and keeps its fade */
+  @keyframes wm2-panel-out {
+    to { opacity: 0; }
+  }
+  .wm2.is-closing .wm2-panel { animation-duration: 0.18s; }
+  .wm2.is-closing .wmodal-backdrop { animation-duration: 0.18s; }
+  /* ContactWizard's step transition writes an inline `transform` for its
+     directional slide; this is the only way to disable it from a stylesheet,
+     and it leaves the opacity half of the same transition intact — a fade,
+     which is what the preference asks for. */
+  .wm2 .wpane { transform: none !important; }
+  .wm2 .wintents .wintent { animation: none; }
+  .wm2 .wintent:hover,
+  .wm2 .wintent:active,
+  .wm2 .wchip:hover { transform: none; }
+  .wm2 .wm2-close:hover { transform: none; }
+  .wm2 .wintent::after { transition: none; }
+  /* the send actions keep their colour change and lose every transform: no
+     lift, no press, and the sheen (which is a moving transform) is retired
+     for a plain brightening of the plate */
+  .wm2 .wm2-act:hover,
+  .wm2 .wm2-act:active { transform: none; }
+  .wm2 .wm2-act:hover .wm2-act-ico,
+  .wm2 .wm2-act:hover .wm2-act-go { transform: none; }
+  .wm2 .wm2-act-sheen {
+    transform: none;
+    background: rgba(255, 255, 255, 0);
+    transition: background 0.3s linear;
+  }
+  .wm2 .wm2-act:hover .wm2-act-sheen,
+  .wm2 .wm2-act:focus-visible .wm2-act-sheen {
+    transform: none;
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* ── reduced transparency: no blur to see through ───────────────────────── */
+@media (prefers-reduced-transparency: reduce) {
+  .wm2 .wmodal-backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(30, 17, 38, 0.92);
+  }
+  .wm2 .wm2-close { backdrop-filter: none; background: #fff; }
+}

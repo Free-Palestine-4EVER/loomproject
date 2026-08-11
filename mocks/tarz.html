@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    width: 540px; height: 1174px;
+    background: #f3ede3;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    color: #1b1a17;
+    position: relative;
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 62px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px 0 30px;
+  }
+  .sb-time { font-size: 17px; font-weight: 600; letter-spacing: 0.2px; padding-top: 4px; color: #1b1a17; }
+  .sb-island {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 37px; border-radius: 20px; background: #000;
+  }
+  .sb-right { display: flex; align-items: center; gap: 7px; padding-top: 5px; }
+
+  /* ---------- header row ---------- */
+  .head-row {
+    position: absolute; top: 74px; left: 26px; right: 26px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .head-eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
+    color: rgba(27,26,23,0.4);
+  }
+  .head-tag {
+    font-size: 11.5px; font-weight: 700; color: #e0483c;
+    background: rgba(224,72,60,0.1);
+    border: 1px solid rgba(224,72,60,0.25);
+    border-radius: 20px; padding: 5px 12px;
+  }
+
+  /* ---------- word input row ---------- */
+  .input-row {
+    position: absolute; top: 104px; left: 26px; right: 26px;
+    height: 50px; border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.08);
+    box-shadow: 0 2px 8px rgba(27,26,23,0.05);
+    display: flex; align-items: center;
+    padding: 0 8px 0 16px;
+    gap: 10px;
+  }
+  .input-word {
+    flex: 1;
+    font-family: "Farah", "Baghdad", "Geeza Pro", serif;
+    font-size: 21px; color: #1b1a17; direction: rtl; text-align: right;
+  }
+  .input-caret { width: 2px; height: 20px; background: #e0483c; border-radius: 1px; }
+  .icon-btn-sm {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(27,26,23,0.4);
+  }
+  .icon-btn-sm.divider { width: 1px; height: 20px; background: rgba(27,26,23,0.1); border-radius: 0; }
+
+  /* ---------- word preview panel ---------- */
+  .preview {
+    position: absolute; top: 168px; left: 26px; right: 26px; height: 202px;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.08);
+    border-radius: 22px;
+    box-shadow: 0 2px 10px rgba(27,26,23,0.05);
+    overflow: hidden;
+  }
+  .preview-rule {
+    position: absolute; left: 20px; right: 20px;
+    height: 1px; background: rgba(27,26,23,0.08);
+  }
+  .preview-rule-label {
+    position: absolute; left: 20px;
+    font-size: 9.5px; font-weight: 600; color: rgba(27,26,23,0.3);
+    transform: translateY(-14px);
+    letter-spacing: 0.2px;
+  }
+  .preview-word {
+    position: absolute; right: 26px; top: 18px;
+    font-family: "Farah", "Baghdad", "Geeza Pro", serif;
+    font-size: 118px; line-height: 1;
+    color: #1b1a17; direction: rtl;
+  }
+  .preview-caption {
+    position: absolute; left: 20px; right: 20px; bottom: 14px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .preview-caption-main { font-size: 13px; font-weight: 700; color: #1b1a17; }
+  .preview-caption-sub { font-size: 11.5px; color: rgba(27,26,23,0.42); font-weight: 500; }
+
+  /* ---------- style chip row ---------- */
+  .chip-row-label {
+    position: absolute; top: 390px; left: 26px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    color: rgba(27,26,23,0.4);
+  }
+  .chip-strip {
+    position: absolute; top: 416px; left: 26px; right: 0;
+    display: flex; gap: 8px;
+    overflow: hidden;
+    padding-bottom: 2px;
+  }
+  .chip {
+    flex-shrink: 0;
+    padding: 9px 16px; border-radius: 18px;
+    font-family: "Baghdad", "Geeza Pro", serif;
+    font-size: 14.5px; direction: rtl;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.1);
+    color: rgba(27,26,23,0.55);
+    white-space: nowrap;
+  }
+  .chip.active {
+    background: #1b1a17;
+    border-color: #1b1a17;
+    color: #f3ede3;
+    box-shadow: 0 6px 14px rgba(27,26,23,0.22);
+  }
+
+  /* ---------- controls panel ---------- */
+  .controls {
+    position: absolute; top: 478px; left: 26px; right: 26px;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.08);
+    border-radius: 22px;
+    box-shadow: 0 2px 10px rgba(27,26,23,0.05);
+    padding: 16px 20px 6px;
+  }
+  .controls-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .controls-title { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(27,26,23,0.4); }
+  .controls-live {
+    font-size: 10.5px; font-weight: 700; color: #2f4a8a;
+    background: rgba(47,74,138,0.1);
+    border-radius: 10px; padding: 3px 9px;
+  }
+  .slider-block { margin-bottom: 18px; }
+  .slider-label-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 9px;
+  }
+  .slider-label { font-size: 13.5px; font-weight: 700; color: #1b1a17; }
+  .slider-label span { font-weight: 500; color: rgba(27,26,23,0.4); font-size: 12px; }
+  .slider-value { font-size: 13px; font-weight: 700; color: #1b1a17; font-variant-numeric: tabular-nums; }
+  .slider-track { position: relative; height: 3px; border-radius: 2px; background: rgba(27,26,23,0.1); }
+  .slider-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #e0483c; }
+  .slider-thumb {
+    position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%;
+    background: #ffffff; border: 2px solid #e0483c;
+    box-shadow: 0 2px 5px rgba(27,26,23,0.2);
+    transform: translate(-50%, -50%);
+  }
+  .slider-block.indigo .slider-fill { background: #2f4a8a; }
+  .slider-block.indigo .slider-thumb { border-color: #2f4a8a; }
+
+  /* ---------- specimen strip ---------- */
+  .specimen-card {
+    position: absolute; top: 966px; left: 26px; right: 26px;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.08);
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(27,26,23,0.05);
+    padding: 14px 20px 16px;
+  }
+  .specimen-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .specimen-title { font-size: 12px; font-weight: 700; color: rgba(27,26,23,0.45); }
+  .specimen-count { font-size: 11px; font-weight: 700; color: #2f4a8a; }
+  .specimen {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 4px;
+  }
+  .specimen-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .specimen-word {
+    font-family: "Farah", "Baghdad", "Geeza Pro", serif;
+    color: #1b1a17; direction: rtl; line-height: 1;
+  }
+  .specimen-pt { font-size: 10px; font-weight: 600; color: rgba(27,26,23,0.35); }
+
+  /* ---------- tab bar ---------- */
+  .tabbar {
+    position: absolute; left: 20px; right: 20px; bottom: 34px;
+    height: 68px; border-radius: 30px;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid rgba(27,26,23,0.08);
+    box-shadow: 0 10px 30px rgba(27,26,23,0.14);
+    display: flex; align-items: center; justify-content: space-around;
+    backdrop-filter: blur(14px);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100px; }
+  .tab-item svg { width: 22px; height: 22px; }
+  .tab-label { font-size: 10.5px; font-weight: 600; }
+  .tab-item.active .tab-label { color: #e0483c; }
+  .tab-item:not(.active) .tab-label { color: rgba(27,26,23,0.4); }
+
+  /* ---------- home indicator ---------- */
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px;
+    background: rgba(27,26,23,0.55);
+  }
+</style>
+</head>
+<body>
+
+  <!-- status bar -->
+  <div class="statusbar">
+    <div class="sb-time">9:41</div>
+    <div class="sb-island"></div>
+    <div class="sb-right">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M9 10.2C9.66 10.2 10.2 9.66 10.2 9C10.2 8.34 9.66 7.8 9 7.8C8.34 7.8 7.8 8.34 7.8 9C7.8 9.66 8.34 10.2 9 10.2Z" fill="#1b1a17"/><path d="M9 6.3C10.4 6.3 11.68 6.83 12.66 7.7L13.9 6.3C12.6 5.15 10.88 4.5 9 4.5C7.12 4.5 5.4 5.15 4.1 6.3L5.34 7.7C6.32 6.83 7.6 6.3 9 6.3Z" fill="#1b1a17"/><path d="M9 2.1C11.5 2.1 13.78 3 15.56 4.5L16.8 3.1C14.68 1.3 11.98 0.3 9 0.3C6.02 0.3 3.32 1.3 1.2 3.1L2.44 4.5C4.22 3 6.5 2.1 9 2.1Z" fill="#1b1a17"/></svg>
+      <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="1" y="1" width="21" height="11" rx="2.5" stroke="#1b1a17" stroke-opacity="0.6"/><rect x="2.5" y="2.5" width="15" height="8" rx="1.5" fill="#1b1a17"/><rect x="23.5" y="4" width="1.6" height="5" rx="0.8" fill="#1b1a17" fill-opacity="0.6"/></svg>
+    </div>
+  </div>
+
+  <!-- header row -->
+  <div class="head-row">
+    <div class="head-eyebrow">Type &middot; الطباعة</div>
+    <div class="head-tag">Diwani &middot; 16th c.</div>
+  </div>
+
+  <!-- word input -->
+  <div class="input-row">
+    <div class="icon-btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 14L4 9L9 4" stroke="#1b1a17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9H15C18 9 20 11.2 20 14C20 16.8 18 19 15 19H11" stroke="#1b1a17" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+    <div class="icon-btn-sm divider"></div>
+    <div class="input-word">طرز</div>
+    <div class="input-caret"></div>
+  </div>
+
+  <!-- word preview -->
+  <div class="preview">
+    <div class="preview-rule" style="top: 34px;"></div>
+    <div class="preview-rule-label" style="top: 34px;">CAP 92%</div>
+    <div class="preview-rule" style="top: 96px;"></div>
+    <div class="preview-rule-label" style="top: 96px;">X-HEIGHT 58%</div>
+    <div class="preview-rule" style="top: 148px;"></div>
+    <div class="preview-rule-label" style="top: 148px;">BASELINE</div>
+    <div class="preview-word">طرز</div>
+    <div class="preview-caption">
+      <div class="preview-caption-main">Farah &middot; ديواني</div>
+      <div class="preview-caption-sub">486 nodes &middot; 3 letters</div>
+    </div>
+  </div>
+
+  <!-- style chips -->
+  <div class="chip-row-label">Styles &middot; الأنماط</div>
+  <div class="chip-strip">
+    <div class="chip">كوفي</div>
+    <div class="chip">مربع</div>
+    <div class="chip">نسخ</div>
+    <div class="chip">محقق</div>
+    <div class="chip">ثلث</div>
+    <div class="chip active">ديواني</div>
+    <div class="chip">رقعة</div>
+    <div class="chip">مغربي</div>
+    <div class="chip">تعليق</div>
+    <div class="chip">هندسي</div>
+    <div class="chip">مدوّر</div>
+    <div class="chip">معاصر</div>
+  </div>
+
+  <!-- controls -->
+  <div class="controls">
+    <div class="controls-head">
+      <div class="controls-title">Parameters</div>
+      <div class="controls-live">Live</div>
+    </div>
+
+    <div class="slider-block">
+      <div class="slider-label-row"><div class="slider-label">Weight <span>الوزن</span></div><div class="slider-value">620</div></div>
+      <div class="slider-track"><div class="slider-fill" style="width:65%;"></div><div class="slider-thumb" style="left:65%;"></div></div>
+    </div>
+    <div class="slider-block indigo">
+      <div class="slider-label-row"><div class="slider-label">Slant <span>الميل</span></div><div class="slider-value">4&deg;</div></div>
+      <div class="slider-track"><div class="slider-fill" style="width:70%;"></div><div class="slider-thumb" style="left:70%;"></div></div>
+    </div>
+    <div class="slider-block">
+      <div class="slider-label-row"><div class="slider-label">Tracking <span>تباعد</span></div><div class="slider-value">&minus;12</div></div>
+      <div class="slider-track"><div class="slider-fill" style="width:38%;"></div><div class="slider-thumb" style="left:38%;"></div></div>
+    </div>
+    <div class="slider-block indigo">
+      <div class="slider-label-row"><div class="slider-label">Baseline <span>خط الأساس</span></div><div class="slider-value">+6</div></div>
+      <div class="slider-track"><div class="slider-fill" style="width:65%;"></div><div class="slider-thumb" style="left:65%;"></div></div>
+    </div>
+    <div class="slider-block">
+      <div class="slider-label-row"><div class="slider-label">Stroke Contrast <span>التباين</span></div><div class="slider-value">78%</div></div>
+      <div class="slider-track"><div class="slider-fill" style="width:78%;"></div><div class="slider-thumb" style="left:78%;"></div></div>
+    </div>
+    <div class="slider-block indigo">
+      <div class="slider-label-row"><div class="slider-label">Kashida Stretch <span>مط</span></div><div class="slider-value">134%</div></div>
+      <div class="slider-track"><div class="slider-fill" style="width:34%;"></div><div class="slider-thumb" style="left:34%;"></div></div>
+    </div>
+    <div class="slider-block">
+      <div class="slider-label-row"><div class="slider-label">Optical Size <span>الحجم</span></div><div class="slider-value">18pt</div></div>
+      <div class="slider-track"><div class="slider-fill" style="width:13%;"></div><div class="slider-thumb" style="left:13%;"></div></div>
+    </div>
+  </div>
+
+  <!-- specimen strip -->
+  <div class="specimen-card">
+    <div class="specimen-head">
+      <div class="specimen-title">Specimen &middot; Farah Regular</div>
+      <div class="specimen-count">4 sizes</div>
+    </div>
+    <div class="specimen">
+      <div class="specimen-item"><div class="specimen-word" style="font-size:44px;">طرز</div><div class="specimen-pt">48pt</div></div>
+      <div class="specimen-item"><div class="specimen-word" style="font-size:32px;">طرز</div><div class="specimen-pt">32pt</div></div>
+      <div class="specimen-item"><div class="specimen-word" style="font-size:23px;">طرز</div><div class="specimen-pt">22pt</div></div>
+      <div class="specimen-item"><div class="specimen-word" style="font-size:16px;">طرز</div><div class="specimen-pt">14pt</div></div>
+    </div>
+  </div>
+
+  <!-- tab bar -->
+  <div class="tabbar">
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 6H20M4 12H14M4 18H10" stroke="#e0483c" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <div class="tab-label">Type</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/></svg>
+      <div class="tab-label">Styles</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/><circle cx="9" cy="9.5" r="1.6" fill="rgba(27,26,23,0.4)"/><circle cx="15" cy="9.5" r="1.6" fill="rgba(27,26,23,0.4)"/><circle cx="9" cy="15" r="1.6" fill="rgba(27,26,23,0.4)"/></svg>
+      <div class="tab-label">Colour</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 15V4M8 8L12 4L16 8" stroke="rgba(27,26,23,0.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 15V18.5C4.5 19.6 5.4 20.5 6.5 20.5H17.5C18.6 20.5 19.5 19.6 19.5 18.5V15" stroke="rgba(27,26,23,0.4)" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="tab-label">Export</div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+
+</body>
+</html>

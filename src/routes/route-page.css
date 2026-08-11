@@ -1,0 +1,38 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   route-page.css — the shell every dedicated section route sits in.
+
+   WHY IT EXISTS AT ALL. On the long home page every section is preceded by
+   another one, so the fixed header (`.nav`, position:fixed, ~90px tall) is
+   always over the BOTTOM of the thing above rather than over the top of the
+   thing you are reading. A dedicated route has no thing above: its first
+   section starts at document y=0 and the header lands on its kicker. Most
+   sections carry enough block padding of their own to survive that by luck —
+   `.faq` opens on clamp(72px, 10vh, 128px) — but `.counter`, which opens
+   /solutions, has `padding-bottom` ONLY and would have started underneath the
+   bar.
+
+   So the clearance is stated once, here, on the wrapper, instead of nine
+   times or (worse) by editing a section component that the home page also
+   mounts. It is deliberately close to the 114px `scroll-margin-top` that
+   styles.css already gives every `section[id]` for exactly the same reason —
+   the number is "the header, plus a little" in both places.
+
+   Nothing else is styled. These pages are the site's own sections, unchanged,
+   in the site's own chrome; a route wrapper that started restyling them would
+   be a second design of content that already has one.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.route-page {
+  /* `clip`, not `hidden`: the sections below run their own pinned/parallax
+     work and `overflow: hidden` on an ancestor would silently kill
+     `position: sticky` inside them. `clip` contains a stray horizontal
+     overflow without creating a scroll container. */
+  overflow-x: clip;
+  padding-top: 92px;
+}
+
+@media (max-width: 900px) {
+  .route-page {
+    padding-top: 76px;
+  }
+}

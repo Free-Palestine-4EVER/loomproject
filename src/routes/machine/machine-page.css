@@ -1,0 +1,429 @@
+/* ═══ /machine — the page's own sheet ═════════════════════════════════════
+   Prefix `mn-`, used nowhere else. components/machine.css and
+   machine-offer.css still own the home page's section and are untouched.
+
+   THE ONE STRUCTURAL DECISION: the gallery. The section on the home page
+   renders these twenty posts at 58 CSS px because there it has to read as a
+   MONTH's SHAPE next to the pitch. Here the work IS the pitch, so the tiles
+   are ~300px on a wide screen and two-up on a phone, in the source images'
+   own 4:5 ratio (640×800 in loomPosts.json) so nothing is cropped and no cell
+   can shift when an image lands — every <Pic> carries its intrinsic width and
+   height, and `aspect-ratio` on the frame matches them.
+
+   COLOUR: no new values. Accents are the four yarns set per card inline;
+   accent-coloured text resolves --accent-ink, never the raw yarn (1.8:1 on
+   this ground). Surfaces are white at low alpha over --bg/--bg-2, which is
+   the site's light-surface idiom.
+
+   MOTION: entrance only (`use:reveal`), plus one hover transition on a
+   gallery tile. Cut at the foot of this file for reduced motion.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.mn-hero,
+.mn-arrives,
+.mn-month,
+.mn-work,
+.mn-price,
+.mn-arabic {
+  position: relative;
+  padding: clamp(56px, 8vh, 104px) var(--pad);
+}
+.mn-hero-in,
+.mn-sec-head,
+.mn-arrive-grid,
+.mn-flow,
+.mn-terms,
+.mn-gallery,
+.mn-price-in,
+.mn-arabic-in {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+/* ——— 1. HERO ——————————————————————————————————————————————————————— */
+.mn-hero {
+  padding-top: clamp(40px, 6vh, 72px);
+  isolation: isolate;
+  border-bottom: 1px solid var(--line);
+}
+.mn-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(56% 48% at 22% 0%, rgba(89, 230, 255, 0.16), transparent 70%),
+    radial-gradient(52% 44% at 84% 6%, rgba(242, 28, 140, 0.12), transparent 72%),
+    linear-gradient(to bottom, var(--bg-2), var(--bg));
+}
+.mn-ar-tag {
+  font-family: var(--body);
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--magenta-deep);
+}
+.mn-h1 {
+  max-width: 20ch;
+  font-size: clamp(2.1rem, 5.4vw, 4rem);
+  line-height: 1.02;
+}
+.mn-hero-lede { margin-top: 20px; color: var(--ink-dim); max-width: 62ch; }
+
+.mn-hero-figs {
+  margin-top: clamp(26px, 3.2vw, 38px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(14px, 2.4vw, 40px);
+  align-items: flex-end;
+}
+.mn-fig { min-width: 0; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.mn-fig b {
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 4.4vw, 3.2rem);
+  font-weight: 620;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+/* DIRECT CHILD, not any descendant: <CountUp> renders a bare <span> inside the
+   <b>, and a loose `.mn-fig span` rule caught it and shrank the figure to
+   label size — the number rendered at 0.84rem while its own rule said 51px. */
+.mn-fig > span {
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.mn-fig i {
+  font-style: normal;
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.mn-fig--price b { color: var(--magenta-deep); }
+
+.mn-hero-cta {
+  margin-top: clamp(24px, 3vw, 36px);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+.mn-hero-cta-note { font-size: 0.86rem; color: var(--ink-faint); max-width: 34ch; }
+
+/* ——— shared section head ——————————————————————————————————————————— */
+.mn-sec-head { margin-bottom: clamp(26px, 3.6vw, 46px); }
+.mn-h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); line-height: 1.05; max-width: 22ch; }
+.mn-sec-lede {
+  margin-top: 14px;
+  color: var(--ink-dim);
+  max-width: 64ch;
+  font-size: clamp(0.98rem, 1.3vw, 1.1rem);
+}
+
+/* ——— 2. WHAT ARRIVES ——————————————————————————————————————————————— */
+.mn-arrive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(12px, 1.4vw, 18px);
+}
+.mn-card {
+  min-width: 0;
+  padding: clamp(18px, 2vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent, var(--magenta)) 11%, transparent),
+    color-mix(in srgb, var(--accent, var(--magenta)) 2%, transparent) 60%
+  );
+}
+.mn-card-n {
+  font-family: var(--display);
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  font-weight: 620;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--accent-ink);
+}
+.mn-card-tick {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--accent, var(--magenta));
+  opacity: 0.9;
+  position: relative;
+}
+.mn-card-tick::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  width: 7px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-top: 0;
+  border-left: 0;
+  transform: rotate(42deg);
+}
+.mn-card-h {
+  margin-top: 12px;
+  font-family: var(--display);
+  font-size: clamp(1.02rem, 1.5vw, 1.2rem);
+  font-weight: 620;
+  line-height: 1.15;
+}
+.mn-card-ar {
+  margin-top: 8px;
+  font-size: 0.95rem;
+  color: var(--ink-faint);
+}
+
+/* ——— 3. HOW A MONTH RUNS ——————————————————————————————————————————— */
+.mn-month { background: linear-gradient(to bottom, var(--bg), var(--bg-2)); }
+.mn-flow {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: clamp(12px, 1.4vw, 18px);
+}
+.mn-flow-step {
+  min-width: 0;
+  padding: clamp(18px, 2vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.5);
+}
+.mn-flow-n {
+  font-family: var(--display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--magenta-deep);
+}
+.mn-flow-h {
+  margin-top: 8px;
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 620;
+}
+.mn-flow-b { margin-top: 8px; font-size: 0.93rem; color: var(--ink-dim); }
+
+.mn-terms {
+  margin-top: clamp(16px, 2vw, 24px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(12px, 1.4vw, 18px);
+}
+.mn-term {
+  min-width: 0;
+  padding: clamp(16px, 1.8vw, 22px);
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+}
+.mn-term-h {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.mn-term-b { margin-top: 8px; font-size: 1rem; color: var(--ink); max-width: 46ch; }
+.mn-term-src { margin-top: 10px; font-size: 0.78rem; color: var(--ink-faint); }
+
+/* ——— 4. THE WORK ——————————————————————————————————————————————————
+   The gallery. `auto-fill` with a 220px floor gives four across at 1180,
+   three on a tablet; the phone rule below forces exactly two, because one
+   column of 4:5 stills is a very long page for no gain. */
+.mn-gallery {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+}
+.mn-shot { min-width: 0; }
+.mn-shot figure {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--bg-3);
+  /* matches the sources' own 640×800, so the cell never resizes on load */
+  aspect-ratio: 4 / 5;
+  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+}
+.mn-shot figure:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 44px -28px rgba(96, 30, 70, 0.55);
+}
+/* plain stylesheet, not a Svelte <style> block — no :global() wrapper, and
+   none needed: nothing here is scoped */
+.mn-shot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* The alt text is the caption. It sits in a gradient plate at the foot of the
+   tile rather than under it, so twenty captions do not turn the grid into a
+   ragged wall of text — and it is real text, so it is selectable and read. */
+.mn-shot figcaption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 26px 12px 10px;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: #fff;
+  background: linear-gradient(to top, rgba(40, 12, 30, 0.82), transparent);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.32s var(--ease), transform 0.32s var(--ease);
+}
+.mn-shot figure:hover figcaption,
+.mn-shot figure:focus-within figcaption { opacity: 1; transform: none; }
+
+/* ——— 5. THE PRICE —————————————————————————————————————————————————— */
+.mn-price { border-block: 1px solid var(--line); background: var(--bg-2); }
+.mn-price-in {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 48px);
+  align-items: center;
+}
+.mn-price-plate {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(22px, 2.6vw, 34px);
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--magenta) 30%, transparent);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.5));
+  box-shadow: 0 26px 60px -40px rgba(96, 30, 70, 0.5);
+}
+.mn-price-tag {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.mn-price-val {
+  margin-top: 6px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: var(--display);
+  font-size: clamp(3rem, 6vw, 4.4rem);
+  font-weight: 620;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--magenta-deep);
+}
+.mn-price-cur { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.08em; }
+.mn-price-unit {
+  font-family: var(--body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.mn-price-note { margin-top: 12px; font-size: 0.88rem; color: var(--ink-dim); max-width: 34ch; }
+.mn-price-ar {
+  position: absolute;
+  right: -6px;
+  bottom: -18px;
+  font-size: 4.2rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--magenta) 12%, transparent);
+  pointer-events: none;
+}
+.mn-price-side { min-width: 0; }
+.mn-not {
+  list-style: none;
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+.mn-not li {
+  min-width: 0;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: clamp(1rem, 1.4vw, 1.12rem);
+  color: var(--ink);
+}
+.mn-not li::before {
+  content: '—';
+  color: var(--magenta);
+  font-weight: 800;
+}
+.mn-price-fine { margin-top: 16px; font-size: 0.9rem; color: var(--ink-dim); max-width: 62ch; }
+.mn-price-cta { margin-top: 20px; }
+
+/* ——— 6. IN ARABIC —————————————————————————————————————————————————— */
+.mn-arabic-in {
+  padding: clamp(22px, 3vw, 40px);
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.5);
+}
+.mn-arabic-tag {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--magenta-deep);
+  text-align: right;
+}
+.mn-arabic-body {
+  margin-top: 12px;
+  margin-inline-start: auto;
+  font-size: clamp(1.02rem, 1.5vw, 1.22rem);
+  line-height: 2;
+  color: var(--ink);
+  max-width: 62ch;
+  text-align: right;
+}
+
+/* ——— RESPONSIVE ——————————————————————————————————————————————————— */
+@media (max-width: 900px) {
+  .mn-price-in { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .mn-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* No hover on a touch screen, so an overlaid caption would be unreachable.
+     The frame stops being a fixed-ratio box and the caption sits under the
+     image, always visible; the ratio moves onto the image itself. */
+  .mn-shot figure {
+    aspect-ratio: auto;
+    overflow: visible;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .mn-shot figcaption {
+    position: static;
+    opacity: 1;
+    transform: none;
+    padding: 0;
+    margin-top: 6px;
+    color: var(--ink-faint);
+    background: none;
+  }
+  .mn-shot-img {
+    height: auto;
+    aspect-ratio: 4 / 5;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+  }
+}
+
+/* ——— REDUCED MOTION ———————————————————————————————————————————————— */
+@media (prefers-reduced-motion: reduce) {
+  .mn-shot figure,
+  .mn-shot figcaption { transition: none !important; }
+  .mn-shot figure:hover { transform: none; box-shadow: none; }
+}

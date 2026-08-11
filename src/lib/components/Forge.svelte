@@ -143,6 +143,24 @@
     open = false
   }
 
+  /** The panel's own entrance. `fade` alone read as a flat cross-dissolve, and
+   *  the two surfaces want different physics: on a phone this is a bottom
+   *  sheet and should rise, on a desktop it is a card and should settle. One
+   *  transform covers both — a short travel plus a hair of scale, which reads
+   *  as "up" against the bottom edge and as "forward" against the middle of
+   *  the screen. Written as a css() transition rather than tick() so it runs
+   *  on the compositor, and Svelte's own transition machinery makes it
+   *  interruptible: closing mid-open reverses from wherever it got to instead
+   *  of restarting. */
+  function panelMotion(node, { duration = 380 } = {}) {
+    if (reducedMotion.current) return { duration: 10, css: (t) => `opacity:${t}` }
+    return {
+      duration,
+      easing: cubicOut,
+      css: (t, u) => `opacity:${t}; transform: translate3d(0, ${u * 20}px, 0) scale(${0.982 + t * 0.018})`,
+    }
+  }
+
   // ── overlay contract: .overlay-open, Escape, Tab focus trap ──────────────
   // Same idiom as Nav.svelte's drawer.
   $effect(() => {
@@ -157,13 +175,22 @@
       )
       if (!f || !f.length) return
       const first = f[0], last = f[f.length - 1]
+      // Focus starts on the dialog element itself, which is not in `f` — a
+      // Shift+Tab from there would otherwise walk straight out of the trap and
+      // into the page behind it.
+      if (e.shiftKey && document.activeElement === panelEl) { e.preventDefault(); last.focus(); return }
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
     }
 
     document.documentElement.classList.add('overlay-open')
     window.addEventListener('keydown', onKey)
-    const t = setTimeout(() => panelEl?.querySelector('.fg-close')?.focus(), 60)
+    /* Focus the DIALOG, not its close button. Landing on "Close" is what a
+       screen reader then reads first — the first thing a visitor is told about
+       the panel should not be how to get rid of it. Focusing the labelled
+       dialog element announces its title, and the trap below still keeps Tab
+       inside it. */
+    const t = setTimeout(() => panelEl?.focus({ preventScroll: true }), 60)
 
     return () => {
       document.documentElement.classList.remove('overlay-open')
@@ -337,41 +364,102 @@
 </button>
 
 <section class="forge" id="forge" aria-labelledby="forge-title">
+  <!-- FOUR PARTS, NOT TWO COLUMNS. The band used to be one block of copy
+       beside one picture, which reads on a desktop as a paragraph trailing off
+       under a headline and on a phone as a plain stack with the ask at the
+       bottom. It is now four independently placed pieces — heading, media,
+       lede, offer — so the two viewports can order them differently:
+
+         desktop   heading / lede / offer stacked down the left, the media
+                   held centred beside all three, and the offer card riding
+                   over its left edge so the two halves are one composition
+                   rather than two rectangles;
+
+         phone     heading, then the picture (which IS the pitch, in one
+                   frame), then the sentence that explains it, then the offer
+                   as the last thing before the thumb — the ask is no longer
+                   buried under a five-line paragraph.
+
+       Every word below is unchanged. -->
   <div class="forge-inner">
-    <div class="forge-copy">
+    <div class="forge-head">
       <p class="forge-kicker"><span>—</span> New from the 3D Lab</p>
       <h2 class="forge-h2" id="forge-title" use:reveal>
         Send a photo. Get a 3D model back.
       </h2>
-      <p class="forge-lede" use:reveal={{ delay: 0.12 }}>
-        One picture of the thing — a chair, a bottle, a shoe, a part — and our
-        pipeline rebuilds it as real geometry you can spin, light and drop into
-        a website, a game or an AR view. About a minute per model.
+    </div>
+
+    <!-- ═══ the transformation ═══
+         The band's claim is "send a photo, get a model back", and a single
+         flat picture states it without showing it. Two copies of the same
+         frame are stacked instead: the lower one flattened and drained to
+         read as the photograph that went in, the upper one full-strength
+         under a wireframe mesh to read as the geometry that came out, with a
+         lit seam between them. The seam's position is one custom property,
+         and the only thing that moves it is the page scrolling past — a
+         scroll-driven CSS animation, so it runs off the main thread, stops
+         dead when the section is off screen, and needs no JS at all. Where
+         `animation-timeline` is unsupported (and under reduced motion) the
+         seam simply parks at the middle and the split stands still, which is
+         the same picture, just not built in front of you. -->
+    <div class="forge-media">
+      <div class="forge-xform">
+        <!-- Same art-direction contract as WorkshopsPromo and the need tiles:
+             onerror drops a failed decode rather than leaving a hole, and the
+             CSS gradient behind the layer is the fallback. -->
+        <img
+          class="forge-x-flat"
+          src="/img/forge/forge-mascots.webp"
+          alt="Two LOOM wool mascots — one holding a flat printed photo of an armchair, the other holding the same chair rebuilt as a glowing 3D wireframe"
+          width="1400"
+          height="781"
+          loading="lazy"
+          decoding="async"
+          onerror={(e) => { e.currentTarget.style.display = 'none' }}
+        />
+        <!-- The rebuilt half. Decorative and aria-hidden: it is the same
+             photograph as the layer underneath, and a screen reader being
+             handed that alt text twice learns nothing the second time. -->
+        <div class="forge-x-solid" aria-hidden="true">
+          <img
+            src="/img/forge/forge-mascots.webp"
+            alt=""
+            width="1400"
+            height="781"
+            loading="lazy"
+            decoding="async"
+            onerror={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+          <span class="forge-x-mesh"></span>
+        </div>
+        <span class="forge-x-seam" aria-hidden="true"></span>
+        <span class="forge-x-tag forge-x-tag--in" aria-hidden="true">2D</span>
+        <span class="forge-x-tag forge-x-tag--out" aria-hidden="true">3D</span>
+      </div>
+    </div>
+
+    <p class="forge-lede" use:reveal={{ delay: 0.1 }}>
+      One picture of the thing — a chair, a bottle, a shoe, a part — and our
+      pipeline rebuilds it as real geometry you can spin, light and drop into
+      a website, a game or an AR view. About a minute per model.
+    </p>
+
+    <!-- The offer, given the size it deserves — and now given an EDGE. Same
+         sentence, same words, same order; it is simply no longer a line of
+         text drifting between a paragraph and a button. Price, promise and
+         the one action live on one plate, and that plate is the piece the
+         composition is built around. -->
+    <div class="forge-offer" use:reveal={{ delay: 0.16 }}>
+      <p class="forge-price">
+        <strong>{PRICE_JOD} JOD</strong> <span class="forge-price-unit">a model —</span>
+        <em>your first one is free.</em>
       </p>
-      <p class="forge-price" use:reveal={{ delay: 0.18 }}>
-        <strong>{PRICE_JOD} JOD</strong> a model — <em>your first one is free.</em>
-      </p>
-      <div class="forge-cta" use:reveal={{ delay: 0.24 }}>
+      <div class="forge-cta">
         <div class="magnetic" use:magnetic={{ strength: 0.25 }}>
           <WoolButton label="Make one free" onclick={openPopup} />
         </div>
         <span class="forge-formats">GLB · FBX · OBJ · USDZ</span>
       </div>
-    </div>
-
-    <div class="forge-media">
-      <!-- Same art-direction contract as WorkshopsPromo and the need tiles:
-           onerror drops a failed decode rather than leaving a hole, and the
-           CSS gradient behind the layer is the fallback. -->
-      <img
-        src="/img/forge/forge-mascots.webp"
-        alt="Two LOOM wool mascots — one holding a flat printed photo of an armchair, the other holding the same chair rebuilt as a glowing 3D wireframe"
-        width="1400"
-        height="781"
-        loading="lazy"
-        decoding="async"
-        onerror={(e) => { e.currentTarget.style.display = 'none' }}
-      />
     </div>
   </div>
 </section>
@@ -390,7 +478,8 @@
       role="dialog"
       aria-modal="true"
       aria-labelledby="fg-title"
-      transition:fade={{ duration: reducedMotion.current ? 10 : 400, easing: cubicOut }}
+      tabindex="-1"
+      transition:panelMotion={{ duration: 380 }}
     >
       <!-- Static grab-bar, phone-only via CSS (see the <style> block below):
            the React build tracked isMobile() with a resize listener just to
@@ -434,7 +523,15 @@
               </li>
             {/each}
           </ol>
-          <div class="fg-tool"><p class="fg-note">Checking your account…</p></div>
+          <!-- Loading is a designed state, not a bare sentence: the same
+               centred column the pitch uses, so the panel does not visibly
+               re-lay-itself-out the moment the profile lands. -->
+          <div class="fg-tool">
+            <div class="fg-loading">
+              <span class="fg-spinner" aria-hidden="true"></span>
+              <p class="fg-note" role="status">Checking your account…</p>
+            </div>
+          </div>
 
         {:else if !profile && entryStep === 'pitch'}
           <!-- step 1 — the pitch, one unmistakable primary action -->

@@ -3,18 +3,39 @@
 
   ORDER IS A CONVERSION DECISION, NOT A TASTE ONE (reordered 9 Aug 2026,
   extended 10 Aug, reorganised 10 Aug; Voices and Process REMOVED 10 Aug 2026
-  at the client's request). Four bands; nothing may be inserted without picking
-  one:
+  at the client's request; OPENING REORDERED 11 Aug 2026, also at the client's
+  request). Bands; nothing may be inserted without picking one:
 
-    PROOF     hero → client wall → cases → who and where the studio is
+    OPEN      hero → client wall → the free typeface
+    PROOF     cases
     QUALIFY   thirty industries (pinned tour) → the fork
     SELL      the floor, then everything buyable
     CAPABLE   what LOOM builds, including for itself
-    CLOSE     why → offer → FAQ → contact → careers
+    CLOSE     who and where → why → FAQ → contact → careers
 
   Three rules drove the 10 Aug reorganisation: nothing that cannot be bought
   today may sit above something that can; no claim sits above its own evidence;
   and ALL the evidence goes first.
+
+  THE 11 AUG 2026 OPENING WENT THROUGH TWO MOVES IN ONE DAY, both on the
+  client's explicit instruction. First Manifesto (from slot 14) and
+  TypeShowcase (from slot 11) were pulled up under the hero, opening the page
+  VOICE-first. Then MANIFESTO WAS CUT FROM THE PAGE ALTOGETHER and Proof took
+  its slot, which is where things stand: hero → client wall → free typeface.
+
+  So the "no claim sits above its own evidence" rule is BACK IN FORCE at the
+  top — Proof is evidence and it now opens — while "nothing that cannot be
+  bought today may sit above something that can" is still overridden, by
+  TypeShowcase at slot 3. That one is the client's call, not a conversion
+  argument, and the 10 Aug reasoning for putting it low (a free typeface is the
+  purest craft flex LOOM has and converts nobody; it also pulls heavy display
+  cuts into the top of the page) is still written at its seam below and is
+  still what a rebuttal should start from.
+
+  Manifesto is no longer mounted anywhere. Its component and stylesheet remain
+  in the tree, so bringing it back is a one-line import + mount, but #manifesto
+  does not resolve. Nothing else moved: Work and everything after it keep their
+  10 Aug relative order.
 
   What moved and why is annotated at each seam below.
 -->
@@ -34,7 +55,6 @@
   import LoomMcp from '$lib/components/LoomMcp.svelte'
   import TypeShowcase from '$lib/components/TypeShowcase.svelte'
   import Studios from '$lib/components/Studios.svelte'
-  import Manifesto from '$lib/components/Manifesto.svelte'
   import Bolt from '$lib/components/Bolt.svelte'
   import Faq from '$lib/components/Faq.svelte'
   import Contact from '$lib/components/Contact.svelte'
@@ -71,6 +91,40 @@
     fetchpriority="high"
   />
 
+  <!-- The hero headline is set in LOOM Linear (the pattern family), and at
+       tablet/desktop widths it IS the LCP element — the note above says there
+       was "nothing to preload for a text node", which stopped being true when
+       the headline moved off a system-adjacent stack onto a drawn face.
+       Without this the font is discovered three hops late: HTML -> the CSS
+       bundle -> parse -> @font-face -> fetch. These two are the subsets built
+       by scripts/subset-patterns-home.mjs (22.3 KB + 20.2 KB, 19 glyphs each,
+       exactly the characters of "WE WEAVE BRANDS ON THE EDGE OF CREATIVITY.")
+       — not the 161 KB full faces, which is the whole reason preloading them
+       is affordable at all.
+
+       No `media` filter, unlike the image above: the headline is the same
+       drawn face at 390 as at 1440, so a phone needs these bytes too even
+       though its LCP element is the wool button. Both are needed for the
+       first paint of one three-line headline (fill for lines 1 and 3, outline
+       for the accent line), so preloading one and not the other would just
+       move the late discovery onto the middle line. `crossorigin` is
+       mandatory even same-origin — fonts are fetched in CORS mode, and a
+       preload without it is a second, unshared request rather than a hit. -->
+  <link
+    rel="preload"
+    as="font"
+    type="font/woff2"
+    href="/fonts/loom-patterns/LOOMLinear-Home.woff2"
+    crossorigin
+  />
+  <link
+    rel="preload"
+    as="font"
+    type="font/woff2"
+    href="/fonts/loom-patterns/LOOMLinearOutline-Home.woff2"
+    crossorigin
+  />
+
   {@html `<script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -87,13 +141,42 @@
 
 <Hero />
 
-<!-- PROOF — one section where Marquee and Stats used to be two. The marquee
+<!-- PROOF OPENS THE PAGE — 11 Aug 2026, at the client's request, taking the
+     slot Manifesto held for the few hours between the earlier reorder and this
+     one.
+
+     MANIFESTO IS REMOVED ENTIRELY, same instruction. It was moved up to slot 2
+     earlier today and cut from the page later the same day; it is no longer
+     mounted by anything. The component and its stylesheet are left in the tree
+     rather than deleted, so restoring it is a one-line import + mount — but
+     nothing renders it now, and #manifesto no longer resolves.
+
+     The argument that put it there in the first place is the argument that
+     took it out: "Trends don't lead our work. Thinking does." is a CLAIM, and
+     a claim read second, with nothing underneath it, is just an assertion.
+     Proof is evidence, and evidence is the stronger opening — the client list
+     and the four numbers do the qualifying work before the visitor is asked to
+     believe anything.
+
+     PROOF — one section where Marquee and Stats used to be two. The marquee
      slid the most valuable words on the page (UNICEF, Vodafone, Benetton) past
      at a speed nobody reads them at, and the numbers band under it was four
      CountUps with no claim attached. They are now the evidence and the summary
      of one argument. Marquee and Stats are not ported — they are mounted by
      nothing. -->
 <Proof />
+
+<!-- TypeShowcase holds slot 3, where it landed in the earlier 11 Aug reorder.
+     It was slot 2 originally, went down to the R&D band on 9 Aug ("it was the
+     second thing a buyer saw, before one client name"), and is high again now.
+     The two costs of it sitting this high are unchanged and worth restating
+     rather than quietly re-incurring: a free typeface is the purest craft flex
+     LOOM has and converts nobody, and the section pulls heavy display font
+     cuts into the top of the page. It now reads as craft evidence directly
+     under commercial evidence, which is a weaker pairing than it had under the
+     manifesto — flagged, not acted on. /type still carries it in the nav for
+     anyone who came for the font. -->
+<TypeShowcase />
 
 <!-- Work came up from slot 7. It was behind the typeface, the manifesto and two
      "start here" modules — the visitor was asked to choose a service before
@@ -194,31 +277,32 @@
      a dev-tool waitlist does not outrank the subscription. -->
 <LoomMcp />
 
-<!-- TypeShowcase came down from slot 2 — it was the second thing a buyer saw,
-     before one client name. A free typeface is the purest craft flex LOOM has
-     and converts nobody; it belongs with the rest of the R&D, where it also
-     stops pulling four heavy planted font cuts into the top of the page. /type
-     still carries it in the nav for anyone who came for the font. -->
-<TypeShowcase />
+<!-- TypeShowcase used to close the R&D band here — it had come down from slot 2
+     on 9 Aug because it was the second thing a buyer saw, before one client
+     name. IT WENT BACK UP UNDER THE MANIFESTO on 11 Aug 2026 at the client's
+     request; see its seam at the top of the page. The Protocol (#mcp) above is
+     now the last thing in CAPABLE. -->
 
 <!-- CLOSE — an unbroken ramp to the ask. How it works, why it works, who does
      it, one last offer, then the form. Nothing new is introduced past this
      point.
 
-     Two studios, named and placed, immediately before the belief and the ask.
-     By here the visitor has seen what LOOM sells and what it costs, so "who is
-     this and where are they" is a live question rather than an interruption.
+     Two studios, named and placed, immediately before the ask. (Until 11 Aug
+     2026 this read "before the belief and the ask" — the belief, Manifesto, now
+     opens the page.) By here the visitor has seen what LOOM sells and what it
+     costs, so "who is this and where are they" is a live question rather than
+     an interruption.
      Amman and Sarajevo also do real work for a Jordanian buyer this late on the
      page: the studio is local. -->
 <Studios />
 
-<!-- Manifesto came down from slot 4. "Trends don't lead our work. Thinking
-     does." is a claim, and a claim only pays once there is evidence behind it —
-     it now reads as the conclusion of the page rather than its opening
-     assertion. -->
-<Manifesto />
+<!-- Manifesto sat here from 9 Aug (it had come down from slot 4) so that it read
+     as the conclusion of the page rather than its opening assertion. MOVED TO
+     SLOT 2, directly under the hero, on 11 Aug 2026 at the client's request —
+     see its seam at the top of this file for the full note. Studios now runs
+     straight into Bolt, which is the same close it always was minus one beat.
 
-<!-- BY RESULT (1.75 JOD per WhatsApp conversation) was retired 8 Aug 2026: LOOM
+     BY RESULT (1.75 JOD per WhatsApp conversation) was retired 8 Aug 2026: LOOM
      cannot promise an outcome that depends on the client's own replies and
      market. Not ported. -->
 <Bolt />

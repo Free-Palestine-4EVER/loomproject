@@ -1,506 +1,371 @@
-/* ————————————————————————————————————————————————————————
-   AppScreens — animated in-phone UI previews
-   Prefix: as-  (mirrors the "app-" phone frame it lives inside)
-   Sized in container-query units so it reads at 92px AND 320px+.
-   ———————————————————————————————————————————————————————— */
+/* ————————————————————————————————————————————————————————————————
+   appscreens.css — the DEVICE STAGE inside `#apps`.
+   Prefix: dv-   Owned by AppsShowcase.svelte.
 
-.as-root {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
-  container-type: inline-size;
-  container-name: appscreen;
-  font-family: var(--body, 'Satoshi', 'Helvetica Neue', sans-serif);
-  color: var(--ink);
-  -webkit-font-smoothing: antialiased;
-  isolation: isolate;
+   Loaded AFTER products-stage.css by the same component, so the handful of
+   rules at the bottom of this file that re-state a `.stg-*` selector are
+   deliberate overrides at equal specificity — they widen the imagery column
+   the device stage now needs and freeze its height. Nothing else in the
+   codebase imports either sheet.
+
+   WHAT THIS DRAWS
+     kind: 'app'      → three phones in a fan. Centre phone larger and
+                        forward, two flanking phones smaller, rotated and set
+                        back. shots[0] is the hero, in the middle.
+     kind: 'software' → one MacBook, screenshot in the display.
+
+   Both mockups are PURE CSS — bezel, dynamic island, camera, hinge and base
+   are gradients and pseudo-elements. No frame PNG is fetched for either
+   (`/img/devices/*` is still used by DeviceShowcase in the case studies; it
+   is simply no longer used here), so switching product never waits on a
+   second image and there is nothing to 404.
+
+   THE HEIGHT CONTRACT — the reason this file exists.
+     Six products, two mockups, captures of five different aspect ratios: if
+     the imagery sizes itself off its own content the card grows and shrinks
+     as the rail walks, and on the unpinned (short / mobile / reduced-motion)
+     layout that reflows everything below the section. So ONE token, `--dv-h`,
+     is the stage's height, declared on `.stg` in viewport units with a px
+     floor and a px ceiling, and EVERY device dimension below is derived from
+     it — the phones and the laptop are sized by height, never by their
+     image. `.stg-stage` and `.stg-panel` both carry it as a min-height, and
+     `.stg-info` reserves the copy column's tallest run (blurbs are three to
+     five lines and one product carries a store link), so the card is the
+     same height on all six products in every layout — verified at 360, 390,
+     700, 900, 1200 and 1440px: ONE card height per width, six products.
+
+   PERFORMANCE CONTRACT (inherited from products-stage.css, unchanged):
+   only transform, opacity and colour animate; nothing loops; only the
+   selected product's images are ever in the DOM (the component keys the
+   whole stage on `item.key`).
+   ———————————————————————————————————————————————————————————————— */
+
+/* ═══════════════════════════════════════════════════════════════
+   THE STAGE BOX — one fixed height for every product.
+   ═══════════════════════════════════════════════════════════════ */
+.dv-stage {
+  position: relative;
+  /* a single STRETCHED column, not `place-items: center` — the devices are
+     sized in percentages of this box, and a shrink-to-fit column has no
+     width for a percentage to resolve against (it computes to zero and the
+     whole mockup disappears). The column is definite; the devices centre
+     themselves inside it. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  width: 100%;
+  min-height: var(--dv-h);
+  /* the fan is allowed to bleed a little into the gutter it is centred in;
+     `.stg` clips, and `.apps` clips again, so the PAGE never scrolls
+     sideways no matter how narrow the viewport gets */
+  overflow: visible;
 }
 
-/* per-app accent tokens */
-.as-lahza { --ac: var(--magenta, #f21c8c); --ac2: var(--violet, #7b2fbe); }
-.as-evora-scan { --ac: var(--cyan, #59e6ff); --ac2: var(--violet, #7b2fbe); }
-.as-glowbar { --ac: var(--gold, #ffc740); --ac2: var(--magenta, #f21c8c); }
-.as-tawsiyat { --ac: #2ee6a8; --ac2: var(--cyan, #59e6ff); }
-.as-truesize { --ac: var(--violet, #7b2fbe); --ac2: var(--magenta, #f21c8c); }
-.as-morphic { --ac: var(--magenta, #f21c8c); --ac2: var(--gold, #ffc740); }
+/* ——— the enter animation lives on the SLOT, never on the device ———
+   the flanking phones carry a static rotate/scale, and an animation on the
+   same element would win the transform and flatten them out mid-flight. */
+.dv-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: dv-in 0.52s var(--ease) both;
+  animation-delay: 0s;
+}
+@keyframes dv-in {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to { opacity: 1; transform: none; }
+}
 
-.as-root::before {
+/* ═══════════════════════════════════════════════════════════════
+   THE PHONE FAN — kind: 'app'
+   ═══════════════════════════════════════════════════════════════ */
+.dv-fan {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+}
+/* the centre phone is the hero: full size, forward, unrotated */
+.dv-fan .dv-slot--m { z-index: 3; }
+/* the flanks sit behind and tuck under the hero. The negative margin is in
+   `--dv-h` units like everything else, so the overlap holds at every size. */
+.dv-fan .dv-slot--l,
+.dv-fan .dv-slot--r { z-index: 1; }
+.dv-fan .dv-slot--l { margin-right: calc(var(--dv-h) * -0.058); animation-delay: 0.07s; }
+.dv-fan .dv-slot--r { margin-left: calc(var(--dv-h) * -0.058); animation-delay: 0.12s; }
+/* THE SLOT carries the width, not the phone — a flex item that sizes itself
+   from its child cannot also be the thing that child's percentage resolves
+   against. `min()` is the guard: the fan shrinks to fit a narrow column
+   rather than spilling out of it. */
+.dv-fan .dv-slot { flex: none; width: min(30%, calc(var(--dv-h) * 0.415)); }
+.dv-fan .dv-slot--l .dv-phone { transform: scale(0.83) rotate(-6.5deg) translateY(3%); }
+.dv-fan .dv-slot--r .dv-phone { transform: scale(0.83) rotate(6.5deg) translateY(3%); }
+.dv-fan .dv-slot--l .dv-phone,
+.dv-fan .dv-slot--r .dv-phone { opacity: 0.94; }
+
+/* ——— the phone itself. iPhone 15 Pro proportions (9 : 19.5). It fills the
+   slot its parent sized, so its height comes from the STAGE and never from
+   the capture inside it — which is what keeps six products the same size. ——— */
+.dv-phone {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 19.5;
+  padding: 2.4%;
+  border-radius: 15% / 6.9%;
+  /* brushed-titanium rail: one gradient, two inset hairlines */
+  background: linear-gradient(148deg, #63636e, #2a2a33 20%, #15151b 52%, #35353f 78%, #55555f);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07) inset,
+    0 1px 1px rgba(255, 255, 255, 0.24) inset,
+    0 -1px 2px rgba(0, 0, 0, 0.55) inset;
+  filter:
+    drop-shadow(0 22px 34px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+}
+/* the dynamic island — drawn, not shipped */
+.dv-island {
+  position: absolute;
+  z-index: 3;
+  top: 1.7%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 31%;
+  height: 4.1%;
+  border-radius: 999px;
+  background: #06060a;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE MACBOOK — kind: 'software'
+   Lid (16:10 display in a bezel) over a hinge bar with a thumb notch.
+   ═══════════════════════════════════════════════════════════════ */
+.dv-mac {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.dv-lid {
+  position: relative;
+  width: min(100%, calc(var(--dv-h) * 1.18));
+  aspect-ratio: 16 / 10;
+  padding: 2.1% 1.5% 2.6%;
+  border-radius: 13px 13px 5px 5px;
+  background: linear-gradient(148deg, #5b5b66, #24242c 20%, #16161c 55%, #3d3d47);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07) inset,
+    0 1px 1px rgba(255, 255, 255, 0.2) inset,
+    0 24px 40px -20px rgba(0, 0, 0, 0.7);
+}
+.dv-cam {
+  position: absolute;
+  top: 0.85%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #0a0a0e;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.dv-base {
+  position: relative;
+  width: min(100%, calc(var(--dv-h) * 1.3));
+  height: clamp(9px, calc(var(--dv-h) * 0.028), 13px);
+  border-radius: 0 0 9px 9px;
+  background: linear-gradient(180deg, #43434e, #1c1c23 55%, #0d0d11);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 16px 26px -14px rgba(0, 0, 0, 0.75);
+}
+/* the thumb notch in the front edge */
+.dv-base::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 15%;
+  height: 46%;
+  border-radius: 0 0 7px 7px;
+  background: linear-gradient(180deg, #0b0b0f, #1d1d24);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE SCREEN — shared by both frames.
+   ═══════════════════════════════════════════════════════════════ */
+.dv-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 13% / 5.9%;
+  background: var(--bg-3);
+}
+.dv-lid .dv-screen { border-radius: 4px; }
+.dv-screen img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* phone captures are true device screenshots: fill the glass from the top.
+     Desktop captures are wide and were never shot for a 16:10 aperture, so
+     they are CONTAINED on the product's own colour rather than cropped. */
+  object-fit: cover;
+  object-position: 50% 0;
+}
+.dv-lid .dv-screen {
+  background:
+    radial-gradient(90% 120% at 20% 0%, color-mix(in oklab, var(--g1) 26%, transparent), transparent 70%),
+    radial-gradient(90% 120% at 85% 100%, color-mix(in oklab, var(--g2) 22%, transparent), transparent 72%),
+    var(--bg-3);
+}
+.dv-lid .dv-screen img { object-fit: contain; object-position: 50% 50%; }
+/* the glass: one diagonal sheen, above the capture, below nothing */
+.dv-screen::after {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(158deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0) 34%);
+}
+
+/* ——— the missing capture. NOT an error state: a soft panel in the
+   product's own two colours carrying its initial, so an un-shot screen reads
+   as part of the design instead of a hole. No <img>, so no request and no
+   console noise. ——— */
+.dv-ph {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
   background:
-    radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--ac) 38%, transparent), transparent 60%),
-    linear-gradient(165deg, color-mix(in srgb, var(--ac2) 30%, #ffe9f2) 0%, #ffeef5 82%);
+    radial-gradient(120% 86% at 28% 10%, color-mix(in oklab, var(--g1) 46%, transparent), transparent 66%),
+    radial-gradient(120% 86% at 80% 94%, color-mix(in oklab, var(--g2) 40%, transparent), transparent 70%),
+    var(--bg-3);
+}
+.dv-ph em {
+  font-style: normal;
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(1.1rem, calc(var(--dv-h) * 0.1), 2.6rem);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
-/* ——— status bar ——— */
-.as-status {
-  position: absolute; inset: 0 0 auto 0; z-index: 4;
-  height: 15cqi; min-height: 12px;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 9cqi;
-}
-.as-time {
-  font-family: var(--display, sans-serif); font-weight: 600;
-  font-size: 6.6cqi; letter-spacing: 0.02em; color: var(--ink);
-}
-.as-dots { display: flex; align-items: flex-end; gap: 1.6cqi; }
-.as-dots i {
-  display: block; width: 1.7cqi; height: 3.2cqi; border-radius: 0.6cqi;
-  background: rgba(255, 255, 255, 0.85);
-}
-.as-dots i:nth-child(1) { height: 2cqi; }
-.as-dots i:nth-child(2) { height: 2.8cqi; }
-.as-dots i:nth-child(3) { height: 3.6cqi; }
+/* ═══════════════════════════════════════════════════════════════
+   THE PANEL TRIO — kind: 'panels'
+   ═══════════════════════════════════════════════════════════════
+   For products whose `shots` are finished App-Store PANELS (scene + phone +
+   headline, built by scripts/panels.mjs) rather than bare captures. The
+   panel already CONTAINS a device, so this layout draws no bezel at all —
+   putting a CSS phone around a picture of a phone is the one mistake this
+   branch exists to avoid.
 
-.as-body { position: absolute; inset: 15cqi 0 0 0; z-index: 1; }
+   Same three-across reading order as the fan (shots[1] · shots[0] · shots[2],
+   hero in the middle) and the same `--dv-h` height contract, so switching
+   between a fan product, a panel product and a MacBook product never moves
+   anything below #apps. */
+.dv-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+}
+.dv-cards .dv-slot--m { z-index: 3; }
+.dv-cards .dv-slot--l,
+.dv-cards .dv-slot--r { z-index: 1; }
+.dv-cards .dv-slot--l { margin-right: calc(var(--dv-h) * -0.03); animation-delay: 0.07s; }
+.dv-cards .dv-slot--r { margin-left: calc(var(--dv-h) * -0.03); animation-delay: 0.12s; }
+/* width first, height follows from the panel's own 3:4 — the hero is capped
+   so a tall stage cannot make the trio wider than its column */
+.dv-cards .dv-slot { flex: none; width: min(34%, calc(var(--dv-h) * 0.6)); }
 
-@media (prefers-reduced-motion: reduce) {
-  .as-root [class*='as-'] { animation-play-state: paused !important; }
+.dv-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: clamp(10px, calc(var(--dv-h) * 0.036), 18px);
+  overflow: hidden;
+  background: var(--bg-3);
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.34),
+    0 3px 10px rgba(0, 0, 0, 0.26),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
+.dv-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dv-cards .dv-slot--l .dv-card { transform: scale(0.88) rotate(-4deg); opacity: 0.95; }
+.dv-cards .dv-slot--r .dv-card { transform: scale(0.88) rotate(4deg); opacity: 0.95; }
 
-/* ============================================================
-   1. LAHZA — live wedding album
-   ============================================================ */
-.as-lahza { display: flex; flex-direction: column; height: 100%; }
-.as-lahza-head {
-  padding: 6cqi 9cqi 3cqi; display: flex; flex-direction: column; gap: 2cqi;
+/* ═══════════════════════════════════════════════════════════════
+   OVERRIDES OF products-stage.css — the imagery column, and the height
+   freeze. Same specificity, later in the cascade; both sheets are imported
+   by AppsShowcase.svelte in that order.
+   ═══════════════════════════════════════════════════════════════ */
+.stg {
+  /* the ONE height token. Viewport-relative with a px floor and ceiling, so
+     a laptop, a 4K display and a short window all get a usable stage and
+     none of them get a stage that changes size when the product changes. */
+  --dv-h: clamp(300px, 40vh, 440px);
 }
-.as-lahza-word {
-  font-family: var(--display); font-weight: 650; font-size: 12cqi;
-  line-height: 1; color: var(--ink);
+/* the fan needs a real column: three phones, not one */
+.stg-panel {
+  width: clamp(300px, 40vw, 520px);
+  min-height: var(--dv-h);
 }
-.as-lahza-live {
-  display: inline-flex; align-items: center; gap: 1.6cqi;
-  font-size: 5.4cqi; color: rgba(255, 255, 255, 0.75); letter-spacing: 0.03em;
-}
-.as-lahza-live i {
-  width: 1.7cqi; height: 1.7cqi; border-radius: 50%;
-  background: var(--ac); box-shadow: 0 0 0 0 color-mix(in srgb, var(--ac) 60%, transparent);
-  animation: as-livepulse 1.8s ease-out infinite;
-}
-@keyframes as-livepulse {
-  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ac) 55%, transparent); }
-  70% { box-shadow: 0 0 0 4.5cqi transparent; }
-  100% { box-shadow: 0 0 0 0 transparent; }
-}
+/* and the ROW is pinned to the same height, so the card cannot breathe when
+   a MacBook (short) follows a phone fan (tall) */
+.stg-stage { min-height: var(--dv-h); }
+/* The last two variables are in the COPY column: blurbs run three to five
+   lines, and exactly one of the six carries a store link. Both are reserved
+   here rather than left to reflow.
 
-.as-lahza-grid {
-  flex: 1; display: grid; grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 1fr; gap: 1.6cqi; padding: 0 9cqi 3cqi;
-}
-.as-tile {
-  border-radius: 1.8cqi; opacity: 0.16; transform: scale(0.82);
-  animation: as-tilein 4.8s var(--ease, cubic-bezier(.16,1,.3,1)) infinite;
-  animation-delay: var(--d, 0s);
-}
-.as-tile-0, .as-tile-3 { background: linear-gradient(150deg, var(--ac), var(--ac2)); }
-.as-tile-1, .as-tile-4 { background: linear-gradient(150deg, var(--gold, #ffc740), var(--ac)); }
-.as-tile-2, .as-tile-5 { background: linear-gradient(150deg, var(--ac2), var(--cyan, #59e6ff)); }
-.as-tile-6 { background: linear-gradient(150deg, var(--ac), var(--gold, #ffc740)); grid-column: span 2; }
-.as-tile-7 { background: linear-gradient(150deg, var(--ac2), var(--ac)); }
-@keyframes as-tilein {
-  0% { opacity: 0.16; transform: scale(0.82); }
-  10%, 78% { opacity: 1; transform: scale(1); }
-  92%, 100% { opacity: 0.16; transform: scale(0.82); }
-}
+   The reserve sits on the column, not on the blurb, on purpose — padding out
+   the paragraph itself opens a hole between the blurb and the status chip on
+   every SHORT product, whereas reserving the column lets the slack fall past
+   the last element, where a centred card hides it. `em`, not `px`, so the
+   reserve tracks the type if the font ever changes. */
+.stg-info { min-height: 20.5em; }
+.dv-cta { display: flex; min-height: 34px; }
+.dv-cta .stg-open { margin-top: 14px; }
 
-.as-lahza-toast {
-  position: absolute; top: 15cqi; right: 6cqi; z-index: 3;
-  display: flex; align-items: center; gap: 1.8cqi;
-  background: rgba(255, 236, 244, 0.86); border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px; padding: 1.8cqi 4cqi 1.8cqi 2.4cqi;
-  font-size: 5cqi; letter-spacing: 0.02em; white-space: nowrap;
-  opacity: 0; transform: translateY(-60%) scale(0.9);
-  animation: as-toast 6s ease-in-out infinite;
+@media (max-width: 1080px) {
+  .stg { --dv-h: clamp(280px, 38vh, 400px); }
+  /* stacked, the imagery has the whole card to itself */
+  .stg-panel { width: min(100%, 560px); }
+  /* stacked, `.stg-stage`'s min-height is exceeded by info + imagery, so the
+     copy column's own reserve is what holds the card still — four lines is
+     the longest blurb in the six at this column width. */
+  /* the stacked layout centres the copy — the reserved link row follows it */
+  .dv-cta { justify-content: center; }
 }
-.as-lahza-toast-dot { width: 1.8cqi; height: 1.8cqi; border-radius: 50%; background: var(--ac); flex: none; }
-@keyframes as-toast {
-  0%, 6% { opacity: 0; transform: translateY(-60%) scale(0.9); }
-  14%, 34% { opacity: 1; transform: translateY(0%) scale(1); }
-  44%, 100% { opacity: 0; transform: translateY(-60%) scale(0.9); }
+@media (max-width: 760px) {
+  /* svh so a sliding URL bar doesn't resize the stage mid-scroll — the same
+     rule products-stage.css states for the track it sits in */
+  .stg { --dv-h: clamp(260px, 42svh, 360px); }
+  .stg-panel { width: min(100%, 360px); }
 }
-
-.as-lahza-count {
-  padding: 0 9cqi 6cqi; display: flex; align-items: baseline; gap: 1.6cqi;
-}
-.as-lahza-count strong {
-  font-family: var(--display); font-weight: 650; font-size: 8cqi; font-variant-numeric: tabular-nums;
-}
-.as-lahza-count span { font-size: 4.6cqi; color: rgba(255, 255, 255, 0.6); }
-
-/* ============================================================
-   2. EVORA SCAN — LiDAR room capture (drawn illustration)
-   Layout mirrors LiDARCaptureView: the camera fills the whole screen,
-   the controls float over it.
-   ============================================================ */
-.as-evora-scan { --gold: #ffc740; }
-.as-ev-stage {
-  position: absolute; inset: 0; z-index: 0; overflow: hidden;
-  background: radial-gradient(130% 80% at 50% 22%, rgba(89, 230, 255, 0.14), transparent 62%);
-}
-.as-ev-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-
-/* — surfaces — */
-.as-ev-face { fill: color-mix(in srgb, var(--ac) 15%, transparent); stroke: none; }
-.as-ev-floor { fill: color-mix(in srgb, var(--ac) 8%, transparent); }
-.as-ev-grid { fill: none; stroke: color-mix(in srgb, var(--ac) 30%, transparent); stroke-width: 0.4; }
-.as-ev-mesh { fill: none; stroke: color-mix(in srgb, var(--ac) 30%, transparent); stroke-width: 0.35; }
-.as-ev-ceil { fill: none; stroke: color-mix(in srgb, var(--ac) 20%, transparent); stroke-width: 0.35; stroke-dasharray: 1.6 2; }
-.as-ev-open {
-  fill: rgba(255, 240, 246, 0.72);
-  stroke: rgba(255, 255, 255, 0.75); stroke-width: 0.6; stroke-linejoin: round;
-}
-.as-ev-open.as-is-glass { fill: color-mix(in srgb, var(--ac) 22%, transparent); }
-.as-ev-open-bar { fill: none; stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.4; }
-.as-ev-edges {
-  fill: none; stroke: var(--ac); stroke-width: 1;
-  stroke-linecap: round; stroke-linejoin: round;
+/* ——— narrow: ONE phone. Two rotated flanks in a 320px column is a smear,
+   not a mockup, so they are dropped and the hero takes the room. The stage
+   keeps its height, so nothing below it moves. ——— */
+@media (max-width: 700px) {
+  .dv-fan .dv-slot--l,
+  .dv-fan .dv-slot--r,
+  .dv-cards .dv-slot--l,
+  .dv-cards .dv-slot--r { display: none; }
+  .dv-fan .dv-slot { width: min(60%, calc(var(--dv-h) * 0.44)); }
+  /* a panel carries a headline as well as a device, so at one-up it wants
+     more room than a bare phone does — and it is the only thing on the stage */
+  .dv-cards .dv-slot { width: min(72%, calc(var(--dv-h) * 0.72)); }
+  .dv-lid { width: min(100%, calc(var(--dv-h) * 1.2)); }
 }
 
-/* — RoomPlan-detected objects, gold to read as "found by the scanner" — */
-.as-ev-obj-shadow { fill: rgba(4, 2, 10, 0.5); }
-.as-ev-obj-face {
-  fill: color-mix(in srgb, var(--gold) 16%, transparent);
-  stroke: var(--gold); stroke-width: 0.7; stroke-linejoin: round;
-}
-.as-ev-obj-face.as-is-top { fill: color-mix(in srgb, var(--gold) 26%, transparent); }
-.as-ev-obj-face.as-is-dark { fill: color-mix(in srgb, var(--gold) 9%, transparent); }
-.as-ev-obj-hidden {
-  fill: none; stroke: color-mix(in srgb, var(--gold) 40%, transparent);
-  stroke-width: 0.45; stroke-dasharray: 1.6 1.8;
-}
-
-/* — labels: a dark halo keeps them legible over the mesh — */
-.as-ev-tag, .as-ev-dim {
-  font-family: var(--body, sans-serif);
-  text-anchor: middle; dominant-baseline: middle;
-  paint-order: stroke; stroke: #ffeef5; stroke-width: 1.6; stroke-linejoin: round;
-}
-.as-ev-tag { font-size: 3.6px; font-weight: 600; letter-spacing: 0.04em; fill: var(--gold); }
-.as-ev-dim { font-size: 4px; font-weight: 600; fill: rgba(255, 255, 255, 0.92); }
-.as-ev-dim.as-is-left { text-anchor: start; }
-
-.as-ev-pt { fill: #fff; opacity: 1; }
-@media (prefers-reduced-motion: no-preference) {
-  .as-ev-pt { animation: as-evpt 2.8s ease-in-out infinite; animation-delay: var(--d, 0s); }
-}
-@keyframes as-evpt {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
-/* LiDAR point texture — one cheap tiled gradient, no blur, no repeats */
-.as-ev-dots {
-  position: absolute; inset: 0; pointer-events: none;
-  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--ac) 55%, transparent) 0.8px, transparent 1.5px);
-  background-size: 9px 9px;
-  opacity: 0.45;
-  -webkit-mask-image: radial-gradient(120% 75% at 50% 38%, #000 12%, transparent 78%);
-  mask-image: radial-gradient(120% 75% at 50% 38%, #000 12%, transparent 78%);
-}
-.as-ev-sweep {
-  position: absolute; left: 0; right: 0; top: 0; height: 22%; pointer-events: none;
-  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--ac) 30%, transparent) 62%, color-mix(in srgb, var(--ac) 62%, transparent) 78%, transparent 82%);
-  mix-blend-mode: screen;
-  transform: translateY(-24%);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .as-ev-sweep { animation: as-evsweep 4.6s ease-in-out infinite; }
-}
-@keyframes as-evsweep {
-  0%, 100% { transform: translateY(-24%); }
-  55% { transform: translateY(430%); }
-  78% { transform: translateY(430%); }
-}
-@media (prefers-reduced-motion: reduce) { .as-ev-sweep { display: none; } }
-
-/* — floating chrome — */
-.as-ev-ui {
-  z-index: 2; display: flex; flex-direction: column; justify-content: space-between;
-  padding: 3cqi 6cqi 6cqi; pointer-events: none;
-}
-.as-ev-top { display: flex; align-items: center; justify-content: space-between; gap: 2cqi; }
-.as-ev-chip {
-  border-radius: 999px; padding: 1.8cqi 4.2cqi;
-  background: rgba(255, 240, 246, 0.55);
-  font-size: 3.7cqi; font-weight: 650; letter-spacing: 0.01em; white-space: nowrap;
-  color: rgba(255, 255, 255, 0.94);
-}
-.as-ev-chip--saved { background: color-mix(in srgb, var(--ac) 78%, #ffeef5); color: #f5ecf0; }
-.as-ev-foot { display: flex; flex-direction: column; align-items: center; gap: 3cqi; }
-.as-ev-hint {
-  max-width: 74cqi; text-align: center;
-  background: rgba(255, 240, 246, 0.55); border-radius: 999px;
-  padding: 2.2cqi 4.4cqi;
-  font-size: 3.6cqi; font-weight: 550; line-height: 1.32;
-  color: rgba(255, 255, 255, 0.95);
-}
-.as-ev-done {
-  width: 100%; text-align: center; border-radius: 999px;
-  background: #fff; color: #ffeef5;
-  padding: 3.4cqi 0; font-size: 4.6cqi; font-weight: 750; letter-spacing: 0.005em;
-}
-
-/* ============================================================
-   3. GLOWBAR — daily ritual ring
-   ============================================================ */
-.as-glow .as-body { display: flex; flex-direction: column; align-items: center; padding-top: 3cqi; }
-.as-glow-ring { position: relative; width: 42cqi; height: 42cqi; margin-top: 2cqi; }
-.as-glow-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
-.as-glow-track { fill: none; stroke: rgba(255, 255, 255, 0.14); stroke-width: 7; }
-.as-glow-fill {
-  fill: none; stroke: var(--ac); stroke-width: 7; stroke-linecap: round;
-  stroke-dasharray: 1; stroke-dashoffset: 1;
-  animation: as-ring 4.6s var(--ease, cubic-bezier(.16,1,.3,1)) infinite;
-  filter: drop-shadow(0 0 2.4px color-mix(in srgb, var(--ac) 70%, transparent));
-}
-@keyframes as-ring {
-  0% { stroke-dashoffset: 1; }
-  70%, 100% { stroke-dashoffset: 0.24; }
-}
-.as-glow-ring-label {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 0.4cqi;
-}
-.as-glow-ring-label strong { font-family: var(--display); font-weight: 650; font-size: 9cqi; }
-.as-glow-ring-label span { font-size: 4cqi; color: rgba(255, 255, 255, 0.6); }
-
-.as-glow-streak { display: flex; gap: 2cqi; margin: 3.2cqi 0 4cqi; }
-.as-glow-streak i { width: 3.4cqi; height: 3.4cqi; border-radius: 50%; background: rgba(255, 255, 255, 0.16); }
-.as-glow-streak i.is-on { background: var(--ac); }
-
-.as-glow-list { list-style: none; width: 100%; padding: 0 8cqi 4cqi; display: flex; flex-direction: column; gap: 2.4cqi; }
-.as-glow-list li {
-  display: flex; align-items: center; gap: 2.2cqi;
-  font-size: 5cqi; color: rgba(255, 255, 255, 0.88);
-  border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 2.4cqi;
-}
-.as-glow-list li:first-child { border-top: none; padding-top: 0; }
-.as-glow-dot { width: 1.8cqi; height: 1.8cqi; border-radius: 50%; background: var(--ac2); flex: none; }
-.as-glow-list li em { margin-left: auto; font-style: normal; color: rgba(255, 255, 255, 0.5); font-size: 4.4cqi; }
-
-/* ============================================================
-   4. TAWSIYAT — pickup order
-   ============================================================ */
-.as-taws .as-body { padding: 4cqi 8cqi 5cqi; display: flex; flex-direction: column; gap: 3.6cqi; }
-.as-taws-card {
-  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 2.4cqi; padding: 3.4cqi;
-}
-.as-taws-row { display: flex; justify-content: space-between; font-size: 4.8cqi; padding: 1cqi 0; color: rgba(255, 255, 255, 0.85); }
-.as-taws-total {
-  display: flex; justify-content: space-between; font-size: 5.2cqi; font-weight: 650;
-  margin-top: 1.6cqi; padding-top: 2cqi; border-top: 1px dashed rgba(255, 255, 255, 0.2); color: var(--ink);
-}
-
-.as-taws-stepper { display: flex; align-items: flex-start; }
-.as-taws-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1.4cqi; position: relative; }
-.as-taws-step::before {
-  content: ''; position: absolute; top: 1.7cqi; left: -50%; width: 100%; height: 2px;
-  background: rgba(255, 255, 255, 0.16); z-index: 0;
-}
-.as-taws-step:first-child::before { display: none; }
-.as-taws-step.is-done::before { background: var(--ac); transition: background 0.4s var(--ease, ease); }
-.as-taws-step i {
-  width: 3.4cqi; height: 3.4cqi; border-radius: 50%; background: rgba(255, 255, 255, 0.18);
-  position: relative; z-index: 1; transition: background 0.4s var(--ease, ease), transform 0.4s var(--ease, ease);
-}
-.as-taws-step.is-done i { background: var(--ac); }
-.as-taws-step.is-active i { transform: scale(1.35); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ac) 30%, transparent); }
-.as-taws-step span { font-size: 4cqi; color: rgba(255, 255, 255, 0.6); text-align: center; }
-.as-taws-step.is-done span { color: rgba(255, 255, 255, 0.9); }
-
-.as-taws-code {
-  align-self: center; position: relative; width: 34cqi; height: 11cqi;
-  perspective: 60cqi;
-}
-.as-taws-code-face {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-family: var(--display); font-weight: 650; font-size: 6cqi; letter-spacing: 0.12em;
-  background: color-mix(in srgb, var(--ac) 22%, transparent); border: 1px solid color-mix(in srgb, var(--ac) 55%, transparent);
-  border-radius: 999px; backface-visibility: hidden;
-  transition: transform 0.7s var(--ease, ease);
-  transform: rotateX(0deg);
-}
-.as-taws-code-face.as-back { transform: rotateX(180deg); }
-.as-taws-code.is-flip .as-taws-code-face { transform: rotateX(-180deg); }
-.as-taws-code.is-flip .as-taws-code-face.as-back { transform: rotateX(0deg); }
-
-/* ============================================================
-   5. TRUESIZE AR — place at true scale (drawn illustration)
-   Layout mirrors ContentView: ARView ignoresSafeArea, segmented control
-   + status banner on top, DimensionsHUD as a glass sheet at the bottom.
-   ============================================================ */
-.as-truesize { --gold: #ffc740; }
-.as-ts-stage {
-  position: absolute; inset: 0; z-index: 0; overflow: hidden;
-  background:
-    radial-gradient(120% 55% at 50% 78%, rgba(123, 47, 190, 0.34), transparent 70%),
-    linear-gradient(180deg, #f0e4e9 0%, #ffecf4 46%, #f1e8ec 100%);
-}
-.as-ts-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-/* the AR plane fades out toward the horizon instead of ending in a hard point */
-.as-ts-svg--floor {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 8%, #000 46%, #000 100%);
-  mask-image: linear-gradient(to bottom, transparent 8%, #000 46%, #000 100%);
-}
-.as-ts-grid {
-  fill: none; stroke: rgba(255, 255, 255, 0.2); stroke-width: 0.4;
-}
-.as-ts-contact { fill: rgba(4, 2, 10, 0.45); }
-.as-ts-face {
-  fill: color-mix(in srgb, var(--gold) 20%, transparent);
-  stroke: var(--gold); stroke-width: 0.9; stroke-linejoin: round;
-}
-.as-ts-face.as-is-top { fill: color-mix(in srgb, var(--gold) 34%, transparent); }
-.as-ts-face.as-is-dark { fill: color-mix(in srgb, var(--gold) 11%, transparent); }
-.as-ts-hidden {
-  fill: none; stroke: color-mix(in srgb, var(--gold) 45%, transparent);
-  stroke-width: 0.55; stroke-dasharray: 2 2.2;
-}
-.as-ts-dots {
-  position: absolute; inset: 0; pointer-events: none;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.4) 0.7px, transparent 1.4px);
-  background-size: 11px 11px;
-  opacity: 0.3;
-  -webkit-mask-image: linear-gradient(to top, #000 8%, transparent 62%);
-  mask-image: linear-gradient(to top, #000 8%, transparent 62%);
-}
-
-.as-ts-ui { z-index: 2; display: flex; flex-direction: column; align-items: center; padding: 2.6cqi 0 3.4cqi; }
-
-/* segmented control */
-.as-ts-seg {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 0.8cqi;
-  width: 56cqi; padding: 0.8cqi; border-radius: 2.6cqi;
-  background: rgba(255, 255, 255, 0.12);
-}
-.as-ts-seg span {
-  text-align: center; border-radius: 2cqi; padding: 1.3cqi 0;
-  font-size: 3.8cqi; font-weight: 600; color: rgba(255, 255, 255, 0.68);
-}
-.as-ts-seg span.is-on {
-  background: rgba(120, 108, 140, 0.92); color: var(--ink); font-weight: 700;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-}
-.as-ts-banner {
-  margin-top: 3cqi; max-width: 82cqi; text-align: center;
-  background: rgba(255, 240, 246, 0.5); border-radius: 999px;
-  padding: 2cqi 4cqi; font-size: 3.4cqi; font-weight: 550; line-height: 1.3;
-  color: rgba(255, 255, 255, 0.95);
-}
-
-/* MeasuredBox's floating W/D/H labels */
-.as-ts-labels { position: absolute; inset: 0; pointer-events: none; }
-.as-ts-pill {
-  position: absolute; transform: translate(-50%, -50%);
-  display: inline-flex; align-items: baseline; gap: 0.9cqi; white-space: nowrap;
-  background: rgba(255, 240, 246, 0.72); border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px; padding: 1.1cqi 2.6cqi;
-  font-size: 3.3cqi; font-weight: 650; color: var(--ink); letter-spacing: 0.01em;
-}
-.as-ts-pill b { color: var(--gold); font-weight: 750; }
-.as-ts-pill em { font-style: normal; font-weight: 500; color: rgba(255, 255, 255, 0.55); }
-.as-ts-pill--h { left: 76%; top: 48%; }
-.as-ts-pill--w { left: 30%; top: 64%; }
-.as-ts-pill--d { left: 77%; top: 60%; }
-
-/* DimensionsHUD */
-.as-ts-hud {
-  margin-top: auto; width: calc(100% - 6cqi);
-  background: rgba(30, 22, 44, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 6cqi; padding: 3.4cqi 3.6cqi;
-  display: flex; flex-direction: column; gap: 3cqi;
-}
-.as-ts-presets { display: flex; gap: 1.8cqi; overflow: hidden; }
-.as-ts-presets span {
-  flex: none; border-radius: 999px; padding: 1.4cqi 2.8cqi;
-  background: rgba(255, 255, 255, 0.09);
-  font-size: 3.3cqi; font-weight: 600; color: rgba(255, 255, 255, 0.9); white-space: nowrap;
-}
-.as-ts-rows { display: flex; flex-direction: column; gap: 2.2cqi; }
-.as-ts-row { display: flex; align-items: center; gap: 1.3cqi; }
-.as-ts-rl {
-  width: 13cqi; flex: none; font-size: 3.5cqi; font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
-}
-.as-ts-row i {
-  flex: none; width: 7.4cqi; height: 6cqi; border-radius: 1.6cqi;
-  background: rgba(255, 255, 255, 0.09);
-  display: flex; align-items: center; justify-content: center;
-  font-style: normal; font-size: 2.9cqi; font-weight: 750; color: rgba(255, 255, 255, 0.82);
-}
-.as-ts-row b {
-  flex: none; width: 14cqi; text-align: center; border-radius: 2cqi;
-  background: rgba(255, 255, 255, 0.11); padding: 1.2cqi 0;
-  font-family: var(--display, sans-serif); font-size: 4.2cqi; font-weight: 700;
-  font-variant-numeric: tabular-nums; color: var(--ink);
-}
-.as-ts-row u {
-  flex: none; text-decoration: none; font-size: 2.9cqi;
-  color: rgba(255, 255, 255, 0.55);
-}
-.as-ts-row em {
-  margin-left: auto; font-style: normal; font-size: 3cqi;
-  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
-  font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, 0.5); white-space: nowrap;
-}
-.as-ts-action {
-  text-align: center; border-radius: 3cqi; padding: 2.6cqi 0;
-  background: rgba(255, 255, 255, 0.09);
-  font-size: 3.4cqi; font-weight: 600; color: rgba(255, 255, 255, 0.88);
-}
-
-/* ============================================================
-   6. MORPHIC — AI face edit
-   ============================================================ */
-.as-morph .as-body { display: flex; flex-direction: column; padding: 3cqi 3cqi 4cqi; gap: 3cqi; }
-.as-morph-stage { position: relative; flex: 1; border-radius: 1.8cqi; overflow: hidden; }
-.as-morph-before, .as-morph-after {
-  position: absolute; inset: 0;
-}
-.as-morph-before { background: linear-gradient(150deg, #eec9dd, #d9b2cb); }
-.as-morph-after { background: linear-gradient(150deg, color-mix(in srgb, var(--ac) 55%, #eec9dd), color-mix(in srgb, var(--ac2) 55%, #d9b2cb)); }
-.as-morph-mask {
-  position: absolute; inset: 0; width: 100%;
-  background: linear-gradient(150deg, #eec9dd, #d9b2cb);
-  animation: as-sweepx 5s var(--ease, cubic-bezier(.16,1,.3,1)) infinite;
-}
-.as-morph-mask::after {
-  content: ''; position: absolute; top: 0; bottom: 0; right: -1px; width: 2px; background: #fff;
-  box-shadow: 0 0 6px rgba(255,255,255,0.8);
-}
-@keyframes as-sweepx {
-  0%, 8% { transform: translateX(0%); }
-  46%, 54% { transform: translateX(100%); }
-  92%, 100% { transform: translateX(0%); }
-}
-.as-morph-oval { position: absolute; inset: 8%; width: 84%; height: 84%; overflow: visible; }
-.as-morph-oval ellipse { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 1.4; stroke-dasharray: 3 2.4; }
-
-.as-morph-sliders { display: flex; flex-direction: column; gap: 2.6cqi; }
-.as-morph-slider { position: relative; height: 2px; background: rgba(255, 255, 255, 0.2); border-radius: 999px; }
-.as-morph-handle {
-  position: absolute; top: 50%; width: 4cqi; height: 4cqi; border-radius: 50%;
-  background: var(--ac); transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ac) 20%, transparent);
-}
-.as-h1 { animation: as-slide1 5s var(--ease, cubic-bezier(.16,1,.3,1)) infinite; }
-.as-h2 { animation: as-slide2 5s var(--ease, cubic-bezier(.16,1,.3,1)) infinite; }
-@keyframes as-slide1 { 0%, 8% { left: 30%; } 46%, 54% { left: 72%; } 92%, 100% { left: 30%; } }
-@keyframes as-slide2 { 0%, 8% { left: 55%; } 46%, 54% { left: 22%; } 92%, 100% { left: 55%; } }
-
-/* ——— tiny screens: keep the essentials legible ——— */
-@container appscreen (max-width: 120px) {
-  .as-lahza-word { font-size: 13cqi; }
-  .as-glow-list li em { display: none; }
-  .as-taws-step span { display: none; }
-  /* the two drawn iOS screens shed their finest detail rather than blur */
-  .as-ev-tag { display: none; }
-  .as-ts-row i, .as-ts-row u { display: none; }
-  .as-ts-pill em { display: none; }
-}
+/* reduced motion is handled once, for everything inside `.stg`, at the foot
+   of products-stage.css — `dv-in` is inside it and is cancelled there. */

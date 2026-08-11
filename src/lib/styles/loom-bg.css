@@ -61,12 +61,31 @@
     rgba(242, 240, 247, 0.014) 3px 4px,
     transparent 4px 74px
   );
-  animation: loom-warp-drift 38s linear infinite;
-  will-change: transform;
-}
-@keyframes loom-warp-drift {
-  from { transform: translateY(0); }
-  to { transform: translateY(74px); }
+  /* NO DRIFT — 11 Aug 2026. This carried `animation: loom-warp-drift 38s
+     linear infinite` (translateY 0 → 74px) plus `will-change: transform`.
+
+     The animation was a VISUAL NO-OP. The gradient above is
+     `repeating-linear-gradient(90deg, …)`: at 90deg the colour axis runs
+     left-to-right, so the stops paint VERTICAL hairlines repeating every
+     74px along X. A vertical stripe field is invariant under vertical
+     translation — sliding it down 74px reproduces the identical image, which
+     is presumably why nobody noticed the drift did nothing for as long as it
+     shipped.
+
+     What it DID do was cost: `will-change: transform` permanently promoted a
+     full-viewport layer, and the infinite animation kept that layer
+     re-compositing every frame behind every section of the page, forever.
+     Paired with the `position: sticky` industry tour in #solutions, that is
+     the classic recipe for sticky content swimming by a sub-pixel in Safari —
+     reported by the client as the whole section "moving 1 millimetre up and
+     down while scrolling", and NOT reproducible by sampling
+     getBoundingClientRect (the layout position is provably constant: 616
+     samples across the pin gave one absolute top, 9113.172px).
+
+     Removing the animation changes nothing on screen and takes the whole page
+     off a permanent compositor loop. If a drifting warp is ever wanted, the
+     stripes have to run horizontally (0deg/180deg) for vertical motion to be
+     visible at all. */
 }
 
 /* ——— aurora: dye blooming through the cloth ——— */

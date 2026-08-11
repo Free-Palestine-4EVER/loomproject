@@ -1,0 +1,35 @@
+{
+  "_": "Higgsfield BACKGROUND PLATES for the App Store panels on #apps. Each plate is a SCENE ONLY — no phone, no device, no text, no logo, no hands, nothing to read. The phone, its screenshot and the headline are composited on top afterwards by scripts/panels.mjs, which is why the model is never asked to draw interface type: it garbles it, and the panels are shown large enough to see that. Every plate must leave the CENTRE-LOWER two thirds visually calm (that is where the phone lands) and the TOP THIRD clean and darker/simpler (that is where the headline lands). 3:4 portrait, 2K.",
+
+  "shared_style": "cinematic product-photography backdrop, shallow depth of field, soft volumetric light, fine film grain, no text, no watermark, no logo, no people, no hands, no phone, no screen, no device of any kind, empty centre, generous negative space in the upper third",
+
+  "plates": [
+    { "id": "evora-scan-1", "prompt": "A bright, minimal modern Amman apartment interior at late-afternoon, floor-to-ceiling windows with sheer curtains, warm travertine floor, a soft cyan-to-violet light haze drifting through the room, faint architectural measuring lines glowing very subtly along the walls, empty polished floor in the centre foreground" },
+    { "id": "evora-scan-2", "prompt": "A dark studio void with a faint cyan wireframe grid receding into depth, thin violet edge-light describing the ghost of a room's corner, floating dust motes catching the light, deep charcoal ground, calm empty centre" },
+    { "id": "evora-scan-3", "prompt": "An architect's desk from above at dusk, warm lamp pool on pale paper, blurred rolled drawings and a scale ruler pushed to the far edges, cool cyan window light from the left, the centre of the desk completely empty" },
+
+    { "id": "quran-noor-1", "prompt": "A still night interior of a mosque courtyard, deep navy shadow, a hanging brass lantern far in the background thrown out of focus into warm gold bokeh, carved geometric screen casting soft star patterns on a dark stone floor, calm empty centre" },
+    { "id": "quran-noor-2", "prompt": "Warm gold light raking across a dark carved wooden panel of Islamic geometry, deep navy-black falloff, dust in the beam, extremely calm and quiet, the centre of frame in soft shadow" },
+    { "id": "quran-noor-3", "prompt": "Pre-dawn sky over a dark city skyline with minarets in silhouette, deep indigo to warm amber gradient at the horizon, a single soft star, thin low mist, the lower centre of the frame open and dark" },
+
+    { "id": "kwakwa-1", "prompt": "A golden-hour pond at sunset, still water with soft concentric ripples, tall dark reeds framing the left and right edges, dozens of warm firefly bokeh lights floating, glowing amber and rose sky reflected in the water, the centre of the water surface calm and empty" },
+    { "id": "kwakwa-2", "prompt": "A dusk pond under a violet-to-amber sky, reeds in silhouette at the edges, warm firefly bokeh, mirror-still water with a wide soft reflection, low mist on the surface, calm empty centre" },
+    { "id": "kwakwa-3", "prompt": "Warm twilight over water, deep amber and dusty rose, out-of-focus reeds and fireflies scattered across the frame, gentle ripple rings catching the last light, the middle of the frame open and uncluttered" },
+
+    { "id": "ellie-1", "prompt": "A warm sunlit living room corner in soft focus, cream linen sofa edge, a woven basket and a blurred houseplant at the far edges, dust in a shaft of afternoon light, a violet-to-rose colour cast, empty pale rug in the centre" },
+    { "id": "ellie-2", "prompt": "Soft macro of a woven collar and a small brass tag resting on pale linen, thrown far out of focus into violet and magenta bokeh, warm window light, the centre of the frame smooth and empty" },
+    { "id": "ellie-3", "prompt": "A quiet home hallway at golden hour seen from floor level, warm light pooling on wooden boards, a blurred doorway beyond, violet-pink rim light along the skirting, the centre of the floor completely empty" },
+
+    { "id": "lume-1", "prompt": "A dark photography studio, a single warm softbox glowing out of focus in the upper right, a cool blue rim light from the left edge, seamless charcoal backdrop sweeping into the floor, visible haze in the beams, the centre of the sweep empty" },
+    { "id": "lume-2", "prompt": "Overhead of a charcoal concrete tabletop with a warm hard light raking across it, one long soft shadow crossing a corner, a folded linen swatch and a marble offcut pushed to the far edges, the centre of the surface bare" },
+    { "id": "lume-3", "prompt": "A near-black studio void split by a warm amber glow on the right and a cool blue glow on the left meeting in the middle, fine haze, a subtle glossy floor reflection below, nothing in the centre" },
+
+    { "id": "tarz-1", "prompt": "A close macro of thick handmade cream paper with visible fibre and deckled edge, warm raking light from the left, a faint impression of ink bleed at the very top corner, a single crimson thread lying at the far right edge, the centre of the paper completely blank" },
+    { "id": "tarz-2", "prompt": "Deep indigo ink diffusing into water against a warm paper-white ground, abstract and calligraphic, the swirls confined to the outer edges of the frame, a crimson accent, the centre of the frame clean and pale" },
+    { "id": "tarz-3", "prompt": "A calligrapher's desk from above at dusk, warm lamp light, a reed qalam and a small ink pot pushed to the bottom-left corner, blotting paper and stacked cream sheets at the edges, deep shadow at the top of the frame, the centre of the desk empty" },
+
+    { "id": "naqi-1", "prompt": "A bright airy desk surface in cool daylight, pale grey-blue seamless ground, a soft mint-green light gradient from the left and a warm coral gradient from the right meeting in the middle, crisp clean shadows, the centre completely empty" },
+    { "id": "naqi-2", "prompt": "Overhead of a very clean pale desk in soft morning light, a mint ceramic dish and a folded coral cloth pushed far into two corners, long gentle shadows, the centre of the desk bare and bright" },
+    { "id": "naqi-3", "prompt": "A minimal near-white studio corner with a soft mint-to-coral light wash across the back wall, gentle falloff into the floor, a faint clean shadow, calm and empty, nothing in the centre" }
+  ]
+}

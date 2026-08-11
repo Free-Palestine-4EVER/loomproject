@@ -2,45 +2,81 @@
   ————————————————————————————————————————————————————————
   PROOF — slot 3, and the section that has to survive a sceptic.
 
-  Merges what used to be two sections: a client-name marquee sliding the most
-  valuable words on the page past at a speed nobody reads them at, and a
-  four-column Stats stat rail with no claim attached to any of its numbers.
-  REDESIGNED 10 Aug 2026, for the four faults the client named across the
-  page:
+  REDESIGNED 11 Aug 2026. What stood here was a wrapped paragraph of client
+  names separated by asterisks, sitting in a two-column split next to a rail
+  of numbers. The client's verdict on it was "unnecessary and stupid looking",
+  and he was right about the mechanism: a wall of names set as running text is
+  read as *copy*, and copy is the one form a reader argues with. A logo strip
+  is read as *evidence* — nobody argues with a row of marks, they scan it.
 
-    Weak hierarchy — head, then wall, then a four-column stat rail: three
-                     stacked blocks of equal weight, so nothing led. The
-                     headline says "these names already said yes" and then
-                     the eye landed on a row of numbers.
-    Templated      — a four-across stat rail is the same shape as every other
-                     four-across row on the page.
-    Too tall       — three full-width bands stacked is the tallest possible
-                     arrangement of this much content.
-    Flat           — a weave photograph at 0.16 opacity behind flat type.
+  NOW: kicker + headline, then one full-bleed logo marquee, then the four
+  numbers as a horizontal row beneath it.
 
-  NOW: one split. The names take the left and stay the hero — they are what
-  the headline points at — and the four numbers become a narrow right-hand
-  rail read as a column, not a row. Side by side instead of stacked is most of
-  the height saving; the rest is that the rail no longer needs its own
-  full-width band of air above and below it.
+    · Two tracks sliding in opposite directions. Counter-motion is what stops
+      a marquee reading as a broken carousel — with one row the eye tries to
+      follow it, with two opposed rows it gives up and just takes the mass in,
+      which is the whole point of the section.
+    · Each track renders its set of cells TWICE and animates to exactly -50%,
+      so the seam lands on an identical copy and there is no jump. Same idiom
+      as typeface.css's .tf-band-track — PORTING.md is explicit that a
+      continuous linear loop belongs in CSS, never in a per-frame JS transform.
+    · 54s / 46s. Slow enough that it never competes with the headline; the two
+      durations are deliberately coprime-ish so the rows do not fall into a
+      visible lockstep.
+    · Hover pauses BOTH rows, not just the hovered one — pausing one while the
+      other keeps sliding looks like a bug.
 
-  THE THREE ANCHORS. Benetton, UNICEF and Vodafone are set brighter than the
-  other sixteen. Not favouritism — they are the three names a stranger in
-  Amman or Sarajevo already knows, and a wall where every name is equally
-  bright is a wall where none of them lands. The rest are not dimmed to hide
-  them; they are the volume, and volume is a different argument from
-  recognition.
+  THE MARKS. Nobody has these companies' actual logo artwork cleared for use,
+  and reproducing trademarked lockups would be worse than useless. What ships
+  is a set of plain typographic WORDMARKS, drawn in this repo, monochrome in
+  --ink, one per name — see static/img/logos/.
+
+  ONE TYPEFACE, 11 Aug (third pass). The nineteen marks used to be drawn in
+  three different treatments — a Georgia serif, a Helvetica bold, an Avenir
+  wide-tracked light — on the theory that the variety gave the strip texture.
+  It did not. Nineteen names in three unrelated families at three apparent
+  weights does not read as a client wall, it reads as a ransom note: the eye
+  spends its attention sorting the FONTS instead of reading the NAMES, which is
+  the only thing the band exists to make it do. The client's verdict was
+  "trash" and the client was right.
+
+  Every mark is now set in SATOSHI — the site's own grotesk, the same file the
+  body copy loads — instanced at wght 700, uppercase, at one tracking value,
+  and converted to OUTLINES. Outlines rather than <text> because an SVG used as
+  an <img> cannot fetch a webfont: the old files named system stacks and so
+  rendered in whatever the viewer's machine happened to own, which meant the
+  careful width normalisation below was true on this Mac and nowhere else. A
+  path is a path everywhere.
+
+  One family also makes the normalisation nearly free: cap height is now a
+  font constant (740/1000 em), so scaling every mark to the same cap gives
+  every mark the same optical mass by construction — the previous pass had to
+  rasterise each file and measure its real ink box precisely because the three
+  families disagreed about it. A mild width damping is still applied on top, so
+  a twenty-four-character name loses a little height rather than out-shouting
+  "MAC". Anything NEW dropped into static/img/logos/ has to arrive the same way
+  or it will sit wrong in the row, so here is the recipe in full: Satoshi
+  instanced at wght 700, uppercase, +0.038em tracking with GPOS pair kerning
+  applied, glyphs converted to one <path>, the box cropped tight to the real
+  outline bounds (not to the advance widths — a bold N paints past its own
+  advance and an advance-cut box shears its right stem off), 32 units tall with
+  the cap centred in it, and the whole thing scaled so the cap lands on ~23.5
+  units before a 0.16-exponent width damping. Write the scale factor at full
+  precision: rounding it to three decimals is a 1.6% error, and over a 16000-
+  unit glyph run that is enough to push the outer letters out of the viewBox.
 
   NOTHING HERE IS A NEW CLAIM — every value still comes from STATS and
   CLIENT_WALL in $data/site.js, so the "verify every number" rule has exactly
-  one place to check, as before.
+  one place to check, as before. The logo slug is DERIVED from the name rather
+  than stored beside it: adding a name to CLIENT_WALL and dropping the matching
+  SVG in is the whole change, and there is no second list to fall out of sync.
   ————————————————————————————————————————————————————————
 -->
 <script>
   import { onMount } from 'svelte'
   import { browser } from '$app/environment'
   import { CLIENT_WALL, STATS } from '$data/site.js'
-  import { EASE, reducedMotion, reveal, prefersReduced } from '$lib/motion.svelte.js'
+  import { reducedMotion, reveal } from '$lib/motion.svelte.js'
   import SplitWords from './SplitWords.svelte'
   import CountUp from './CountUp.svelte'
   import './proof.css'
@@ -48,30 +84,34 @@
   // The clause each number was missing. STATS carries the value and the
   // label; this carries the "so what". Keyed by label so a reordered STATS
   // cannot silently pair a number with the wrong sentence — an index would.
+  //
+  // Cut to one line each on 11 Aug: four numbers each carrying a heading, a
+  // label AND a two-line sentence was more furniture than four numbers can
+  // hold up, and the second line of each was most of what made this row as
+  // tall as the logo wall it is supposed to be the coda to.
   const STAT_CLAUSE = {
-    'Brands woven': 'Identity, content, product — not one campaign each.',
-    'Countries shipped to': 'Jordan to Bosnia to the Gulf, in two languages.',
-    'Apps & tools in the lab': 'Built for ourselves first, then for clients.',
-    'Studios — Amman × Sarajevo': 'When one sleeps, the other is already sewing.',
+    'Brands woven': 'Identity, content, product.',
+    'Countries shipped to': 'Jordan to Bosnia to the Gulf.',
+    'Apps & tools in the lab': 'Ours first, then our clients’.',
+    'Studios — Amman × Sarajevo': 'One sleeps, one keeps sewing.',
   }
 
-  const ANCHORS = new Set(['United Colors of Benetton', 'UNICEF', 'Vodafone'])
   const STAT_YARN = ['var(--magenta)', 'var(--yarn-blue)', 'var(--yarn-violet)', 'var(--yarn-gold)']
 
-  // The wall is 18 names long. A flat 30ms-per-name step (the old value) put
-  // the last name landing 540ms after the first before it had even started
-  // its own transition — clamp the SPREAD across the whole wall instead of
-  // the per-name step, same fix as SplitWords' headline stagger.
-  const WALL_DURATION = 0.3
-  const WALL_STEP_CEILING = 0.03
-  const WALL_SPREAD_CEILING = 0.25
-  const wallStep = CLIENT_WALL.length > 1
-    ? Math.min(WALL_STEP_CEILING, WALL_SPREAD_CEILING / (CLIENT_WALL.length - 1))
-    : 0
+  // "United Colors of Benetton" -> "united-colors-of-benetton". Kept in step
+  // with scripts that write static/img/logos/*.svg; a name with no file shows
+  // nothing rather than a broken-image glyph (see the `on:error` below).
+  const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  const logo = (n) => ({ name: n, src: `/img/logos/${slug(n)}.svg` })
+
+  // Alternating rather than first-half / second-half: the three names a
+  // stranger already knows (Benetton, UNICEF, Vodafone) would otherwise all
+  // sit in the top row and leave the bottom one reading as the B-list.
+  const rowA = CLIENT_WALL.filter((_, i) => i % 2 === 0).map(logo)
+  const rowB = CLIENT_WALL.filter((_, i) => i % 2 === 1).map(logo)
 
   let sectionEl = $state(null)
   let bgEl = $state(null)
-  let wallEl = $state(null)
 
   // A slow counter-drift on the backdrop only — the weave photograph the old
   // Stats section already carried, kept because it is the one texture on the
@@ -97,27 +137,9 @@
     return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
   })
 
-  // THE WALL's entrance: once-only, staggered per name, gated on the wall
-  // itself entering view rather than `use:reveal` per name — the React
-  // version used one shared `useInView` flag driving every name's
-  // initial/animate pair together, and matching that shared gate (instead of
-  // 20 independent IntersectionObservers) is what keeps the stagger reading
-  // as one wall arriving rather than 20 unrelated reveals racing each other.
-  let wallIn = $state(false)
-  onMount(() => {
-    if (!browser || !wallEl) return
-    // Direct matchMedia check too, not just the rune — see motion.svelte.js's
-    // `prefersReduced()` comment for why the rune alone can lag this early.
-    if (reducedMotion.current || prefersReduced()) { wallIn = true; return }
-    // Same gate `reveal()` uses: already on screen at hydration -> render
-    // finished immediately rather than flashing the wall in.
-    if (wallEl.getBoundingClientRect().top < window.innerHeight * 0.92) { wallIn = true; return }
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { wallIn = true; io.disconnect() }
-    }, { rootMargin: '-18% 0px' })
-    io.observe(wallEl)
-    return () => io.disconnect()
-  })
+  // A missing SVG must not print the browser's broken-image icon in the middle
+  // of a client strip. Hide the cell instead — the marquee closes over the gap.
+  const hideBroken = (e) => { e.currentTarget.closest('.pl-cell')?.style.setProperty('display', 'none') }
 </script>
 
 <section class="proof" id="proof" aria-label="Clients and studio in numbers" bind:this={sectionEl}>
@@ -135,44 +157,45 @@
     <SplitWords as="h2" class="h2 proof-h2" text="These names already said yes." />
   </div>
 
-  <!-- ——— THE SPLIT ———
-      Names left (the hero — the headline points at them), numbers right
-      (the summary). Two columns instead of three stacked bands. -->
-  <div class="proof-split">
-    <!-- THE WALL. Real, wrappable, selectable text set as one block — not a
-        marquee track, not a logo grid. Nobody has the logos cleared for use
-        and a wall of mismatched PNGs would look worse than the words do; the
-        names in the studio's own display face read as a colophon, which is
-        the honest form for "here is who we have worked with". -->
-    <div class="proof-wall" bind:this={wallEl}>
-      {#each CLIENT_WALL as name, i (name)}
-        <span
-          class="proof-name{ANCHORS.has(name) ? ' is-anchor' : ''}"
-          style:opacity={reducedMotion.current ? 1 : wallIn ? 1 : 0}
-          style:transform={reducedMotion.current ? 'none' : wallIn ? 'none' : 'translateY(12px)'}
-          style:transition={reducedMotion.current
-            ? 'none'
-            : `opacity ${WALL_DURATION}s ${EASE} ${i * wallStep}s, transform ${WALL_DURATION}s ${EASE} ${i * wallStep}s`}
-        >
-          {name}
-          {#if i < CLIENT_WALL.length - 1}<i class="proof-sep" aria-hidden="true">✳</i>{/if}
-        </span>
-      {/each}
-    </div>
-
-    <!-- THE RAIL. The same four numbers, read as a column. Each keeps the
-        clause that turns it from a fact into a claim, and its own yarn stub —
-        the whole chrome budget, replacing the old divider cross. -->
-    <div class="proof-rail">
-      {#each STATS as s, i (s.label)}
-        <div class="proof-stat" style="--yarn: {STAT_YARN[i % 4]}" use:reveal={{ delay: i * 0.03, y: 16 }}>
-          <div class="proof-value"><CountUp value={s.value} suffix={s.suffix} /></div>
-          <div class="proof-stat-copy">
-            <p class="proof-label">{s.label}</p>
-            {#if STAT_CLAUSE[s.label]}<p class="proof-clause">{STAT_CLAUSE[s.label]}</p>{/if}
-          </div>
+  <!-- ——— THE STRIP ———
+      Full-bleed, two opposed tracks, each rendering its set twice. The second
+      copy is aria-hidden so a screen reader hears the nineteen names once. -->
+  <div class="proof-strip" role="group" aria-label="Selected clients">
+    {#each [rowA, rowB] as row, r (r)}
+      <div class="pl-row{r === 1 ? ' pl-row--rev' : ''}">
+        <div class="pl-track">
+          {#each [0, 1] as copy (copy)}
+            <div class="pl-set" aria-hidden={copy === 1 ? 'true' : undefined}>
+              {#each row as c (c.src)}
+                <span class="pl-cell">
+                  <img
+                    class="pl-logo"
+                    src={c.src}
+                    alt={copy === 0 ? c.name : ''}
+                    height="32"
+                    loading="lazy"
+                    decoding="async"
+                    onerror={hideBroken}
+                  />
+                </span>
+              {/each}
+            </div>
+          {/each}
         </div>
-      {/each}
-    </div>
+      </div>
+    {/each}
+  </div>
+
+  <!-- ——— THE NUMBERS ———
+      Four across, under the strip, each keeping the clause that turns it from
+      a fact into a claim and its own yarn stub — the whole chrome budget. -->
+  <div class="proof-stats">
+    {#each STATS as s, i (s.label)}
+      <div class="proof-stat" style="--yarn: {STAT_YARN[i % 4]}" use:reveal={{ delay: i * 0.05, y: 16 }}>
+        <div class="proof-value"><CountUp value={s.value} suffix={s.suffix} /></div>
+        <p class="proof-label">{s.label}</p>
+        {#if STAT_CLAUSE[s.label]}<p class="proof-clause">{STAT_CLAUSE[s.label]}</p>{/if}
+      </div>
+    {/each}
   </div>
 </section>

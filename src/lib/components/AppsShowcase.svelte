@@ -6,17 +6,34 @@
   shipped as ("not designed... make it change on scroll like it used to
   do"). This restores the OLD `AppsShowcase` DESIGN — one product centre
   stage, an icon rail of real tabs, the featured product changing as the
-  reader scrolls past a pinned card — re-plumbed onto SUITE's six honest
-  entries, and WITHOUT the cost that design used to carry.
+  reader scrolls past a pinned card — re-plumbed onto SUITE's nine honest
+  entries (six, plus three concepts added 11 Aug 2026), and WITHOUT the cost
+  that design used to carry.
 
   What did NOT come back, on purpose:
     - AppScreens.jsx's live animated device mockups (never imported here).
-    - The seven-capture "shot cycle" / three-phone fan (SUITE items carry
-      exactly one `art` image each — there is nothing to cycle or fan).
     - #lab / ToolsLab. Gone, and its nav tab stays gone.
-  Only the SELECTED product's image is ever mounted, so there is never more
-  than one <img> decoding for the stage at a time; switching products swaps
-  the DOM node rather than crossfading six pre-loaded ones.
+  Only the SELECTED product's images are ever mounted, so there is never more
+  than one product decoding for the stage at a time; switching products swaps
+  the DOM nodes rather than crossfading nine pre-loaded sets.
+
+  THE IMAGERY (11 Aug 2026). Three mockups, chosen by the product's own
+  `kind` in data/suite.js — a fact about what the FILES are, not a preference:
+    'panels'   → three finished App-Store cards, hero centre. The card already
+                 contains its own phone and headline, so NO bezel is drawn
+                 around it (see scripts/panels.mjs for how one is built).
+    'app'      → three phones in a fan, hero centre, two flanks set back.
+                 For bare captures with no scene around them.
+    'software' → one MacBook, the capture in its display.
+  Both frames are pure CSS (appscreens.css) — no frame PNG is fetched here
+  any more. Where a product has no capture for a slot yet, `shots` holds a
+  `null` and the frame draws a brand-tinted placeholder: never a broken
+  image, never a 404.
+
+  Both mockups are sized off ONE height token (`--dv-h`) rather than off the
+  captures inside them, so the card is exactly as tall on a MacBook product
+  as on a phone product and the rail can be walked without anything below
+  `#apps` moving. See appscreens.css's "height contract".
 
   Every animated value here is transform/opacity (the rail's selection tick,
   the aura's colour cross-fade) — nothing sizes, positions or filters per
@@ -32,17 +49,20 @@
   import SplitWords from './SplitWords.svelte'
   import LiveBadge from './LiveBadge.svelte'
   import './products-stage.css' // .stg-* — the stage design
+  import './appscreens.css'     // .dv-*  — the CSS device frames (loaded 2nd on purpose)
   import './heads-v7.css'       // .apps-status
 
-  // Real dimensions of every file in public/img/suite/, read with
-  // `sharp(...).metadata()` — never guessed. Keyed by SUITE's own `key`.
-  const DIMS = {
-    'evora-scan': { art: [440, 977], icon: [128, 128] },
-    '2d3d': { art: [720, 325] },
-    'quran-noor': { art: [720, 1561], icon: [128, 128] },
-    kun: { art: [720, 325] },
-    kwakwa: { art: [540, 1174], icon: [128, 128] },
-    ellie: { art: [720, 1565], icon: [128, 128] },
+  // Real pixel dimensions of the icon files in static/img/suite/ — read off
+  // the files, never guessed. Screenshot dimensions travel with the shot
+  // itself in suite.js, so only the icons need a table here.
+  const ICON_DIMS = {
+    'evora-scan': [128, 128],
+    'quran-noor': [128, 128],
+    kwakwa: [128, 128],
+    ellie: [128, 128],
+    lume: [128, 128],
+    tarz: [128, 128],
+    naqi: [128, 128],
   }
 
   const two = (n) => String(n + 1).padStart(2, '0')
@@ -124,19 +144,16 @@
   })
 
   const item = $derived(SUITE[i])
-  const dims = $derived(DIMS[item.key] || {})
-  const artW = $derived(dims.art?.[0] ?? 720)
-  const artH = $derived(dims.art?.[1] ?? 480)
 </script>
 
-<!-- The rail icon. Four of six items ship a real icon file; 2D3D and KUN
+<!-- The rail icon. Seven of nine items ship a real icon file; 2D3D and KUN
      don't (they're desktop tools, not app-store products with a square
      glyph) — those fall back to a gradient squircle carrying the product's
-     own initial, drawn in CSS, so a rail of six never waits on a missing
+     own initial, drawn in CSS, so a rail of nine never waits on a missing
      asset. -->
 {#snippet productIcon(it, cls = '')}
   {#if it.icon}
-    {@const d = DIMS[it.key]?.icon || [128, 128]}
+    {@const d = ICON_DIMS[it.key] || [128, 128]}
     <span class="pi pi--photo {cls}">
       <img src={it.icon} alt="" aria-hidden="true" loading="lazy" decoding="async" width={d[0]} height={d[1]} />
     </span>
@@ -147,15 +164,83 @@
   {/if}
 {/snippet}
 
+<!-- ——— what goes behind the glass ———
+     A `shot` is either `{src,w,h}` or `null`. `null` is a first-class case,
+     not a failure: it draws a soft panel in the product's own two colours
+     carrying its initial, so a screen we haven't been given yet reads as
+     part of the design. There is no <img> in that branch, so nothing is
+     requested and nothing 404s. The placeholder is decorative — the panel's
+     accessible name is already the product's, above. -->
+{#snippet screen(shot, it, label)}
+  {#if shot}
+    <img
+      src={shot.src}
+      width={shot.w}
+      height={shot.h}
+      loading="lazy"
+      decoding="async"
+      alt="{it.name} — {label}"
+    />
+  {:else}
+    <div class="dv-ph" aria-hidden="true"><em>{it.name.trim()[0]}</em></div>
+  {/if}
+{/snippet}
+
+<!-- the phone: bezel, glass, dynamic island — all CSS, no frame asset -->
+{#snippet phone(shot, it, label)}
+  <div class="dv-phone">
+    <div class="dv-screen">
+      {@render screen(shot, it, label)}
+      <span class="dv-island" aria-hidden="true"></span>
+    </div>
+  </div>
+{/snippet}
+
+<!-- the panel: an App-Store card that ALREADY contains its own device and
+     headline (scripts/panels.mjs composites a Higgsfield scene, the real
+     screen capture and the type). So there is deliberately no bezel drawn
+     around it — a CSS phone wrapped around a picture of a phone is the whole
+     mistake this branch exists to avoid. -->
+{#snippet card(shot, it, label)}
+  <div class="dv-card">
+    {#if shot}
+      <img
+        src={shot.src}
+        width={shot.w}
+        height={shot.h}
+        loading="lazy"
+        decoding="async"
+        alt="{it.name} — {label}"
+      />
+    {:else}
+      <div class="dv-ph" aria-hidden="true"><em>{it.name.trim()[0]}</em></div>
+    {/if}
+  </div>
+{/snippet}
+
+<!-- the laptop: lid with camera over a hinge bar with a thumb notch -->
+{#snippet laptop(shot, it)}
+  <div class="dv-mac">
+    <div class="dv-lid">
+      <span class="dv-cam" aria-hidden="true"></span>
+      <div class="dv-screen">
+        {@render screen(shot, it, 'desktop screenshot')}
+      </div>
+    </div>
+    <div class="dv-base" aria-hidden="true"></div>
+  </div>
+{/snippet}
+
 <section class="apps" id="apps">
   <div class="section-head">
     <p class="kicker"><span>—</span> What we've built</p>
     <SplitWords as="h2" class="h2" text="We don’t just market software. We ship it." />
     <div use:reveal={{ delay: 0.15 }}>
       <p class="lede" style="margin-top:22px">
-        Six products, one stage. <strong>Just scroll</strong> — the stage changes
+        {N} products, one stage. <strong>Just scroll</strong> — the stage changes
         itself, and the rail is there when you want to jump. Only one is downloadable
-        by a stranger today; the rest carry exactly the status they've earned.
+        by a stranger today; the rest carry exactly the status they've earned, down
+        to the three that are still only drawings.
       </p>
     </div>
     <div use:reveal={{ delay: 0.22 }}>
@@ -163,6 +248,7 @@
         <LiveBadge label="App Store — live" />
         <LiveBadge label="TestFlight · submitted" />
         <LiveBadge label="Built · in the lab" />
+        <LiveBadge label="Concept · in design" />
       </div>
     </div>
   </div>
@@ -224,57 +310,72 @@
         <!-- Only Quran Noor resolves to a real store page — see data/suite.js.
              Every other item is a plain, non-clickable panel; there is no
              store badge here that could 404. -->
-        {#if item.href}
-          <a class="stg-open" href={item.href} target="_blank" rel="noreferrer" data-cursor>
-            View on the App Store ↗
-          </a>
-        {/if}
-        <!-- how far through the six the scroll has carried the stage -->
+        <!-- the slot is always here, the link is not: only Quran Noor
+             resolves to a real store page. Reserving the row keeps the copy
+             column the same height on all nine products, which is the other
+             half of the no-reflow contract (see appscreens.css). -->
+        <div class="dv-cta">
+          {#if item.href}
+            <a class="stg-open" href={item.href} target="_blank" rel="noreferrer" data-cursor>
+              View on the App Store ↗
+            </a>
+          {/if}
+        </div>
+        <!-- how far through the nine the scroll has carried the stage -->
         <div class="stg-count">
           <b>{two(i)}</b> / {two(N - 1)} — LOOM-built products
           <i aria-hidden="true" style="--w:{(i / (N - 1)) * 100}%"></i>
         </div>
       </div>
 
-      <!-- The imagery column. Only the SELECTED item's picture is mounted —
-           keyed on `item.key` so it remounts (and replays its one entrance
-           animation) rather than crossfading a stack of preloaded images.
-           `fit` decides the presentation: a portrait phone capture goes
-           behind the site's iPhone frame; a wide desktop capture gets its
-           own plate instead of being crammed into a phone screen it was
-           never shot for. -->
+      <!-- The imagery column. Only the SELECTED item's pictures are mounted —
+           keyed on `item.key` so the whole stage remounts (and replays its
+           one entrance animation) rather than crossfading a stack of
+           preloaded images.
+
+           `kind` decides the mockup, and it is a fact about the product, not
+           a styling choice: an iOS product gets three phones, a desktop tool
+           gets a MacBook. A wide desktop capture is never crammed into a
+           phone screen it was never shot for, and a portrait capture is
+           never stretched across a laptop display.
+
+           The fan reads shots[1] · shots[0] · shots[2] left to right, so the
+           HERO capture is the one in the middle. Missing slots draw a
+           placeholder rather than a hole. -->
       <div class="stg-panel">
-        {#if item.fit === 'contain'}
-          {#key item.key}
-            <div class="stg-phone">
-              <div class="stg-glass">
-                <img
-                  class="is-contain"
-                  src={item.art}
-                  width={artW}
-                  height={artH}
-                  loading="lazy"
-                  decoding="async"
-                  alt="{item.name} — real app screenshot"
-                />
+        {#key item.key}
+          <div class="dv-stage">
+            {#if item.kind === 'panels'}
+              <div class="dv-cards">
+                <div class="dv-slot dv-slot--l">
+                  {@render card(item.shots[1], item, 'app store panel 2')}
+                </div>
+                <div class="dv-slot dv-slot--m">
+                  {@render card(item.shots[0], item, 'app store panel 1')}
+                </div>
+                <div class="dv-slot dv-slot--r">
+                  {@render card(item.shots[2], item, 'app store panel 3')}
+                </div>
               </div>
-              <img class="stg-frame" src="/img/devices/iphone-frame.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="900" height="1813" />
-            </div>
-          {/key}
-        {:else}
-          {#key item.key}
-            <div class="stg-wide" style="background:linear-gradient(155deg, {item.grad[0]}, {item.grad[1]})">
-              <img
-                src={item.art}
-                width={artW}
-                height={artH}
-                loading="lazy"
-                decoding="async"
-                alt="{item.name} — real capture"
-              />
-            </div>
-          {/key}
-        {/if}
+            {:else if item.kind === 'app'}
+              <div class="dv-fan">
+                <div class="dv-slot dv-slot--l">
+                  {@render phone(item.shots[1], item, 'app screenshot 2')}
+                </div>
+                <div class="dv-slot dv-slot--m">
+                  {@render phone(item.shots[0], item, 'app screenshot 1')}
+                </div>
+                <div class="dv-slot dv-slot--r">
+                  {@render phone(item.shots[2], item, 'app screenshot 3')}
+                </div>
+              </div>
+            {:else}
+              <div class="dv-slot dv-slot--m">
+                {@render laptop(item.shots[0], item)}
+              </div>
+            {/if}
+          </div>
+        {/key}
       </div>
     </div>
   </div>

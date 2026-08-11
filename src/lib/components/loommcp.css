@@ -1,32 +1,42 @@
-/* loommcp.css — THE LOOM PROTOCOL. Owned by LoomMcp.jsx only.
+/* loommcp.css — THE LOOM PROTOCOL. Owned by LoomMcp.svelte only.
    Do not import into styles.css / textile*.css / wool.css.
 
-   CASCADE NOTE (same trap hiring.css and banners.css document): src/main.jsx
-   imports App.jsx BEFORE './styles.css', so this file lands EARLIER in the
-   bundle than the globals and a bare single-class rule would LOSE a tie to
-   them. Every class below is prefixed `mcp-` and unique to this file; the two
-   places a global class is restyled (.h2 on the shout, .lede) are written as
-   `.mcp .mcp-*` — 0,2,0 — so they win regardless of order.
+   CASCADE NOTE (same trap hiring.css and banners.css document): this file is
+   imported from the component, so it can land EARLIER in the bundle than the
+   globals and a bare single-class rule would LOSE a tie to them. Every class
+   below is prefixed `mcp-` and unique to this file; the two places a global
+   class is restyled (.h2 on the shout, .lede) are written as `.mcp .mcp-*` —
+   0,2,0 — so they win regardless of order.
 
    MOTION BUDGET: no @keyframes are declared in this file at all. Entry is
-   one-shot (Reveal / SplitWords / the connector's branches, in JS); the lock
-   shackle, the card lift and the gate's open/swap are hover/state transitions,
-   played once per change, never looping.
+   one-shot (reveal / SplitWords, in JS); the card lift, the chip hover, the
+   lock shackle and the gate's open/swap are hover/state transitions, played
+   once per change, never looping.
 
-   REWORK (smaller / more direct / more animation): the head used to carry two
-   paragraphs of preamble before a reader reached the cards — cut to one line
-   (see LoomMcp.jsx), and `.mcp-sub` no longer exists. `.mcp-connector` takes
-   its place with a picture of the claim instead of a second restatement of
-   it, which is why it sits where the cut paragraph used to. Section padding
-   and the head-to-grid gap were both cut alongside the copy — "smaller" was
-   the brief, not just "shorter words". */
+   REWORK — 11 Aug 2026, "it eats several screens". The rack (`.mcp-unit`,
+   `.mcp-plate`, `.mcp-toolwrap`) is gone: three full-width alternating units,
+   each with a 172px photographic plate and a bordered TOOLS column, ran to
+   three viewports, and on the flipped unit the TOOLS rail landed on top of
+   the PRIVATE BETA badge. Replaced by ONE card shape in a 2-up grid — nothing
+   alternates, so nothing can collide, and the badge owns its own grid track.
+   The old `.mcp-connector` diagram and the full-width `.mcp-strip` went with
+   it (the strip is now the grid's fourth card).
+
+   GROUND: this section sits on the baby-pink page ground, so every surface
+   here is a LIGHT surface. The rack's dark leftovers — rgba(0,0,0,.28) code
+   plates, rgba(255,255,255,.05) chips, --accent used directly as text — were
+   all corrected in this pass. Accent-coloured TEXT uses --accent-ink (the
+   global mix that keeps the hue and clears 4.5:1 on pink); rules, fills and
+   borders keep the bright yarn. */
 
 .mcp {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding-block: clamp(56px, 7.5vh, 100px);
-  /* OwnApps above closes on --bg and TheMachine below opens on it, so this
+  /* half the old block padding — "smaller" was the brief, and the head-to-grid
+     gap below was cut with it */
+  padding-block: clamp(44px, 5.5vh, 76px);
+  /* Solutions above closes on --bg and TheMachine below opens on it, so this
      section lifts in the middle and returns rather than butting two flat
      panels together. */
   background: linear-gradient(180deg, var(--bg) 0%, #f1e9ed 42%, #f0e6ea 64%, var(--bg) 100%);
@@ -54,342 +64,369 @@
 .mcp .mcp-head {
   position: relative;
   z-index: 1;
-  max-width: 1100px;
+  max-width: 940px;
   margin-inline: auto;
   padding-inline: var(--pad);
   text-align: center;
 }
 
-.mcp .mcp-head .kicker { justify-content: center; }
+/* ——— the lead statement, above the headline ———
+   Client, explicit: "we have our own MCP" is the FIRST thing in the section.
+   It is a pill so it reads as a claim being planted, not as a caption; the
+   section's own name sits beside it at eyebrow scale. */
+.mcp .mcp-claim-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 14px;
+  margin-bottom: clamp(10px, 1.4vh, 16px);
+}
+
+.mcp .mcp-claim {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 14px 6px 11px;
+  border: 1px solid color-mix(in srgb, var(--magenta) 34%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--magenta) 8%, transparent);
+  font-family: var(--display);
+  font-size: clamp(0.72rem, 1.1vw, 0.82rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--magenta-deep);
+  white-space: nowrap;
+}
+
+/* the four-yarn stripe, shrunk to a dot — the same marker the rail runs */
+.mcp .mcp-claim i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--magenta);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--magenta) 20%, transparent);
+}
+
+.mcp .mcp-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
 
 .mcp .mcp-shout {
-  margin-top: 0.3em;
-  /* was clamp(2.1rem, 6.4vw, 5.2rem) — the client's own complaint was two
-     enormous lines eating most of a 1440x900 screen before the point. Same
-     headline, smaller ceiling; still the loudest thing in the section, just
-     not the whole section. */
-  font-size: clamp(1.9rem, 5.2vw, 3.9rem);
-  line-height: 0.96;
-  letter-spacing: -0.01em;
+  margin-top: 0;
+  /* was clamp(1.9rem, 5.2vw, 3.9rem), and before that 5.2rem — the section is
+     now a compact grid, so the headline is sized to introduce it rather than
+     to be it. Still the loudest thing here, in about half the height. */
+  font-size: clamp(1.55rem, 3.9vw, 2.7rem);
+  line-height: 1;
+  letter-spacing: -0.015em;
   text-wrap: balance;
 }
 
 .mcp .mcp-lede {
-  margin-top: clamp(14px, 1.8vh, 20px);
+  margin-top: clamp(10px, 1.4vh, 15px);
   margin-inline: auto;
-  max-width: 54ch;
+  max-width: 56ch;
+  font-size: clamp(0.95rem, 1.25vw, 1.08rem);
+  color: var(--ink-dim);
   text-wrap: pretty;
 }
 
-/* ═══ THE CONNECTOR ═════════════════════════════════════════
-   "your agent" branching into the three servers — a picture standing in for
-   the paragraph this rework cut. Compact on purpose: it is not a diagram to
-   study, it is a beat between the pitch and the proof. */
-.mcp .mcp-connector {
-  position: relative;
-  z-index: 1;
-  max-width: 1560px;
-  margin: clamp(28px, 4vh, 46px) auto 0;
-  padding-inline: var(--pad);
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.mcp .mcp-connector-node {
-  flex: none;
-  font-family: var(--display);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  padding: 7px 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.mcp .mcp-connector-branches {
-  flex: 1 1 280px;
-  min-width: 0;
-  display: flex;
-  gap: 16px;
-}
-
-/* the line IS the signal: it grows in via `transform: scaleX`, never a width
-   or flex-basis tween, which is the one motion this section is allowed to pay
-   scroll-cost for. transform-origin: left keeps the grown edge — the dot — in
-   the same place a width animation would leave it, without touching layout. */
-.mcp .mcp-connector-branch {
-  flex: 1;
-  min-width: 24px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent);
-  transform-origin: left center;
-  position: relative;
-}
-
-/* the dot the line runs into — static, it never moves on its own, it just
-   sits where the growing line's edge stops */
-.mcp .mcp-connector-branch::after {
-  content: '';
-  position: absolute;
-  right: -3px;
-  top: 50%;
-  translate: 0 -50%;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
-}
-
-@media (max-width: 620px) {
-  .mcp .mcp-connector { gap: 12px; }
-  .mcp .mcp-connector-branches { gap: 10px; }
-}
-
-/* ═══ THE THREE CARDS ═══════════════════════════════════════
-   min-width: 0 on the cell is load-bearing — the <pre> inside is the widest
-   thing on the page and would otherwise push the grid track wider than the
-   viewport. body has overflow-x: clip as a net; do not lean on it (styles.css
-   says so outright). */
+/* ═══ THE GRID ══════════════════════════════════════════════
+   TWO across, always — not auto-fit. auto-fit with a 320px minimum turns into
+   three tracks at 1180px and the row of three is exactly the templated shelf
+   this rework replaced. min-width: 0 on the track is load-bearing: the mono
+   endpoint is the widest string in the card and would otherwise push the
+   track wider than the viewport (body has overflow-x: clip as a net; do not
+   lean on it — styles.css says so outright). */
 .mcp .mcp-grid {
   position: relative;
   z-index: 1;
-  max-width: 1560px;
-  margin: clamp(28px, 4vh, 48px) auto 0;
+  max-width: 1120px;
+  margin: clamp(22px, 3vh, 34px) auto 0;
   padding-inline: var(--pad);
   display: grid;
-  gap: clamp(18px, 2vw, 28px);
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  /* stretch, not start — the three cards carry different amounts of copy, and
-     `margin-top: auto` on .mcp-gate only lines the three buttons up if the
-     cards are the same height to begin with */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 1.4vw, 18px);
   align-items: stretch;
 }
 
-/* the cell is the motion element now, so it has to pass its height through to
-   the card or `align-items: stretch` stops at the wrapper */
-.mcp .mcp-cell { min-width: 0; display: flex; }
+@media (max-width: 860px) {
+  .mcp .mcp-grid { grid-template-columns: minmax(0, 1fr); }
+}
 
+/* ═══ A CARD ════════════════════════════════════════════════ */
 .mcp .mcp-card {
+  /* RE-DECLARED LOCALLY, ON THE SAME ELEMENT THAT CARRIES --accent, and that
+     is the whole point: a custom property's var() references are substituted
+     where the property is DECLARED, so the global --accent-ink (declared on
+     :root, where --accent is unset) inherits down already resolved against
+     the magenta fallback. Setting --accent on a descendant cannot re-point
+     it. Declaring both here — --accent inline on this element, --accent-ink
+     in this rule — makes the mix resolve against the card's own yarn, which
+     is what every accent-coloured label below is counting on. */
+  --accent-ink: color-mix(in srgb, var(--accent, var(--magenta)) 46%, var(--ink));
   position: relative;
   min-width: 0;
-  flex: 1;
   display: flex;
   flex-direction: column;
-  padding: clamp(22px, 2.2vw, 34px);
+  padding: clamp(16px, 1.5vw, 20px);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: clamp(14px, 1.2vw, 18px);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)) ,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.22)),
     var(--bg-2);
-  transition: transform 0.32s var(--ease), border-color 0.32s var(--ease), box-shadow 0.32s var(--ease);
+  transition:
+    transform 0.4s var(--ease),
+    border-color 0.4s var(--ease),
+    box-shadow 0.4s var(--ease);
 }
 
-/* the accent only arrives on hover/focus — at rest the three cards read as one
-   set, which is what stops the shelf looking like three unrelated products */
+/* the accent only arrives on hover/focus — at rest the four cards read as one
+   set, which is what stops the shelf looking like four unrelated products */
 .mcp .mcp-card:hover,
 .mcp .mcp-card:focus-within {
-  transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  box-shadow: 0 24px 60px -30px color-mix(in srgb, var(--accent) 60%, transparent);
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 48%, transparent);
+  box-shadow: 0 20px 44px -26px color-mix(in srgb, var(--accent, var(--magenta)) 70%, transparent);
 }
 
-/* the accent hairline down the left edge */
+/* the accent hairline down the left edge — dim at rest, lit once the gate is
+   open and full-bright once the request is in, so the card reports its own
+   state without a second badge */
 .mcp .mcp-card::before {
   content: '';
   position: absolute;
   left: 0;
-  top: clamp(22px, 2.2vw, 34px);
-  bottom: clamp(22px, 2.2vw, 34px);
+  top: clamp(16px, 1.5vw, 20px);
+  bottom: clamp(16px, 1.5vw, 20px);
   width: 2px;
-  border-radius: 2px;
-  background: var(--accent);
-  opacity: 0.55;
-  transition: opacity 0.35s var(--ease);
+  border-radius: 0 2px 2px 0;
+  background: var(--accent, var(--magenta));
+  opacity: 0.5;
+  transition: opacity 0.4s var(--ease);
 }
 .mcp .mcp-card:hover::before,
-.mcp .mcp-card:focus-within::before { opacity: 1; }
-
-/* the card "responding": the hairline is dim at rest, lifts when the gate
-   opens, and settles full-bright once the request is in — the same accent
-   line the connector's branch fed into, now reporting the state back. Pure
-   opacity, same transition already declared on .mcp-card::before above. */
+.mcp .mcp-card:focus-within::before,
 .mcp .mcp-card.is-form::before,
 .mcp .mcp-card.is-sent::before { opacity: 1; }
 
+/* ——— the head ———
+   THE OVERLAP FIX. Three explicit tracks and three named areas: the badge has
+   a column of its own that no sibling is placed into, so "TOOLS"/anything
+   else cannot land on top of it the way the rack's flipped rail did. */
 .mcp .mcp-card-head {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: start;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'thumb titles beta';
+  align-items: center;
   gap: 12px;
 }
 
-.mcp .mcp-index {
-  font-family: var(--display);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: var(--accent);
-  padding-top: 4px;
+.mcp .mcp-thumb {
+  grid-area: thumb;
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  width: clamp(48px, 5vw, 58px);
+  aspect-ratio: 1;
+  border-radius: 11px;
+  /* THE FALLBACK, and it is deliberate: a dyed tile in the server's own accent
+     sits under the photograph, so a render that is missing, still loading or
+     blocked reads as a coloured tile rather than as a hole. */
+  background:
+    radial-gradient(120% 100% at 30% 15%, color-mix(in srgb, var(--accent, var(--magenta)) 70%, transparent), transparent 72%),
+    var(--bg-3);
 }
 
-.mcp .mcp-titles { min-width: 0; }
+.mcp .mcp-thumb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* the photograph is a plate, not a picture — it must not out-shout the
+     server name beside it */
+  opacity: 0.95;
+}
+
+.mcp .mcp-thumb-n {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  font-family: var(--bloom);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75);
+  pointer-events: none;
+}
+
+.mcp .mcp-titles { grid-area: titles; min-width: 0; }
 
 .mcp .mcp-name {
   font-family: var(--bloom);
-  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
-  font-weight: 400;
-  line-height: 1;
+  font-size: clamp(1.02rem, 1.5vw, 1.24rem);
+  font-weight: 640;
+  line-height: 1.05;
   letter-spacing: 0.005em;
+  color: var(--ink);
   text-transform: uppercase;
 }
 
 .mcp .mcp-name-pre {
   color: var(--ink-faint);
-  font-size: 0.62em;
-  letter-spacing: 0.1em;
-  vertical-align: 0.18em;
-  margin-right: 0.15em;
+  font-size: 0.66em;
+  letter-spacing: 0.12em;
+  vertical-align: 0.14em;
+  margin-right: 0.42em;
 }
 
 .mcp .mcp-role {
-  margin-top: 7px;
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  margin-top: 3px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  /* the accent, at ink contrast — the bright yarn as text is ~1.8:1 on the
+     pink ground (styles.css documents this at length) */
+  color: var(--accent-ink);
+  overflow-wrap: anywhere;
 }
 
 .mcp .mcp-beta {
-  flex: none;
+  grid-area: beta;
   align-self: start;
-  padding: 4px 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 34%, var(--line));
   border-radius: 999px;
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--accent) 78%, var(--ink));
+  color: var(--ink-faint);
   white-space: nowrap;
 }
 
+/* ——— the copy: two lines, hard ——— */
 .mcp .mcp-line {
-  margin-top: clamp(16px, 2vh, 22px);
-  font-size: 0.95rem;
-  line-height: 1.68;
+  margin-top: clamp(11px, 1.3vh, 15px);
+  font-size: 0.875rem;
+  line-height: 1.55;
   color: var(--ink-dim);
   text-wrap: pretty;
 }
 
-/* ——— the tool list: what the client's AI actually gains ——— */
-.mcp .mcp-tools {
-  margin-top: clamp(18px, 2.2vh, 26px);
+/* ——— the tools, as chips ———
+   Was a bordered column with a "TOOLS" rail label beside the badge — the
+   thing that collided. The names are the payload; each chip carries its
+   one-line description as its title, so nothing was dropped, it just stopped
+   costing four rows of height per card. */
+.mcp .mcp-chips {
   list-style: none;
-  display: grid;
-  gap: 9px;
+  margin-top: clamp(10px, 1.2vh, 13px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
 }
 
-.mcp .mcp-tools li {
-  display: grid;
-  grid-template-columns: minmax(0, auto) 1fr;
-  align-items: baseline;
-  gap: 10px;
-  padding-bottom: 9px;
-  border-bottom: 1px solid var(--line);
-}
-.mcp .mcp-tools li:last-child { border-bottom: 0; padding-bottom: 0; }
+.mcp .mcp-chips li { min-width: 0; display: flex; }
 
-.mcp .mcp-tools code {
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 0.78rem;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 2px 7px;
-  white-space: nowrap;
+.mcp .mcp-chips code {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 0.7rem;
+  letter-spacing: -0.01em;
+  color: var(--accent-ink);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 22%, var(--line));
+  border-radius: 7px;
+  padding: 3px 8px;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
+  transition: background 0.3s var(--ease), border-color 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.mcp .mcp-chips code:hover {
+  background: color-mix(in srgb, var(--accent, var(--magenta)) 14%, rgba(255, 255, 255, 0.7));
+  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 50%, transparent);
+  transform: translateY(-1px);
 }
 
-.mcp .mcp-tools span {
-  font-size: 0.82rem;
-  line-height: 1.5;
-  color: var(--ink-faint);
-}
-
-/* ——— the redacted endpoint ———
-   One line, wrapping to two at most on a phone. It used to be a nine-line
-   pretty-printed mcpServers block in a <pre>, which cost ~170px inside every
-   card and was most of why the section ran past a viewport and a half. */
+/* ——— the redacted endpoint ——— */
 .mcp .mcp-config {
-  margin-top: clamp(14px, 1.8vh, 20px);
-  padding: 9px 12px;
+  margin-top: clamp(10px, 1.2vh, 13px);
+  padding: 7px 10px;
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 4px 8px;
-  border: 1px dashed color-mix(in srgb, var(--accent) 32%, var(--line));
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.28);
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 0.68rem;
-  line-height: 1.6;
+  gap: 2px 7px;
+  border: 1px dashed color-mix(in srgb, var(--accent, var(--magenta)) 30%, var(--line));
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.42);
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 0.66rem;
+  line-height: 1.5;
   color: var(--ink-faint);
   /* anywhere, not break-word: the host is one unbroken token and a card track
-     can be as narrow as 320px − padding */
+     can be as narrow as 390px − the page gutter */
   overflow-wrap: anywhere;
 }
 
-.mcp .mcp-config-slug {
-  color: color-mix(in srgb, var(--accent) 80%, var(--ink));
-  white-space: nowrap;
-}
-.mcp .mcp-config-arrow { color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.mcp .mcp-config-slug { color: var(--accent-ink); white-space: nowrap; }
+.mcp .mcp-config-arrow { color: color-mix(in srgb, var(--accent, var(--magenta)) 60%, transparent); }
 .mcp .mcp-config-url { min-width: 0; }
 
+/* visibly a placeholder, never a plausible token */
 .mcp .mcp-redact {
   font-style: normal;
   color: transparent;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(96, 40, 76, 0.2);
   border-radius: 3px;
   padding-inline: 2px;
   user-select: none;
 }
 
-/* ——— the gate ——— */
+/* ——— the gate ———
+   margin-top: auto pins the CTA to the card's foot, which is the only reason
+   the four buttons line up across a row of differently-worded cards. */
 .mcp .mcp-gate {
   margin-top: auto;
-  padding-top: clamp(18px, 2.2vh, 24px);
+  padding-top: clamp(12px, 1.4vh, 16px);
 }
 
 .mcp .mcp-unlock {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 20px;
-  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  gap: 9px;
+  padding: 9px 17px;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 45%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  background: color-mix(in srgb, var(--accent, var(--magenta)) 10%, rgba(255, 255, 255, 0.5));
   color: var(--ink);
   font-family: var(--body);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
   transition: background 0.35s var(--ease), border-color 0.35s var(--ease), transform 0.35s var(--ease);
 }
-.mcp .mcp-unlock:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); transform: translateY(-1px); }
-.mcp .mcp-unlock:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.mcp .mcp-unlock:hover {
+  background: color-mix(in srgb, var(--accent, var(--magenta)) 20%, rgba(255, 255, 255, 0.6));
+  transform: translateY(-1px);
+}
+.mcp .mcp-unlock:focus-visible { outline: 2px solid var(--accent, var(--magenta)); outline-offset: 3px; }
 
-.mcp .mcp-unlock-ico { display: inline-flex; color: var(--accent); }
-/* the shackle lifts off the body on hover — the whole "it opens" idea, in 3px */
+.mcp .mcp-unlock-ico { display: inline-flex; color: var(--accent-ink); }
+/* the shackle lifts off the body on hover — the whole "it opens" idea, in 2px */
 .mcp .mcp-unlock-ico .mcp-shackle {
   transform-origin: 8px 10.5px;
   transition: transform 0.4s var(--ease);
@@ -400,14 +437,13 @@
 .mcp .mcp-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
-.mcp .mcp-field { display: grid; gap: 5px; min-width: 0; }
-.mcp .mcp-field--wide { grid-column: 1 / -1; }
+.mcp .mcp-field { display: grid; gap: 4px; min-width: 0; }
 
 .mcp .mcp-field label {
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -416,20 +452,20 @@
 .mcp .mcp-field input {
   width: 100%;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 8px 11px;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.25);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.7);
   color: var(--ink);
   font-family: var(--body);
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
 }
-.mcp .mcp-field input::placeholder { color: rgba(168, 159, 192, 0.45); }
+.mcp .mcp-field input::placeholder { color: color-mix(in srgb, var(--ink-faint) 55%, transparent); }
 .mcp .mcp-field input:focus {
   outline: none;
-  border-color: color-mix(in srgb, var(--accent) 65%, transparent);
-  background: rgba(0, 0, 0, 0.4);
+  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 65%, transparent);
+  background: #fff;
 }
 
 .mcp .mcp-form-foot {
@@ -437,72 +473,65 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 14px;
-  margin-top: 4px;
+  gap: 10px 14px;
+  margin-top: 2px;
 }
 
 .mcp .mcp-form-note {
-  flex: 1 1 200px;
+  flex: 1 1 190px;
   min-width: 0;
-  font-size: 0.72rem;
-  line-height: 1.5;
+  font-size: 0.68rem;
+  line-height: 1.45;
   color: var(--ink-faint);
 }
 
 .mcp .mcp-sent {
-  padding: 14px 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-  font-size: 0.85rem;
-  line-height: 1.6;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 40%, transparent);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--accent, var(--magenta)) 10%, rgba(255, 255, 255, 0.5));
+  font-size: 0.82rem;
+  line-height: 1.55;
   color: var(--ink-dim);
   overflow-wrap: anywhere;
 }
 .mcp .mcp-sent b { color: var(--ink); }
 
-/* ═══ THE STRIP ═════════════════════════════════════════════ */
-.mcp .mcp-strip {
-  position: relative;
-  z-index: 1;
-  max-width: 1560px;
-  margin: clamp(34px, 5vh, 60px) auto 0;
-  padding: clamp(24px, 3vw, 40px);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.025);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  /* the strip sits inside the same gutter as the grid */
-  inline-size: min(1560px, 100% - (var(--pad) * 2));
+/* ═══ THE FOURTH CARD — "need one that doesn't exist yet?" ═══
+   Was a full-width strip under the rack. As the grid's fourth cell it squares
+   the 2×2 off and costs the section nothing extra in height. */
+.mcp .mcp-card--ask {
+  --accent: var(--magenta);
+  justify-content: center;
+  gap: 9px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.08)),
+    var(--bg-3);
+  border-style: dashed;
 }
 
-.mcp .mcp-strip-copy { flex: 1 1 420px; min-width: 0; }
-
-.mcp .mcp-strip-h {
+.mcp .mcp-ask-h {
   font-family: var(--display);
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
-  font-weight: 500;
-  line-height: 1.2;
+  font-size: clamp(1.02rem, 1.5vw, 1.24rem);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--ink);
+  text-wrap: balance;
 }
 
-.mcp .mcp-strip-p {
-  margin-top: 8px;
-  max-width: 62ch;
-  font-size: 0.9rem;
-  line-height: 1.65;
+.mcp .mcp-ask-p {
+  max-width: 46ch;
+  font-size: 0.875rem;
+  line-height: 1.55;
   color: var(--ink-dim);
   text-wrap: pretty;
 }
 
-.mcp .mcp-strip-cta { flex: none; }
-
 .mcp .mcp-mail {
+  align-self: start;
+  margin-top: 4px;
   color: var(--ink);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   text-decoration: none;
   border-bottom: 1px solid color-mix(in srgb, var(--magenta) 60%, transparent);
   padding-bottom: 2px;
@@ -510,235 +539,46 @@
   overflow-wrap: anywhere;
   position: relative;
 }
-/* TOUCH TARGET — the link's own box is 21px tall and the magenta rule under it
-   is the whole design of the thing, so it cannot be grown with padding: the
-   border would detach from the text. An invisible, centred 44px band takes the
-   tap instead. Its only neighbour is the CTA beside it on the same flex line,
-   so the vertical bleed cannot steal another control's tap. */
+/* TOUCH TARGET — the link's own box is ~21px tall and the magenta rule under
+   it is the whole design of the thing, so it cannot be grown with padding:
+   the border would detach from the text. An invisible, centred 44px band
+   takes the tap instead. Nothing else in this card sits within that bleed. */
 .mcp .mcp-mail::after {
   content: '';
-  position: absolute; left: 0; right: 0; top: 50%;
-  height: 44px; transform: translateY(-50%);
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
 }
 .mcp .mcp-mail:hover { color: var(--magenta); border-color: var(--magenta); }
 .mcp .mcp-mail:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; border-radius: 4px; }
 
-@media (max-width: 620px) {
+/* ═══ NARROW ════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  /* The badge drops to a row of its own rather than being squeezed against
+     the name — the one place the three-track head cannot hold at 390px. */
+  .mcp .mcp-card-head {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'thumb titles'
+      'beta  beta';
+    gap: 10px 11px;
+  }
+  .mcp .mcp-beta { justify-self: start; }
   .mcp .mcp-form { grid-template-columns: minmax(0, 1fr); }
-  .mcp .mcp-card-head { grid-template-columns: auto 1fr; }
-  .mcp .mcp-beta { grid-column: 2; justify-self: start; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .mcp .mcp-card,
+  .mcp .mcp-card::before,
+  .mcp .mcp-chips code,
   .mcp .mcp-unlock,
-  .mcp .mcp-unlock-ico .mcp-shackle { transition: none; }
-  .mcp .mcp-card:hover { transform: none; }
-}
-
-/* ═══════════ THE RACK — #mcp units (redesigned 10 Aug 2026) ═══════════
-   Replaces `.mcp-grid` / `.mcp-cell` / `.mcp-card` (three identical outlined
-   cards in a 3-up row — the same shape as four other sections). Each server is
-   now a full-width rack unit: photographed plate, name at display scale, tools
-   as a monospace column. Units alternate the plate's side so a stack of three
-   does not read as a repeated row. */
-
-.mcp-rack {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 var(--pad);
-  display: grid;
-  gap: clamp(14px, 1.8vw, 24px);
-}
-
-.mcp-unit {
-  position: relative;
-  display: grid;
-  grid-template-columns: clamp(200px, 22vw, 280px) minmax(0, 1fr) clamp(230px, 24vw, 300px);
-  align-items: stretch;
-  gap: clamp(16px, 1.8vw, 24px);
-  padding: clamp(14px, 1.5vw, 18px);
-  border: 1px solid var(--line);
-  border-radius: clamp(14px, 1.4vw, 20px);
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
-  transition: border-color 0.45s var(--ease);
-}
-.mcp-unit:hover { border-color: color-mix(in srgb, var(--accent, var(--magenta)) 42%, transparent); }
-/* the rack rail — one lit edge in the unit's own accent, on the side the
-   plate is on, so the alternation is legible even at a glance */
-.mcp-unit::before {
-  content: '';
-  position: absolute;
-  left: 0; top: clamp(16px, 1.8vw, 22px); bottom: clamp(16px, 1.8vw, 22px);
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--accent, var(--magenta));
-  opacity: 0.85;
-}
-/* ALTERNATION IS `order`, NOT `direction`. `direction: rtl` would flip the
-   text inside these columns too — including the monospace tool names and the
-   redacted endpoint, which are strings whose order carries meaning. */
-.mcp-unit.is-flipped .mcp-plate { order: 3; }
-.mcp-unit.is-flipped .mcp-toolwrap { order: 1; }
-.mcp-unit.is-flipped::before { left: auto; right: 0; border-radius: 3px 0 0 3px; }
-
-/* ——— the plate ——— */
-.mcp-plate {
-  position: relative;
-  overflow: hidden;
-  border-radius: clamp(10px, 1vw, 14px);
-  min-height: clamp(130px, 13vw, 172px);
-  /* THE FALLBACK, and it is deliberate: a dyed plate in the server's own
-     accent sits under the photograph, so a render that is missing, still
-     loading or blocked reads as a coloured plate rather than as a hole. The
-     section shipped its redesign before the photography existed. */
-  background:
-    radial-gradient(120% 90% at 30% 20%, color-mix(in srgb, var(--accent, var(--magenta)) 55%, transparent), transparent 70%),
-    var(--bg-3);
-}
-.mcp-plate-img {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  /* the photograph is a plate, not a picture — it sits under the unit's ink
-     and must not out-shout the server name beside it */
-  opacity: 0.92;
-}
-.mcp-plate-n {
-  position: absolute;
-  left: 12px; bottom: 6px;
-  font-family: var(--bloom);
-  font-weight: 560;
-  font-size: clamp(2.2rem, 4vw, 3.4rem);
-  line-height: 0.9;
-  color: var(--ink);
-  opacity: 0.6;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-}
-
-/* ——— the middle column ——— */
-.mcp-main { display: flex; flex-direction: column; min-width: 0; }
-.mcp-unit-head {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  gap: 6px 12px;
-}
-.mcp-name {
-  grid-column: 1;
-  font-family: var(--bloom);
-  font-weight: 560;
-  font-size: clamp(1.35rem, 2.3vw, 1.9rem);
-  line-height: 1;
-  color: var(--ink);
-  text-wrap: nowrap;
-}
-.mcp-name-pre { color: var(--ink-faint); margin-right: 0.24em; }
-.mcp-role {
-  grid-column: 1;
-  margin-top: 4px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent, var(--magenta));
-}
-.mcp-beta {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: start;
-  padding: 5px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  white-space: nowrap;
-}
-.mcp-line {
-  margin-top: clamp(10px, 1.2vw, 14px);
-  font-size: clamp(0.88rem, 1vw, 0.96rem);
-  line-height: 1.5;
-  color: var(--ink-dim);
-  max-width: 48ch;
-  text-wrap: pretty;
-}
-.mcp-main .mcp-gate { margin-top: auto; padding-top: clamp(12px, 1.4vw, 16px); }
-
-/* ——— the tools column ——— */
-.mcp-toolwrap {
-  min-width: 0;
-  padding-left: clamp(14px, 1.6vw, 20px);
-  border-left: 1px solid var(--line);
-}
-.mcp-unit.is-flipped .mcp-toolwrap {
-  padding: 0 clamp(14px, 1.6vw, 20px) 0 0;
-  border-left: 0;
-  border-right: 1px solid var(--line);
-}
-.mcp-tools-label {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  margin-bottom: 10px;
-}
-.mcp-rack .mcp-tools {
-  list-style: none;
-  display: grid;
-  gap: 6px;
-}
-.mcp-rack .mcp-tools li {
-  display: grid;
-  /* EXPLICIT, because `.mcp .mcp-tools li` above still sets a two-column
-     template at equal specificity. `display: grid` alone was inherited-over:
-     the old columns stayed, so the tool name and its description rendered
-     side by side and overlapped. A property this rule does not name is a
-     property the older rule keeps. */
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1px;
-  padding-bottom: 6px;
-  border-bottom: 1px dashed rgba(242, 240, 247, 0.07);
-}
-.mcp-rack .mcp-tools li:last-child { border-bottom: 0; padding-bottom: 0; }
-.mcp-rack .mcp-tools code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.8rem;
-  color: var(--accent, var(--magenta));
-  letter-spacing: -0.01em;
-}
-.mcp-rack .mcp-tools span {
-  font-size: 0.76rem;
-  line-height: 1.4;
-  color: var(--ink-faint);
-}
-
-/* ——— narrow: the rack becomes a stack of plates over copy ——— */
-@media (max-width: 1000px) {
-  .mcp-unit,
-  .mcp-unit.is-flipped {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .mcp-unit.is-flipped .mcp-plate,
-  .mcp-unit.is-flipped .mcp-toolwrap { order: 0; }
-  .mcp-plate { min-height: clamp(150px, 34vw, 230px); }
-  .mcp-toolwrap,
-  .mcp-unit.is-flipped .mcp-toolwrap {
-    padding: clamp(14px, 3vw, 18px) 0 0;
-    border: 0;
-    border-top: 1px solid var(--line);
-  }
-  .mcp-rack .mcp-tools { grid-template-columns: repeat(2, 1fr); gap: 10px clamp(14px, 3vw, 22px); }
-}
-@media (max-width: 560px) {
-  .mcp-rack .mcp-tools { grid-template-columns: 1fr; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mcp-unit { transition: none; }
+  .mcp .mcp-unlock-ico .mcp-shackle,
+  .mcp .mcp-field input,
+  .mcp .mcp-mail { transition: none; }
+  .mcp .mcp-card:hover,
+  .mcp .mcp-card:focus-within,
+  .mcp .mcp-chips code:hover,
+  .mcp .mcp-unlock:hover { transform: none; }
+  .mcp .mcp-unlock:hover .mcp-unlock-ico .mcp-shackle { transform: none; }
 }

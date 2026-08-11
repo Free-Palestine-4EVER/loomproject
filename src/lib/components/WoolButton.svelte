@@ -31,6 +31,18 @@
   const cls = $derived(
     `wool-btn ${asset ? 'wool-btn--photo' : `wool-btn--css wool-btn--${yarn}`}${sizeClass} ${className}`.trimEnd()
   )
+  /** The 33 renders are NOT one shape. "See the work" is 2.14:1, "Make one
+   *  free" is 1.77:1, "Request a quote" is 2.45:1 — they were shot as
+   *  individual objects, not cut from one template. Sizing them all off a
+   *  common WIDTH therefore gave them wildly different cap heights, and the
+   *  squarest render ("Make one free", the widest gap from the set's median)
+   *  came out 107px tall against "See the work"'s 82 — the client's "too fat".
+   *  Publishing the render's own ratio lets wool.css size a photographed pill
+   *  off its HEIGHT instead, so every knit on the page shares a cap height and
+   *  the width falls out of the photograph. Anything that still sets
+   *  --wool-btn-w by hand (the nav bar, the hero, the wizard chrome) keeps
+   *  overriding this untouched. */
+  const style = $derived(asset ? `--wool-btn-ar:${RATIO[asset].toFixed(4)}` : undefined)
 </script>
 
 <!--
@@ -63,7 +75,7 @@
 {/snippet}
 
 {#if href}
-  <a {href} class={cls} {onclick} {...rest}>{@render inner()}</a>
+  <a {href} class={cls} {style} {onclick} {...rest}>{@render inner()}</a>
 {:else}
-  <button {type} class={cls} {onclick} {...rest}>{@render inner()}</button>
+  <button {type} class={cls} {style} {onclick} {...rest}>{@render inner()}</button>
 {/if}

@@ -1,12 +1,87 @@
 /* #typeface — three screens of scroll pinned to one viewport. */
 
+/* ═══════════════════════════════ the specimen subsets
+   The word this section cycles is BLOOM and nothing else, so Linear, Retro and
+   Flora are fetched here as four-glyph cuts of themselves — B, L, O, M — built
+   by scripts/subset-patterns-specimen.mjs. Same drawings, same metrics,
+   80.4 KB for six faces instead of 832 KB, which is the only reason all four
+   cuts can be shown at all (see TypeShowcaseAct.svelte's header).
+
+   THEY LIVE HERE AND NOT IN styles.css ON PURPOSE. This stylesheet is imported
+   by TypeShowcase.svelte, so a page without #typeface on it never parses these
+   rules. That is only half the gate, though: the layers claim these families
+   from an INLINE style once their own beat is close (`armed[]`), so declaring
+   the face does not fetch it — nothing is downloaded until a beat is about to
+   need it.
+
+   `font-display: swap` matches the rest of the family's rules. It is close to
+   moot here: a layer is armed ~1.5 beats before it is visible and sits at
+   opacity 0 until then, so the file has a screen or so of scroll to arrive.
+
+   Organic is deliberately absent — the drifting bands set the whole alphabet
+   and the four cut names in it, and the canvas field draws its ornaments from
+   it, so this section fetches the full Organic faces regardless and a subset
+   beside them would be a second file for glyphs the page already has.
+
+   REBUILD: node scripts/subset-patterns-specimen.mjs. If the specimen word
+   ever changes, that script must be rerun — a character missing from a subset
+   falls back to the next family rather than to tofu, so a stale subset reads
+   as one plain letter inside a patterned word. */
+@font-face {
+  font-family: 'LOOM Linear Specimen';
+  src: url('/fonts/loom-patterns/LOOMLinear-Specimen.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Linear Outline Specimen';
+  src: url('/fonts/loom-patterns/LOOMLinearOutline-Specimen.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Retro Specimen';
+  src: url('/fonts/loom-patterns/LOOMRetro-Specimen.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Retro Outline Specimen';
+  src: url('/fonts/loom-patterns/LOOMRetroOutline-Specimen.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Flora Specimen';
+  src: url('/fonts/loom-patterns/LOOMFlora-Specimen.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Flora Outline Specimen';
+  src: url('/fonts/loom-patterns/LOOMFloraOutline-Specimen.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
 .ts {
   position: relative;
-  height: 420vh;                 /* the scroll budget: seven cuts need room */
+  /* The scroll budget. It was 360vh when the act cycled four faces (Organic
+     and Linear only); it cycles all EIGHT now — four cuts, fill and outline
+     each — and the dissolve range inside the pin is a fixed fraction of `p`
+     (0.18 → 0.66, see BLOOM_FROM/BLOOM_TO), so the number of pixels a beat
+     gets is this height and nothing else. At 360vh eight beats would have flown
+     past at ~17vh each. 560vh puts a beat back at ~31vh of scroll, close to the
+     41vh the four-beat version gave and still well short of the 700vh a
+     like-for-like pace would have cost.
+     Act three's beat is a fraction too (0.72 in bloomLayouts.js), so it moves
+     with the section and needs no retuning. */
+  height: 560vh;
   background:
     radial-gradient(80% 60% at 15% 10%, rgba(242, 28, 140, 0.14), transparent 60%),
     radial-gradient(70% 60% at 85% 90%, rgba(123, 47, 190, 0.18), transparent 62%);
-  /* This section exists to show off LOOM Bloom (see .ts-h2 below), so the
+  /* This section exists to show off the studio's own type (see .ts-h2 below),
+     so the
      10 Aug 2026 "normal lightweight font sitewide" request does not reach in
      here: --display/--body/--bloom are scoped back to what they were before
      that change, so nothing in this section moved. The cycling word and the
@@ -37,7 +112,12 @@
   padding: 14vh 0; pointer-events: none;
 }
 .ts-band {
-  font-family: 'LOOM Bloom', var(--display), sans-serif;
+  /* NOT a 'LOOM …' family here. The bands always render text, so a pattern
+     face named in this rule would be fetched the moment the section paints —
+     which is exactly what TypeShowcaseAct's `near`/`onScreen` gates exist to
+     prevent. The gated family arrives as an inline style; this is only the
+     fallback the band is set in until it does. */
+  font-family: var(--display), sans-serif;
   font-size: clamp(60px, 9vw, 150px);
   line-height: 1; white-space: nowrap;
   color: rgba(242, 240, 247, 0.045);
@@ -46,7 +126,12 @@
 .ts-band--low { color: rgba(242, 28, 140, 0.07); }
 
 .ts-kicker {
-  position: absolute; left: var(--pad); top: clamp(74px, 10vh, 116px);
+  /* The kicker is lit from p = 0 now (it used to fade in over the first 5% of
+     the pin, so nobody ever saw it against the top of the section) — which
+     immediately showed that 10vh puts it UNDER the fixed header: measured at
+     1440x900 the header is 98px tall and the kicker's top was 90. 12.5vh
+     clears it at every viewport height the clamp allows. */
+  position: absolute; left: var(--pad); top: clamp(96px, 12.5vh, 128px);
   display: flex; align-items: center; gap: 12px;
   font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--ink-faint);
@@ -58,10 +143,14 @@
    anchor centres · shift travels (viewport units) · word scales.
    See the note in TypeShowcase.jsx for why the three are separate. */
 .ts-word-anchor {
-  position: absolute; left: 0; right: 0; top: 46%;
+  /* 46% -> 43%: with the word painting from the first frame (see
+     TypeShowcaseAct's beat-zero comment) the top of the section is the kicker,
+     a gap, then the word, and the gap was reading as a dead screen. */
+  position: absolute; left: 0; right: 0; top: 43%;
   transform: translateY(-50%);
 }
-.ts-word-shift { will-change: transform, opacity; }
+/* the shift carries the word AND the face label under it, in that order */
+.ts-word-shift { will-change: transform, opacity; display: grid; justify-items: center; }
 .ts-word {
   transform-origin: 50% 50%;
   display: grid; place-items: center;
@@ -73,26 +162,64 @@
   line-height: 0.86;
   letter-spacing: 0.004em;
   white-space: nowrap;
+  /* centre — a beat's settle scale must grow the word about its own middle,
+     not drag it off to the right */
+  transform-origin: 50% 50%;
   will-change: opacity, transform;
 }
-.ts-layer--plain {
-  display: flex;
-  /* Was #fff -> #f4e8ff -> magenta, drawn for the violet ground. On pink the
-     first two thirds of a 288px word simply were not there; only the magenta
-     tail rendered. Same left-to-right journey, re-pitched into ink range —
-     matches .tf-hero-line on /type, which is the same construction. */
-  background: linear-gradient(94deg, var(--ink) 0%, var(--violet) 46%, var(--magenta) 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.ts-ltr { display: inline-block; will-change: transform, opacity; }
-.ts-layer--cut {
-  /* terminal stop is --cyan-ink, not --cyan: see styles.css. Ending a clipped
-     text ramp on --cyan drops the last third of the word off the page. */
-  background: linear-gradient(94deg, var(--magenta) 0%, var(--violet) 52%, var(--cyan-ink) 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
+/* ——— the word's colour, 11 Aug 2026 ———————————————————————————————
+   SOLID INK, NOT A CLIPPED GRADIENT. Every layer here used to be
+   `background: linear-gradient(...); background-clip: text; color:
+   transparent`, a ramp that started on --magenta (#f21c8c) over a --bg of
+   #ffe9f2. That is pale pink type on a pale pink ground — reported from
+   Safari as "a barely-there watermark", and it measures like one. It is worse
+   for THIS family than it was for Bloom: these faces have a pattern worked
+   through the letter, and a low-contrast fill hides the pattern, which is the
+   entire thing the section exists to show.
 
-/* ——————————————————————————————— the cut rail */
+   `background-clip: text` is also the construction that hides text from every
+   contrast sweep (getComputedStyle(el).color reads `transparent`) and is the
+   flakiest thing in WebKit to combine with will-change/filter, both of which
+   this element carries. Solid `color` fixes the contrast, the audit and the
+   engine risk in one move.
+
+   #33243d on #ffe9f2 is ~11:1; #b3126a is ~5.6:1. */
+/* Every layer is one text node on one baseline now — `.ts-ltr` and the
+   per-letter scatter it carried are gone (see TypeShowcaseAct's beat-zero
+   comment). `transform-origin` is centre so the settle/scale a beat applies
+   grows the word about its own middle instead of dragging it right. */
+.ts-layer--plain { display: block; }
+.ts-layer--fill { color: var(--ink); }
+/* Fill and outline are the same drawing twice, so the outline is the same ink
+   in the brand's deep magenta rather than a different colour scheme — the
+   swap reads as a turn of the same object, which is the argument the pair is
+   making.
+
+   The outline cut is a HAIRLINE drawing: at 300px its stems are ~2px, so it
+   carries far less ink than the fill at the same colour and needs the darker
+   of the two magentas to hold up. --magenta-deep (#b3126a) on --bg (#ffe9f2)
+   is ~5.6:1; --magenta (#f21c8c) is ~3.1:1 and was visibly washing out. */
+.ts-layer--outline { color: var(--magenta-deep); }
+
+/* ——————————————————————————————— the live face caption
+   Rule / cut / face / rule, centred under the word's baseline — the line a
+   printed specimen sets under the showing. It sits in .ts-word-shift so it
+   travels with the word rather than being placed in the composition. */
+.ts-face-label {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(10px, 1vw, 14px);
+  margin: clamp(12px, 2vh, 22px) 0 0;
+  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.ts-face-rule { width: clamp(28px, 5vw, 72px); height: 1px; background: currentColor; opacity: 0.34; }
+.ts-face-cut { color: var(--ink); }
+.ts-face-style { color: var(--magenta-deep); }
+
+/* ——————————————————————————————— the cut rail
+   One row per CUT, two pips per row: solid pip = the fill, hollow pip = the
+   outline. Eight faces listed flat read as eight strangers; four rows of two
+   read as what the family actually is. */
 .ts-rail {
   position: absolute; right: var(--pad); top: 50%;
   transform: translateY(-50%);
@@ -101,12 +228,20 @@
   color: var(--ink-faint);
 }
 .ts-rail-item { display: flex; align-items: center; gap: 10px; transition: color 400ms var(--ease); }
+.ts-rail-pips { display: inline-flex; align-items: center; gap: 5px; }
 .ts-rail-item i {
-  width: 22px; height: 1px; background: currentColor; opacity: 0.5;
-  transition: width 500ms var(--ease), background 400ms var(--ease), opacity 400ms var(--ease);
+  width: 9px; height: 9px; border-radius: 50%;
+  background: currentColor; border: 1px solid currentColor;
+  opacity: 0.34;
+  transition: opacity 400ms var(--ease), transform 400ms var(--ease);
 }
+.ts-pip--outline { background: transparent; }
 .ts-rail-item.is-live { color: var(--magenta); }
-.ts-rail-item.is-live i { width: 46px; opacity: 1; }
+.ts-rail-item i.is-lit { opacity: 1; transform: scale(1.28); }
+/* There is no dimmed state any more. `.is-off` used to sit Retro and Flora
+   back because the home page named them without setting them; all four are
+   set now (see the specimen subsets at the top of this file), so every row
+   here is a row you will watch light up. */
 
 /* ——————————————————————————————— act three
    The slot places, the block moves. .ts-copy carries the scroll transform, so
@@ -171,8 +306,8 @@
   transform: none;
   grid-auto-flow: column; gap: clamp(14px, 2vw, 28px);
 }
-.ts--a .ts-rail-item i { width: 14px; }
-.ts--a .ts-rail-item.is-live i { width: 28px; }
+/* the pips are discs now, not rules — nothing here needs to resize them */
+.ts--a .ts-rail-item { gap: 8px; }
 
 /* ═══════════════════════════════ layout b — STAGE
    The word grows and sinks until its baseline is cropped by the bottom edge —
@@ -190,12 +325,11 @@
   transform: translateX(-50%);
   grid-auto-flow: column; gap: clamp(12px, 2vw, 26px);
 }
-.ts--b .ts-rail-item i { width: 12px; }
-.ts--b .ts-rail-item.is-live i { width: 24px; }
+.ts--b .ts-rail-item { gap: 8px; }
 /* The kicker and the ticker share the top of the screen. At five cuts the
-   centred ticker was narrow enough to clear a left-aligned kicker; at eight it
-   is not, so the kicker drops to its own line UNDER the ticker instead of
-   sitting beside it. */
+   centred ticker was narrow enough to clear a left-aligned kicker; at four
+   cut names plus their pips it still is not, so the kicker drops to its own
+   line UNDER the ticker instead of sitting beside it. */
 .ts--b .ts-kicker { top: clamp(104px, 13vh, 150px); left: var(--pad); }
 .ts--b .ts-bands { padding: 10vh 0 26vh; }
 
@@ -236,7 +370,10 @@
 }
 
 @media (max-width: 900px) {
-  .ts { height: 360vh; }
+  /* same arithmetic as the desktop budget above, one notch tighter — a phone
+     scrolls further per flick, and eight beats over 380vh of scroll is ~26vh
+     each. */
+  .ts { height: 480vh; }
   .ts-copy-slot { padding-inline: var(--pad); }
 
   /* The kicker is a single uppercase line at 0.2em tracking; on a 390px phone
@@ -254,8 +391,15 @@
 
   /* The word is the whole point of the section and it was sitting small in the
      middle of a tall empty screen. Fill the width and lift it off the kicker. */
-  .ts-layer { font-size: clamp(96px, 26vw, 300px); }
-  .ts-word-anchor { top: 42%; }
+  /* BLOOM is five letters and runs ~3.2x the font size wide. 26vw fills the
+     measure at 390 (326px of word inside 350px of measure); the FLOOR has to
+     come down from 96px, though — at a 320px viewport 96px sets a 309px word
+     into a 280px measure and .ts-sticky's overflow:hidden simply crops the B
+     and the M. 80px sets 258px there and is still twice the ~40px below which
+     these patterns stop resolving. */
+  .ts-layer { font-size: clamp(80px, 26vw, 300px); }
+  .ts-word-anchor { top: 40%; }
+  .ts-face-label { font-size: 10px; letter-spacing: 0.16em; }
 
   /* The two drifting bands were tuned for a wide viewport; at phone width they
      crop to a couple of letters and read as debris rather than as type. */
@@ -277,16 +421,28 @@
   .ts--a .ts-copy-slot { place-items: end stretch; }
   .ts--a .ts-copy { max-width: none; }
   .ts--a .ts-h2, .ts--a .ts-lede { max-width: none; }
-  .ts--a .ts-rail { display: none; }
+  /* The rail used to be hidden on a phone: as a bottom-left row of names it
+     sat exactly where the full-width copy block lands. It carries the pips
+     now — the only thing at this width that says every cut is drawn twice —
+     so instead of dropping it, it moves to the top, under the kicker and
+     above the word, where nothing else is. */
+  .ts--a .ts-rail {
+    top: clamp(142px, 18vh, 178px); bottom: auto;
+    left: var(--pad); right: var(--pad); transform: none;
+    display: flex; grid-auto-flow: row; flex-wrap: wrap;
+    gap: 5px 14px; font-size: 9px; letter-spacing: 0.12em;
+  }
+  .ts--a .ts-rail-item { gap: 6px; }
+  .ts--a .ts-rail-item i { width: 7px; height: 7px; }
 
   /* b — the wall of type still crops at the bottom; the ticker survives
      because it is the only thing naming the cuts.
 
-     It is now EIGHT names, which will not sit on one phone line at any legible
-     size, so the rail stops being a single row here and wraps: flex, centred,
-     with a fixed width to wrap inside. `grid-auto-flow: column` (the desktop
-     rule) has to be unset explicitly — it wins over `display: flex` otherwise
-     by simply still being there. */
+     It is four names, each carrying two pips, which will not sit on one phone
+     line at any legible size, so the rail stops being a single row here and
+     wraps: flex, centred, with a fixed width to wrap inside.
+     `grid-auto-flow: column` (the desktop rule) has to be unset explicitly —
+     it wins over `display: flex` otherwise by simply still being there. */
   /* clear the fixed header — it is ~110px tall on a phone, and the copy block
      is the one thing in the section that is read rather than looked at. */
   .ts--b .ts-copy-slot { padding-top: clamp(124px, 17vh, 168px); }
@@ -299,8 +455,10 @@
     width: min(94vw, 460px);
     gap: 4px 12px; font-size: 9px; letter-spacing: 0.11em;
   }
-  .ts--b .ts-rail-item i { display: none; }
-  .ts--b .ts-rail-item { gap: 0; }
+  /* the pips stay — they are the only thing on a phone that says each cut is
+     drawn twice — but they tighten right up against the name */
+  .ts--b .ts-rail-item { gap: 6px; }
+  .ts--b .ts-rail-item i { width: 7px; height: 7px; }
 
   /* A SHORT phone (SE, mini, anything under ~730px tall) has about 600px of
      viewport to hold the whole copy block. It DOES fit — measured at 112..456
@@ -365,6 +523,26 @@
   .ts-word-shift { opacity: 1 !important; filter: none !important; }
   .ts-copy { transform: none !important; opacity: 1 !important; }
   .ts-bands { display: none; }
+  /* THE KICKER AND THE RAIL JOIN THE FLOW TOO. Both are absolutely placed
+     against a full viewport (`top: 12.5vh`, `bottom: 4vh`) — which is right
+     while the section is a 100vh pin and nonsense once it is an auto-height
+     block: measured at 390x844 the kicker landed straight across the middle of
+     the word, and the rail sat at the bottom of the section on top of the
+     CTAs. (It only became visible with the kicker lit from the first frame;
+     before that it was faded to 0 here and the collision was invisible rather
+     than absent.) In flow they read as what they are — a label above the
+     specimen, and the family list under it. */
+  .ts-kicker, .ts--a .ts-kicker {
+    position: static; top: auto; right: auto;
+    margin: 0 0 clamp(16px, 3vh, 30px); padding-inline: var(--pad);
+  }
+  .ts-rail, .ts--a .ts-rail {
+    position: static; top: auto; bottom: auto; left: auto; right: auto;
+    transform: none;
+    margin: clamp(14px, 2.4vh, 26px) 0 0; padding-inline: var(--pad);
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 8px clamp(14px, 2vw, 28px);
+  }
   /* nothing is pinned any more, so the copy joins the flow under the word
      instead of being placed over it — in every layout. */
   .ts-copy-slot { position: static; display: block; padding: clamp(24px, 5vh, 48px) var(--pad) 0; }

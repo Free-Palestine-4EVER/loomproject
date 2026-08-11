@@ -98,11 +98,17 @@
       if (!a || !b) return
       const topA = anchor(a, 0.86, 0)
       const topB = anchor(b, 0.14, 0)
-      // Side-by-side (desktop grid) the cards' top edges sit at nearly the
-      // same y and far apart in x; stacked (mobile, one column) it is the
-      // reverse. Comparing |dy| to |dx| reads the layout straight off the DOM
+      // Stacked = the two cards share a left edge. Read straight off the DOM
       // rather than duplicating the grid's own breakpoint here.
-      const stacked = Math.abs(topB.y - topA.y) > Math.abs(topB.x - topA.x)
+      //
+      // WAS `|dy| > |dx|` between the two anchor points, which is only true
+      // while a stacked card is TALLER than 72% of the column is wide. The
+      // compressed card broke that: at 390 the cards ended up ~220px tall
+      // against a ~250px horizontal anchor offset, so a plainly stacked
+      // column was measured as side-by-side and the arc was drawn diagonally
+      // across both cards with the desktop "2,100 km" badge on top of them.
+      // Comparing the cards' own left edges cannot drift with card height.
+      const stacked = Math.abs(anchor(b, 0, 0).x - anchor(a, 0, 0).x) < 8
       let p0, p2, ctrl
       if (stacked) {
         // "Over the top edges" only reads as a thread pulled taut when the
@@ -142,7 +148,7 @@
   <div class="section-head">
     <p class="kicker"><span>—</span> Studios</p>
     <SplitWords as="h2" class="h2" text="Two cities. One loom." />
-    <p class="lede" style="margin-top: 22px" use:reveal={{ delay: 0.15 }}>
+    <p class="lede" use:reveal={{ delay: 0.15 }}>
       Two thousand one hundred kilometres of thread between Amman and Sarajevo, pulled tight.
       When one studio sleeps, the other is already sewing.
     </p>
@@ -194,10 +200,16 @@
                 <i aria-hidden="true"></i>{isAwake ? 'Awake' : 'Asleep'}
               </span>
             </header>
-            <p class="studio-country">{c.country}</p>
             <div class="studio-clock" aria-label="Local time in {c.name}">
               <span class="studio-clock-time">{c.clock.display}</span>
               <span class="studio-clock-tz" aria-hidden="true">local</span>
+            </div>
+            <!-- country + role are one block now, not two rows a clock apart:
+                 they answer the same question ("where, and what happens
+                 there") and the card reads in half the height for it. -->
+            <div class="studio-meta">
+              <p class="studio-country">{c.country}</p>
+              <p class="studio-role">{c.role}</p>
             </div>
             <div class="studio-daytrack" aria-hidden="true">
               <span class="studio-daytrack-band"></span>
@@ -209,7 +221,6 @@
                 style="left: {c.clock.dayFrac * 100}%"
               ></span>
             </div>
-            <p class="studio-role">{c.role}</p>
             <footer>
               <span>{c.phone}</span>
               <a href={c.href} target={c.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">{c.action} →</a>

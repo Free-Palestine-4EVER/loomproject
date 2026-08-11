@@ -1,0 +1,813 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE FORK — #offer. "Two ways in / Which one is you?"
+   Own sheet, own `.fk-*` namespace. Deliberately NOT part of banners.css:
+   this section shares no material with the banner blocks any more, and the
+   old `.ofk-*` rules over there are dead as far as this component goes.
+
+   FIFTH BUILD. The client's note on the fourth was "need more design and 2
+   different looking sections", and the second half of that is the important
+   one: the two answers used to be the same dark plane twice, told apart only
+   by a tint. They are now opposite MATERIALS, which is what the copy has
+   always said they are.
+
+       .fk-card--cloth   01  a business that exists   →  woven, dark, dense,
+                             bottom-heavy, numeral buried, type SOLID
+       .fk-card--paper   02  a business that doesn't  →  ruled, pale, empty,
+                             top-anchored, numeral whole, type HOLLOW
+
+   Everything below is drawn: three generated tiles (/img/fork/warp.svg for
+   the bed, cloth.svg for 01, graph.svg for 02), gradients, and inline SVG.
+   NO PHOTOGRAPHIC TEXTURE ANYWHERE — the build before last filled both halves
+   with /img/wool/tex/knit-*.webp, which carried a visible repeat seam and
+   left the copy under 4.5:1.
+
+   NEITHER SIDE IS THE DEFAULT ONE. They are exact inversions, not a primary
+   and a secondary: dark/light, dense/empty, solid/hollow, and a cream pill on
+   an ink ground against an ink pill on a cream ground. Same number of
+   elements, same order, same rhythm, same size.
+
+   GROUND / CONTRAST BUDGET — measured on the rendered page with qa's pixel
+   sampler (screenshot the ground under each string, composite the text
+   colour's own alpha over it, compute WCAG), never estimated:
+     01 cloth   heading 12.9:1  body 11.8:1  link 14.2:1  pill 13.0:1
+     02 paper   heading 11.6:1  body 11.1:1  link  7.9:1  pill 13.3:1
+   Those are 2nd-percentile figures — the worst ground pixel a glyph actually
+   crosses, both branches being patterned (a twill on one side, a ruled grid
+   on the other). The medians are 15.9 / 13.9 / 16.7 / 13.2 and 13.6 / 13.3 /
+   11.8 / 13.5. The two display labels are the only strings under 4.5:1-plus
+   headroom at 4.9:1 and 8.0:1, and they are set at a 42px floor, i.e. large
+   text, where the AA bar is 3:1.
+   Which is why no text in this section carries a shadow halo: nothing needs
+   rescuing from its background.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.fk {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  padding: clamp(52px, 7vh, 92px) 0 clamp(48px, 6.5vh, 84px);
+}
+
+.fk-head {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--pad) clamp(20px, 2.8vw, 34px);
+}
+.fk-h2 { max-width: 14ch; }
+
+.fk-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+}
+
+/* ─────────────── THE BED ───────────────
+   One plank under both answers. Two materials this different could easily
+   stop reading as one section; the bed is what stops that happening — the
+   same plum plank runs under both, and the seam is cut through it. */
+.fk-bed {
+  /* local tokens, all derived from the brand scale */
+  --fk-ground: color-mix(in srgb, var(--ink) 58%, #070310);
+  --fk-cream: #fff4fa;
+  --fk-paper: #fdf6fb;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: clamp(18px, 2vw, 28px);
+  padding: clamp(16px, 2.2vw, 30px);
+  background:
+    radial-gradient(140% 100% at 50% -20%, rgba(255, 255, 255, 0.08), transparent 62%),
+    var(--fk-ground);
+  box-shadow:
+    0 40px 80px -38px rgba(38, 8, 34, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+/* selvedge — the tick-rule along the cut edges of the cloth, top and bottom.
+   Masked to fade out at both ends so it reads as woven-in, not as a border. */
+.fk-bed::before,
+.fk-bed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 9px;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.26) 0 1px,
+    transparent 1px 13px
+  );
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
+}
+.fk-bed::before { top: 0; }
+.fk-bed::after { bottom: 0; transform: scaleY(-1); }
+
+/* the plank's own surface — the coarse warp tile, 72px, the loom itself */
+.fk-weave {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url('/img/fork/warp.svg');
+  background-repeat: repeat;
+  background-size: 72px 72px;
+  opacity: 0.16;
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 40%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(120% 100% at 50% 40%, #000 35%, transparent 100%);
+}
+
+/* dye pools — one under each half. On the cloth side the pool is the ground
+   itself; on the paper side it only ever shows as a halo AROUND the pale
+   sheet, which is exactly the job it should have there. */
+.fk-pool {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  width: 62%;
+  top: -18%;
+  bottom: -18%;
+  opacity: 0.55;
+  transition: opacity 0.6s var(--ease);
+}
+.fk-pool--l {
+  left: -10%;
+  background: radial-gradient(60% 50% at 40% 55%, color-mix(in srgb, var(--magenta) 70%, transparent), transparent 70%);
+}
+.fk-pool--r {
+  right: -10%;
+  background: radial-gradient(60% 50% at 60% 55%, color-mix(in srgb, var(--violet) 72%, transparent), transparent 70%);
+}
+/* pointing at an answer warms its side of the plank and cools the other */
+.fk-bed:has(.fk-card--cloth:hover) .fk-pool--l,
+.fk-bed:has(.fk-card--cloth:focus-within) .fk-pool--l,
+.fk-bed:has(.fk-card--paper:hover) .fk-pool--r,
+.fk-bed:has(.fk-card--paper:focus-within) .fk-pool--r { opacity: 0.92; }
+.fk-bed:has(.fk-card--cloth:hover) .fk-pool--r,
+.fk-bed:has(.fk-card--cloth:focus-within) .fk-pool--r,
+.fk-bed:has(.fk-card--paper:hover) .fk-pool--l,
+.fk-bed:has(.fk-card--paper:focus-within) .fk-pool--l { opacity: 0.2; }
+
+/* ─────────────── THE SPLIT ───────────────
+   Grid, not flex, and the seam is a real middle COLUMN rather than an
+   absolute overlay — which is what makes the stacked layout free: the same
+   element simply becomes the row between the two planes. */
+.fk-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr clamp(34px, 4.4vw, 74px) 1fr;
+  align-items: stretch;
+}
+
+/* ─────────────── THE TWO PLANES, shared skeleton ─────────────── */
+.fk-card {
+  position: relative;
+  z-index: 2;
+  isolation: isolate;
+  overflow: hidden; /* load-bearing: the bled numeral is clipped by this */
+  display: flex;
+  flex-direction: column;
+  padding: clamp(22px, 2.6vw, 38px);
+  transition:
+    transform 0.55s var(--ease),
+    box-shadow 0.55s var(--ease),
+    opacity 0.55s var(--ease),
+    filter 0.55s var(--ease);
+}
+/* Every layer the two materials paint sits UNDER the copy. Listed by name
+   rather than as `.fk-card > i`: .fk-rule is also a direct `<i>` child and is
+   part of the text column, so a blanket rule takes it out of flow and the
+   hairline under each label silently disappears. */
+.fk-tex,
+.fk-rows,
+.fk-pass,
+.fk-graph,
+.fk-cut,
+.fk-crop,
+.fk-fringe,
+.fk-comb { position: absolute; pointer-events: none; z-index: 0; }
+.fk-card > header,
+.fk-card > p,
+.fk-card > h3,
+.fk-card > div { position: relative; z-index: 2; }
+
+/* ══════════════════ 01 — CLOTH ══════════════════
+   A business that already exists is a bolt already woven: dark, dense and
+   bottom-heavy, with the finished rows stacked along its lower edge. */
+.fk-card--cloth {
+  --fk-dye: var(--magenta);
+  /* lifted off the brand hue so the display label clears AA-large on a
+     near-black ground — raw --magenta measures 2.4:1 there, this 4.9:1 */
+  --fk-dye-lit: color-mix(in srgb, var(--magenta) 58%, #ffffff);
+  --fk-ink: var(--fk-cream);
+
+  justify-content: flex-end; /* bottom-heavy: the weight of a thing that is */
+  border-radius: clamp(14px, 1.4vw, 20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* The dye is IN the cloth here rather than under it. The bed's magenta pool
+     is almost entirely covered by this plane, so leaning on it left the
+     branch reading as a flat black rectangle next to a bright sheet — the
+     two halves have to be equally present, not one loud and one absent. */
+  background:
+    radial-gradient(64% 48% at -2% 116%, color-mix(in srgb, var(--magenta) 58%, transparent), transparent 68%),
+    radial-gradient(66% 52% at 92% -12%, rgba(255, 255, 255, 0.11), transparent 70%),
+    linear-gradient(166deg, #3a2049 0%, #1c1029 56%, #110717 100%);
+  box-shadow:
+    0 26px 52px -28px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+/* the fine twill, tighter than the bed's warp: cloth on a loom */
+.fk-tex {
+  inset: 0;
+  background-image: url('/img/fork/cloth.svg');
+  background-repeat: repeat;
+  background-size: 32px 32px;
+  opacity: 0.42;
+  -webkit-mask-image: linear-gradient(200deg, #000 6%, rgba(0, 0, 0, 0.5) 58%, rgba(0, 0, 0, 0.2));
+  mask-image: linear-gradient(200deg, #000 6%, rgba(0, 0, 0, 0.5) 58%, rgba(0, 0, 0, 0.2));
+}
+/* THE COMB — warp threads coming off the beam across the top of the plane,
+   fading out where the cloth proper begins. It gives the upper third real
+   structure (bottom-anchored copy leaves it empty, and empty dark read as
+   unfinished) and it frames the numeral instead of letting it float. */
+.fk-comb {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 46%;
+  background: repeating-linear-gradient(90deg, rgba(255, 244, 250, 0.17) 0 1px, transparent 1px 11px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 4%, transparent 96%);
+  mask-image: linear-gradient(to bottom, #000 4%, transparent 96%);
+}
+/* SELVEDGE FRINGE — the cut edge of a woven piece, on the plank's outer side.
+   Short cream threads, unevenly lit, running the height of the plane. */
+.fk-fringe {
+  left: clamp(7px, 0.8vw, 11px);
+  top: 12%;
+  bottom: 12%;
+  width: 16px;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 244, 250, 0.42) 0 1px,
+    transparent 1px 6px
+  );
+  /* one mask only: two mask-images with `mask-composite` needs the
+     -webkit-/standard pair to agree on keyword names across engines, and the
+     vertical fade is worth less than the certainty */
+  -webkit-mask-image: linear-gradient(to right, #000, transparent);
+  mask-image: linear-gradient(to right, #000, transparent);
+}
+/* FINISHED ROWS — cloth already off the loom, stacking up from the bottom
+   edge. Grows when this branch is chosen: more of it has been made. */
+.fk-rows {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 86px;
+  background:
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.17) 0 1px, transparent 1px 7px),
+    linear-gradient(0deg, color-mix(in srgb, var(--magenta) 30%, transparent), transparent);
+  -webkit-mask-image: linear-gradient(to top, #000, transparent);
+  mask-image: linear-gradient(to top, #000, transparent);
+  transition: height 0.6s var(--ease), opacity 0.6s var(--ease);
+}
+/* ONE WEFT PASS. The shuttle crossing, once, when you point at the branch —
+   the cloth idiom's answer to a shine sweep. */
+.fk-pass {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 235, 246, 0.65), transparent);
+}
+.fk-card--cloth:hover .fk-pass,
+.fk-card--cloth:focus-within .fk-pass { animation: fk-pass 1.15s var(--ease); }
+@keyframes fk-pass {
+  0% { top: -2%; opacity: 0; }
+  14% { opacity: 0.95; }
+  100% { top: 102%; opacity: 0; }
+}
+
+/* ══════════════════ 02 — PAPER ══════════════════
+   A business that does not exist yet is a blank ruled sheet: pale, open, and
+   with real emptiness left in it. Top-anchored, because nothing has settled
+   to the bottom yet. */
+.fk-card--paper {
+  --fk-dye: var(--violet);
+  /* the violet pitched dark enough to be TEXT on the pale sheet — the raw
+     brand violet measures 4.4:1 there, this measures 8.0:1 */
+  --fk-dye-lit: #59209b;
+  --fk-ink: var(--ink);
+
+  justify-content: flex-start;
+  border-radius: clamp(14px, 1.4vw, 20px);
+  border: 1px solid rgba(89, 32, 155, 0.16);
+  background:
+    radial-gradient(88% 68% at 88% 112%, rgba(123, 47, 190, 0.14), transparent 62%),
+    linear-gradient(168deg, #ffffff 0%, var(--fk-paper) 46%, #f4e9f6 100%);
+  box-shadow:
+    0 26px 52px -28px rgba(28, 6, 46, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+/* the ruled sheet */
+.fk-graph {
+  inset: 0;
+  background-image: url('/img/fork/graph.svg');
+  background-repeat: repeat;
+  background-size: 40px 40px;
+  opacity: 0.9;
+  /* THE RULING IS STRONGEST WHERE THERE IS NOTHING ON IT. The mask holds the
+     grid at about a third of its ink across the copy (0-52%) and again under
+     the actions (from 92%), and lets it run at full strength only through the
+     void in between. That is both the right picture — a sheet shows its
+     ruling where nothing has been drawn on it yet — and the only way the body
+     copy stays above 11:1: a full-strength rule measures 8.0:1 against the
+     ink and a quarter-strength one 11.4:1, and glyphs cross these lines. */
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.26) 0%, rgba(0, 0, 0, 0.26) 52%, #000 70%, #000 84%, rgba(0, 0, 0, 0.26) 93%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.26) 0%, rgba(0, 0, 0, 0.26) 52%, #000 70%, #000 84%, rgba(0, 0, 0, 0.26) 93%);
+  transition: opacity 0.6s var(--ease);
+}
+/* THE CUT LINE — a dashed outline of a shape that has not been made yet.
+   Drawn as four repeating gradients rather than a dashed border so the
+   dashes can march when the branch is chosen; a border-style cannot animate. */
+.fk-cut {
+  inset: clamp(9px, 1vw, 14px);
+  border-radius: clamp(8px, 0.9vw, 13px);
+  --fk-dash: rgba(89, 32, 155, 0.32);
+  background-image:
+    repeating-linear-gradient(90deg, var(--fk-dash) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(90deg, var(--fk-dash) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(180deg, var(--fk-dash) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(180deg, var(--fk-dash) 0 6px, transparent 6px 12px);
+  background-size: 100% 1px, 100% 1px, 1px 100%, 1px 100%;
+  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+  background-position: 0 0, 0 100%, 0 0, 100% 0;
+  transition: inset 0.55s var(--ease), opacity 0.55s var(--ease);
+}
+.fk-card--paper:hover .fk-cut,
+.fk-card--paper:focus-within .fk-cut {
+  --fk-dash: rgba(89, 32, 155, 0.6);
+  animation: fk-march 2.4s linear infinite;
+}
+@keyframes fk-march {
+  to { background-position: 12px 0, -12px 100%, 0 12px, 100% -12px; }
+}
+/* registration marks — the four corners of a sheet before it is trimmed.
+   Eight one-pixel arms; a single element, no extra DOM. */
+.fk-crop {
+  --fk-reg: rgba(89, 32, 155, 0.5);
+  inset: clamp(15px, 1.7vw, 22px);
+  background-image:
+    linear-gradient(var(--fk-reg), var(--fk-reg)), linear-gradient(var(--fk-reg), var(--fk-reg)),
+    linear-gradient(var(--fk-reg), var(--fk-reg)), linear-gradient(var(--fk-reg), var(--fk-reg)),
+    linear-gradient(var(--fk-reg), var(--fk-reg)), linear-gradient(var(--fk-reg), var(--fk-reg)),
+    linear-gradient(var(--fk-reg), var(--fk-reg)), linear-gradient(var(--fk-reg), var(--fk-reg));
+  background-repeat: no-repeat;
+  background-size: 13px 1px, 1px 13px, 13px 1px, 1px 13px, 13px 1px, 1px 13px, 13px 1px, 1px 13px;
+  background-position:
+    0 0, 0 0,
+    100% 0, 100% 0,
+    0 100%, 0 100%,
+    100% 100%, 100% 100%;
+  transition: opacity 0.55s var(--ease);
+}
+
+/* ─────────────── THE CHOOSING ───────────────
+   Nothing resizes — the plane you point at comes toward you and the other
+   settles back. A width change would read as the page rearranging itself; a
+   lift reads as picking something up. */
+.fk-card:hover,
+.fk-card:focus-within { transform: translateY(-8px); }
+.fk-card--cloth:hover,
+.fk-card--cloth:focus-within {
+  border-color: color-mix(in srgb, var(--fk-dye-lit) 55%, transparent);
+  box-shadow:
+    0 44px 76px -30px rgba(0, 0, 0, 0.92),
+    0 0 0 1px color-mix(in srgb, var(--magenta) 42%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.fk-card--cloth:hover .fk-rows,
+.fk-card--cloth:focus-within .fk-rows { height: 128px; }
+.fk-card--paper:hover,
+.fk-card--paper:focus-within {
+  border-color: rgba(89, 32, 155, 0.34);
+  box-shadow:
+    0 44px 76px -30px rgba(28, 6, 46, 0.9),
+    0 0 0 1px rgba(123, 47, 190, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+.fk-card--paper:hover .fk-graph,
+.fk-card--paper:focus-within .fk-graph { opacity: 0.98; }
+
+.fk-grid:has(.fk-card:hover) .fk-card:not(:hover),
+.fk-grid:has(.fk-card:focus-within) .fk-card:not(:focus-within) {
+  transform: translateY(3px) scale(0.988);
+  opacity: 0.72;
+  filter: saturate(0.55);
+}
+
+/* ─────────────── THE SEAM — two threads, one crossing ─────────────── */
+.fk-seam {
+  position: relative;
+  z-index: 3;
+  display: block;
+  pointer-events: none;
+  align-self: stretch;
+}
+.fk-seam-svg {
+  position: absolute;
+  inset: -12% 0;
+  width: 100%;
+  height: 124%;
+  overflow: visible;
+}
+.fk-thread {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.7;
+  transition: stroke-width 0.55s var(--ease), opacity 0.55s var(--ease);
+}
+.fk-thread--m { stroke: color-mix(in srgb, var(--magenta) 70%, #ffffff); }
+.fk-thread--v { stroke: color-mix(in srgb, var(--violet) 50%, #ffffff); }
+.fk-knot {
+  fill: var(--yarn-cream, #efe7da);
+  opacity: 0.85;
+  transition: r 0.55s var(--ease), opacity 0.55s var(--ease);
+}
+/* the chosen side's thread takes the crossing */
+.fk-grid:has(.fk-card--cloth:hover) .fk-thread--m,
+.fk-grid:has(.fk-card--cloth:focus-within) .fk-thread--m,
+.fk-grid:has(.fk-card--paper:hover) .fk-thread--v,
+.fk-grid:has(.fk-card--paper:focus-within) .fk-thread--v {
+  stroke-width: 3;
+  opacity: 1;
+}
+.fk-grid:has(.fk-card--cloth:hover) .fk-thread--v,
+.fk-grid:has(.fk-card--cloth:focus-within) .fk-thread--v,
+.fk-grid:has(.fk-card--paper:hover) .fk-thread--m,
+.fk-grid:has(.fk-card--paper:focus-within) .fk-thread--m {
+  stroke-width: 1;
+  opacity: 0.32;
+}
+.fk-grid:has(.fk-card:hover) .fk-knot,
+.fk-grid:has(.fk-card:focus-within) .fk-knot { opacity: 1; }
+
+/* ─────────────── CARD CONTENTS ─────────────── */
+.fk-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.fk-mark {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  color: var(--fk-dye-lit);
+}
+.fk-mark svg { width: 100%; height: 100%; }
+/* the rule that runs off the mark to the card's edge — a different tick
+   pattern per material, so even this hairline tells the two apart */
+.fk-tick {
+  flex: 1;
+  height: 7px;
+}
+.fk-card--cloth .fk-tick {
+  background: repeating-linear-gradient(to right, rgba(255, 255, 255, 0.3) 0 1px, transparent 1px 9px);
+  -webkit-mask-image: linear-gradient(to right, #000, transparent);
+  mask-image: linear-gradient(to right, #000, transparent);
+}
+.fk-card--paper .fk-tick {
+  background: repeating-linear-gradient(to right, rgba(89, 32, 155, 0.45) 0 5px, transparent 5px 10px);
+  -webkit-mask-image: linear-gradient(to right, #000, transparent);
+  mask-image: linear-gradient(to right, #000, transparent);
+}
+
+/* ─── THE LABEL. The studio's own face, and the fork's whole argument ───
+   SOLID on the branch that exists, HOLLOW on the one that doesn't. One word
+   each — EXISTING and STARTING — because a display word a stranger has to
+   decode is worth less than no display word (the pair this replaced,
+   "ALREADY TRADING" / "STARTING OUT", got "wtf is already trading" back).
+   Neither word contains a U: this face draws U as a closed bowl, so it reads
+   as O at display size. Check that before ever changing these two strings.
+   CAPS ONLY: LOOM Organic has no lowercase glyphs at all, so
+   `text-transform` here is load-bearing, not styling. Never below 40px,
+   where the face stops resolving. Body copy is never set in it. */
+.fk-label {
+  font-weight: 400;
+  text-transform: uppercase;
+  /* the floor is in PX on purpose: the page's root size is below 16px at
+     small widths, so a rem floor here landed at 36px — under the ~40px this
+     face needs to resolve at all */
+  /* one plain word per branch (EXISTING / STARTING), so it can be set bigger
+     than the two-word labels it replaced and still hold a single line at
+     every width down to 390 */
+  font-size: clamp(42px, 5vw, 4.4rem);
+  line-height: 0.92;
+  letter-spacing: 0.005em;
+  margin: clamp(16px, 2.4vw, 28px) 0 0;
+  /* the label is the one string that could out-measure a 390px column, so it
+     is allowed to break rather than push the page sideways */
+  overflow-wrap: anywhere;
+}
+.fk-label--solid {
+  font-family: 'LOOM Organic', var(--bloom), sans-serif;
+  color: var(--fk-dye-lit);
+}
+/* the hollow cut, with the filled cut stacked behind it */
+.fk-label--hollow {
+  position: relative;
+  font-family: 'LOOM Organic Outline', var(--bloom), sans-serif;
+  color: var(--fk-dye-lit);
+}
+.fk-label--hollow .fk-label-line { position: relative; z-index: 1; }
+/* THE BEAT. The same word in the FILLED cut, registered exactly behind the
+   hollow one and invisible until you point at this branch — the idea
+   starting to become a thing. Both spans set the same string at the same
+   metrics (the two cuts share one metric set), so they cannot drift. */
+.fk-label-ghost {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  font-family: 'LOOM Organic', var(--bloom), sans-serif;
+  color: color-mix(in srgb, var(--violet) 34%, transparent);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.fk-card--paper:hover .fk-label-ghost,
+.fk-card--paper:focus-within .fk-label-ghost { opacity: 1; transform: none; }
+
+.fk-rule {
+  display: block;
+  position: relative;
+  z-index: 2;
+  height: 1px;
+  margin: clamp(14px, 1.8vw, 20px) 0;
+  transition: background 0.55s var(--ease);
+}
+.fk-card--cloth .fk-rule {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--fk-dye-lit) 60%, transparent), rgba(255, 255, 255, 0.06));
+}
+/* on paper the rule is drawn, not woven: a dashed pencil line */
+.fk-card--paper .fk-rule {
+  background: repeating-linear-gradient(90deg, rgba(89, 32, 155, 0.45) 0 7px, transparent 7px 13px);
+}
+
+.fk-h {
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.42rem, 2.5vw, 2.05rem);
+  line-height: 1.06;
+  max-width: 15ch;
+  margin: 0;
+}
+.fk-card--cloth .fk-h { color: var(--fk-cream); }
+.fk-card--paper .fk-h { color: var(--ink); }
+
+.fk-body {
+  margin-top: clamp(10px, 1.2vw, 15px);
+  font-size: clamp(0.94rem, 1.05vw, 1.02rem);
+  line-height: 1.58;
+  max-width: 40ch;
+  text-wrap: pretty;
+}
+.fk-card--cloth .fk-body { color: rgba(255, 240, 248, 0.93); }
+.fk-card--paper .fk-body { color: var(--ink); }
+
+/* ─── THE NUMERALS ───
+   One idea, two opposite treatments, which is most of why the halves read
+   apart at a glance: 01 is FILLED, enormous, and half-buried in the weave
+   (a thing that already exists is embedded in what it's made of); 02 is
+   HOLLOW, whole, and standing in open space (a thing that doesn't exist yet
+   is only an outline, and there is room around it). */
+.fk-num {
+  line-height: 0.78;
+  letter-spacing: -0.01em;
+  font-weight: 400;
+}
+/* 01 sits in the TOP of its plane, bled off the top and right edges. That is
+   deliberate on two counts: it fills the space the bottom-anchored copy
+   leaves (a big empty dark rectangle above the type read as unfinished), and
+   it puts the two numerals at opposite ends of their cards — top-bled-filled
+   against bottom-whole-hollow — so even the numbering is a contrast. */
+.fk-num--buried {
+  position: absolute;
+  z-index: 1;
+  /* far enough in that the "0" reads whole and only the "1" runs off the cut
+     edge — bleeding both digits turned the numeral into abstract shapes */
+  right: -1%;
+  top: 4%;
+  font-family: 'LOOM Organic', var(--bloom), sans-serif;
+  font-size: clamp(120px, 14.5vw, 208px);
+  color: var(--fk-dye-lit);
+  opacity: 0.2;
+  transform: translateY(0);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.fk-card--cloth:hover .fk-num--buried,
+.fk-card--cloth:focus-within .fk-num--buried { opacity: 0.34; transform: translateY(8px); }
+
+/* THE VOID — real empty space on the branch where nothing exists yet. */
+.fk-void {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: clamp(96px, 11vw, 150px);
+  margin-top: clamp(18px, 2.4vw, 30px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.fk-num--hollow {
+  font-family: 'LOOM Organic Outline', var(--bloom), sans-serif;
+  font-size: clamp(76px, 9vw, 128px);
+  color: var(--fk-dye-lit);
+  opacity: 0.5;
+  transition: opacity 0.6s var(--ease);
+}
+.fk-card--paper:hover .fk-num--hollow,
+.fk-card--paper:focus-within .fk-num--hollow { opacity: 0.85; }
+
+/* the first thread — laid a little way in and stopped, because that is all
+   that exists yet. Draws itself when this branch is chosen. */
+.fk-first {
+  width: clamp(96px, 12vw, 140px);
+  height: auto;
+  overflow: visible;
+  margin-bottom: 6px;
+}
+.fk-first-path {
+  fill: none;
+  stroke: var(--violet);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.55;
+  stroke-dasharray: 210;
+  stroke-dashoffset: 128;
+  transition: stroke-dashoffset 1s var(--ease), opacity 0.6s var(--ease);
+}
+.fk-first-knot { fill: var(--violet); opacity: 0.5; transition: opacity 0.6s var(--ease); }
+.fk-card--paper:hover .fk-first-path,
+.fk-card--paper:focus-within .fk-first-path { stroke-dashoffset: 0; opacity: 0.85; }
+.fk-card--paper:hover .fk-first-knot,
+.fk-card--paper:focus-within .fk-first-knot { opacity: 0.9; }
+
+/* ─────────────── ACTIONS ───────────────
+   Opposite polarity, identical weight: a cream pill on the ink ground, an
+   ink pill on the cream ground. Neither branch gets the "primary" one. */
+.fk-foot {
+  margin-top: clamp(20px, 2.4vw, 30px);
+  padding-top: 0;
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.8vw, 22px);
+  flex-wrap: wrap;
+}
+.fk-card--cloth .fk-foot { margin-top: clamp(22px, 2.6vw, 34px); }
+
+.fk-cta {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 13px clamp(18px, 2vw, 26px);
+  font-family: var(--body);
+  font-size: 0.94rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), background 0.3s var(--ease);
+}
+.fk-card--cloth .fk-cta {
+  background: var(--fk-cream);
+  color: var(--ink); /* 15.6:1 */
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--magenta) 55%, transparent),
+    0 14px 26px -14px rgba(0, 0, 0, 0.8);
+}
+.fk-card--paper .fk-cta {
+  background: #38105f;
+  color: #fff6fd; /* 10.2:1 */
+  box-shadow:
+    0 0 0 2px rgba(123, 47, 190, 0.42),
+    0 14px 26px -14px rgba(41, 8, 68, 0.55);
+}
+.fk-cta:hover { transform: translateY(-2px); }
+.fk-card--cloth .fk-cta:hover {
+  box-shadow: 0 0 0 3px var(--fk-dye-lit), 0 18px 32px -14px rgba(0, 0, 0, 0.85);
+}
+.fk-card--paper .fk-cta:hover {
+  background: #2a0a4a;
+  box-shadow: 0 0 0 3px rgba(123, 47, 190, 0.75), 0 18px 32px -14px rgba(41, 8, 68, 0.6);
+}
+.fk-cta:focus-visible { outline: 3px solid var(--fk-dye-lit); outline-offset: 3px; }
+
+.fk-link {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid;
+  transition: border-color 0.3s var(--ease), color 0.3s var(--ease);
+}
+.fk-card--cloth .fk-link {
+  color: var(--fk-cream);
+  border-bottom-color: color-mix(in srgb, var(--fk-dye-lit) 60%, transparent);
+}
+.fk-card--paper .fk-link {
+  color: var(--ink);
+  border-bottom-color: rgba(89, 32, 155, 0.5);
+}
+.fk-link:hover { color: var(--fk-dye-lit); border-bottom-color: var(--fk-dye-lit); }
+.fk-link:focus-visible { outline: 3px solid var(--fk-dye-lit); outline-offset: 4px; border-radius: 3px; }
+
+/* ─────────────── STACKED ───────────────
+   The split turns from a column into a row: same plank, same seam, same
+   crossing — read top to bottom. The two materials survive the stack intact,
+   which is the real test of the idea: dark woven block, then pale ruled
+   sheet. The hover choreography is dropped entirely; on touch there is no
+   hover, and a lift under a finger is a glitch. */
+@media (max-width: 860px) {
+  .fk-grid { grid-template-columns: 1fr; }
+  .fk-card,
+  .fk-card:hover,
+  .fk-card:focus-within,
+  .fk-grid:has(.fk-card:hover) .fk-card:not(:hover),
+  .fk-grid:has(.fk-card:focus-within) .fk-card:not(:focus-within) {
+    transform: none;
+    opacity: 1;
+    filter: none;
+  }
+  .fk-card--cloth { justify-content: flex-start; }
+  .fk-h, .fk-body { max-width: none; }
+  /* the numerals both come down a size and the void stops being a void —
+     on a phone, unfilled space is just a scroll tax */
+  .fk-num--buried { font-size: clamp(104px, 32vw, 160px); top: 2%; opacity: 0.15; }
+  .fk-void { min-height: 0; align-items: center; }
+  .fk-num--hollow { font-size: clamp(64px, 17vw, 96px); }
+
+  .fk-pool { width: auto; left: -14%; right: -14%; top: auto; bottom: auto; height: 60%; }
+  .fk-pool--l { top: -8%; }
+  .fk-pool--r { bottom: -8%; }
+
+  /* the crossing, horizontal — two skewed threads that meet at the middle.
+     The SVG is authored for a tall band, so it steps aside here rather than
+     being rotated into a shape it was not drawn for. */
+  .fk-seam { height: clamp(52px, 12vw, 72px); }
+  .fk-seam-svg { display: none; }
+  .fk-seam::before,
+  .fk-seam::after {
+    content: '';
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    height: 1.6px;
+    border-radius: 2px;
+  }
+  /* both threads pivot about the SAME point, so the X lands dead centre —
+     offsetting them and skewing instead pushes the crossing off to one side */
+  .fk-seam::before,
+  .fk-seam::after { top: 50%; }
+  .fk-seam::before {
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--magenta) 70%, #fff) 50%, transparent);
+    transform: rotate(1.7deg);
+  }
+  .fk-seam::after {
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--violet) 50%, #fff) 50%, transparent);
+    transform: rotate(-1.7deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fk-card,
+  .fk-cut,
+  .fk-crop,
+  .fk-graph,
+  .fk-rows,
+  .fk-rule,
+  .fk-cta,
+  .fk-link,
+  .fk-pool,
+  .fk-thread,
+  .fk-knot,
+  .fk-label-ghost,
+  .fk-num--buried,
+  .fk-num--hollow,
+  .fk-first-path,
+  .fk-first-knot { transition: none; }
+  .fk-pass,
+  .fk-card--cloth:hover .fk-pass,
+  .fk-card--cloth:focus-within .fk-pass { animation: none; opacity: 0; }
+  .fk-card--paper:hover .fk-cut,
+  .fk-card--paper:focus-within .fk-cut { animation: none; }
+  /* the thread is still drawn on choosing, it just arrives rather than
+     travels — the state change survives, the movement doesn't */
+  .fk-first-path { stroke-dashoffset: 128; }
+}

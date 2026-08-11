@@ -15,8 +15,14 @@
 /* ============================================================
    1. NAV — denim chrome + stitched seams
    ============================================================ */
+/* SCROLLED ONLY — the header is fully invisible over the hero by client
+   instruction (11 Aug 2026), so the fabric surface and the stitched seams
+   belong to the painted state alone. Briefly applied to `.nav` unconditionally
+   while collapsing the old three-header mess; over the hero the denim tile
+   blended to a grey-mauve bar and read as yet another header, which is exactly
+   what that change was meant to remove. `background-color` is deliberately NOT
+   set here so the alpha declared in styles.css survives this overlay. */
 .nav--scrolled {
-  background-color: rgba(255, 233, 242, 0.72);
   background-image: url('/img/tex/denim-tile.webp');
   background-size: 336px 70px;
   background-repeat: repeat;

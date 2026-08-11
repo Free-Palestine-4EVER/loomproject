@@ -296,22 +296,32 @@
       }, { threshold: 0.01 })
       io.observe(wrap)
 
-      canvas.style.touchAction = 'none'
-      canvas.addEventListener('pointerdown', onPointerDown)
-      canvas.addEventListener('pointermove', onPointerMove)
-      canvas.addEventListener('pointerup', onPointerUp)
-      canvas.addEventListener('pointercancel', onPointerUp)
-      canvas.addEventListener('wheel', onWheel, { passive: false })
-      canvas.addEventListener('touchstart', onTouchStart, { passive: true })
+      // Hold the ELEMENT, not the binding. `canvas` is a `bind:this` rune, and
+      // Svelte sets it back to null as the element leaves the DOM — which
+      // happens BEFORE this effect's teardown runs when the viewer is unmounted
+      // (closing the inspect dialog is exactly that). Reading `canvas` in the
+      // cleanup below therefore threw "Cannot read properties of null", and a
+      // throw inside an effect cleanup aborts the rest of the unmount: the
+      // renderer never got released and the dialog's own DOM stayed on the
+      // page, so Escape appeared not to close it. Capturing the node here makes
+      // teardown independent of the binding's lifetime.
+      const cv = canvas
+      cv.style.touchAction = 'none'
+      cv.addEventListener('pointerdown', onPointerDown)
+      cv.addEventListener('pointermove', onPointerMove)
+      cv.addEventListener('pointerup', onPointerUp)
+      cv.addEventListener('pointercancel', onPointerUp)
+      cv.addEventListener('wheel', onWheel, { passive: false })
+      cv.addEventListener('touchstart', onTouchStart, { passive: true })
 
       cleanupExtra = () => {
         document.removeEventListener('visibilitychange', onVis)
-        canvas.removeEventListener('pointerdown', onPointerDown)
-        canvas.removeEventListener('pointermove', onPointerMove)
-        canvas.removeEventListener('pointerup', onPointerUp)
-        canvas.removeEventListener('pointercancel', onPointerUp)
-        canvas.removeEventListener('wheel', onWheel)
-        canvas.removeEventListener('touchstart', onTouchStart)
+        cv.removeEventListener('pointerdown', onPointerDown)
+        cv.removeEventListener('pointermove', onPointerMove)
+        cv.removeEventListener('pointerup', onPointerUp)
+        cv.removeEventListener('pointercancel', onPointerUp)
+        cv.removeEventListener('wheel', onWheel)
+        cv.removeEventListener('touchstart', onTouchStart)
       }
     }
 

@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    width: 540px; height: 1174px;
+    background: radial-gradient(120% 90% at 50% -10%, #1a1330 0%, #120c22 42%, #0a0714 100%);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    color: #ffffff;
+    position: relative;
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 62px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px 0 30px; z-index: 50;
+  }
+  .sb-time { font-size: 17px; font-weight: 600; letter-spacing: 0.2px; padding-top: 4px; }
+  .sb-island {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 37px; border-radius: 20px; background: #000;
+  }
+  .sb-right { display: flex; align-items: center; gap: 7px; padding-top: 5px; }
+
+  /* ---------- header ---------- */
+  .header {
+    position: absolute; top: 76px; left: 0; right: 0;
+    padding: 0 26px;
+  }
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .back-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-title { font-size: 17px; font-weight: 700; }
+  .more-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .pet-row {
+    display: flex; align-items: center; gap: 14px;
+    margin-top: 4px;
+  }
+  .pet-avatar {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, #7b2fbe, #f21c8c);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 6px 18px rgba(123,47,190,0.35);
+  }
+  .pet-avatar svg { width: 30px; height: 30px; }
+  .pet-name { font-size: 24px; font-weight: 800; letter-spacing: 0.1px; }
+  .pet-sub { font-size: 13.5px; color: rgba(255,255,255,0.55); font-weight: 500; margin-top: 3px; }
+
+  /* ---------- quick stats ---------- */
+  .stats-row {
+    position: absolute; top: 216px; left: 26px; right: 26px;
+    display: flex; gap: 10px;
+  }
+  .stat-card {
+    flex: 1;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 18px;
+    padding: 14px 8px 12px;
+    text-align: center;
+  }
+  .stat-icon { font-size: 17px; margin-bottom: 6px; }
+  .stat-val { font-size: 16px; font-weight: 800; letter-spacing: -0.2px; }
+  .stat-lbl { font-size: 10.5px; color: rgba(255,255,255,0.5); font-weight: 600; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* ---------- section titles ---------- */
+  .section-title {
+    font-size: 15px; font-weight: 800; letter-spacing: 0.1px;
+    padding: 0 26px;
+  }
+  .section-sub {
+    font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 500;
+    padding: 0 26px; margin-top: 2px;
+  }
+
+  /* ---------- weight chart ---------- */
+  .chart-card {
+    position: absolute; top: 336px; left: 26px; right: 26px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 22px;
+    padding: 18px 18px 12px;
+  }
+  .chart-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .chart-title { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.85); }
+  .chart-now { font-size: 13px; font-weight: 700; color: #f5b8e0; }
+  .chart-months {
+    display: flex; justify-content: space-between; margin-top: 6px; padding: 0 2px;
+  }
+  .chart-months span { font-size: 10.5px; color: rgba(255,255,255,0.38); font-weight: 600; }
+
+  /* ---------- vaccination timeline ---------- */
+  .timeline-wrap {
+    position: absolute; top: 592px; left: 0; right: 0; bottom: 210px;
+    padding: 0 26px;
+    overflow: hidden;
+  }
+  .vax-row {
+    display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .vax-dot-col { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; }
+  .vax-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .vax-dot.done { background: #37e08a; box-shadow: 0 0 8px rgba(55,224,138,0.5); }
+  .vax-dot.due { background: #f5c65a; box-shadow: 0 0 8px rgba(245,198,90,0.5); }
+  .vax-info { flex: 1; min-width: 0; }
+  .vax-name { font-size: 15px; font-weight: 700; }
+  .vax-date { font-size: 12px; color: rgba(255,255,255,0.45); font-weight: 500; margin-top: 3px; }
+  .vax-pill {
+    font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 20px;
+    flex-shrink: 0; letter-spacing: 0.1px; white-space: nowrap;
+  }
+  .vax-pill.done { background: rgba(55,224,138,0.15); color: #4eeba0; border: 1px solid rgba(55,224,138,0.35); }
+  .vax-pill.due { background: rgba(245,198,90,0.15); color: #f5c65a; border: 1px solid rgba(245,198,90,0.35); }
+
+  .timeline-fade {
+    position: absolute; left: 0; right: 0; bottom: 210px; height: 36px;
+    background: linear-gradient(180deg, rgba(10,7,20,0), #0a0714);
+    pointer-events: none;
+  }
+
+  /* ---------- tab bar ---------- */
+  .tabbar {
+    position: absolute; left: 20px; right: 20px; bottom: 34px;
+    height: 68px; border-radius: 30px;
+    background: rgba(22,16,34,0.92);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: space-around;
+    backdrop-filter: blur(14px);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 76px; }
+  .tab-item svg { width: 22px; height: 22px; }
+  .tab-label { font-size: 10.5px; font-weight: 600; }
+  .tab-item.active .tab-label { color: #f21c8c; }
+  .tab-item:not(.active) .tab-label { color: rgba(255,255,255,0.4); }
+
+  /* ---------- home indicator ---------- */
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px;
+    background: rgba(255,255,255,0.55);
+  }
+</style>
+</head>
+<body>
+
+  <!-- status bar -->
+  <div class="statusbar">
+    <div class="sb-time">09:43</div>
+    <div class="sb-island"></div>
+    <div class="sb-right">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M9 10.2C9.66 10.2 10.2 9.66 10.2 9C10.2 8.34 9.66 7.8 9 7.8C8.34 7.8 7.8 8.34 7.8 9C7.8 9.66 8.34 10.2 9 10.2Z" fill="white"/><path d="M9 6.3C10.4 6.3 11.68 6.83 12.66 7.7L13.9 6.3C12.6 5.15 10.88 4.5 9 4.5C7.12 4.5 5.4 5.15 4.1 6.3L5.34 7.7C6.32 6.83 7.6 6.3 9 6.3Z" fill="white"/><path d="M9 2.1C11.5 2.1 13.78 3 15.56 4.5L16.8 3.1C14.68 1.3 11.98 0.3 9 0.3C6.02 0.3 3.32 1.3 1.2 3.1L2.44 4.5C4.22 3 6.5 2.1 9 2.1Z" fill="white"/></svg>
+      <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="1" y="1" width="21" height="11" rx="2.5" stroke="white" stroke-opacity="0.5"/><rect x="2.5" y="2.5" width="15" height="8" rx="1.5" fill="white"/><rect x="23.5" y="4" width="1.6" height="5" rx="0.8" fill="white" fill-opacity="0.5"/></svg>
+    </div>
+  </div>
+
+  <!-- header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="header-title">Health record</div>
+      <div class="more-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.7" fill="#fff"/><circle cx="12" cy="12" r="1.7" fill="#fff"/><circle cx="19" cy="12" r="1.7" fill="#fff"/></svg>
+      </div>
+    </div>
+    <div class="pet-row">
+      <div class="pet-avatar">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 9.5C5.6 9.5 6.5 8.4 6.5 7C6.5 5.6 5.6 4.5 4.5 4.5C3.4 4.5 2.5 5.6 2.5 7C2.5 8.4 3.4 9.5 4.5 9.5Z" fill="#fff"/><path d="M9.5 7.5C10.6 7.5 11.5 6.2 11.5 4.5C11.5 2.8 10.6 1.5 9.5 1.5C8.4 1.5 7.5 2.8 7.5 4.5C7.5 6.2 8.4 7.5 9.5 7.5Z" fill="#fff"/><path d="M14.5 7.5C15.6 7.5 16.5 6.2 16.5 4.5C16.5 2.8 15.6 1.5 14.5 1.5C13.4 1.5 12.5 2.8 12.5 4.5C12.5 6.2 13.4 7.5 14.5 7.5Z" fill="#fff"/><path d="M19.5 9.5C20.6 9.5 21.5 8.4 21.5 7C21.5 5.6 20.6 4.5 19.5 4.5C18.4 4.5 17.5 5.6 17.5 7C17.5 8.4 18.4 9.5 19.5 9.5Z" fill="#fff"/><path d="M12 10.5C8.5 10.5 5 12.7 5 16.2C5 18.7 6.9 20.5 9 19.6C10 19.2 11 19 12 19C13 19 14 19.2 15 19.6C17.1 20.5 19 18.7 19 16.2C19 12.7 15.5 10.5 12 10.5Z" fill="#fff"/></svg>
+      </div>
+      <div>
+        <div class="pet-name">Ellie</div>
+        <div class="pet-sub">Persian &middot; Female &middot; White</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- quick stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">⚖️</div>
+      <div class="stat-val">3.9 kg</div>
+      <div class="stat-lbl">Weight</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🎂</div>
+      <div class="stat-val">3 y</div>
+      <div class="stat-lbl">Age</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-val">Chipped</div>
+      <div class="stat-lbl">Microchip</div>
+    </div>
+  </div>
+
+  <!-- weight chart -->
+  <div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-title">Weight, last 6 months</div>
+      <div class="chart-now">3.9 kg now</div>
+    </div>
+    <svg width="488" height="140" viewBox="0 0 488 140" fill="none">
+      <line x1="0" y1="20" x2="488" y2="20" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <line x1="0" y1="60" x2="488" y2="60" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <line x1="0" y1="100" x2="488" y2="100" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <defs>
+        <linearGradient id="wgrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f21c8c" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#f21c8c" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="lgrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#7b2fbe"/>
+          <stop offset="100%" stop-color="#f21c8c"/>
+        </linearGradient>
+      </defs>
+      <path d="M8 96 L96 88 L184 78 L272 66 L360 54 L452 40 L452 122 L8 122 Z" fill="url(#wgrad)"/>
+      <path d="M8 96 L96 88 L184 78 L272 66 L360 54 L452 40" stroke="url(#lgrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="96" r="4" fill="#0a0714" stroke="#7b2fbe" stroke-width="2.5"/>
+      <circle cx="96" cy="88" r="4" fill="#0a0714" stroke="#8f36c4" stroke-width="2.5"/>
+      <circle cx="184" cy="78" r="4" fill="#0a0714" stroke="#a53bbd" stroke-width="2.5"/>
+      <circle cx="272" cy="66" r="4" fill="#0a0714" stroke="#c035a6" stroke-width="2.5"/>
+      <circle cx="360" cy="54" r="4" fill="#0a0714" stroke="#dc2896" stroke-width="2.5"/>
+      <circle cx="452" cy="40" r="5.5" fill="#f21c8c" stroke="#0a0714" stroke-width="2.5"/>
+    </svg>
+    <div class="chart-months">
+      <span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+    </div>
+  </div>
+
+  <!-- vaccination timeline -->
+  <div class="section-title" style="position:absolute; top:552px;">Vaccinations</div>
+  <div class="timeline-wrap">
+    <div class="vax-row">
+      <div class="vax-dot-col"><div class="vax-dot done"></div></div>
+      <div class="vax-info">
+        <div class="vax-name">Rabies</div>
+        <div class="vax-date">Given 22 Jun 2026 &middot; Dr. Nour, Amman</div>
+      </div>
+      <div class="vax-pill done">Done</div>
+    </div>
+    <div class="vax-row">
+      <div class="vax-dot-col"><div class="vax-dot due"></div></div>
+      <div class="vax-info">
+        <div class="vax-name">Feline Leukaemia (FeLV)</div>
+        <div class="vax-date">Last dose 4 Feb 2026</div>
+      </div>
+      <div class="vax-pill due">Due in 12 days</div>
+    </div>
+    <div class="vax-row">
+      <div class="vax-dot-col"><div class="vax-dot done"></div></div>
+      <div class="vax-info">
+        <div class="vax-name">Deworming</div>
+        <div class="vax-date">Given 30 Jul 2026</div>
+      </div>
+      <div class="vax-pill done">Done</div>
+    </div>
+    <div class="vax-row">
+      <div class="vax-dot-col"><div class="vax-dot done"></div></div>
+      <div class="vax-info">
+        <div class="vax-name">FVRCP (combo)</div>
+        <div class="vax-date">Given 2 Jan 2026 &middot; Dr. Nour, Amman</div>
+      </div>
+      <div class="vax-pill done">Done</div>
+    </div>
+    <div class="vax-row">
+      <div class="vax-dot-col"><div class="vax-dot due"></div></div>
+      <div class="vax-info">
+        <div class="vax-name">Annual check-up</div>
+        <div class="vax-date">Last visit 22 Jun 2026</div>
+      </div>
+      <div class="vax-pill due">Due in 40 days</div>
+    </div>
+  </div>
+  <div class="timeline-fade"></div>
+
+  <!-- tab bar -->
+  <div class="tabbar">
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 11L12 4L20 11" stroke="rgba(255,255,255,0.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10V19H18V10" stroke="rgba(255,255,255,0.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="tab-label">Home</div>
+    </div>
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 9.5C5.6 9.5 6.5 8.4 6.5 7C6.5 5.6 5.6 4.5 4.5 4.5C3.4 4.5 2.5 5.6 2.5 7C2.5 8.4 3.4 9.5 4.5 9.5Z" fill="#f21c8c"/><path d="M9.5 7.5C10.6 7.5 11.5 6.2 11.5 4.5C11.5 2.8 10.6 1.5 9.5 1.5C8.4 1.5 7.5 2.8 7.5 4.5C7.5 6.2 8.4 7.5 9.5 7.5Z" fill="#f21c8c"/><path d="M14.5 7.5C15.6 7.5 16.5 6.2 16.5 4.5C16.5 2.8 15.6 1.5 14.5 1.5C13.4 1.5 12.5 2.8 12.5 4.5C12.5 6.2 13.4 7.5 14.5 7.5Z" fill="#f21c8c"/><path d="M19.5 9.5C20.6 9.5 21.5 8.4 21.5 7C21.5 5.6 20.6 4.5 19.5 4.5C18.4 4.5 17.5 5.6 17.5 7C17.5 8.4 18.4 9.5 19.5 9.5Z" fill="#f21c8c"/><path d="M12 10.5C8.5 10.5 5 12.7 5 16.2C5 18.7 6.9 20.5 9 19.6C10 19.2 11 19 12 19C13 19 14 19.2 15 19.6C17.1 20.5 19 18.7 19 16.2C19 12.7 15.5 10.5 12 10.5Z" fill="#f21c8c"/></svg>
+      <div class="tab-label">Pets</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M6 8V6.5C6 4 8 2 10.5 2H13.5C16 2 18 4 18 6.5V8" stroke="rgba(255,255,255,0.4)" stroke-width="1.8" stroke-linecap="round"/><rect x="3.5" y="8" width="17" height="12.5" rx="3" stroke="rgba(255,255,255,0.4)" stroke-width="1.8"/></svg>
+      <div class="tab-label">Shop</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 7L9 4L15 7L21 4V17L15 20L9 17L3 20V7Z" stroke="rgba(255,255,255,0.4)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <div class="tab-label">Explore</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.6" stroke="rgba(255,255,255,0.4)" stroke-width="1.8"/><path d="M4.5 20C4.5 16.4 7.9 13.5 12 13.5C16.1 13.5 19.5 16.4 19.5 20" stroke="rgba(255,255,255,0.4)" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="tab-label">Account</div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+
+</body>
+</html>

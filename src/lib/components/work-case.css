@@ -1,0 +1,367 @@
+/* ————————————————————————————————————————————————————————
+   work-case.css — the full-screen case-study dialog for #work.
+   Owned by Work.svelte and imported by nothing else.
+
+   THE ONE RULE THIS FILE EXISTS TO KEEP: THE DIALOG NEVER SCROLLS.
+   Not the page behind it (Work.svelte pins the body), not the panel, not any
+   box inside the panel. The panel is a three-row grid — bar / body / foot —
+   pinned to the viewport height, the body is a fixed-height grid whose tracks
+   are all `minmax(0, …)`, and the media stage sizes its picture with
+   `object-fit: contain` into whatever height is left over. Nothing here is
+   allowed to grow past its track:
+
+     · every scrollable ancestor is `overflow: hidden`, never `auto`;
+     · the copy paragraph is line-clamped per breakpoint (`--wc-clamp`)
+       instead of being allowed to push the panel taller;
+     · the media rail is a single non-wrapping row of flex-shrinking
+       thumbnails — Work.svelte caps the count on a phone so the targets stay
+       at 44px rather than letting the rail overflow.
+
+   NAMING: everything is prefixed `wcase-`, which exists nowhere else in the
+   app. The older `.overlay-*` rules in styles.css belong to a different
+   (now unused) markup shape and are deliberately not touched from here — this
+   file must not depend on cascade order against styles.css.
+   ———————————————————————————————————————————————————————— */
+
+.wcase {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  /* dvh so iOS' collapsing chrome cannot make the panel taller than what is
+     actually visible — the exact failure that produces a "no-scroll" dialog
+     you can still scroll */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.wcase-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(255, 238, 245, 0.86);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+}
+
+.wcase-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(242, 28, 140, 0.09), transparent 62%),
+    radial-gradient(100% 80% at 0% 100%, rgba(123, 47, 190, 0.08), transparent 58%),
+    var(--bg);
+  color: var(--ink);
+  /* how many lines of the case paragraph survive at this size */
+  --wc-clamp: 7;
+}
+.wcase-panel:focus { outline: none; }
+.wcase-panel:focus-visible { outline: none; }
+
+/* ── the bar ─────────────────────────────────────────────────────────── */
+.wcase-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px clamp(16px, 3vw, 46px);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 233, 242, 0.62);
+  backdrop-filter: blur(10px);
+}
+.wcase-brand {
+  font-family: var(--display);
+  font-size: 0.74rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+.wcase-brand i { font-style: normal; color: var(--magenta); }
+.wcase-count {
+  margin-left: auto;
+  font-family: var(--display);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.wcase-count i { font-style: normal; opacity: 0.5; }
+.wcase-nav { display: flex; gap: 8px; }
+.wcase-nav button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-dim);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: color 0.28s var(--ease), border-color 0.28s var(--ease),
+              background-color 0.28s var(--ease), transform 0.28s var(--ease);
+}
+.wcase-nav button svg {
+  width: 17px; height: 17px; fill: none;
+  stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.wcase-nav button:hover { border-color: var(--magenta); color: var(--magenta); }
+.wcase-nav button:active { transform: scale(0.94); }
+.wcase-nav button:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+.wcase-close { background: var(--magenta) !important; border-color: var(--magenta) !important; color: #fff !important; }
+.wcase-close:hover { background: var(--magenta-deep) !important; border-color: var(--magenta-deep) !important; }
+
+/* ── the body: copy left, the work right ─────────────────────────────── */
+.wcase-body {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(20px, 3vw, 52px);
+  padding: clamp(18px, 3.4vh, 46px) clamp(16px, 3vw, 46px);
+  align-items: center;
+}
+
+.wcase-info {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(8px, 1.4vh, 16px);
+  /* re-runs on every prev/next step (Work.svelte keys the column on the slug)
+     so the words arrive rather than teleport */
+  animation: wcase-info-in 460ms var(--ease) both;
+}
+@keyframes wcase-info-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.wcase-scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+.wcase-scope span {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--magenta);
+  border: 1px solid rgba(242, 28, 140, 0.35);
+  border-radius: 999px;
+  padding: 4px 11px;
+  white-space: nowrap;
+}
+.wcase-info h2 {
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(1.9rem, 3.4vw, 3.6rem);
+  line-height: 1.02;
+  letter-spacing: 0;
+  margin: 0;
+  /* client names run long (United Colors of Benetton); never let one push the
+     column wider than its track */
+  overflow-wrap: anywhere;
+}
+.wcase-title {
+  font-family: var(--display);
+  font-weight: 460;
+  font-size: clamp(1.02rem, 1.5vw, 1.5rem);
+  line-height: 1.2;
+  color: var(--ink-dim);
+  margin: 0;
+}
+.wcase-copy {
+  color: var(--ink-dim);
+  font-size: clamp(0.9rem, 1.02vw, 1.02rem);
+  line-height: 1.5;
+  max-width: 54ch;
+  margin: 0;
+  /* the honest cut: at small viewport heights the case paragraph is clipped
+     to whole lines with an ellipsis rather than silently overflowing a box
+     that cannot be scrolled */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--wc-clamp);
+  line-clamp: var(--wc-clamp);
+  overflow: hidden;
+}
+.wcase-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px clamp(18px, 2.6vw, 40px);
+  margin: 2px 0 0;
+}
+.wcase-facts div { display: flex; flex-direction: column; gap: 2px; }
+.wcase-facts dt {
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+.wcase-facts dd {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.wcase-cta { margin-top: 4px; }
+
+/* ── the stage: the work itself, contained ───────────────────────────── */
+/* The stage is an empty, transparent CELL, not a plate. The frame — border,
+   radius, shadow — rides the picture itself and the picture is sized
+   `max-width/max-height: 100%` with `auto` on the other axis, so the frame
+   HUGS the work at its own aspect ratio instead of leaving a letterbox of
+   background around a 16:9 board in a 4:3 box. */
+.wcase-stage {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.wcase-stage > * { grid-area: 1 / 1; }
+.wcase-stage img,
+.wcase-stage video {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  /* contain, never cover: a case board is information, and cropping it to
+     fill the box would hide the half of it that carries the layout */
+  object-fit: contain;
+  display: block;
+  border-radius: calc(var(--radius) * 1.1);
+  border: 1px solid var(--line);
+  background: var(--bg-3);
+  box-shadow: 0 40px 90px -55px rgba(51, 36, 61, 0.9);
+}
+.wcase-stage img { opacity: 0; transition: opacity 320ms var(--ease); }
+.wcase-stage img.is-loaded { opacity: 1; }
+
+/* ── the foot: every visual the case owns ────────────────────────────── */
+.wcase-foot {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 26px);
+  padding: 10px clamp(16px, 3vw, 46px) max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: rgba(255, 233, 242, 0.62);
+  backdrop-filter: blur(10px);
+  min-height: 0;
+}
+.wcase-rail {
+  display: flex;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  /* NOT scrollable on purpose — the thumbs shrink to fit the row */
+  overflow: hidden;
+}
+.wcase-thumb {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 86px;
+  aspect-ratio: 4 / 3;
+  border-radius: 9px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg-3);
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.28s var(--ease), border-color 0.28s var(--ease), transform 0.28s var(--ease);
+}
+.wcase-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wcase-thumb:hover { opacity: 0.9; transform: translateY(-2px); }
+.wcase-thumb.is-on { opacity: 1; border-color: var(--magenta); box-shadow: 0 0 0 1px var(--magenta); }
+.wcase-thumb:focus-visible { outline: 2px solid var(--magenta); outline-offset: 2px; }
+.wcase-thumb-reel {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-size: 0.7rem; color: #fff;
+  background: rgba(51, 36, 61, 0.42);
+}
+.wcase-legend {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── short viewports (1280x800, laptops, landscape phones) ───────────── */
+.wcase-panel.is-short { --wc-clamp: 5; }
+.wcase-panel.is-short .wcase-bar { padding-top: 10px; padding-bottom: 10px; }
+.wcase-panel.is-short .wcase-nav button { width: 40px; height: 40px; }
+.wcase-panel.is-short .wcase-thumb { max-width: 72px; }
+@media (max-height: 640px) {
+  .wcase-panel { --wc-clamp: 3; }
+  .wcase-panel .wcase-facts { display: none; }
+  .wcase-panel .wcase-thumb { max-width: 60px; }
+}
+
+/* ── phones and narrow tablets: the work on top, the words under it ──── */
+.wcase-panel.is-narrow {
+  --wc-clamp: 4;
+}
+.wcase-panel.is-narrow .wcase-body {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(30vh, 1fr) auto;
+  gap: 14px;
+  padding: 12px 16px 14px;
+  align-items: stretch;
+}
+.wcase-panel.is-narrow .wcase-stage { order: 0; min-height: 30vh; }
+/* The words take exactly the height their (already clamped) content needs and
+   the stage absorbs the rest — a fixed max-height here clipped the bottom of
+   the CTA by a couple of pixels on the longest four cases. */
+.wcase-panel.is-narrow .wcase-info {
+  order: 1;
+  justify-content: flex-start;
+  gap: 7px;
+  min-height: 0;
+}
+.wcase-panel.is-narrow .wcase-info h2 { font-size: clamp(1.6rem, 8vw, 2.2rem); }
+.wcase-panel.is-narrow .wcase-title { font-size: 1rem; }
+.wcase-panel.is-narrow .wcase-copy { font-size: 0.86rem; }
+.wcase-panel.is-narrow .wcase-brand { font-size: 0.62rem; letter-spacing: 0.16em; }
+.wcase-panel.is-narrow .wcase-count { display: none; }
+.wcase-panel.is-narrow .wcase-thumb { max-width: none; }
+.wcase-panel.is-narrow .wcase-legend { display: none; }
+.wcase-panel.is-narrow .wcase-cta { margin-top: 2px; }
+
+/* very small phones: the scope pills are the first thing to go */
+@media (max-width: 380px) {
+  .wcase-panel.is-narrow .wcase-scope { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wcase-info { animation: none; }
+  .wcase-nav button,
+  .wcase-thumb,
+  .wcase-stage img { transition: none; }
+  .wcase-nav button:active { transform: none; }
+  .wcase-thumb:hover { transform: none; }
+}

@@ -1,166 +1,417 @@
-/* ——— ANSWER ENGINE OPTIMISATION (redesigned 10 Aug 2026) ———
+/* ——— ANSWER ENGINE OPTIMISATION (third pass, 11 Aug 2026) ———
 
-   The section is an answer engine rather than a description of one: one
-   console holding the engine tabs, the prompt, the streaming answer and the
-   four deliverables as its citations. See AnswerEngine.jsx's header for why.
+   WHY THIS WAS REDRAWN AGAIN. The second pass got the structure right and the
+   drawing wrong: a white rounded panel on a pale pink ground, an answer set at
+   body size, and the four mechanics stacked in a band that only began below
+   the fold. Tidy, inert, and indistinguishable from a wireframe of a search
+   result. Three things changed.
 
-   ONE FOCAL POINT, AND IT IS THE ANSWER. Everything in here is set quiet — the
-   tabs, the prompt, the citations — so that the single lit word in the middle
-   of the answer is the loudest thing on screen. That word is the product. */
+     1. THE CONSOLE IS DARK NOW. Every other surface on this pink site is white
+        paper; this one is the opposite — a deep plum-violet slab, woven with a
+        fine thread texture, sitting in a pool of its own light. It is the only
+        dark object on the page, which is the cheapest and strongest way to say
+        "this is the moment". White paper on a pale ground had no depth to give;
+        an ink slab has all of it.
+
+     2. THE ANSWER IS THE HERO, AT DISPLAY SCALE. It was 1.7rem of body text.
+        It is now set up to 2.4rem, near-white on ink, with the name lit in gold
+        over a magenta bloom that only comes up when the sentence settles. The
+        section exists to make one word land; that word is now the biggest,
+        brightest thing inside the console.
+
+     3. THE FOUR MECHANICS MOVED UP BESIDE THE ANSWER. They were a band under
+        the fold. They are now the right-hand column of the console — literally
+        the citations beside the answer they explain — so the whole idea, from
+        question to answer to the four things that caused it, is one composition
+        you can take in at once.
+
+   HONESTY — UNCHANGED AND NON-NEGOTIABLE. No engine logos, no product chrome,
+   no avatars, no favicons. The engines are plain text labels. The permanent
+   "Illustrative example" flag sits in the masthead at all times — and now that
+   the console is more convincing than ever, it is drawn brighter than it was,
+   not dimmer. Nothing here claims a ranking, a placement or a result.
+
+   COLOUR: brand tokens only. The slab is --ink mixed toward --violet; the
+   lights are --magenta, --violet, --cyan and --gold; everything else is white
+   at an opacity over that slab. No new hues were invented.
+
+   MOTION: two looping @keyframes, both mounted only for the phase they belong
+   to and removed from the DOM when it ends (thinking dots, streaming caret),
+   plus one 320ms non-looping entrance on the source panel. Everything else is
+   a transition. `prefers-reduced-motion` gets the settled answer with no
+   machine at all. */
 
 .ae {
   position: relative;
   isolation: isolate;
   overflow-x: clip;
-  padding: clamp(56px, 8vh, 104px) 0 clamp(52px, 7vh, 92px);
+  padding: clamp(52px, 7vh, 92px) 0 clamp(48px, 6vh, 80px);
+
+  /* the slab and the light that lives on it */
+  --ae-slab-1: color-mix(in srgb, var(--ink) 74%, var(--violet));
+  --ae-slab-2: color-mix(in srgb, var(--ink) 56%, #000);
+  --ae-on: #fff;
+  /* the two dim tones are set where small text still clears 4.5:1 on the slab
+     — a 46% white label at 0.6rem did not, and this section carries several */
+  --ae-on-dim: color-mix(in srgb, #fff 78%, transparent);
+  --ae-on-faint: color-mix(in srgb, #fff 60%, transparent);
+  --ae-hair: color-mix(in srgb, #fff 13%, transparent);
+  --ae-hair-soft: color-mix(in srgb, #fff 8%, transparent);
 }
+/* the ground the slab sits in: a broad cyan wash at the top and a magenta pool
+   under the console, so the dark object reads as lit from the page rather than
+   pasted onto it */
 .ae::before {
   content: '';
   position: absolute; inset: 0; z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(58% 44% at 50% 0%, rgba(89, 230, 255, 0.07), transparent 70%),
-    radial-gradient(50% 40% at 80% 90%, rgba(242, 28, 140, 0.07), transparent 72%);
+    radial-gradient(64% 46% at 50% 0%, color-mix(in srgb, var(--cyan) 15%, transparent), transparent 70%),
+    radial-gradient(58% 44% at 78% 92%, color-mix(in srgb, var(--magenta) 13%, transparent), transparent 72%);
 }
 
+/* ——— the head: full width, two voices ——— */
 .ae-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  align-items: end;
+  gap: clamp(18px, 3vw, 56px);
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 var(--pad) clamp(24px, 3.2vw, 40px);
+  padding: 0 var(--pad) clamp(22px, 2.8vw, 36px);
 }
-/* Two short lines, not one 20-character shout. The old ALL-CAPS
-   "GET NAMED BY CHATGPT" ran to the full measure at hero scale and left the
-   console — the thing worth looking at — starting below the fold. */
+/* explicit placement: the kicker and the shout stack down the left, the lede
+   sits on the right sharing the shout's baseline row. Three children in a
+   two-column grid would otherwise wrap in source order. */
+.ae-head > .kicker { grid-column: 1; grid-row: 1; }
+.ae-shout { grid-column: 1; grid-row: 2; }
+.ae-lede { grid-column: 2; grid-row: 2; align-self: end; }
 .ae-shout {
-  max-width: 15ch;
-  font-size: clamp(1.9rem, 3.6vw, 3rem);
-  line-height: 1.02;
+  max-width: 13ch;
+  font-size: clamp(2.2rem, 5.4vw, 4.1rem);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
 }
-.ae-lede { margin-top: 14px; color: var(--ink-dim); max-width: 44ch; }
+.ae-lede {
+  margin: 0 0 0.35em;
+  color: var(--ink-dim);
+  max-width: 34ch;
+  font-size: clamp(0.98rem, 1.25vw, 1.12rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
 
-/* ——— the console ——— */
-.ae-stage-wrap { max-width: 1180px; margin: 0 auto; padding: 0 var(--pad); }
+/* ——— the console ———
+   A real object, and the only dark one on the page. The long plum shadow plus
+   the soft magenta pool behind it (::before on the wrap) is what gives it air
+   underneath instead of a border. */
+.ae-stage-wrap {
+  position: relative;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+}
+.ae-stage-wrap::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 4%; right: 4%; top: 22%; bottom: -9%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--magenta) 42%, transparent), transparent);
+  filter: blur(58px);
+  opacity: 0.7;
+  pointer-events: none;
+}
 .ae-stage {
   position: relative;
-  border: 1px solid var(--line);
-  border-radius: clamp(16px, 1.6vw, 22px);
+  border-radius: clamp(20px, 2.1vw, 30px);
   background:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
-    var(--bg-2);
+    radial-gradient(96% 78% at 6% 0%, color-mix(in srgb, var(--violet) 58%, transparent), transparent 58%),
+    radial-gradient(86% 72% at 96% 100%, color-mix(in srgb, var(--magenta) 30%, transparent), transparent 60%),
+    linear-gradient(158deg, var(--ae-slab-1), var(--ae-slab-2));
+  box-shadow:
+    0 60px 120px -46px color-mix(in srgb, var(--ink) 78%, transparent),
+    0 22px 48px -26px color-mix(in srgb, var(--ink) 52%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent),
+    /* the vignette: without it a flat slab this large reads as a swatch */
+    inset 0 -80px 120px -60px color-mix(in srgb, #000 55%, transparent);
   overflow: hidden;
+  transition: box-shadow 0.9s var(--ease);
 }
-/* the lit top edge — the one piece of chrome, and it reads as a screen coming
-   on rather than as a border */
+/* the woven thread texture — the material the studio is named after, at the
+   threshold of visible. Two passes crossing at a shallow angle. */
+.ae-stage::after {
+  content: '';
+  position: absolute; inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(114deg, color-mix(in srgb, #fff 4%, transparent) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(24deg, color-mix(in srgb, #fff 2.6%, transparent) 0 1px, transparent 1px 9px);
+  opacity: 0.5;
+}
+/* the lit top edge */
 .ae-stage::before {
   content: '';
   position: absolute; inset: 0 0 auto 0;
+  z-index: 4;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--cyan), var(--magenta), transparent);
-  opacity: 0.75;
+  background: linear-gradient(90deg, transparent, var(--cyan), var(--magenta), var(--gold), transparent);
+  opacity: 0.9;
 }
+.ae-stage > * { position: relative; z-index: 2; }
 
-/* ——— engine tabs ——— */
-.ae-tabs {
+/* ——— masthead ——— */
+.ae-mast {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(10px, 1.4vw, 18px);
+  padding: clamp(13px, 1.5vw, 18px) clamp(18px, 2.4vw, 34px);
+  background: color-mix(in srgb, #000 16%, transparent);
+  border-bottom: 1px solid var(--ae-hair);
+}
+.ae-mast-label {
+  flex: 0 0 auto;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ae-on-faint);
+  padding-right: clamp(10px, 1.4vw, 16px);
+  border-right: 1px solid var(--ae-hair);
+}
+/* the four engines: a LIST, not a control */
+.ae-engines {
+  flex: 1 1 auto;
+  list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.8vw, 22px) 0;
-  border-bottom: 1px solid var(--line);
+  align-items: center;
+  gap: clamp(8px, 1.1vw, 16px);
+  min-width: 0;
 }
-.ae-tab {
-  appearance: none;
-  border: 0;
-  background: none;
-  padding: 9px clamp(10px, 1.2vw, 15px);
-  border-radius: 9px 9px 0 0;
-  font-family: var(--body);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--ink-faint);
-  cursor: pointer;
+.ae-engine {
   position: relative;
-  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+  color: var(--ae-on-dim);
+  white-space: nowrap;
 }
-.ae-tab:hover { color: var(--ink); background: rgba(255, 255, 255, 0.04); }
-.ae-tab.is-on { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
-.ae-tab.is-on::after {
+.ae-engine + .ae-engine::before {
   content: '';
-  position: absolute; left: 0; right: 0; bottom: -1px;
-  height: 2px;
-  background: var(--cyan);
+  position: absolute;
+  left: calc(clamp(8px, 1.1vw, 16px) / -2);
+  top: 50%;
+  width: 3px; height: 3px;
+  margin-top: -1.5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, #fff 32%, transparent);
 }
-.ae-tab:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+/* THE LABEL THAT KEEPS THIS HONEST. Permanently on screen, and drawn brighter
+   than the engines beside it — the more convincing the console, the more it
+   owes the reader this. */
+.ae-flag {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 42%, transparent);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gold) 62%, #fff);
+}
+.ae-flag i {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--gold) 80%, transparent);
+}
 
-/* ——— the prompt bar ——— */
+/* ——— the two-column body: answer left, its citations right ——— */
+.ae-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.34fr) minmax(0, 0.86fr);
+  align-items: stretch;
+}
+/* centred in its column, not top-aligned: the citations beside it are taller,
+   and a left column pinned to the top left a pool of dead slab under the
+   control. Centring splits that space and makes the pair read as one object. */
+.ae-main {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(20px, 2.8vw, 38px) clamp(18px, 2.6vw, 38px) clamp(22px, 2.8vw, 38px);
+}
+/* the warm light behind the answer. Off while the sentence assembles, up when
+   it settles — one transition, no loop. */
+.ae-main::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: -10%; right: -10%; top: 18%; bottom: -14%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--magenta) 46%, transparent), transparent);
+  filter: blur(56px);
+  opacity: 0.14;
+  pointer-events: none;
+  transition: opacity 1.1s var(--ease);
+}
+.ae-main.is-done::before { opacity: 0.8; }
+.ae-main > * { position: relative; z-index: 1; }
+
+/* ——— the prompt field ——— */
 .ae-prompt {
   display: flex;
   align-items: center;
   gap: clamp(10px, 1.2vw, 14px);
-  padding: clamp(16px, 2vw, 24px) clamp(16px, 2.2vw, 26px);
-  border-bottom: 1px solid var(--line);
+  padding: clamp(11px, 1.2vw, 15px) clamp(14px, 1.6vw, 20px);
+  border-radius: 999px;
+  background: color-mix(in srgb, #000 22%, transparent);
+  border: 1px solid var(--ae-hair);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 7%, transparent);
 }
 .ae-prompt-glyph {
   flex: 0 0 auto;
-  width: 20px; height: 20px;
-  color: var(--ink-faint);
+  width: 18px; height: 18px;
+  color: var(--ae-on-faint);
 }
 .ae-prompt-glyph svg { width: 100%; height: 100%; }
 .ae-ask {
   flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--display);
-  font-weight: 500;
-  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  font-weight: 600;
+  font-size: clamp(0.92rem, 1.15vw, 1.05rem);
   line-height: 1.3;
-  color: var(--ink);
+  color: color-mix(in srgb, #fff 88%, transparent);
+  text-wrap: pretty;
 }
+/* a key cap, not a send button — nothing here is clickable */
 .ae-prompt-send {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 28px; height: 28px;
+  width: 25px; height: 25px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--ink-dim);
-  font-size: 0.9rem;
+  background: color-mix(in srgb, #fff 9%, transparent);
+  border: 1px solid var(--ae-hair);
+  color: var(--ae-on-faint);
+  font-size: 0.8rem;
+  line-height: 1;
 }
 
-/* ——— the answer ——— */
-.ae-answer-wrap { padding: clamp(20px, 2.6vw, 32px) clamp(16px, 2.2vw, 26px); }
+/* ——— the answer: the hero of the section ——— */
+.ae-answer-wrap { margin-top: clamp(18px, 2.4vw, 30px); }
+.ae-answer-tag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: clamp(10px, 1.2vw, 14px);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ae-on-faint);
+  transition: color 0.7s var(--ease);
+}
+.ae-answer-tag::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, var(--ae-hair), transparent);
+}
+.is-done .ae-answer-tag { color: color-mix(in srgb, var(--gold) 55%, #fff); }
+.ae-answer-col { min-width: 0; }
+
+/* the composing beat: mounted for ~420ms once per run, then removed */
+.ae-dots { display: flex; gap: 6px; height: 1.4em; align-items: center; }
+.ae-dots i {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--magenta) 70%, #fff);
+  animation: ae-think 0.9s var(--ease) infinite;
+}
+.ae-dots i:nth-child(2) { animation-delay: 0.12s; }
+.ae-dots i:nth-child(3) { animation-delay: 0.24s; }
+@keyframes ae-think {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
 .ae-answer {
-  font-size: clamp(1.05rem, 1.7vw, 1.45rem);
-  line-height: 1.55;
-  color: var(--ink);
-  max-width: 62ch;
+  font-family: var(--display);
+  font-size: clamp(1.34rem, 3vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.24;
+  letter-spacing: -0.022em;
+  color: var(--ae-on);
   text-wrap: pretty;
+  min-height: 3.7em;
 }
-/* THE POINT OF THE WHOLE SECTION. A <mark>, restyled — the browser default is
-   a yellow highlighter, and the semantic is exactly right: this is the run of
-   text relevant to why the reader is here. */
+
+/* THE POINT OF THE WHOLE SECTION. A <mark>, restyled: the semantic — the run
+   of text relevant to why the reader is here — is exactly right.
+
+   IT ARRIVES LAST. While the sentence assembles this is a reserved, empty slot
+   holding its own width. When the sentence has settled the name comes up in
+   gold with a magenta bloom behind it and a thread of light sweeping under it
+   — three transitions on one element, nothing that repeats. */
 .ae-name {
-  background: none;
-  color: var(--ink);
-  font-weight: 700;
+  position: relative;
+  background: color-mix(in srgb, #fff 8%, transparent);
+  color: transparent;
+  font-weight: 800;
   padding: 0 0.08em;
-  box-shadow: inset 0 -0.34em 0 color-mix(in srgb, var(--magenta) 42%, transparent);
-  border-radius: 2px;
+  border-radius: 4px;
+  text-shadow: none;
+  transition:
+    color 0.42s var(--ease),
+    background-color 0.42s var(--ease),
+    text-shadow 0.6s var(--ease);
 }
+.ae-name::after {
+  content: '';
+  position: absolute;
+  left: 0.02em; bottom: -0.02em;
+  height: 0.11em;
+  width: 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--magenta), var(--gold));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--magenta) 70%, transparent);
+  transition: width 0.55s var(--ease) 0.12s;
+}
+.ae-name.is-in {
+  color: var(--gold);
+  background: transparent;
+  text-shadow:
+    0 0 26px color-mix(in srgb, var(--gold) 45%, transparent),
+    0 0 62px color-mix(in srgb, var(--magenta) 45%, transparent);
+}
+.ae-name.is-in::after { width: calc(100% - 0.04em); }
+
 .ae-caret {
   display: inline-block;
-  width: 2px;
-  height: 1.05em;
-  margin-left: 3px;
-  vertical-align: -0.16em;
-  background: var(--cyan);
+  width: 3px;
+  height: 0.86em;
+  margin-left: 4px;
+  vertical-align: -0.08em;
+  background: var(--magenta);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--magenta) 80%, transparent);
   animation: ae-blink 1s steps(2, start) infinite;
 }
-/* The only @keyframes in this file, and it exists ONLY while the answer is
-   mid-stream — .ae-caret is removed from the DOM the moment `done` flips, so
-   this is never an ambient animation on an idle page. */
+/* mounted ONLY while the sentence is mid-stream — never on an idle page */
 @keyframes ae-blink { 0%, 100% { opacity: 1 } 50% { opacity: 0 } }
 
-/* the full sentence, once, for screen readers — the visible one is
-   aria-hidden because it is rebuilt character by character */
+/* the full sentence, once, for screen readers */
 .ae-answer-sr {
   position: absolute;
   width: 1px; height: 1px;
@@ -170,84 +421,179 @@
   white-space: nowrap;
 }
 
-/* ——— sources ——— */
+/* the one control: Skip while it runs, Ask again once it has settled */
+.ae-answer-foot { margin-top: clamp(14px, 1.8vw, 22px); }
+.ae-replay {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--ae-hair);
+  background: color-mix(in srgb, #fff 6%, transparent);
+  font-family: var(--body);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ae-on-dim);
+  cursor: pointer;
+  transition: color 0.3s var(--ease), border-color 0.3s var(--ease),
+    background-color 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.ae-replay:hover {
+  color: #fff;
+  background: color-mix(in srgb, var(--magenta) 24%, transparent);
+  border-color: color-mix(in srgb, var(--magenta) 60%, transparent);
+  transform: translateY(-1px);
+}
+.ae-replay:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.ae-replay-g { font-size: 0.85rem; line-height: 1; color: color-mix(in srgb, var(--gold) 70%, #fff); }
+
+/* ——— the citations: four mechanics, beside the answer ——— */
 .ae-sources {
-  padding: 0 clamp(16px, 2.2vw, 26px) clamp(18px, 2.4vw, 28px);
+  position: relative;
+  min-width: 0;
+  padding: clamp(20px, 2.4vw, 30px) clamp(18px, 2.4vw, 30px) clamp(20px, 2.4vw, 30px);
+  background: color-mix(in srgb, #000 28%, transparent);
+  border-left: 1px solid var(--ae-hair);
 }
 .ae-sources-label {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: clamp(12px, 1.6vw, 18px);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  margin-bottom: clamp(10px, 1.4vw, 16px);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ae-on-faint);
 }
-.ae-sources-label i { flex: 1 1 auto; height: 1px; background: var(--line); }
-.ae-sources-label b { color: var(--ink-dim); }
+.ae-sources-label i { flex: 1 1 auto; height: 1px; background: var(--ae-hair); }
+.ae-sources-label b { color: color-mix(in srgb, var(--gold) 60%, #fff); }
 
-.ae-cites {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(8px, 1vw, 14px);
-}
-.ae-cite {
+.ae-src { list-style: none; display: flex; flex-direction: column; }
+.ae-src-item {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: clamp(13px, 1.4vw, 17px);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.022);
-  transition: border-color 0.35s var(--ease), background 0.35s var(--ease), transform 0.35s var(--ease);
+  border-top: 1px solid var(--ae-hair-soft);
 }
-.ae-cite:hover {
-  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 50%, transparent);
-  background: rgba(255, 255, 255, 0.045);
-  transform: translateY(-2px);
+.ae-src-item:first-child { border-top: 0; }
+/* the accent thread — the only thing that moves when you change citation */
+.ae-src-item::before {
+  content: '';
+  position: absolute;
+  left: calc(clamp(18px, 2.4vw, 30px) * -1);
+  top: 0;
+  width: 2px; height: 0;
+  background: var(--accent, var(--magenta));
+  box-shadow: 0 0 12px var(--accent, var(--magenta));
+  transition: height 0.45s var(--ease);
 }
-/* the citation index, set like a footnote marker rather than a heading number */
-.ae-cite-n {
+.ae-src-item.is-on::before { height: 100%; }
+
+.ae-src-btn {
+  appearance: none;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: clamp(9px, 1vw, 13px);
+  width: 100%;
+  padding: clamp(11px, 1.2vw, 14px) 0 clamp(4px, 0.6vw, 6px);
+  text-align: left;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.ae-src-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.ae-src-n {
   font-family: var(--display);
-  font-size: 0.64rem;
-  font-weight: 700;
+  font-size: 0.62rem;
+  font-weight: 800;
   letter-spacing: 0.14em;
-  color: var(--accent-ink);
+  color: color-mix(in srgb, var(--accent, var(--magenta)) 55%, #fff);
+  transition: color 0.35s var(--ease);
 }
-.ae-cite-h {
-  margin-top: 7px;
+.ae-src-t {
   font-family: var(--bloom);
-  font-weight: 560;
-  font-size: clamp(0.95rem, 1.1vw, 1.08rem);
-  line-height: 1.1;
-  color: var(--ink);
+  font-weight: 700;
+  font-size: clamp(0.95rem, 1.08vw, 1.08rem);
+  line-height: 1.15;
+  color: var(--ae-on-dim);
+  transition: color 0.35s var(--ease);
 }
-/* llms.txt is a filename — it should look like one */
-.ae-cite-h.is-mono {
+.ae-src-t.is-mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: clamp(0.88rem, 1vw, 1rem);
+  font-size: clamp(0.86rem, 1vw, 1rem);
   letter-spacing: -0.02em;
 }
-.ae-cite-p {
-  margin-top: 7px;
-  font-size: 0.8rem;
-  line-height: 1.45;
-  color: var(--ink-dim);
+.ae-src-btn:hover .ae-src-t { color: #fff; }
+.ae-src-item.is-on .ae-src-t { color: #fff; }
+/* the disclosure mark: a plus that becomes a minus, drawn in two rules */
+.ae-src-x {
+  position: relative;
+  width: 10px; height: 10px;
+  align-self: center;
+  opacity: 0.5;
+  transition: opacity 0.3s var(--ease);
+}
+.ae-src-x::before, .ae-src-x::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  width: 10px; height: 1.5px;
+  margin-top: -0.75px;
+  background: currentColor;
+  color: var(--ae-on);
+  transition: transform 0.4s var(--ease);
+}
+.ae-src-x::after { transform: rotate(90deg); }
+.ae-src-item.is-on .ae-src-x { opacity: 0.9; }
+.ae-src-item.is-on .ae-src-x::after { transform: rotate(0deg); }
+
+/* the summary, on the rows that are not open. The open row's panel carries the
+   fuller version of the same sentence — the two must never be on screen
+   together reading as a stutter. */
+.ae-src-s {
+  padding: 0 26px clamp(11px, 1.2vw, 14px) calc(0.62rem * 2.6);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, #fff 70%, transparent);
   text-wrap: pretty;
 }
-.ae-cite-link {
-  margin-top: auto;
-  padding-top: 10px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--accent, var(--magenta));
-  text-decoration: none;
-  width: fit-content;
+.ae-src-item.is-on .ae-src-s { display: none; }
+/* the open panel: the full, honest explanation */
+.ae-src-p {
+  padding: 2px 0 clamp(14px, 1.5vw, 18px) calc(0.62rem * 2.6);
+  animation: ae-panel-in 0.32s var(--ease) both;
 }
-.ae-cite-link:hover { text-decoration: underline; }
+.ae-src-p[hidden] { display: none; }
+@keyframes ae-panel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+.ae-src-b {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ae-on-dim);
+  text-wrap: pretty;
+}
+.ae-src-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 12px;
+  padding-bottom: 2px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: color-mix(in srgb, var(--accent, var(--magenta)) 40%, #fff);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 55%, transparent);
+  transition: border-color 0.3s var(--ease), color 0.3s var(--ease);
+}
+.ae-src-link:hover { color: #fff; border-bottom-color: #fff; }
+.ae-src-link:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 
 /* ——— the caveat + CTA ——— */
 .ae-foot {
@@ -256,7 +602,7 @@
   justify-content: space-between;
   gap: clamp(18px, 3vw, 40px);
   max-width: 1180px;
-  margin: clamp(20px, 2.6vw, 30px) auto 0;
+  margin: clamp(24px, 3vw, 38px) auto 0;
   padding: 0 var(--pad);
 }
 .ae-caveat {
@@ -267,17 +613,35 @@
 }
 .ae-caveat b { color: var(--ink); }
 
+@media (max-width: 1000px) {
+  /* the citations go under the answer; the accent thread moves to the left
+     edge of the block rather than the column gutter */
+  .ae-grid { grid-template-columns: minmax(0, 1fr); }
+  .ae-sources { border-left: 0; border-top: 1px solid var(--ae-hair); }
+  .ae-head { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 0; }
+  .ae-head > .kicker, .ae-shout, .ae-lede { grid-column: 1; grid-row: auto; }
+  .ae-lede { margin: 14px 0 0; max-width: 44ch; }
+  .ae-answer { min-height: 0; }
+}
 @media (max-width: 900px) {
-  .ae-cites { grid-template-columns: repeat(2, 1fr); }
   .ae-foot { flex-direction: column; align-items: flex-start; }
 }
-@media (max-width: 560px) {
-  .ae-cites { grid-template-columns: 1fr; }
-  .ae-tabs { gap: 2px; }
-  .ae-tab { font-size: 0.7rem; padding: 8px 9px; }
+@media (max-width: 640px) {
+  .ae-mast { gap: 8px 10px; padding-inline: clamp(14px, 4vw, 18px); }
+  .ae-mast-label { border-right: 0; padding-right: 0; }
+  .ae-engines { gap: 6px 12px; }
+  .ae-engine { font-size: 0.7rem; }
+  .ae-flag { font-size: 0.56rem; padding: 4px 9px 4px 8px; }
+  .ae-main, .ae-sources { padding-inline: clamp(14px, 4vw, 18px); }
+  .ae-answer { font-size: clamp(1.3rem, 6.4vw, 1.7rem); letter-spacing: -0.018em; }
+  .ae-src-item::before { left: calc(clamp(14px, 4vw, 18px) * -1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ae-caret { animation: none; }
-  .ae-cite { transition: none; }
+  /* the sentence and its name are simply there — no beat, no caret, no sweep */
+  .ae-caret, .ae-dots i { animation: none; }
+  .ae-src-p { animation: none; }
+  .ae-name, .ae-name::after, .ae-answer-tag, .ae-main::before,
+  .ae-stage, .ae-src-item::before, .ae-src-t, .ae-src-n, .ae-src-x::before,
+  .ae-src-x::after, .ae-replay, .ae-src-link { transition: none; }
 }

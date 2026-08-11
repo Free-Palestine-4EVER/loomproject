@@ -1,15 +1,40 @@
-/* ——— PROOF (re-split 10 Aug 2026) ———
-   Was three stacked full-width bands: head, wall, four-across stat rail. Now
-   head, then ONE split — names left, numbers as a column right. Side by side
-   is most of the height saving; the rest is that the numbers no longer need
-   their own band of air. Still no boxes anywhere: the only chrome in the
-   section is one yarn stub per number and one hairline between the columns. */
+/* ——— PROOF (re-cut 11 Aug 2026, tightened same day) ———
+   Was a wrapped paragraph of client names beside a column of numbers. The
+   names are now a full-bleed two-row logo marquee and the numbers a quiet
+   four-across row beneath it, which is the order the section actually argues
+   in: claim (headline) → evidence (marks) → scale (numbers).
+
+   SECOND PASS — the client saw it at 1440 and read the marks as captions.
+   Three things were wrong and all three were the same mistake, which is that
+   the section was designed around the headline instead of around the marks:
+
+     · The wordmarks rendered at ~12px of actual letter. The SVGs were drawn on
+       a 64-unit box whose ink only filled ~23 units, so `height: 34px` bought
+       twelve pixels of type and thirty-four pixels of box. The files have been
+       re-cropped to a tight 32-unit box (see the note in Proof.svelte), so the
+       height set here is now very nearly the height of the letters.
+       THIRD PASS: that correction overshot to a 43px cap, which fitted five
+       names to a 1440 row and sliced two of them mid-letter. Back to ~27px —
+       see .pl-logo. The marks were also re-set from three typefaces onto one
+       (Satoshi 700, outlined); the row's job is to read as one wall of names,
+       and a row in three families reads as a font specimen instead.
+     · They sat at 0.52 opacity. A muted grey mass is the right instinct for a
+       strip of marks you are asking the eye to *skim*, and the wrong one for
+       four names that are the best argument on the page.
+     · Everything else was too big and too far apart. The headline is now set
+       at h3 scale against a tight kicker, and the three vertical gaps
+       (head→strip→numbers) are roughly halved.
+
+   Still no boxes anywhere. The chrome budget for the whole section is two
+   hairlines around the strip and one yarn rule per number. */
 
 .proof {
   position: relative;
   isolation: isolate;
-  overflow-x: clip; /* the backdrop is 120% wide and drifts; never let it open a scrollbar */
-  padding: clamp(52px, 7.5vh, 96px) 0 clamp(52px, 7.5vh, 96px);
+  /* the backdrop is 120% wide and drifts, and the marquee tracks are wider
+     than the viewport by design — never let either open a scrollbar */
+  overflow-x: clip;
+  padding: clamp(38px, 5vh, 62px) 0 clamp(34px, 4.4vh, 56px);
   border-block: 1px solid var(--line);
 }
 
@@ -26,7 +51,7 @@
   object-fit: cover;
   opacity: 0.16;
 }
-/* a veil, so the names stay legible over the weave without dimming the
+/* a veil, so the marks stay legible over the weave without dimming the
    texture into a flat grey */
 .proof::after {
   content: '';
@@ -40,129 +65,199 @@
 .proof-head {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 var(--pad) clamp(22px, 3vw, 36px);
+  padding: 0 var(--pad) clamp(16px, 1.9vw, 26px);
 }
-.proof-h2 { max-width: 20ch; }
+/* The kicker's global margin is 22px, drawn for sections whose headline is the
+   loudest thing in them. Here the marks are, and a 22px trench under a 0.8rem
+   line reads as a mistake at this headline size — the two belong to each
+   other and should be set as one block. */
+.proof .kicker { margin-bottom: 9px; }
+/* h3 scale, not h2's clamp(2rem, 5.2vw, 4.4rem). At 1440 that global ramp
+   lands on ~70px, which is a title for a page, not a lead-in to a logo wall —
+   it out-weighed nineteen client names on its own. */
+.proof-h2 {
+  font-size: clamp(1.7rem, 3.3vw, 2.9rem);
+  line-height: 1.02;
+  letter-spacing: -0.012em;
+  max-width: 22ch;
+}
 
-/* ——— the split ———
-   1.55fr / 1fr, not 2/1: the rail carries a four-digit numeral AND a clause,
-   and under ~300px the clause wraps to four lines and the column gets taller
-   than the wall beside it, which is the one arrangement that would make this
-   TALLER than the stacked version it replaced. */
-.proof-split {
+/* ——————————————————————————————————————— the strip
+   Full-bleed on purpose: a logo wall that stops at the 1180px measure reads
+   as a widget sitting inside the page, and the whole argument of this band is
+   that the list runs off both edges — i.e. that it does not end. */
+.proof-strip {
+  position: relative;
   display: grid;
-  grid-template-columns: 1.55fr 1fr;
-  gap: clamp(26px, 4vw, 60px);
-  align-items: start;
+  gap: clamp(11px, 1.5vw, 22px);
+  padding: clamp(19px, 2.1vw, 28px) 0;
+  border-block: 1px solid var(--line);
+  /* The marks fade out before the edge rather than being guillotined by it —
+     without this, a wordmark is cut mid-letter at both ends of every row.
+     The percentage had to go UP with the mark size, not down: a fade shorter
+     than one wordmark stops reading as a fade and starts reading as a crop,
+     and at this scale a wordmark is 200–400px. 12% of 1440 is ~170px, which
+     is about half a mark — long enough that a name dissolves rather than
+     being cut, short enough that the strip is not mostly fade. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+.pl-row { overflow: hidden; }
+
+/* Two identical sets inside one track, animated to exactly -50%: at the end
+   of the cycle the track has advanced by precisely one set, so the frame it
+   loops back to is pixel-identical and the seam is invisible. Never animate
+   to a pixel value here — the set's width changes with the clamp() below. */
+.pl-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: pl-slide 54s linear infinite;
+}
+.pl-row--rev .pl-track {
+  animation-name: pl-slide-rev;
+  animation-duration: 46s;
+}
+@keyframes pl-slide { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
+@keyframes pl-slide-rev { from { transform: translate3d(-50%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+
+/* hovering anywhere on the strip pauses BOTH rows — pausing one while its
+   neighbour keeps sliding reads as a bug, not as a hover state */
+.proof-strip:hover .pl-track { animation-play-state: paused; }
+
+.pl-set { display: flex; align-items: center; }
+
+.pl-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* the cell is padding, not a fixed width: "MAC" and "Maestro Suits" are not
+     the same word, and forcing both into one box is what makes a logo wall
+     look like a spreadsheet. Even air between marks instead. */
+  padding-inline: clamp(18px, 2vw, 32px);
+  min-height: 0;
+}
+
+.pl-logo {
+  display: block;
+  /* THIRD PASS. The second pass corrected a 12px cap height by going to 43px,
+     which overshot: five names fit a 1440 row and two of them were guillotined
+     mid-letter, so the strip read as broken rather than as endless. The box is
+     32 units carrying a ~23.2-unit cap, so this height buys ~27px of actual
+     letter at 1440 — big enough that a stranger reads UNICEF without leaning
+     in, small enough that the row reads as a WALL and not as five headlines. */
+  height: clamp(26px, 2.55vw, 37px);
+  width: auto;
+  /* Legible at rest. This band's whole job is that a stranger reads UNICEF and
+     Vodafone without leaning in, and a grey-mass strip you have to hover to
+     decode is a strip that argues nothing. Hover still pays — it takes the
+     mark to full ink and lifts it — but nothing is *hidden* behind hover. */
+  opacity: 0.85;
+  transform: translateZ(0);
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.pl-cell:hover .pl-logo {
+  opacity: 1;
+  transform: scale(1.07);
+}
+
+/* ——————————————————————————————————————— the numbers
+   Four across, under the strip, at a smaller size than the old rail: they are
+   the coda to the marks now, not a band competing with them. */
+/* ——————————————————————————————————————— the numbers
+   Four across, under the strip. The yarn stub each of these carried has grown
+   into a full-width rule over the column: at this density four short dashes
+   floating over four numbers read as debris, while four ruled columns read as
+   a ledger — and a ledger is the right register for the coda to a wall of
+   client marks. Costs nothing in height and buys the row its structure back. */
+.proof-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(18px, 2.4vw, 36px);
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 var(--pad);
-}
-
-/* ——— the wall ———
-   One flowing paragraph of names, not a grid. A grid forces every name into
-   the same box regardless of length ("MAC" and "United Colors of Benetton"
-   are not the same word), and the ragged right edge of real flowed text is
-   what makes it read as a colophon rather than as a table of logos. */
-.proof-wall {
-  font-family: var(--bloom);
-  font-weight: 560;
-  font-size: clamp(1.05rem, 2vw, 1.75rem);
-  line-height: 1.26;
-  letter-spacing: 0;
-  color: var(--ink-faint);
-  /* the spans are inline-block for the transform; the separators between them
-     are real text nodes, so the line still breaks anywhere it needs to */
-  text-wrap: pretty;
-}
-.proof-name {
-  display: inline-block;
-  transition: color 0.35s var(--ease);
-}
-/* the three a stranger already knows. Brighter, not bigger — a size jump
-   would break the line rhythm and make the other sixteen look like a
-   footnote to them. */
-.proof-name.is-anchor { color: var(--ink); }
-.proof-name:hover { color: var(--ink); }
-.proof-name.is-anchor:hover { color: var(--magenta); }
-
-.proof-sep {
-  display: inline-block;
-  margin: 0 0.42em;
-  font-style: normal;
-  font-size: 0.5em;
-  vertical-align: 0.32em;
-  color: var(--magenta);
-  opacity: 0.55;
-}
-
-/* ——— the rail ———
-   A column now, not a row. The hairline on its inside edge is the only thing
-   dividing the two halves — a border box around either would put four rules
-   on screen to separate two things. */
-.proof-rail {
-  display: grid;
-  gap: clamp(16px, 2vw, 26px);
-  padding-left: clamp(20px, 3vw, 40px);
-  border-left: 1px solid var(--line);
+  padding: clamp(22px, 2.6vw, 34px) var(--pad) 0;
 }
 .proof-stat {
   position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: baseline;
-  gap: 0 clamp(10px, 1.2vw, 16px);
-  padding-top: 12px;
-}
-/* one short yarn stub per stat, in that stat's own colour */
-.proof-stat::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0;
-  width: 28px; height: 3px;
-  border-radius: 2px;
-  background: var(--yarn, var(--magenta));
+  min-width: 0;
+  padding-top: 11px;
+  border-top: 2px solid var(--yarn, var(--magenta));
 }
 .proof-value {
   font-family: var(--bloom);
   font-weight: 560;
-  /* smaller than the old four-across rail on purpose: in a column the numbers
-     are read one under another, so they no longer need to be big enough to
-     hold a full-width row on their own — and the wall beside them is the
-     section's hero. */
-  font-size: clamp(1.9rem, 3.2vw, 2.9rem);
-  line-height: 0.9;
+  font-size: clamp(1.75rem, 2.7vw, 2.45rem);
+  line-height: 0.95;
   letter-spacing: -0.01em;
   color: var(--ink);
 }
-.proof-stat-copy { min-width: 0; }
 .proof-label {
-  font-size: 0.68rem;
+  margin: 9px 0 0;
+  font-size: 0.64rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-  line-height: 1.3;
+  line-height: 1.25;
   color: var(--yarn-ink);
 }
+/* one line at every breakpoint above 860 — the clauses were rewritten shorter
+   in Proof.svelte for exactly this, because the second line was most of what
+   made the numbers row as tall as the logo wall */
 .proof-clause {
   margin: 5px 0 0;
-  font-size: clamp(0.78rem, 0.9vw, 0.86rem);
-  line-height: 1.45;
+  font-size: clamp(0.76rem, 0.85vw, 0.83rem);
+  line-height: 1.4;
   color: var(--ink-dim);
+  max-width: 32ch;
 }
 
-@media (max-width: 900px) {
-  /* back to stacked below the split's useful width — two columns at 380px
-     each turns the wall into a ladder of one-word lines */
-  .proof-split { grid-template-columns: 1fr; gap: clamp(24px, 5vw, 36px); }
-  .proof-rail {
-    grid-template-columns: repeat(2, 1fr);
-    padding-left: 0;
-    padding-top: clamp(20px, 4vw, 28px);
-    border-left: 0;
-    border-top: 1px solid var(--line);
-  }
+@media (max-width: 860px) {
+  /* 2×2 — four numbers across a phone gives each one about nine characters of
+     clause per line, which is a ladder, not a sentence */
+  .proof-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 4.5vw, 30px); }
 }
 @media (max-width: 560px) {
-  .proof-rail { grid-template-columns: 1fr; }
+  .pl-cell { padding-inline: clamp(13px, 3.6vw, 20px); }
+  /* A phone gets a smaller mark, not a fainter one. It also has to come down
+     PROPORTIONALLY further than the desktop size: 27px of cap on 1440 is a
+     wall, the same ratio on 390 is two names and a sliced third, so this lands
+     nearer 16px of cap and lets three or four names ride the row. */
+  .pl-logo { height: clamp(20px, 5.6vw, 27px); }
+  .proof-strip {
+    padding: 16px 0;
+    gap: 9px;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
+  }
+}
+
+/* ——————————————————————————————————————— reduced motion
+   The strip freezes into a static wrapped grid rather than simply stopping
+   mid-slide: a paused marquee leaves half a wordmark hanging off each edge.
+   The duplicate set is dropped so no name appears twice, the track is allowed
+   to wrap, and the mask comes off because nothing runs past the edge now. */
+@media (prefers-reduced-motion: reduce) {
+  .proof-strip {
+    -webkit-mask-image: none;
+    mask-image: none;
+    padding-inline: var(--pad);
+  }
+  .pl-row { overflow: visible; }
+  .pl-track {
+    animation: none !important;
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    will-change: auto;
+  }
+  .pl-set { flex-wrap: wrap; justify-content: center; }
+  .pl-set[aria-hidden='true'] { display: none; }
+  .pl-cell { padding-inline: clamp(16px, 2.2vw, 32px); padding-block: 7px; }
+  /* the wrapped grid runs to four or five rows at this mark size, so it is
+     capped a little below the marquee's — the static block still has to sit
+     inside a screen */
+  .pl-logo { height: clamp(22px, 2.1vw, 30px); opacity: 0.9; transition: none; }
+  .pl-cell:hover .pl-logo { transform: none; }
 }

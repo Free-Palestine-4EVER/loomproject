@@ -75,17 +75,40 @@
 
 .forge {
   position: relative;
-  padding: clamp(70px, 9vw, 130px) clamp(20px, 5vw, 80px);
+  padding: clamp(60px, 7.5vw, 110px) clamp(20px, 5vw, 80px);
 }
 
+/* ——— the composition ———
+   Named areas rather than source order, because the two viewports want
+   genuinely different reading orders (see the comment in Forge.svelte). On
+   desktop the media is one tall block held against three stacked pieces of
+   copy; the rows are sized `auto auto auto` and the media centres itself
+   across all three, which is what stops the copy trailing off below it. */
 .forge-inner {
   max-width: 1240px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  gap: clamp(28px, 5vw, 70px);
-  align-items: center;
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+  grid-template-areas:
+    'head  media'
+    'lede  media'
+    'offer media';
+  column-gap: clamp(26px, 4.4vw, 62px);
+  row-gap: clamp(16px, 1.8vw, 24px);
+  align-items: start;
 }
+.forge-head { grid-area: head; }
+.forge-lede { grid-area: lede; }
+.forge-offer { grid-area: offer; }
+/* Top-aligned, NOT centred. The copy column is roughly 200px taller than the
+   picture, so centring the picture left it floating with dead air above and
+   below it and nothing lining up. Pinned to the headline's line instead, which
+   leaves exactly the gap at bottom-right that the offer plate then rides into
+   — the overlap below is what turns two columns into one composition.
+   Stretching the frame to match the column was the other option and is wrong:
+   the artwork is 1.79:1 and object-fit: cover would have cropped one of the
+   two mascots straight out of the picture the band is about. */
+.forge-media { grid-area: media; align-self: start; }
 
 .forge-kicker {
   font-size: 0.78rem;
@@ -98,61 +121,289 @@
 
 .forge-h2 {
   font-family: var(--display);
-  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  font-size: clamp(2rem, 3.8vw, 3.1rem);
   line-height: 0.98;
   letter-spacing: -0.01em;
   color: var(--ink);
-  margin-bottom: 20px;
+  margin-bottom: 0;
+  /* the headline is two sentences; let the browser hold them together rather
+     than orphaning "back." on a line of its own at awkward widths */
+  text-wrap: balance;
 }
 
+/* The lede is the third thing read, not the second — it explains a claim the
+   headline has already made and the picture has already shown, so it is set
+   quieter and narrower than it was. */
 .forge-lede {
   color: var(--ink-dim);
-  max-width: 46ch;
-  font-size: clamp(1rem, 1.35vw, 1.12rem);
-  line-height: 1.6;
+  max-width: 42ch;
+  font-size: clamp(0.96rem, 1.15vw, 1.04rem);
+  line-height: 1.62;
+  margin: 0;
 }
 
+/* ——— the offer plate ———
+   The piece the whole band is built around. It is lifted off the ground on a
+   hairline and a soft cast so the price reads as a thing you can pick up, and
+   on desktop it rides over the media's left edge — which is what welds the
+   copy column and the picture into one composition instead of two rectangles
+   sitting next to each other. The four-yarn stripe along its top edge is the
+   same thread as .kicker::after, so the plate belongs to the page's material
+   rather than being a generic card. */
+.forge-offer {
+  position: relative;
+  z-index: 2;
+  padding: clamp(20px, 2.2vw, 28px) clamp(20px, 2.4vw, 30px) clamp(18px, 2vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: clamp(16px, 1.8vw, 22px);
+  background: linear-gradient(168deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.38));
+  box-shadow: 0 18px 40px -26px rgba(51, 36, 61, 0.45);
+  overflow: hidden;
+}
+.forge-offer::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px
+  );
+  pointer-events: none;
+}
+/* the overlap only exists where there is room for it — below this the two
+   columns have already collapsed into one and a negative margin would just
+   push the plate off the side of the phone */
+@media (min-width: 1080px) {
+  /* clears the column gap first, then reaches ~40px under the picture's
+     bottom-left corner — enough to read as deliberate, not enough to cover
+     anything in the frame */
+  .forge-offer { margin-right: clamp(-118px, -7vw, -76px); }
+}
+
+/* ——— the offer ———
+   Was one 1.28rem line that the eye walked straight past on its way to the
+   button; it is the cheapest thing LOOM sells and the price IS the pitch. The
+   sentence is untouched — "2 JOD a model — your first one is free." — it is
+   only set as a price now: the figure at display size on the baseline, the
+   unit small beside it, and the free-first claim as a bordered chip so it
+   reads as a badge rather than a trailing clause. */
 .forge-price {
-  margin-top: 22px;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   font-size: clamp(1.05rem, 1.6vw, 1.28rem);
   color: var(--ink);
 }
-.forge-price strong { color: var(--magenta-deep); font-weight: 700; }
-.forge-price em { font-style: normal; color: var(--ink-dim); }
+.forge-price strong {
+  font-family: var(--display);
+  font-size: clamp(2rem, 3.6vw, 2.9rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--magenta-deep);
+  font-weight: 700;
+}
+.forge-price-unit { color: var(--ink-dim); }
+.forge-price em {
+  font-style: normal;
+  color: var(--magenta-deep);
+  font-size: clamp(0.86rem, 1.1vw, 0.95rem);
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 28, 140, 0.34);
+  background: rgba(242, 28, 140, 0.08);
+  white-space: nowrap;
+}
 
+/* the button and the file list sit on one line under the price, separated by
+   a hairline rather than by whitespace — the formats are a footnote to the
+   offer, and without the rule they read as a second, competing label */
 .forge-cta {
-  margin-top: 30px;
+  margin-top: clamp(14px, 1.6vw, 20px);
+  padding-top: clamp(14px, 1.6vw, 18px);
+  border-top: 1px solid var(--line);
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: clamp(14px, 1.6vw, 22px);
   flex-wrap: wrap;
 }
 
 .forge-formats {
-  font-size: 0.74rem;
-  letter-spacing: 0.22em;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-faint);
+  white-space: nowrap;
 }
 
 .forge-media {
   position: relative;
+  /* Held by the frame, not by the image: `onerror` can remove BOTH copies of
+     the photograph, and without a declared ratio the panel would collapse to
+     nothing instead of degrading to the tinted plate below. */
+  aspect-ratio: 1400 / 781;
   border-radius: clamp(16px, 2vw, 24px);
   overflow: hidden;
-  /* The gradient is the fallback, not decoration — Forge.jsx's onError hides
-     a failed decode and this is what stays behind it. */
+  /* The gradient is the fallback, not decoration — Forge.svelte's onerror
+     hides a failed decode and this is what stays behind it. */
   background: linear-gradient(150deg, #2a1430 0%, #3a1a44 55%, #241028 100%);
+  /* a hairline INSIDE the frame as well as the cast beneath it: the artwork is
+     a dark plate on a pale ground, and without the lit edge it reads as a hole
+     punched in the page rather than a screen sitting on it */
   box-shadow:
-    0 30px 70px -34px rgba(40, 8, 40, 0.6),
-    0 20px 60px -30px color-mix(in srgb, var(--magenta) 40%, transparent);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 24px 56px -30px rgba(40, 8, 40, 0.55),
+    0 16px 48px -28px color-mix(in srgb, var(--magenta) 34%, transparent);
 }
 .forge-media img { display: block; width: 100%; height: auto; }
 
+/* ——— photo → model ———
+   `--forge-split` is where the seam sits: everything to its right is the
+   rebuilt half. Registered as a real percentage so it can be animated at all
+   — an unregistered custom property is a string to the animation engine and
+   would jump rather than sweep. */
+@property --forge-split {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 50%;
+}
+
+.forge-xform {
+  --forge-split: 50%;
+  position: relative;
+  height: 100%;
+  isolation: isolate;
+}
+
+/* the photograph that went in — flattened, drained, very slightly cooled.
+   Selector carries `.forge-media` only to out-specify the generic
+   `.forge-media img { height: auto }` above it. */
+.forge-media .forge-x-flat {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.34) contrast(0.95) brightness(1.02);
+}
+
+/* the geometry that came out — full strength, under a wire mesh */
+.forge-x-solid {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 0 0 var(--forge-split));
+}
+.forge-x-solid img { width: 100%; height: 100%; object-fit: cover; }
+.forge-x-mesh {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(66deg, rgba(89, 230, 255, 0.5) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(-24deg, rgba(242, 28, 140, 0.42) 0 1px, transparent 1px 22px);
+}
+/* A warm bloom bleeding off the rebuilt side, so the two halves read as two
+   lighting states of one object rather than two crops. */
+.forge-x-solid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--magenta) 34%, transparent), transparent 42%);
+  pointer-events: none;
+}
+
+.forge-x-seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--forge-split);
+  width: 2px;
+  margin-left: -1px;
+  background: linear-gradient(180deg, transparent, #fff 12%, #fff 88%, transparent);
+  box-shadow: 0 0 22px 4px color-mix(in srgb, var(--cyan) 55%, transparent);
+  pointer-events: none;
+}
+
+/* Top corners, not bottom. The offer plate now rides over the frame's
+   bottom-left corner on desktop, and that is exactly where the "2D" chip used
+   to sit — the plate covered the label of the half it is describing. */
+.forge-x-tag {
+  position: absolute;
+  top: clamp(10px, 1.6vw, 16px);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-family: var(--display);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  color: #fff8fc;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(26, 10, 30, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.forge-x-tag--in { left: clamp(10px, 1.6vw, 16px); }
+.forge-x-tag--out {
+  right: clamp(10px, 1.6vw, 16px);
+  border-color: rgba(242, 28, 140, 0.5);
+  background: rgba(179, 18, 106, 0.55);
+}
+
+/* The only thing that moves the seam is the page scrolling past. Off the main
+   thread, idle while the section is off screen, and gone entirely on a
+   browser without scroll-driven animations — which lands on the static 50%
+   split above, the same picture minus the build. */
+@keyframes forge-build {
+  from { --forge-split: 92%; }
+  to { --forge-split: 22%; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .forge-xform {
+      animation: forge-build linear both;
+      animation-timeline: view();
+      animation-range: entry 42% cover 62%;
+    }
+  }
+}
+
+/* ——————————————————————————————————————————————————————————
+   the phone
+   Not the desktop layout stacked. The order changes — headline, then the
+   picture, then the sentence, then the offer — so the pitch is made in two
+   beats before any body copy, and the one thing to tap is the last thing on
+   screen instead of being buried mid-band under a five-line paragraph.
+   —————————————————————————————————————————————————————————— */
 @media (max-width: 900px) {
-  .forge-inner { grid-template-columns: 1fr; }
-  /* Art above the copy on a phone: it is the whole pitch in one frame, and
-     below the fold it is a picture nobody scrolls back up for. */
-  .forge-media { order: -1; }
+  .forge { padding-inline: clamp(18px, 5vw, 40px); }
+  .forge-inner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'head' 'media' 'lede' 'offer';
+    row-gap: clamp(18px, 4vw, 26px);
+  }
+  .forge-h2 { font-size: clamp(1.9rem, 8.4vw, 2.6rem); }
+  .forge-kicker { margin-bottom: 14px; }
+  .forge-lede { max-width: none; }
+  .forge-media { align-self: stretch; }
+  /* the plate spans the full column and the price gets its own line, so the
+     figure is never competing for width with the promise beside it */
+  .forge-price { gap: 4px 10px; }
+  .forge-price em { margin-top: 2px; }
+  .forge-cta { gap: 14px 18px; }
+}
+
+/* Under ~430px the button and the format list stop fitting on one line
+   together, and letting them wrap left a lone 20-letter caption hanging under
+   a pill. Stacked deliberately instead, with the caption centred under the
+   button so the pair still reads as one object. */
+@media (max-width: 460px) {
+  .forge-offer { padding-inline: 18px; }
+  .forge-cta { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .forge-formats { font-size: 0.68rem; letter-spacing: 0.16em; }
 }
 
 /* ——————————————————————————————————————————————————————————
@@ -175,8 +426,13 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: min(760px, 100%);
-  max-height: min(90vh, 900px);
+  width: min(920px, 100%);
+  /* A CAP, not a scroller. Everything below is built so the content fits
+     inside this box in every state at every tested size — see the height
+     ladder at the end of this file. The cap stays because a browser at 500px
+     tall is not a size anyone designs for, and clipping is a better failure
+     than a dialog taller than the screen. */
+  max-height: min(88vh, 840px);
   border-radius: clamp(18px, 2vw, 26px);
   overflow: hidden;
   background: linear-gradient(168deg, #ebe1e6 0%, #f0e8eb 58%, #f2ebee 100%);
@@ -215,19 +471,69 @@
 .fg-close:hover { transform: scale(1.08); background: #fff; }
 
 .fg-body {
-  /* .fg-panel is a flex column with overflow: hidden. Without flex + a
-     min-height reset, a flex child never shrinks below its own content size —
-     so when the content was taller than the panel's max-height, the panel's
-     overflow:hidden just clipped the excess instead of fg-body scrolling to
-     it. This is the actual mechanism behind "Sign in" rendering past the
-     panel bottom with scrollHeight === clientHeight. flex + min-height: 0
-     makes fg-body the one real scroller, so any future overflow is reachable
-     instead of silently invisible. */
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
+  /* NOT a scroller any more. The client's instruction is that the popup does
+     not scroll at any size, so the fix is composition, not a scrollbar: the
+     dialog turns into two columns the moment there is width for it, and a
+     ladder of max-height queries at the end of this file trims the panel down
+     as the viewport gets shorter. `clip` rather than `hidden` so it can never
+     become a scroll container by accident (a programmatic scrollTop on an
+     overflow:hidden box still scrolls). */
+  overflow: clip;
   overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+}
+
+/* ——— two columns as soon as there is width for them ———
+   The panel used to be one tall stack: banner, then explainer, then the work,
+   which is exactly how a dialog ends up taller than an 800px laptop. On any
+   viewport wide enough, the pitch (art + the three steps) moves into a rail
+   on the left and the actual working surface takes the right — the same
+   content, roughly half the height, and it reads as a product surface rather
+   than a page in a box.
+
+   Scoped with :has() because two of the states (register / sign in) render no
+   hero at all and must stay single-column; a browser without :has() simply
+   keeps the stacked layout, which still fits inside the ladder below. */
+@supports selector(:has(*)) {
+  @media (min-width: 768px) {
+    .fg-body:has(.fg-hero) {
+      display: grid;
+      grid-template-columns: minmax(230px, 0.78fr) minmax(0, 1.22fr);
+      grid-template-rows: auto 1fr;
+      align-items: stretch;
+    }
+    .fg-body:has(.fg-hero) > .fg-hero { grid-area: 1 / 1 / 2 / 2; }
+    .fg-body:has(.fg-hero) > .fg-steps { grid-area: 2 / 1 / 3 / 2; }
+    .fg-body:has(.fg-hero) > .fg-tool { grid-area: 1 / 2 / 3 / 3; }
+
+    /* the rail reads as one tinted panel with the artwork at its head */
+    .fg-body:has(.fg-hero) > .fg-hero,
+    .fg-body:has(.fg-hero) > .fg-steps {
+      background: linear-gradient(180deg, rgba(51, 36, 61, 0.05), rgba(51, 36, 61, 0.02));
+    }
+    .fg-body:has(.fg-hero) > .fg-tool {
+      margin-top: 0;
+      border-top: 0;
+      border-left: 1px solid rgba(51, 36, 61, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(20px, 2.4vw, 32px) clamp(20px, 2.4vw, 34px);
+    }
+    /* stacked and left-read in the rail — a numbered list, not a chip row */
+    .fg-body:has(.fg-hero) > .fg-steps {
+      flex-direction: column;
+      align-items: flex-start;
+      /* centred in whatever the rail has left after the banner, so the taller
+         states (the CliQ instruction, the finished-files list) do not leave
+         the numbered list stranded at the top of a long empty column */
+      justify-content: center;
+      gap: 10px;
+      padding: clamp(14px, 1.8vw, 20px) clamp(16px, 1.8vw, 22px) clamp(18px, 2vw, 24px);
+    }
+    .fg-body:has(.fg-hero) > .fg-steps li { white-space: normal; }
+  }
 }
 
 /* ——— hero ———
@@ -310,9 +616,17 @@
   border: 0;
 }
 
+/* Stacked on a phone, but as one centred BLOCK of left-aligned rows rather
+   than three separately centred lines — three different indents down the
+   middle of a sheet is the tell of a layout that was never looked at. */
 @media (max-width: 620px) {
-  .fg-steps { flex-direction: column; align-items: center; gap: 4px; }
-  .fg-steps li { white-space: normal; text-align: center; }
+  .fg-steps {
+    display: grid;
+    justify-content: center;
+    justify-items: start;
+    gap: 6px;
+  }
+  .fg-steps li { white-space: normal; text-align: left; }
 }
 
 /* ——— the working half ——— */
@@ -324,6 +638,30 @@
 }
 
 .fg-note { color: var(--ink-dim); font-size: 0.92rem; }
+
+/* ——— loading ——— */
+.fg-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: clamp(18px, 3vh, 32px) 0;
+  text-align: center;
+}
+.fg-spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(51, 36, 61, 0.14);
+  border-top-color: var(--magenta);
+  animation: fg-spin 0.9s linear infinite;
+}
+@keyframes fg-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  /* a ring that does not turn still reads as "busy" and does not vestibularly
+     assault anyone — the status text beside it carries the meaning */
+  .fg-spinner { animation: none; border-top-color: var(--magenta); opacity: 0.7; }
+}
 .fg-fine { color: var(--ink-faint); font-size: 0.8rem; line-height: 1.55; margin-top: 12px; }
 .fg-error {
   color: #a3143f;
@@ -377,6 +715,17 @@
   padding: 20px 44px;
   font-size: 1.08rem;
   box-shadow: 0 18px 40px -16px color-mix(in srgb, var(--magenta) 65%, transparent);
+}
+/* The site's knit pills set their embroidered label in the page ink, which
+   reads cleanly on the pale yarns and on gold. On the magenta spool it does
+   not — dark plum on lit magenta fibre is roughly 2:1, and this is the one
+   button in the popup that has to be unmistakable. Reversed to white with a
+   sunk shadow only HERE; every other yarn pill on the site is unchanged. */
+.fg-pitch .wool-btn--css .wool-btn-text {
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(45, 5, 28, 0.55),
+    0 2px 8px rgba(45, 5, 28, 0.75);
 }
 .fg-pitch-signin {
   margin-top: 14px;
@@ -534,14 +883,19 @@
 /* ——— running / done ——— */
 
 .fg-job { text-align: center; }
+/* Height-capped, not width-capped. A finished model's thumbnail and a photo
+   straight off a phone are both very often square or portrait, and at
+   `width: 320px; height: auto` a square one was 320px of the panel on its own
+   — the single biggest reason the result state used to need a scrollbar. */
 .fg-job-art {
   width: min(320px, 100%);
-  margin: 0 auto 18px;
+  height: clamp(112px, 20vh, 190px);
+  margin: 0 auto 14px;
   border-radius: 16px;
   overflow: hidden;
   background: rgba(51, 36, 61, 0.06);
 }
-.fg-job-art img { display: block; width: 100%; height: auto; }
+.fg-job-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .fg-job-art img.is-working { filter: saturate(0.35) brightness(1.03); }
 
 .fg-job-status { color: var(--ink); font-size: 1rem; }
@@ -690,6 +1044,98 @@
   .fg-auth-actions { flex-direction: column; align-items: stretch; }
   .fg-auth-actions .wool-btn { width: 100%; }
   .fg-pick { width: 100%; }
+}
+
+/* ——————————————————————————————————————————————————————————
+   THE HEIGHT LADDER — why this popup does not scroll
+   The instruction is that the popup never scrolls, at any size, in any state.
+   A dialog cannot honour that by clipping; it has to actually be shorter than
+   the screen. Two mechanisms do the work:
+
+     · WIDTH FIRST. Above 768px the pitch moves into a left rail (see
+       `.fg-body:has(.fg-hero)` above), which takes roughly 200px of height out
+       of every state that has a hero. That alone clears 1440x900 and 1280x800.
+
+     · THEN HEIGHT. Below, three steps of `max-height` trim the panel as the
+       viewport gets shorter: first the air, then the artwork, then the parts
+       of the explainer that are repeating what the panel already says. The
+       measurements that set these thresholds are the five sizes in the brief —
+       1440x900, 1280x800, 430x932, 390x844 and 360x780.
+
+   Nothing is deleted from the DOM by any of this: `.fg-steps` and `.fg-fine`
+   go visually-hidden, not display:none, so a screen reader and find-in-page
+   still get every word at every size.
+   —————————————————————————————————————————————————————————— */
+
+/* The knitted CTA's fibre halo sits at `inset: -14%`, i.e. deliberately
+   outside the button's own box. That is right on a page with room around it
+   and wrong inside a dialog: on a phone `.fg-auth-actions .wool-btn` is
+   width:100%, so 14% of the panel's width bled past `.fg-body`'s edge on
+   every size below 460px. Contained here rather than in wool.css — the glow
+   is correct everywhere else. */
+.fg-panel .wool-btn-halo { inset: 0; }
+
+/* step 1 — take the air out */
+@media (max-height: 860px) {
+  .fg-hero-img { height: clamp(72px, 9vh, 110px); }
+  .fg-tool { padding: clamp(14px, 2vh, 20px) clamp(16px, 2.2vw, 22px); }
+  .fg-steps { padding-block: clamp(8px, 1.2vh, 14px) 2px; }
+  .fg-pitch-price { margin-bottom: 14px; }
+  .fg-auth-actions { margin-top: 16px; }
+  .fg-tabs { margin: 14px 0; }
+}
+
+/* step 1b — the register / sign-in form is the tallest state that has no
+   artwork to trade away, and on a 360x780 phone it was the one state still
+   overrunning the sheet (by 22px, measured). Its own rhythm tightens first. */
+@media (max-height: 830px) {
+  .fg-auth-lede { font-size: 0.9rem; }
+  .fg-tabs { margin: 12px 0; }
+  .fg-field { margin-bottom: 10px; }
+  .fg-field input { padding: 11px 14px; }
+  .fg-auth-title { margin-bottom: 10px; }
+  .fg-auth-actions { margin-top: 14px; }
+  .fg-fine { margin-top: 10px; font-size: 0.76rem; }
+  .fg-compact-head { padding-top: clamp(14px, 2vh, 20px); }
+  /* the CliQ instruction is the other long state — three rows of transfer
+     detail on a phone are unavoidable, so the rhythm around them gives */
+  .fg-order-total { margin-bottom: 10px; }
+  .fg-payline { padding: 9px 12px; }
+  .fg-order .fg-pick { margin-top: 12px; }
+  .fg-account { margin-top: 14px; }
+}
+
+/* step 2 — the artwork stops being a banner and becomes a rule of colour */
+@media (max-height: 720px) {
+  .fg-hero-img { height: 64px; }
+  .fg-title { font-size: clamp(1rem, 2.2vw, 1.24rem); }
+  .fg-field { margin-bottom: 10px; }
+  .fg-field input { padding: 11px 14px; }
+  .fg-auth-title { margin-bottom: 12px; }
+  .fg-job-art { height: clamp(96px, 16vh, 140px); }
+  .fg-qty button { padding: 9px 6px; }
+  .fg-payline { padding: 9px 12px; }
+}
+
+/* step 3 — the last resort, and the only place anything stops being drawn:
+   the three step chips and the small print are both restating what the panel
+   has already said in larger type, so they are the two things that can go
+   without the visitor losing a fact. They remain in the accessibility tree. */
+@media (max-height: 640px) {
+  .fg-steps,
+  .fg-fine {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .fg-hero-img { height: 52px; }
+  .fg-account { margin-top: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

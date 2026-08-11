@@ -655,46 +655,116 @@
 .sol-answer--empty { grid-template-columns: 1fr; }
 .sol-answer--empty .sol-answer-hook { max-width: 56ch; }
 
-/* ——————————————————————————————————————————————
-   The index — every one of the thirty, as one continuous run of plain
-   grouped type poured into balanced newspaper columns. This is the whole
-   "breadth is the claim" promise, kept without a single row of chrome: no
-   borders, no per-NICHE icon, no fixed-height scroll pane. It's deliberately
-   ONE paragraph rather than seven boxed groups — plain text wraps line by
-   line, so the browser's column-balance has fine-grained material to work
-   with and no single category can strand a column half-empty next to a full
-   one. Each of the seven group LABELS does carry the same small GroupIcon
-   the answer card's badge uses — one icon per category, not one per row, so
-   the index still reads as a dense list of names rather than a grid of art. */
+/* ═══════════ THE INDEX — SEVEN BLOCKS, NEVER A CLIPPED COLUMN ═══════════
+   HISTORY, because the shape it used to have is the whole reason this one
+   exists. The index was ONE paragraph of inline type (`.sol-idx-flow`) poured
+   into CSS `columns`, and while pinned it also carried `max-height:
+   clamp(76px,13vh,116px); overflow: hidden`. Three failures follow directly
+   from that pair, and the client photographed all three:
+
+     • `columns` + a height cap = orphaned rows. ~300px of type in a ~110px
+       box means whatever lands past the cap is simply not painted, mid-name
+       ("E-commerce Brands" cut through).
+     • Inline flow means the " — " that separated two categories could be the
+       LAST thing in a column, with the category it introduces starting in the
+       next one — "Catering & Events —", "Hotels & Stays —" dangling.
+     • Inline flow also means a category LABEL sets on the same line as the
+       previous category's last industry — "— × BEAUTY" — so the label reads
+       as part of the run before it instead of as the head of the run after.
+
+   None of that is tunable; it is what a clipped inline multi-column box does.
+   So: the index is no longer inline, no longer columned, and no longer inside
+   the pinned viewport at all (see the note in Solutions.svelte). It is a grid
+   of seven GROUP BLOCKS, each a heading with its own list under it. A label
+   physically cannot collide with a name (different block, different line), a
+   separator cannot dangle (there are none — the grid gap is the separator),
+   and nothing can be clipped because nothing has a height. Column count steps
+   2 → 3 → 4 → 7 and every track sizes to its content. */
 .sol-index {
-  padding-top: clamp(14px, 1.6vw, 18px);
-  border-top: 1px solid var(--line);
-  margin: 0 var(--pad);
+  /* the section's own gutter, never a raw vw: at 390 `94vw` left 12px of
+     margin beside a column of type, which is not a margin */
+  max-width: min(1560px, calc(100vw - 2 * var(--pad)));
+  margin: clamp(30px, 4vw, 56px) auto 0;
 }
-.sol-idx-flow {
-  columns: 3 220px;
-  column-gap: clamp(28px, 4vw, 56px);
-  font-family: var(--display); font-size: 0.86rem; line-height: 1.5;
-  color: var(--ink-dim);
+.sol-idx-head {
+  display: flex; align-items: center; gap: clamp(12px, 1.6vw, 20px);
+  margin-bottom: clamp(16px, 2vw, 26px);
+}
+.sol-idx-kicker {
+  flex: none;
+  font-family: var(--bloom);
+  font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+/* one thread across the head — the same four-yarn ramp the tour rail uses, so
+   the index reads as the tour's own contents page rather than a new object */
+.sol-idx-rule {
+  flex: 1 1 auto; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg,
+    var(--yarn-gold), var(--yarn-pink) 34%, var(--yarn-violet) 66%, var(--yarn-blue));
+  opacity: 0.55;
+}
+
+.sol-idx-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(20px, 2.6vw, 34px) clamp(16px, 2vw, 28px);
+  align-items: start;
+}
+@media (min-width: 560px) { .sol-idx-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .sol-idx-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+/* seven-across only where seven tracks are still ~170px — below that the
+   longest names ("Car Dealers & Rental") would wrap three times and the row
+   would read as a wall */
+@media (min-width: 1280px) { .sol-idx-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+
+.sol-idx-group {
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
 }
 .sol-idx-label {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--grp-yarn, var(--ink-faint));
+  display: flex; align-items: center; gap: 6px;
+  min-width: 0;
+  margin-bottom: 8px;
+  font-family: var(--bloom);
+  font-size: 0.63rem; font-weight: 700; line-height: 1.3;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  /* the group's own yarn, mixed toward ink so gold and cream stay legible on
+     the pale ground — the same `--yarn-ink` recipe styles.css already uses */
+  /* 36%, not 50: measured on the pale ground, cream at a half-mix lands at
+     3.5:1 — under the 4.5:1 this size of type needs. At 36% every one of the
+     seven clears 5:1 and the icon beside it still carries the pure yarn. */
+  color: color-mix(in srgb, var(--grp-yarn, var(--magenta)) 36%, var(--ink));
 }
-.sol-idx-gicon { width: 13px; height: 13px; flex: none; }
-.sol-idx-sep { color: var(--ink-faint); margin: 0 3px 0 1px; }
-.sol-idx-gap { color: var(--ink-faint); opacity: 0.5; }
+.sol-idx-labeltext { min-width: 0; overflow-wrap: anywhere; }
+.sol-idx-gicon {
+  width: 14px; height: 14px; flex: none;
+  color: var(--grp-yarn, var(--magenta));
+}
+.sol-idx-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; align-items: start; gap: 1px;
+  font-family: var(--display);
+  font-size: clamp(0.8rem, 0.9vw, 0.88rem);
+  line-height: 1.35;
+  color: var(--ink-dim);
+}
+.sol-idx-list > li { min-width: 0; max-width: 100%; }
 
 .sol-idx-btn {
-  background: none; border: none; padding: 1px 2px;
+  display: block; max-width: 100%;
+  background: none; border: none; padding: 3px 0;
   font: inherit; color: inherit; cursor: pointer;
+  text-align: left;
   border-radius: 3px;
   position: relative;
+  overflow-wrap: anywhere;
   transition: color 0.2s var(--ease);
 }
 .sol-idx-btn::after {
-  content: ''; position: absolute; left: 2px; right: 2px; bottom: -1px; height: 1.5px;
+  content: ''; position: absolute; left: 0; right: 0; bottom: 1px; height: 1.5px;
   background: var(--grp-yarn, var(--magenta));
   transform: scaleX(0); transform-origin: left;
   transition: transform 0.3s var(--ease);
@@ -718,7 +788,6 @@
 @media (max-width: 880px) {
   .sol-answer { grid-template-columns: 1fr; gap: 18px; }
   .sol-cta { margin-top: 6px; }
-  .sol-idx-flow { columns: 2 200px; }
 }
 
 @media (max-width: 700px) {
@@ -728,7 +797,6 @@
 }
 
 @media (max-width: 640px) {
-  .sol-idx-flow { columns: 1; }
   .sol-answer-name { font-size: 1.5rem; }
   .sol-answer-head { gap: 10px; }
   .sol-answer-badge { width: 38px; height: 38px; border-radius: 11px; }
@@ -788,7 +856,6 @@
      list is the single biggest block left inside the card */
   .sol-console { margin-bottom: 8px; }
   .sol-search-row { margin-bottom: 8px; }
-  .sol-index { font-size: 0.78rem; line-height: 1.5; }
   /* The rem floors come down one last step here and ONLY here. Everywhere
      above they exist to stop the card's copy going unreadable; on a 525px
      viewport the alternative is not bigger type, it is type that gets cut in
@@ -801,17 +868,16 @@
 
 /* ——— THE EXTREME CASE: under ~580px of viewport ———
    A window this short (a laptop with a tab strip, a bookmarks bar and a
-   downloads shelf) cannot hold the head, the console AND the thirty-industry
-   index. The index is what goes, and it goes rather than the card because the
-   card is the section's demonstration while the index is its appendix — every
-   name in it is reachable by typing two letters into the search field
-   immediately above.
+   downloads shelf) cannot hold the head, the console AND its chrome.
 
-   Dropping it frees ~110px, which is then spent WIDENING the console: a wider
-   card is a taller card at a fixed 21:9, and the copy inside had run out of
-   room to shrink. That is the trade — fewer elements, each whole. */
+   This block used to read `.sol-index { display: none }`, on the reasoning
+   that the thirty-industry index was the appendix and the console was the
+   argument. That trade is gone along with the problem that forced it: the
+   index is no longer a passenger inside the pinned 100svh viewport, it is a
+   sibling BELOW the pin track with no height cap at all, so hiding it here
+   would buy the console exactly nothing and would cost the section the one
+   place all thirty names are readable. Only the act-two chrome compresses. */
 @media (max-height: 580px) and (min-width: 940px) {
-  .sol-index { display: none; }
   .sol-act2 { padding-top: 10px; padding-bottom: 2px; }
   .sol-act2-rule { display: none; }
 }
@@ -843,6 +909,18 @@
   background: var(--bg-3);
   container-type: inline-size;
 }
+/* ——— THE STAGE IS A STACK, AND OPACITY IS THE ONLY THING THAT MOVES ———
+   11 Aug 2026. Every industry has its own <img> here, all in the same box,
+   all transparent except the current one. The scrub cross-fades between them
+   and NEVER touches a `src` on a visible element — see the long note in
+   Solutions.svelte's stage markup for why (a src/srcset patch on an on-screen
+   <img> forces a decode, and that decode gap is what the client saw as the
+   section flickering on every scroll).
+
+   `opacity` is deliberately the only animated property: it is composited, so
+   it cannot force layout, paint or a decode. Do not add a transform, filter
+   or scale here — a settle-scale would put two slightly offset copies of the
+   same photograph on screen mid-fade, which ghosts. */
 .sol-stage-bg {
   position: absolute;
   inset: 0;
@@ -851,6 +929,15 @@
   /* the renders leave their LEFT third calm on purpose — that is where the
      two white cards land */
   object-position: 62% center;
+  opacity: 0;
+  transition: opacity 0.42s var(--ease);
+  /* own layer, so the fade is a compositor job and the browser never has to
+     re-rasterise the photograph underneath it */
+  will-change: opacity;
+}
+.sol-stage-bg.is-on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .sol-stage-bg { transition: none; }
 }
 /* a soft wash from the left so a white card never sits on a busy stitch —
    much lighter than the old scrim because the cards are opaque now */
@@ -960,7 +1047,12 @@
   /* stacked: the stage becomes a plain band and the two cards sit under it in
      normal flow, which is what the phone mock shows */
   .sol-stage { aspect-ratio: auto; container-type: normal; background: none; overflow: visible; }
-  .sol-stage-bg { position: static; aspect-ratio: 21 / 9; border-radius: 14px; }
+  /* the stage is a STACK now (see .sol-stage-bg above), so the aspect ratio
+     has to live on the container — `position: static` here would drop every
+     image into normal flow and print all seven mounted photographs down the
+     page one after another. */
+  .sol-stage { position: relative; aspect-ratio: 21 / 9; border-radius: 14px; overflow: hidden; }
+  .sol-stage-bg { position: absolute; inset: 0; border-radius: 14px; }
   .sol-stage-scrim { display: none; }
   .sol-ov { position: static; width: 100%; padding: 12px 0 0; gap: 10px; }
   .sol-searchbox { background: rgba(255, 255, 255, 0.96); }
@@ -1106,10 +1198,29 @@
   overflow: visible;
 }
 /* type is real rem again — the card is no longer a slice of a container query */
+/* ——— WHERE THE INDUSTRY'S OWN COLOUR LIVES NOW ———
+   The CTA used to carry it (`yarn={yarn}`), which meant the site's primary
+   button rendered a different colour on each of the thirty industries. The
+   button is one fixed magenta again — see the note at the WoolButton call in
+   Solutions.svelte — and the per-category signal moves HERE: a short rule in
+   the group's yarn, and the kicker set in that same yarn mixed toward ink so
+   gold (1.85:1 raw on this ground) and cream stay readable. `--panel-yarn` is
+   still written by the card, so nothing about the data flow changed; only
+   what it is allowed to paint. */
 .sol-console .sol-answer-kicker {
+  display: flex; align-items: center; gap: 8px;
   font-size: 0.64rem;
   letter-spacing: 0.2em;
-  color: #b0508c;
+  /* 36%, same measurement as `.sol-idx-label` below — a half-mix of cream or
+     grey on a white card is ~3.5:1, and this is 0.64rem tracked-out caps. The
+     saturated colour is carried by the rule, which is decoration and free to
+     be as bright as the yarn actually is. */
+  color: color-mix(in srgb, var(--panel-yarn, var(--magenta)) 36%, var(--ink));
+}
+.sol-console .sol-answer-kicker::before {
+  content: ''; flex: none;
+  width: 20px; height: 3px; border-radius: 2px;
+  background: var(--panel-yarn, var(--magenta));
 }
 .sol-console .sol-answer-name {
   font-size: clamp(1.5rem, 2.3vw, 2.1rem);
@@ -1132,38 +1243,71 @@
   line-height: 1.4;
   color: #6b5273;
 }
-.sol-console .sol-agent { display: none; }
+/* ——— THE CARD CARRIES ITS FULL RECORD AGAIN ————————————————————————————
+   Client: "this section now looks poor, the content where the button is needs
+   more". Worth being exact about what was and was not true: nothing had been
+   deleted from this card's markup — kicker, name, hook, three deliverables and
+   the CTA are the same nodes they have always been. What WAS true is that two
+   real per-industry fields in `NICHES` were never reaching the screen here:
+   `agent` was rendered and then switched off by the rule that used to sit on
+   this line, and `moon` was not rendered at all anywhere on the site. Both are
+   finished copy written for these thirty trades. So the card shows them.
+   Left column: kicker → name → hook → arc → ask, which is a paragraph rather
+   than a label and a button. Right column: the three deliverables, then the
+   agent, which is the one line that says what the machine actually DOES.
+   Height is safe because `measureCardHeight()` now swaps both strings through
+   the ghost, so `--sol-card-h` still reserves the tallest of the thirty. */
+/* Both restored blocks are DESKTOP-only, and that is not a hedge. Below 940
+   the card stops straddling the picture and becomes a full-width sheet over
+   it; the rules further down already cut the deliverables to two rows there
+   and to one on a phone, because on that layout every line the card takes is
+   a line taken off the photograph the section is built around. Adding five
+   more would undo the thing those rules exist to protect. The card is thin on
+   a phone on purpose; it was thin on a 1440 desktop by accident. */
+.sol-answer-moon { display: none; }
+@media (min-width: 940px) {
+  .sol-console .sol-answer-moon { display: block; }
+}
+.sol-console .sol-answer-moon {
+  margin-top: 10px;
+  padding-left: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--panel-yarn, var(--magenta)) 55%, transparent);
+  font-size: clamp(0.8rem, 0.92vw, 0.9rem);
+  line-height: 1.45;
+  color: var(--ink-faint);
+}
+@media (min-width: 940px) {
+  .sol-console .sol-answer.has-photo .sol-agent {
+    display: block;
+    margin-top: clamp(10px, 1.1vw, 14px);
+  }
+}
+/* the deeper teal, not raw --cyan: the same substitution and the same two
+   values `.sol-console-panel` already makes a few hundred lines up, for the
+   same reason — #59e6ff is tuned for the dark page and sits under 2:1 on a
+   white card. Teal rather than the group's yarn on purpose: the line above it
+   is already ruled in the yarn, and two identical rules would read as one
+   block split by accident instead of two different kinds of claim. */
+.sol-console .sol-answer.has-photo .sol-agent { border-left-color: #0d7f97; }
+.sol-console .sol-agent-kicker {
+  display: inline-block; margin-right: 7px;
+  font-family: var(--bloom);
+  font-size: 0.56rem; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: #0a6c81;
+}
+.sol-console .sol-agent-copy {
+  font-size: clamp(0.76rem, 0.85vw, 0.83rem);
+  line-height: 1.42;
+  color: var(--ink-faint);
+}
 .sol-console .sol-cta { margin-top: clamp(14px, 1.5vw, 20px); }
 .sol-console .sol-answer-badge { width: 34px; height: 34px; border-radius: 11px; }
 
-/* ——— the index below ——— */
-.sol-index {
-  max-width: min(1560px, 94vw);
-  margin: 0 auto;
-  padding: clamp(18px, 2.4vw, 30px) 0 0;
-  border-top: 1px solid rgba(96, 40, 76, 0.14);
-}
-.sol-idx-flow {
-  columns: 4;
-  column-gap: clamp(22px, 3vw, 48px);
-  font-size: clamp(0.84rem, 0.95vw, 0.94rem);
-  line-height: 1.85;
-  color: #5c4566;
-}
-.sol-idx-label {
-  display: inline-block;
-  margin-right: 6px;
-  font-family: var(--body);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #a5638f;
-}
-
-@media (max-width: 1000px) {
-  .sol-idx-flow { columns: 2; }
-}
+/* The old "index below" restatement lived here — a second `columns` /
+   inline-label declaration on the pink ground. Both it and its 1000px and
+   600px column-count overrides are gone; the block system defined once above
+   is the only index this file draws now. */
 @media (max-width: 939px) {
   /* stacked: the card stops straddling and simply follows the picture */
   .sol-console .sol-stage {
@@ -1180,9 +1324,6 @@
   .sol-bar-label { border-right: 0; padding-right: 0; }
   .sol-bar-count { display: none; }
   .sol-bar-field { flex-basis: 100%; }
-}
-@media (max-width: 600px) {
-  .sol-idx-flow { columns: 1; }
 }
 
 /* ——— the card straddles, it does not colonise ———
@@ -1213,11 +1354,14 @@
 .sol-console .sol-answer-right { margin-top: clamp(10px, 1vw, 14px); }
 .sol-console .sol-deliverables { gap: 4px; }
 .sol-console .sol-deliverables li { font-size: clamp(0.76rem, 0.85vw, 0.83rem); line-height: 1.32; }
-/* the two least load-bearing rows go: the badge is decoration and the fourth
-   deliverable is the one the need panel repeats anyway */
-.sol-console .sol-answer-badge { display: none; }
-.sol-console .sol-answer-head { gap: 0; }
-.sol-console .sol-deliverables li:nth-child(n + 4) { display: none; }
+/* The badge comes back. It was switched off here as "decoration", but it is
+   the group's own icon — the only per-category mark the card carries besides
+   a 0.64rem kicker — and switching it off is a large part of why the card
+   read as a bare label with a button under it. It costs 34px of a 500px card.
+   (The `nth-child(n+4)` hide that used to sit here went with it: every niche
+   record carries exactly three deliverables, so it never suppressed anything
+   — it was a rule guarding against data that does not exist.) */
+.sol-console .sol-answer-head { gap: 10px; }
 .sol-console .sol-cta { margin-top: clamp(10px, 1.1vw, 15px); }
 .sol-console .sol-answer-thread { display: none; }
 
@@ -1260,6 +1404,30 @@
   gap: clamp(8px, 1.2vh, 16px);
   overflow: hidden;
   padding-block: clamp(10px, 2vh, 22px);
+  /* ——— SCROLL DRIFT (client: "the whole section jogs while scrolling") ———
+     Diagnosed by instrumenting a live scroll pass (Playwright, sampling
+     getBoundingClientRect() every animation frame across a 250-frame scrub at
+     1440x900, 1440x700 and 390x844): with the current markup nothing here
+     writes a scroll-linked transform and nothing in this stack's height
+     depends on which industry is showing — the historically-documented
+     "jiggle" (a bottom-anchored card whose top edge stepped as the tour
+     scrubbed past industries with different copy length) is already closed
+     by `--sol-card-h` and the per-row `min-height` reservations below, and
+     the instrumented pass confirmed zero px of measured drift on `.sol-pin-
+     inner`, `.sol-bar`, `.sol-index`, `.sol-stage` and the card itself while
+     stuck.
+     What headless measurement cannot see is the remaining, real cause on an
+     actual GPU compositor: a `position: sticky` element recalculates its
+     offset against the scroller every frame, and a descendant of it that
+     also asks the compositor for its own layer — see `.sol-panelcard`'s
+     `backdrop-filter: blur` a few rules down — is a known trigger for
+     sub-device-pixel resampling jitter in Chrome and Safari on scroll (the
+     sticky box and the blurred layer round to the nearest pixel
+     independently, frame to frame). The fix is to give the sticky box its
+     OWN stable compositor layer up front, so it is promoted once instead of
+     re-rasterised against its ancestor on every scroll tick. */
+  transform: translateZ(0);
+  will-change: transform;
 }
 /* everything inside stops paying its own vertical rhythm — the screen is the
    budget now and each row takes what it needs from it */
@@ -1293,6 +1461,11 @@
 .sol-pin.is-pinned .sol-panelcard {
   background-color: rgba(255, 255, 255, 0.93);
   backdrop-filter: blur(6px);
+  /* its own compositor layer, same reasoning as `.sol-pin-inner` above — a
+     blurred layer sitting inside a sticky ancestor is the pairing that
+     actually produces the 1-device-pixel "swim" on scroll; promoting both
+     ends independently is what stops them rounding against each other. */
+  transform: translateZ(0);
 }
 /* THE CARD IS BOTTOM-ANCHORED, SO ITS HEIGHT IS ITS TOP EDGE.
    Every industry the tour walks past re-flows this card, and the only thing
@@ -1318,21 +1491,13 @@
    two lines and a one-line label sits centred in it. */
 .sol-pin.is-pinned .sol-cta { min-height: 87px; display: flex; align-items: center; }
 
-/* the index, compressed to a single reading band at the foot of the screen */
-.sol-pin.is-pinned .sol-index {
-  flex: 0 0 auto;
-  margin-top: clamp(8px, 1.2vh, 14px);
-  padding-top: clamp(8px, 1.2vh, 14px);
-}
-.sol-pin.is-pinned .sol-idx-flow {
-  columns: 5;
-  font-size: clamp(0.7rem, 0.78vw, 0.8rem);
-  line-height: 1.55;
-  max-height: clamp(76px, 13vh, 116px);
-  overflow: hidden;
-}
-/* the industry the tour is on, lit in the index so the two stay tied together */
-.sol-idx-item.is-now { color: var(--ink); font-weight: 700; }
+/* THE INDEX IS NO LONGER A PASSENGER IN THE PINNED VIEWPORT.
+   It used to be squeezed in here as `columns: 5` inside a
+   `max-height: clamp(76px,13vh,116px); overflow: hidden` band — ~300px of
+   names in a ~110px box, which is precisely the clipping the client
+   photographed. It is now a sibling of the pin track (see Solutions.svelte),
+   so the pinned screen carries head + bar + stage + rail only, and the stage
+   simply takes the height the band used to hold. */
 
 /* ——— the tour progress ——— */
 .sol-tour {
@@ -1395,7 +1560,6 @@
      (smaller) two lines further down. */
   .sol-pin.is-pinned .sol-cta { min-height: 0; }
   .sol-pin.is-pinned .sol-deliverables li:nth-child(n + 3) { display: none; }
-  .sol-pin.is-pinned .sol-idx-flow { columns: 2; max-height: clamp(52px, 9vh, 74px); }
   .sol-pin.is-pinned .sol-act2-lede { display: none; }
 }
 
@@ -1435,11 +1599,13 @@
   .sol-pin.is-pinned .sol-stage-bg { object-position: center 32%; }
 
   /* THE EXTRAS, REMOVED — not miniaturised.
-     The index is the whole thirty-industry list; it is the desktop's proof of
-     breadth and unreadable at this width. The count and the label are
-     scaffolding around a search field that explains itself. */
-  .sol-pin.is-pinned .sol-index,
-  .sol-pin.is-pinned .sol-idx-flow,
+     The count and the label are scaffolding around a search field that
+     explains itself, and the progress rail duplicates a scrub the thumb is
+     already performing. The INDEX is no longer in this list: it used to be
+     hidden here because seven columns of type sliced into a 74px band at
+     390px was a broken control, not a small one — but it is out of the pin
+     now and sets as two honest columns of blocks below it, so a phone gets
+     all thirty names for the first time. */
   .sol-pin.is-pinned .sol-tour { display: none; }
   .sol-bar-label, .sol-bar-count { display: none; }
 
@@ -1573,7 +1739,6 @@
    the width explicitly restores the intent: fill the row, cap at the measure,
    centre the remainder. */
 .sol-pin.is-pinned .sol-console,
-.sol-pin.is-pinned .sol-index,
 .sol-pin.is-pinned .sol-tour {
   width: 100%;
   align-self: center;
@@ -1633,94 +1798,362 @@
   max-width: none;
 }
 
-/* ——— THE FOUR EVERYONE GETS ———————————————————————————————————————————
-   The universal half of the offer, rendered ONCE beneath the console. It is
-   deliberately quieter than the answer card: numbered, ruled, no wool, no
-   photograph. The industry card above is the argument; this is the invoice.
-   Numbering is honest here — CORE_SERVICES is a fixed set of four sold as a
-   bundle, not a reorderable list, which is the one case where 01–04 carries
-   information rather than decorating. */
+/* ——— THE FOUR EVERYONE GETS — ONE ROW, FOUR COLUMNS ————————————————————
+   WHAT WAS HERE, TWICE: first four equal rounded-bordered tiles (template),
+   then the correction to a tall vertical ledger — four full-width rows,
+   ~170px each, stacked. The ledger fixed the tile problem and created a
+   worse one: the headline over this block is "every client gets these
+   FOUR", and a set you have to SCROLL is not perceived as a set. By row
+   three the reader has lost row one, and the one job of this object — four
+   things, all included, comparable in a glance — was gone.
+
+   WHAT IT IS NOW: one horizontal line of four. Not four boxes, though; the
+   craft is in refusing the box:
+     · ONE WARP RULE runs across the top of all four, each card drawing its
+       own butted segment of it, so hovering lights one column's thread
+       without breaking the line.
+     · THE NUMERAL is oversized and OUTLINED (`-webkit-text-stroke`) so it
+       can index the column without out-shouting the deliverable, and spends
+       its fill as the hover state; a tick of the card's own yarn sits beside
+       it and grows to meet it.
+     · SUBGRID gives the set its real spine: the parent owns four row tracks
+       and each card spans them, so titles share a line, promises share a
+       line, and all four proof lists start on ONE baseline — equal heights
+       with no min-height to maintain and nothing to drift.
+     · THE PROOFS are stitched lines using the same `.sol-stitch` mark the
+       answer card's deliverables use, above a hairline that repeats across
+       all four columns as a second horizontal read.
+   Copy is untouched — every title, blurb and point is CORE_SERVICES verbatim.
+
+   No new colours: --magenta, --ink, --ink-dim, --ink-faint, --line and the
+   four --yarn-* tokens, all already in styles.css. */
 .sol-core {
-  margin: clamp(26px, 3.4vw, 44px) var(--pad) 0;
-  padding-top: clamp(16px, 2vw, 24px);
+  margin: clamp(34px, 4.4vw, 60px) var(--pad) 0;
+  padding-top: clamp(20px, 2.4vw, 30px);
   border-top: 1px solid var(--line);
 }
 .sol-core-head {
-  display: flex; align-items: baseline; gap: 14px;
-  flex-wrap: wrap; margin-bottom: clamp(14px, 1.8vw, 20px);
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  align-items: end;
+  gap: 4px clamp(16px, 2.4vw, 32px);
+  margin-bottom: clamp(18px, 2.4vw, 30px);
+}
+.sol-core-kicker {
+  grid-column: 1 / -1;
+  font-family: var(--bloom);
+  font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--magenta);
 }
 .sol-core-title {
   font-family: var(--bloom); text-transform: uppercase;
-  font-size: clamp(1.05rem, 1.9vw, 1.5rem); letter-spacing: 0.01em; color: var(--ink);
+  font-size: clamp(1.35rem, 3.1vw, 2.5rem);
+  line-height: 1.02; letter-spacing: 0.005em; color: var(--ink);
+  text-wrap: balance;
 }
-.sol-core-sub { font-size: 0.86rem; color: var(--ink-faint); }
+.sol-core-sub {
+  font-size: clamp(0.86rem, 1vw, 0.98rem); line-height: 1.4;
+  color: var(--ink-faint); max-width: 34ch; padding-bottom: 0.2em;
+}
 
+/* THE BOLT — FOUR COLUMNS, ONE WARP ————————————————————————————————
+   The parent grid owns FOUR named row tracks (index / title / promise /
+   proofs) and each card is `grid-row: span 4` with `grid-template-rows:
+   subgrid`, so every card's title starts on the same line as every other
+   card's title and — the part that actually matters — all four proof lists
+   begin on ONE baseline no matter how many lines the promise above them
+   took. Equal heights are then free: the cards are stretched by the shared
+   tracks, not by a min-height anybody has to maintain.
+
+   `align-content: start` inside each card keeps the four parts pinned to the
+   TOP of their tracks rather than floating in the middle of the tallest
+   one, which is what makes the four columns scan as a table of the same
+   thing rather than four independently centred posters. */
 .sol-core-grid {
+  --core-gap: clamp(14px, 2vw, 34px);
   list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(10px, 1.2vw, 16px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: auto auto auto auto;
+  column-gap: var(--core-gap);
 }
+/* SUBGRID FALLBACK. Everything this section targets has had subgrid since
+   2023, but if it is missing the cards simply become ordinary flow columns
+   and the only thing lost is the shared proof baseline — the row still
+   reads, nothing overlaps, nothing overflows. */
+@supports not (grid-template-rows: subgrid) {
+  .sol-core-grid { align-items: stretch; grid-template-rows: auto; }
+  .sol-core-card { display: flex; flex-direction: column; }
+  .sol-core-card .sol-core-pts { margin-top: auto; }
+}
+
 .sol-core-card {
-  display: flex; flex-direction: column; gap: 7px;
-  padding: clamp(13px, 1.3vw, 17px);
-  border: 1px solid var(--line); border-radius: 14px;
-  background: rgba(255, 255, 255, 0.42);
+  position: relative;
+  /* the hover wash is `z-index: -1`; without its own stacking context that
+     paints behind the section ground and is simply invisible. */
+  isolation: isolate;
+  grid-row: span 4;
+  display: grid;
+  grid-template-rows: subgrid;
+  align-content: start;
+  min-width: 0;
+  /* NO horizontal padding, and that is alignment, not economy: with an inset
+     the first column's numeral would start 18px right of the headline above
+     it and the last column's proofs would stop 18px short of the section's
+     right edge, so the block that is supposed to read as one measure would
+     sit narrower than everything around it. The columns are separated by the
+     grid gap instead, and the divider is drawn INTO that gap below. */
+  padding: clamp(16px, 1.5vw, 22px) 0 clamp(14px, 1.4vw, 20px);
+  transition: transform 0.4s var(--ease);
+}
+/* the columns are ruled off each other, not boxed: one hairline in the gutter
+   between neighbours, no outline around the set. Four boxes would be a
+   template; four columns off one rule is a cloth. */
+.sol-core-card::before {
+  content: ''; position: absolute; top: 0; bottom: 0;
+  left: calc(var(--core-gap) / -2);
+  width: 1px; background: var(--line);
+}
+.sol-core-card:first-child::before { display: none; }
+/* THE WARP — the shared top rule.
+   Each card draws its own segment of it, so the four segments butt up into
+   one continuous line across the whole block (the gap is bridged by the
+   negative insets) while still being able to light INDIVIDUALLY on hover.
+   Base state is the section's hairline; the card's own yarn is a second
+   layer scaled to nothing, which draws left-to-right on hover. */
+.sol-core-warp {
+  position: absolute; top: 0;
+  left: calc(var(--core-gap) / -2); right: calc(var(--core-gap) / -2);
+  height: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.sol-core-card:first-child .sol-core-warp { left: 0; }
+.sol-core-card:last-child .sol-core-warp { right: 0; }
+.sol-core-warp::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, var(--card-yarn), var(--magenta));
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform 0.55s var(--ease);
+}
+.sol-core-card:hover .sol-core-warp::after,
+.sol-core-card:focus-within .sol-core-warp::after { transform: scaleX(1); }
+
+/* the wash, from the top down — it reads as the column being lifted off the
+   warp rather than a button being pressed */
+.sol-core-card::after {
+  content: ''; position: absolute;
+  /* bleeds a quarter of the gutter either side so the wash reads as the
+     COLUMN lighting rather than the paragraph getting a highlighter */
+  inset: 0 calc(var(--core-gap) / -4);
+  z-index: -1;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--card-yarn) 16%, transparent), transparent 62%);
+  opacity: 0; transition: opacity 0.4s var(--ease);
+}
+.sol-core-card:hover::after,
+.sol-core-card:focus-within::after { opacity: 1; }
+.sol-core-card:hover, .sol-core-card:focus-within { transform: translateY(-4px); }
+
+/* THE INDEX — a selvedge mark, not a label.
+   The numeral is set oversized and OUTLINED so it can be big enough to index
+   the column at a glance without out-shouting the deliverable it numbers;
+   the fill is held back and spent as the hover state. It hangs off the warp
+   rule (negative top margin) so the number and the rule are visibly the same
+   object across all four columns. */
+.sol-core-idx {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: clamp(8px, 1vw, 14px);
 }
 .sol-core-n {
-  font-family: var(--bloom); font-size: 0.72rem; letter-spacing: 0.14em;
-  color: var(--magenta);
+  font-family: var(--bloom);
+  font-size: clamp(1.6rem, 2.3vw, 2.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--magenta);
+  text-shadow: none;
+  transition: color 0.4s var(--ease);
 }
-.sol-core-h {
-  font-family: var(--display); font-weight: 600; line-height: 1.2;
-  font-size: clamp(0.95rem, 1.15vw, 1.08rem); color: var(--ink);
+.sol-core-card:hover .sol-core-n,
+.sol-core-card:focus-within .sol-core-n { color: var(--magenta); }
+/* the tick of yarn that ties the numeral back to its own warp segment —
+   it grows to meet the number on hover */
+.sol-core-idx::after {
+  content: ''; flex: none;
+  width: 14px; height: 2px; border-radius: 2px;
+  background: var(--card-yarn);
+  transform-origin: left center;
+  transition: transform 0.45s var(--ease);
 }
-.sol-core-b { font-size: 0.855rem; line-height: 1.45; color: var(--ink-dim); }
-.sol-core-pts {
-  margin: 3px 0 0; padding-left: 15px;
-  font-size: 0.8rem; line-height: 1.45; color: var(--ink-faint);
-}
-.sol-core-pts li { margin-bottom: 2px; }
+.sol-core-card:hover .sol-core-idx::after,
+.sol-core-card:focus-within .sol-core-idx::after { transform: scaleX(2.2); }
 
-/* The entry offer. One row, priced — the only fixed figure on the page, and
-   the reason it reads as a tripwire rather than a rate card. */
+.sol-core-h {
+  font-family: var(--display); font-weight: 650; line-height: 1.15;
+  font-size: clamp(1rem, 1.15vw, 1.16rem); color: var(--ink);
+  text-wrap: balance;
+  padding-bottom: 8px;
+}
+.sol-core-b {
+  font-size: clamp(0.82rem, 0.88vw, 0.89rem); line-height: 1.48;
+  color: var(--ink-dim);
+  padding-bottom: clamp(10px, 1.1vw, 15px);
+}
+/* the proofs are separated from the promise by a rule, not by air: it lands
+   on the shared subgrid baseline, so the four little rules line up across
+   the block and give the set its second horizontal read */
+.sol-core-pts {
+  list-style: none; margin: 0; padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: clamp(0.76rem, 0.82vw, 0.815rem); line-height: 1.4;
+  color: var(--ink-faint);
+}
+.sol-core-pts li {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin: 0; min-width: 0;
+}
+.sol-core-pts .sol-stitch { margin-top: 0.5em; flex: none; }
+
+/* ——— THE TRIPWIRE — A TICKET, NOT A FOOTNOTE ————————————————————————
+   Same words, same figure. It was a flex row with the price tucked in as one
+   more inline span, which is how you print a price you are apologetic about.
+   It is the only fixed number on the whole site and it is the cheapest door
+   into the studio, so it gets the shape of an actual offer: a two-part
+   ticket, body and stub, with the stub perforated off and carrying the
+   figure at display size. The perforation is a repeating-linear-gradient,
+   not an image. */
 .sol-entry {
-  margin-top: clamp(10px, 1.2vw, 16px);
-  display: flex; align-items: baseline; gap: clamp(10px, 1.4vw, 20px);
-  flex-wrap: wrap;
-  padding: clamp(13px, 1.4vw, 18px) clamp(15px, 1.8vw, 24px);
-  border: 1.5px solid var(--magenta); border-radius: 14px;
-  background: linear-gradient(105deg, rgba(242, 28, 140, 0.09), rgba(255, 255, 255, 0.4) 62%);
+  margin-top: clamp(18px, 2.2vw, 32px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  border: 1.5px solid var(--magenta);
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 160% at 100% 50%, rgba(242, 28, 140, 0.16), transparent 62%),
+    linear-gradient(105deg, rgba(242, 28, 140, 0.08), rgba(255, 255, 255, 0.5) 64%);
+  box-shadow: 0 18px 44px -26px rgba(242, 28, 140, 0.7);
+}
+.sol-entry-body {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 8px; min-width: 0;
+  padding: clamp(16px, 1.9vw, 26px) clamp(16px, 2vw, 30px);
 }
 .sol-entry-tag {
-  font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+  font-family: var(--bloom);
+  font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
   font-weight: 700; color: var(--magenta);
-  border: 1px solid currentColor; border-radius: 99px; padding: 3px 10px;
-  align-self: center;
+  border: 1px solid currentColor; border-radius: 99px; padding: 3px 11px;
 }
 .sol-entry-title {
   font-family: var(--bloom); text-transform: uppercase;
-  font-size: clamp(1.05rem, 2vw, 1.6rem); color: var(--ink); flex: 1 1 auto; min-width: 0;
-}
-.sol-entry-price {
-  margin-left: auto; flex: none;
-  font-family: var(--bloom); font-size: clamp(1.4rem, 2.8vw, 2.2rem);
-  line-height: 0.9; color: var(--magenta);
+  font-size: clamp(1.3rem, 3vw, 2.3rem); line-height: 1.02;
+  color: var(--ink); min-width: 0; text-wrap: balance;
 }
 .sol-entry-blurb {
-  flex: 0 0 100%; min-width: 100%; font-size: 0.855rem; line-height: 1.45;
-  color: var(--ink-dim); max-width: 78ch;
+  font-size: clamp(0.85rem, 0.95vw, 0.93rem); line-height: 1.5;
+  color: var(--ink-dim); max-width: 62ch;
+}
+.sol-entry-stub {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: none;
+  padding: clamp(16px, 1.9vw, 26px) clamp(18px, 2.4vw, 38px);
+  background: rgba(255, 255, 255, 0.5);
+}
+/* the perforation */
+.sol-entry-stub::before {
+  content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 2px;
+  background: repeating-linear-gradient(180deg,
+    var(--magenta) 0 5px, transparent 5px 11px);
+  opacity: 0.6;
+}
+.sol-entry-price {
+  font-family: var(--bloom);
+  font-size: clamp(2rem, 4.6vw, 3.6rem);
+  line-height: 0.88; letter-spacing: -0.015em;
+  color: var(--magenta);
+  white-space: nowrap;
 }
 
 /* Bolded head of each of the three offers — see AnswerCard's split. */
 .sol-deliv-t { font-weight: 700; color: var(--ink); }
 
-@media (max-width: 1080px) {
-  .sol-core-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* ——— THE BOLT REFOLDS ———
+   4 across down to 1100 (below that a column is under ~230px and "Posted at
+   the hours your buyers are awake" starts breaking into five lines), then
+   2 × 2, then one column on a phone. The subgrid row count changes with the
+   fold: at 2 × 2 the four tracks become eight, so each card still spans 4 —
+   `grid-auto-rows` is left alone and the explicit template is dropped, which
+   lets the implicit tracks pair up per visual row automatically. */
+@media (max-width: 1100px) {
+  .sol-core-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    row-gap: clamp(20px, 3vw, 30px);
+  }
+  /* row two hangs off its own warp rule the same way row one does, and the
+     column divider only ever sits between the two columns of a row */
+  .sol-core-card:nth-child(odd)::before { display: none; }
+  .sol-core-card:nth-child(even)::before { display: block; }
+  .sol-core-card:nth-child(odd) .sol-core-warp { left: 0; right: calc(var(--core-gap) / -2); }
+  .sol-core-card:nth-child(even) .sol-core-warp { left: calc(var(--core-gap) / -2); right: 0; }
 }
-@media (max-width: 560px) {
-  .sol-core-grid { grid-template-columns: 1fr; }
-  .sol-entry { gap: 8px; }
-  .sol-entry-title { min-width: 0; }
+@media (max-width: 640px) {
+  /* one column: the hairline that separated neighbours becomes the warp rule
+     over each card, and the numeral drops a size so it does not out-weigh a
+     title it now sits directly above at full measure */
+  .sol-core-grid {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+  }
+  .sol-core-card {
+    grid-row: auto;
+    display: block;
+    padding: clamp(16px, 4.5vw, 22px) 0 clamp(16px, 4.5vw, 22px);
+  }
+  .sol-core-card::before,
+  .sol-core-card:nth-child(even)::before { display: none; }
+  .sol-core-card .sol-core-warp,
+  .sol-core-card:nth-child(odd) .sol-core-warp,
+  .sol-core-card:nth-child(even) .sol-core-warp { left: 0; right: 0; }
+  .sol-core-card::after { inset: 0; }
+  .sol-core-n { font-size: 1.45rem; }
+}
+/* the head and the ticket keep their own, older fold at 760 — they were never
+   tied to how many columns the four deliverables run in */
+@media (max-width: 760px) {
+  .sol-core-head { grid-template-columns: minmax(0, 1fr); }
+  .sol-core-sub { max-width: none; }
+  /* the ticket unfolds: stub under body, perforation across instead of down */
+  .sol-entry { grid-template-columns: minmax(0, 1fr); }
+  .sol-entry-stub {
+    align-items: flex-start;
+    padding: clamp(14px, 4vw, 20px) clamp(16px, 5vw, 30px);
+  }
+  .sol-entry-stub::before {
+    left: 10px; right: 10px; top: 0; bottom: auto; width: auto; height: 2px;
+    background: repeating-linear-gradient(90deg,
+      var(--magenta) 0 5px, transparent 5px 11px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sol-core-card,
+  .sol-core-card::after,
+  .sol-core-n,
+  .sol-core-warp::after,
+  .sol-core-idx::after { transition-duration: 0.01ms !important; }
+  /* the lift is the one thing that must not merely go instant — a 4px jump
+     under the cursor is exactly the motion a reduced-motion reader asked not
+     to get. The wash and the warp still light, so the hover is not lost. */
+  .sol-core-card:hover, .sol-core-card:focus-within { transform: none; }
+  .sol-core-card:hover .sol-core-idx::after,
+  .sol-core-card:focus-within .sol-core-idx::after { transform: none; }
 }
 
 /* The strip lives OUTSIDE `.sol-pin` in the JSX, not inside it hidden by a

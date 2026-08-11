@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    width: 540px;
+    height: 1174px;
+    background: #f6f7fb;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Helvetica, Arial, sans-serif;
+    color: #2b2a4a;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 50; }
+  .statusbar .time { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; padding-top: 4px; }
+  .island { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 124px; height: 37px; background: #000; border-radius: 20px; z-index: 51; }
+  .statusbar .right { display: flex; align-items: center; gap: 6px; padding-top: 4px; }
+  .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: rgba(43,42,74,0.55); z-index: 52; }
+
+  .page { position: relative; padding: 66px 16px 0; padding-bottom: 96px; }
+
+  .title-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .title-row .title { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+  .title-row .date { font-size: 13.5px; font-weight: 600; color: #9a9ac0; }
+
+  .headline { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .headline .badge { width: 30px; height: 30px; border-radius: 50%; background: #2fbf8f; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .headline .big { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; }
+  .headline-sub { font-size: 14px; font-weight: 500; color: #8f8fb5; margin-top: 4px; margin-left: 40px; }
+
+  .card { background: #ffffff; border-radius: 20px; box-shadow: 0 1px 0 rgba(43,42,74,0.03); border: 1px solid rgba(43,42,74,0.06); margin-top: 16px; }
+  .card-title { font-size: 12px; font-weight: 700; color: #9a9ac0; text-transform: uppercase; letter-spacing: 0.5px; padding: 14px 16px 4px; }
+
+  .cat-row { display: flex; align-items: center; gap: 11px; padding: 9px 16px; border-top: 1px solid rgba(43,42,74,0.06); }
+  .cat-row:first-of-type { border-top: none; }
+  .cat-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .cat-icon.c1 { background: rgba(47,191,143,0.14); }
+  .cat-icon.c2 { background: rgba(43,42,74,0.08); }
+  .cat-icon.c3 { background: rgba(255,93,93,0.12); }
+  .cat-icon.c4 { background: rgba(240,180,90,0.18); }
+  .cat-icon.c5 { background: rgba(139,139,220,0.16); }
+  .cat-label { flex: 1; font-size: 14.5px; font-weight: 600; }
+  .cat-count { font-size: 12.5px; font-weight: 500; color: #9a9ac0; margin-top: 1px; }
+  .cat-size { font-size: 14px; font-weight: 700; color: #6e6e93; }
+
+  .chart-pad { padding: 6px 16px 14px; }
+
+  .streak-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; }
+  .streak-icon { width: 34px; height: 34px; border-radius: 11px; background: rgba(240,150,90,0.16); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .streak-text .t1 { font-size: 14.5px; font-weight: 700; }
+  .streak-text .t2 { font-size: 12px; color: #9a9ac0; font-weight: 500; margin-top: 1px; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid rgba(43,42,74,0.06); }
+  .toggle-row:first-child { border-top: none; }
+  .toggle-row .label { font-size: 14.5px; font-weight: 600; }
+  .toggle-row .val { font-size: 14px; font-weight: 500; color: #9a9ac0; }
+  .chevron-row { display: flex; align-items: center; gap: 8px; }
+  .switch { width: 42px; height: 25px; border-radius: 13px; position: relative; flex-shrink: 0; }
+  .switch.on { background: #2fbf8f; }
+  .switch.off { background: rgba(43,42,74,0.14); }
+  .switch .knob { position: absolute; top: 2px; width: 21px; height: 21px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .switch.on .knob { right: 2px; }
+  .switch.off .knob { left: 2px; }
+
+  .tabbar {
+    position: absolute; left: 12px; right: 12px; bottom: 26px; height: 60px; border-radius: 24px;
+    background: rgba(255,255,255,0.96); border: 1px solid rgba(43,42,74,0.06);
+    box-shadow: 0 10px 26px rgba(43,42,74,0.10);
+    display: flex; align-items: center; justify-content: space-around; z-index: 40;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px; }
+  .tab-item svg { width: 19px; height: 19px; }
+  .tab-label { font-size: 9.5px; font-weight: 600; }
+  .tab-item.active .tab-label { color: #2b2a4a; }
+  .tab-item:not(.active) .tab-label { color: #b0b0cc; }
+</style>
+</head>
+<body>
+
+  <div class="page">
+
+    <div class="title-row">
+      <div class="title">Cleaned</div>
+      <div class="date">Today &middot; 14:19</div>
+    </div>
+
+    <div class="headline">
+      <div class="badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="big">1.8 GB freed</div>
+    </div>
+    <div class="headline-sub">312 of 1,284 screenshots cleared</div>
+
+    <div class="card">
+      <div class="card-title">By category</div>
+
+      <div class="cat-row">
+        <div class="cat-icon c1"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H18.5C19.3 4 20 4.7 20 5.5V15.5C20 16.3 19.3 17 18.5 17H9L5 20.5V17H5.5C4.7 17 4 16.3 4 15.5V5.5Z" stroke="#23a37a" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <div><div class="cat-label">Messages</div><div class="cat-count">168 items</div></div>
+        <div style="flex:1"></div>
+        <div class="cat-size">0.9 GB</div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-icon c2"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="#6e6e93" stroke-width="1.6"/><path d="M8 15L11 11L13.5 13.5L16 9" stroke="#6e6e93" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><div class="cat-label">App Store &amp; web</div><div class="cat-count">54 items</div></div>
+        <div style="flex:1"></div>
+        <div class="cat-size">0.4 GB</div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-icon c3"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 21C12 21 5 14.5 5 9.5C5 5.9 8.1 3 12 3C15.9 3 19 5.9 19 9.5C19 14.5 12 21 12 21Z" stroke="#e0483f" stroke-width="1.6"/><circle cx="12" cy="9.5" r="2.4" stroke="#e0483f" stroke-width="1.6"/></svg></div>
+        <div><div class="cat-label">Maps &amp; directions</div><div class="cat-count">31 items</div></div>
+        <div style="flex:1"></div>
+        <div class="cat-size">210 MB</div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-icon c4"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 3H18V21L15 19L12 21L9 19L6 21V3Z" stroke="#c98a2e" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8H15M9 12H15" stroke="#c98a2e" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+        <div><div class="cat-label">Receipts &amp; tickets</div><div class="cat-count">39 items</div></div>
+        <div style="flex:1"></div>
+        <div class="cat-size">180 MB</div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-icon c5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="12" height="12" rx="2.5" stroke="#7a7ad0" stroke-width="1.6"/><rect x="8" y="4" width="12" height="12" rx="2.5" stroke="#7a7ad0" stroke-width="1.6" stroke-opacity="0.5"/></svg></div>
+        <div><div class="cat-label">Duplicates</div><div class="cat-count">20 items</div></div>
+        <div style="flex:1"></div>
+        <div class="cat-size">110 MB</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cleared per week</div>
+      <div class="chart-pad">
+        <svg width="496" height="108" viewBox="0 0 496 108">
+          <rect x="8"   y="60" width="46" height="36" rx="9" fill="rgba(43,42,74,0.10)"/>
+          <rect x="78"  y="44" width="46" height="52" rx="9" fill="rgba(43,42,74,0.10)"/>
+          <rect x="148" y="26" width="46" height="70" rx="9" fill="rgba(43,42,74,0.10)"/>
+          <rect x="218" y="70" width="46" height="26" rx="9" fill="rgba(43,42,74,0.10)"/>
+          <rect x="288" y="10" width="46" height="86" rx="9" fill="#2fbf8f"/>
+          <rect x="358" y="56" width="46" height="40" rx="9" fill="rgba(43,42,74,0.10)"/>
+          <rect x="428" y="34" width="46" height="62" rx="9" fill="rgba(43,42,74,0.10)"/>
+          <text x="31"  y="12" text-anchor="middle" font-size="11" font-weight="700" fill="#9a9ac0">18</text>
+          <text x="101" y="12" text-anchor="middle" font-size="11" font-weight="700" fill="#9a9ac0">24</text>
+          <text x="171" y="12" text-anchor="middle" font-size="11" font-weight="700" fill="#9a9ac0">31</text>
+          <text x="241" y="12" text-anchor="middle" font-size="11" font-weight="700" fill="#9a9ac0">9</text>
+          <text x="311" y="12" text-anchor="middle" font-size="11" font-weight="800" fill="#23a37a">46</text>
+          <text x="381" y="12" text-anchor="middle" font-size="11" font-weight="700" fill="#9a9ac0">12</text>
+          <text x="451" y="12" text-anchor="middle" font-size="11" font-weight="700" fill="#9a9ac0">29</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="streak-row">
+        <div class="streak-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 2C12 2 7 7.5 7 12.5C7 15.5 9 18 12 18C15 18 17 15.5 17 12.5C17 11 16.2 9.6 15.4 8.6C15.4 10 14.8 11 13.8 11.4C14.2 9 12.8 6.6 11 5.4C11.4 7 10.6 8.2 9.6 9.4C8.6 10.6 8 12 8 13.4" fill="#e08a3e"/></svg></div>
+        <div class="streak-text"><div class="t1">11-day streak</div><div class="t2">Clean for one more day to keep it going</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Settings</div>
+      <div class="toggle-row"><div class="label">Auto-sort receipts</div><div class="switch on"><div class="knob"></div></div></div>
+      <div class="toggle-row"><div class="label">Skip favourites</div><div class="switch on"><div class="knob"></div></div></div>
+      <div class="toggle-row"><div class="label">Confirm before delete</div><div class="switch on"><div class="knob"></div></div></div>
+      <div class="toggle-row"><div class="label">Weekly reminder</div><div class="switch off"><div class="knob"></div></div></div>
+      <div class="toggle-row">
+        <div class="label">Minimum size to flag</div>
+        <div class="chevron-row"><div class="val">500 KB</div><svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="#c7c7dd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="toggle-row">
+        <div class="label">Photos storage used</div>
+        <div class="val">41.2 GB</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tabbar">
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="4" stroke="#b0b0cc" stroke-width="1.8"/><path d="M4 15L9 10L13 14L20 8" stroke="#b0b0cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="tab-label">Clean</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="14" rx="3" stroke="#b0b0cc" stroke-width="1.8"/><path d="M4 10H20" stroke="#b0b0cc" stroke-width="1.8"/></svg>
+      <div class="tab-label">Queue</div>
+    </div>
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M5 20V13M12 20V6M19 20V10" stroke="#2b2a4a" stroke-width="2.1" stroke-linecap="round"/></svg>
+      <div class="tab-label">Stats</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#b0b0cc" stroke-width="1.8"/><path d="M12 2V5M12 19V22M22 12H19M5 12H2M19.07 4.93L16.95 7.05M7.05 16.95L4.93 19.07M19.07 19.07L16.95 16.95M7.05 7.05L4.93 4.93" stroke="#b0b0cc" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="tab-label">Settings</div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <div class="time">14:19</div>
+    <div class="right">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 9L1 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/><path d="M5 7L5 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/><path d="M9 5L9 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/><path d="M13 3L13 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 5C4.5 1.5 11.5 1.5 15 5" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8C6 6 10 6 12 8" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="10.5" r="1" fill="#2b2a4a"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="#2b2a4a" stroke-opacity="0.5" stroke-width="1"/><rect x="2.5" y="2.5" width="17" height="7" rx="1.3" fill="#2b2a4a"/><rect x="22" y="4" width="1.6" height="4" rx="0.8" fill="#2b2a4a" fill-opacity="0.5"/></svg>
+    </div>
+  </div>
+  <div class="island"></div>
+  <div class="home-indicator"></div>
+
+</body>
+</html>

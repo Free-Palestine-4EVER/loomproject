@@ -56,3 +56,56 @@
 @media (prefers-reduced-motion: reduce) {
   .hero-static-planet-inner { animation: none; }
 }
+
+/* ————————————————————————————————————————————————————————————————————————
+   THE SCRIM COMES OFF THE PHONE PLANET — 11 Aug 2026 (client report:
+   "the planet has an overlay on mobile").
+
+   There was no extra element and no mobile-only filter to delete — the thing
+   washing the planet out is `.hero-vignette` (styles.css:1179), the headline's
+   own legibility scrim, and it is the LAST child of `.hero-canvas-wrap`, so it
+   paints over `.hero-mobile-planet` regardless of that element's z-index: 0.
+
+   On DESKTOP that costs nothing and the composition is right, which is why
+   only the phone was reported: the copy is bottom-LEFT and the planet is off
+   to the right, so the scrim's two gradients land beside the planet rather
+   than on it. The phone hero inverts the layout — copy in the top row, planet
+   in the second (styles.css:1043) — but the scrim kept covering `inset: 0`,
+   and at 390px both of its gradients are effectively full-bleed:
+     · the 100deg linear runs its dark half over a 557px gradient line, of
+       which the first 74% is ~412px — wider than the 390px screen, so the
+       whole viewport is inside the darkened stretch, top to bottom;
+     · the mobile radial is 85% 55% at 38% 55% — a 548px vertical radius from
+       a centre at y=548, which reaches y≈1096 on a 996px-tall hero. The
+       planet (y 565→869) sits well inside it, in the pale rgba(255,240,247,
+       0.3) part of the pool.
+   Together that is a dark wash plus a milky wash over the subject: exactly
+   "translucent scrim, washed out".
+
+   THE SCRIM IS NOT DELETED — IT IS BOUNDED TO THE COPY. Every stop, colour
+   and angle in styles.css stays byte-for-byte; this only masks the layer off
+   below the type. The type block ends at 37.5% of the hero at 390x844 and
+   34.2% at 430x932, and the planet's top edge starts at 56.7% / 57.0%, so a
+   fade from 40% to 55% clears the copy completely and stops short of the
+   planet at both sizes. The eyebrow, headline and sub therefore sit on the
+   IDENTICAL backdrop they were tuned against — measured after this change at
+   6.4:1 (.hero-eyebrow) / 5.1:1 (.hero-sub) at 390px, unchanged from before
+   it — so nothing had to be paid for with a text-shadow or a reflow.
+
+   No new colours: a mask is alpha only. `-webkit-` first for Safari < 15.4,
+   which is still the engine this bug was reported on. Not gated on reduced
+   motion — a mask is static, there is nothing here to animate. */
+@media (max-width: 767px) {
+  /* `.hero .hero-vignette`, not `.hero-vignette` — styles.css is another
+     agent's file and its import order relative to this one is not something
+     to depend on. Two classes beats one at any position in the cascade. */
+  .hero .hero-vignette {
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 55%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 55%);
+  }
+  /* The last 5% of the wash, and the only one that was actually ON the
+     planet's own layer rather than above it. 0.95 was inherited from the
+     dark-ground build, where knocking the art back kept it from glaring off
+     a near-black page; on the rose ground it just greys the subject. */
+  .hero .hero-mobile-planet-inner { opacity: 1; }
+}

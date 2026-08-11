@@ -1,0 +1,390 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 540px;
+    height: 1174px;
+    background: #0a0b0d;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Helvetica, Arial, sans-serif;
+    color: #fff;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    z-index: 50;
+  }
+  .statusbar .time {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    padding-top: 4px;
+  }
+  .island {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 124px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+  }
+  .statusbar .right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 4px;
+  }
+
+  /* ---------- top app bar ---------- */
+  .topbar {
+    position: absolute;
+    top: 72px;
+    left: 0; right: 0;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 40;
+  }
+  .topbar .title {
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .topbar .sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 500;
+    margin-top: 1px;
+  }
+  .icon-btn {
+    width: 34px; height: 34px;
+    border-radius: 17px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ---------- 3D viewer canvas ---------- */
+  .viewer {
+    position: absolute;
+    top: 138px;
+    left: 0; right: 0;
+    height: 700px;
+    background:
+      radial-gradient(120% 90% at 50% 8%, rgba(89,230,255,0.10) 0%, rgba(89,230,255,0) 55%),
+      radial-gradient(140% 100% at 50% 100%, rgba(123,47,190,0.14) 0%, rgba(123,47,190,0) 60%),
+      #101216;
+    overflow: hidden;
+  }
+  .viewer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: radial-gradient(70% 60% at 50% 46%, #000 0%, transparent 75%);
+  }
+
+  .room-stage {
+    position: absolute;
+    left: 50%;
+    top: 54%;
+    width: 460px;
+    height: 440px;
+    transform: translate(-50%, -50%) scale(1.14);
+  }
+
+  /* dimension labels floating over the scene, flat (not tilted) */
+  .dim {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(10,11,13,0.72);
+    border: 1px solid rgba(89,230,255,0.4);
+    border-radius: 8px;
+    padding: 4px 9px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    color: #59e6ff;
+    backdrop-filter: blur(4px);
+    z-index: 20;
+  }
+  .dim .dash { width: 10px; height: 1px; background: rgba(89,230,255,0.5); }
+
+  /* scan complete pill */
+  .scan-pill {
+    position: absolute;
+    top: 156px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(20, 22, 26, 0.75);
+    border: 1px solid rgba(89,230,255,0.3);
+    border-radius: 20px;
+    padding: 7px 14px 7px 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #d8fbff;
+    z-index: 30;
+    backdrop-filter: blur(6px);
+  }
+  .scan-pill .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #59e6ff, #7b2fbe);
+    box-shadow: 0 0 6px rgba(89,230,255,0.8);
+  }
+
+  /* segmented control: orbit / pan / AR */
+  .segmented {
+    position: absolute;
+    top: 856px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 40px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    display: flex;
+    padding: 3px;
+    z-index: 40;
+  }
+  .segmented .seg {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 17px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+  }
+  .segmented .seg.active {
+    background: linear-gradient(135deg, #59e6ff 0%, #7b2fbe 100%);
+    color: #05070a;
+  }
+
+  /* meta row: model stats */
+  .stats-row {
+    position: absolute;
+    top: 918px;
+    left: 20px; right: 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 30;
+  }
+  .stat {
+    flex: 1;
+    text-align: center;
+  }
+  .stat .val {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+  .stat .lbl {
+    font-size: 10.5px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 500;
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .stat + .stat { border-left: 1px solid rgba(255,255,255,0.08); }
+
+  /* bottom action bar */
+  .bottombar {
+    position: absolute;
+    top: 980px;
+    left: 20px; right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 40;
+  }
+  .btn {
+    flex: 1;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .btn.ghost {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .btn.primary {
+    background: linear-gradient(135deg, #59e6ff 0%, #7b2fbe 100%);
+    color: #05070a;
+    box-shadow: 0 6px 18px rgba(89,230,255,0.22);
+  }
+
+  /* home indicator */
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.55);
+    z-index: 50;
+  }
+</style>
+</head>
+<body>
+
+  <div class="viewer">
+    <div class="room-stage">
+      <svg width="460" height="440" viewBox="0 0 460 440">
+        <defs>
+          <linearGradient id="floorGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#23262e" />
+            <stop offset="100%" stop-color="#181a1f" />
+          </linearGradient>
+          <linearGradient id="wallLGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2e323c" />
+            <stop offset="100%" stop-color="#20232a" />
+          </linearGradient>
+          <linearGradient id="wallRGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#282b33" />
+            <stop offset="100%" stop-color="#1b1d23" />
+          </linearGradient>
+          <linearGradient id="sofaTop" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#454b58" />
+            <stop offset="100%" stop-color="#343947" />
+          </linearGradient>
+          <linearGradient id="tableTop" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#5a4a3a" />
+            <stop offset="100%" stop-color="#463a2d" />
+          </linearGradient>
+        </defs>
+
+        <!-- back walls -->
+        <polygon points="230,210 53.3,312 53.3,210 230,108" fill="url(#wallLGrad)" stroke="#59e6ff" stroke-opacity="0.55" stroke-width="1.4" />
+        <polygon points="230,210 406.7,312 406.7,210 230,108" fill="url(#wallRGrad)" stroke="#59e6ff" stroke-opacity="0.55" stroke-width="1.4" />
+        <!-- wall base seam highlight -->
+        <line x1="230" y1="108" x2="230" y2="210" stroke="#59e6ff" stroke-opacity="0.7" stroke-width="1.6" />
+
+        <!-- floor -->
+        <polygon points="230,210 406.7,312 230,414 53.3,312" fill="url(#floorGrad)" stroke="#59e6ff" stroke-opacity="0.7" stroke-width="1.6" />
+        <!-- floor grid, iso lines parallel to each edge -->
+        <g stroke="#59e6ff" stroke-opacity="0.14" stroke-width="1">
+          <line x1="141.65" y1="159" x2="318.35" y2="363" />
+          <line x1="318.35" y1="159" x2="141.65" y2="363" />
+          <line x1="141.65" y1="261" x2="53.3" y2="312" />
+          <line x1="318.35" y1="261" x2="406.7" y2="312" />
+        </g>
+
+        <!-- table (back-center) -->
+        <polygon points="194.7,283.1 232.9,305.2 197.6,325.6 159.3,303.5" fill="url(#tableTop)" stroke="#59e6ff" stroke-opacity="0.6" stroke-width="1.2" />
+        <polygon points="159.3,332.4 197.6,354.5 197.6,325.6 159.3,303.5" fill="#241f19" stroke="#59e6ff" stroke-opacity="0.35" stroke-width="1" />
+        <polygon points="197.6,354.5 232.9,334.1 232.9,305.2 197.6,325.6" fill="#2c2620" stroke="#59e6ff" stroke-opacity="0.35" stroke-width="1" />
+
+        <!-- sofa (against left wall) -->
+        <polygon points="238.8,201.5 336,257.6 300.7,278 203.5,221.9" fill="url(#sofaTop)" stroke="#59e6ff" stroke-opacity="0.6" stroke-width="1.2" />
+        <polygon points="203.5,259.3 300.7,315.4 300.7,278 203.5,221.9" fill="#282c35" stroke="#59e6ff" stroke-opacity="0.35" stroke-width="1" />
+        <polygon points="300.7,315.4 336,295 336,257.6 300.7,278" fill="#20232a" stroke="#59e6ff" stroke-opacity="0.35" stroke-width="1" />
+
+        <!-- lidar scan points -->
+        <g fill="#59e6ff">
+          <circle cx="230" cy="108" r="2.2" opacity="0.85" />
+          <circle cx="141" cy="159" r="2" opacity="0.7" />
+          <circle cx="318" cy="159" r="2" opacity="0.7" />
+          <circle cx="90" cy="235" r="2" opacity="0.6" />
+          <circle cx="370" cy="235" r="2" opacity="0.6" />
+          <circle cx="53" cy="260" r="2" opacity="0.6" />
+          <circle cx="407" cy="260" r="2" opacity="0.6" />
+          <circle cx="141" cy="363" r="2" opacity="0.55" />
+          <circle cx="318" cy="363" r="2" opacity="0.55" />
+          <circle cx="230" cy="414" r="2.2" opacity="0.7" />
+          <circle cx="175" cy="388" r="1.8" opacity="0.5" />
+          <circle cx="285" cy="388" r="1.8" opacity="0.5" />
+        </g>
+      </svg>
+    </div>
+
+    <!-- dimension labels, screen-flat, anchored to the two floor edges + wall height -->
+    <div class="dim" style="left:78px; top:414px;">
+      <span class="dash"></span>4.20 m
+    </div>
+    <div class="dim" style="left:352px; top:414px;">
+      3.65 m<span class="dash"></span>
+    </div>
+    <div class="dim" style="left:294px; top:290px;">
+      <span class="dash"></span>2.72 m
+    </div>
+  </div>
+
+  <div class="scan-pill"><span class="dot"></span>Scan complete · 218 frames</div>
+
+  <div class="segmented">
+    <div class="seg active">Orbit</div>
+    <div class="seg">Pan</div>
+    <div class="seg">AR</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="val">15.3 m²</div><div class="lbl">Floor Area</div></div>
+    <div class="stat"><div class="val">2.72 m</div><div class="lbl">Ceiling</div></div>
+    <div class="stat"><div class="val">96%</div><div class="lbl">Confidence</div></div>
+  </div>
+
+  <div class="bottombar">
+    <div class="btn ghost">Export USDZ</div>
+    <div class="btn primary">Open in AR</div>
+  </div>
+
+  <div class="topbar">
+    <div class="icon-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div style="text-align:center;">
+      <div class="title">Living Room</div>
+      <div class="sub">Scan &middot; Aug 11</div>
+    </div>
+    <div class="icon-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.6" fill="#fff"/><circle cx="12" cy="12" r="1.6" fill="#fff"/><circle cx="19" cy="12" r="1.6" fill="#fff"/></svg>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <div class="time">09:41</div>
+    <div class="right">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 9L1 11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M5 7L5 11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M9 5L9 11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M13 3L13 11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 5C4.5 1.5 11.5 1.5 15 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8C6 6 10 6 12 8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="10.5" r="1" fill="#fff"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="#fff" stroke-opacity="0.5" stroke-width="1"/><rect x="2.5" y="2.5" width="17" height="7" rx="1.3" fill="#33e07a"/><rect x="22" y="4" width="1.6" height="4" rx="0.8" fill="#fff" fill-opacity="0.5"/><path d="M9 3.5L7 6.5H9L7.5 8.7" stroke="#05070a" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+  <div class="island"></div>
+
+  <div class="home-indicator"></div>
+
+</body>
+</html>

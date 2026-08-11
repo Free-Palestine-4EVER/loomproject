@@ -1,0 +1,635 @@
+/* ═══ /pricing — the page's own sheet ══════════════════════════════════════
+   Prefix `pr-`, used nowhere else in the tree. This styles the dedicated
+   pricing ROUTE only; components/pricing.css still owns the home page's
+   compact ladder board and is untouched by anything here.
+
+   COLOUR BUDGET: zero new values. Every tint is a color-mix of the tier's own
+   --accent (one of the four yarns, set inline per row) against transparent,
+   and every piece of accent-coloured TEXT resolves --accent-ink — the token
+   styles.css added precisely because a raw yarn is ~1.8:1 on the pink ground.
+   Rules, bars and fills keep the bright yarn, as styles.css instructs.
+
+   RHYTHM: every band is `clamp(56px, 8vh, 104px)` of block padding inside
+   `var(--pad)` gutters, on a 1180px measure — the same measure the home page's
+   price board uses, so the two read as one site.
+
+   MOTION: entrance is `use:reveal` only. Everything else is a hover/open
+   transition on `var(--ease)`, and all of them are cut at the foot of this
+   file under prefers-reduced-motion.
+
+   OVERFLOW: every grid item carries `min-width: 0`. Grid items default to
+   `min-width: auto`, which refuses to shrink below their content — the one
+   way a long unbroken string (a price, a mono endpoint) pushes a page sideways
+   at 390px. Checked at 390 / 768 / 1280 / 1440 / 1600.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.pr-hero,
+.pr-ladder,
+.pr-steps,
+.pr-movers,
+.pr-pay,
+.pr-faq {
+  position: relative;
+  padding: clamp(56px, 8vh, 104px) var(--pad);
+}
+.pr-hero-in,
+.pr-sec-head,
+.pr-tiers,
+.pr-step-list,
+.pr-mover-grid,
+.pr-rule-wrap,
+.pr-excl,
+.pr-pay-grid,
+.pr-pay-cta,
+.pr-faq-list,
+.pr-faq-more,
+.pr-anchor-note {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+/* ——— 1. HERO ——————————————————————————————————————————————————————— */
+.pr-hero {
+  padding-top: clamp(40px, 6vh, 72px);
+  isolation: isolate;
+  border-bottom: 1px solid var(--line);
+}
+.pr-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 46% at 50% 0%, rgba(242, 28, 140, 0.11), transparent 74%),
+    linear-gradient(to bottom, var(--bg-2), var(--bg));
+}
+.pr-h1 {
+  max-width: 20ch;
+  font-size: clamp(2.1rem, 5.4vw, 4rem);
+  line-height: 1.02;
+}
+.pr-hero-lede {
+  margin-top: 20px;
+  color: var(--ink-dim);
+  max-width: 60ch;
+}
+
+/* THE RAIL — the whole price list before a single paragraph of argument.
+   `auto-fit` + a 200px floor gives six across on a wide screen, two on a
+   tablet and one on a phone with no breakpoint of its own. */
+.pr-rail {
+  list-style: none;
+  margin-top: clamp(26px, 3.4vw, 40px);
+  display: grid;
+  /* 168px, not 190: the measure is 1180 and six tracks plus five 10px gaps
+     must fit inside it, or the sixth tier drops to a lonely second row. */
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 10px;
+}
+.pr-chip { min-width: 0; }
+.pr-chip a {
+  display: block;
+  min-width: 0;
+  padding: 14px 16px 13px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent, var(--magenta)) 10%, transparent),
+    color-mix(in srgb, var(--accent, var(--magenta)) 3%, transparent)
+  );
+  transition: transform 0.34s var(--ease), border-color 0.3s, box-shadow 0.34s var(--ease);
+}
+.pr-chip a:hover,
+.pr-chip a:focus-visible {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 46%, transparent);
+  box-shadow: 0 12px 28px -20px color-mix(in srgb, var(--accent, var(--magenta)) 80%, transparent);
+}
+.pr-chip-name {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.pr-chip-fig {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--accent-ink);
+  white-space: nowrap;
+}
+.pr-chip-fig i { font-style: normal; opacity: 0.7; font-size: 0.78rem; }
+.pr-chip-fig b {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.pr-chip-per {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pr-hero-note {
+  margin-top: 18px;
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+  max-width: 62ch;
+}
+
+/* ——— shared section head ——————————————————————————————————————————— */
+.pr-sec-head { margin-bottom: clamp(26px, 3.6vw, 46px); }
+.pr-h2 {
+  font-size: clamp(1.7rem, 3.4vw, 2.7rem);
+  line-height: 1.04;
+  max-width: 22ch;
+}
+.pr-sec-lede {
+  margin-top: 14px;
+  color: var(--ink-dim);
+  max-width: 62ch;
+  font-size: clamp(0.98rem, 1.3vw, 1.1rem);
+}
+
+/* ——— 2. THE LADDER ————————————————————————————————————————————————
+   One row per tier: the figure column is fixed-ish, the body takes the rest.
+   Nothing is behind a hover or a disclosure — every `includes` line and every
+   `note` is on screen at once, which is the whole difference between this
+   page and the home page's compact board. */
+.pr-ladder { background: linear-gradient(to bottom, var(--bg), var(--bg-2) 60%, var(--bg)); }
+.pr-tiers { display: grid; gap: clamp(12px, 1.4vw, 18px); }
+
+.pr-tier {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 250px) minmax(0, 1fr);
+  gap: clamp(18px, 2.4vw, 40px);
+  padding: clamp(20px, 2.2vw, 30px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--accent, var(--magenta)) 11%, transparent),
+    color-mix(in srgb, var(--accent, var(--magenta)) 3%, transparent) 46%
+  );
+  transition: border-color 0.35s var(--ease), box-shadow 0.4s var(--ease);
+}
+.pr-tier:hover {
+  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 40%, transparent);
+  box-shadow: 0 18px 44px -30px color-mix(in srgb, var(--accent, var(--magenta)) 85%, transparent);
+}
+/* the ongoing rows are visibly a second family: a dashed left edge in the
+   accent instead of the measured bar, and a quieter ground */
+.pr-tier--on {
+  background: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--accent, var(--magenta)) 7%, transparent),
+    transparent 52%
+  );
+  border-style: dashed;
+}
+
+.pr-tier-fig { min-width: 0; }
+.pr-tier-n {
+  font-family: var(--display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--accent-ink);
+}
+.pr-tier-name {
+  margin-top: 6px;
+  font-family: var(--display);
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+  font-weight: 620;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.pr-tier-price {
+  margin-top: 14px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.pr-from {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pr-val {
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 4.6vw, 3.4rem);
+  font-weight: 620;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.pr-unit {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent-ink);
+}
+.pr-tier-per {
+  margin-top: 4px;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+/* THE RUNG, measured: this floor against the dearest build, sqrt-scaled in
+   the component. Four of them down the page draw the ladder as a chart. */
+.pr-bar {
+  display: block;
+  margin-top: 16px;
+  height: 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent, var(--magenta)) 16%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+.pr-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--w, 100%);
+  border-radius: 4px;
+  background: var(--accent, var(--magenta));
+}
+
+.pr-tier-body { min-width: 0; }
+.pr-tier-lede {
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  color: var(--ink);
+  max-width: 54ch;
+}
+.pr-includes {
+  list-style: none;
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 8px 22px;
+}
+.pr-includes li {
+  min-width: 0;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.93rem;
+  color: var(--ink-dim);
+}
+.pr-includes i {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-top: 8px;
+  border-radius: 2px;
+  background: var(--accent, var(--magenta));
+  transform: rotate(45deg);
+}
+.pr-buys {
+  margin-top: 18px;
+  padding: 13px 15px;
+  border-left: 2px solid color-mix(in srgb, var(--accent, var(--magenta)) 55%, transparent);
+  border-radius: 0 10px 10px 0;
+  background: rgba(255, 255, 255, 0.42);
+  font-size: 0.93rem;
+  color: var(--ink-dim);
+  max-width: 66ch;
+}
+.pr-buys-tag {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  margin-bottom: 4px;
+}
+.pr-tier-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  padding: 11px 20px;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 42%, transparent);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--accent-ink);
+  background: rgba(255, 255, 255, 0.5);
+  transition: background 0.3s, transform 0.32s var(--ease), border-color 0.3s;
+}
+.pr-tier-cta i { font-style: normal; transition: transform 0.32s var(--ease); }
+.pr-tier-cta:hover,
+.pr-tier-cta:focus-visible {
+  background: #fff;
+  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 75%, transparent);
+}
+.pr-tier-cta:hover i { transform: translateX(4px); }
+
+/* ——— 3. THE STEPS ——————————————————————————————————————————————— */
+.pr-step-list { list-style: none; display: grid; gap: clamp(12px, 1.4vw, 18px); }
+.pr-step {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 230px) minmax(0, 1fr);
+  gap: clamp(16px, 2.2vw, 36px);
+  align-items: start;
+  padding: clamp(18px, 2vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.4);
+}
+.pr-step-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 640;
+  min-width: 0;
+}
+.pr-step-a { color: var(--ink-faint); }
+.pr-step-pair i { font-style: normal; color: var(--accent-ink); }
+.pr-step-b { color: var(--ink); }
+.pr-step-math { margin-top: 10px; }
+.pr-step-delta {
+  display: block;
+  font-family: var(--display);
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  font-weight: 620;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--accent-ink);
+}
+.pr-step-delta em {
+  font-style: normal;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.pr-step-x {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pr-step-why {
+  min-width: 0;
+  font-size: clamp(0.98rem, 1.3vw, 1.08rem);
+  color: var(--ink);
+  max-width: 64ch;
+}
+.pr-step-adds {
+  list-style: none;
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pr-step-adds li {
+  min-width: 0;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 32%, transparent);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+  background: rgba(255, 255, 255, 0.55);
+}
+.pr-anchor-note {
+  margin-top: clamp(20px, 2.6vw, 30px);
+  padding: 16px 18px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  font-size: 0.92rem;
+  color: var(--ink-dim);
+  max-width: 74ch;
+}
+
+/* ——— 4. THE VARIABLES ———————————————————————————————————————————— */
+.pr-movers { background: linear-gradient(to bottom, var(--bg), var(--bg-2)); }
+.pr-mover-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(12px, 1.4vw, 18px);
+}
+.pr-mover {
+  min-width: 0;
+  padding: clamp(18px, 2vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent, var(--magenta)) 9%, transparent),
+    transparent 60%
+  );
+}
+.pr-mover-n {
+  font-family: var(--display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--accent-ink);
+}
+.pr-mover-h {
+  margin-top: 8px;
+  font-family: var(--display);
+  font-size: clamp(1.1rem, 1.7vw, 1.35rem);
+  font-weight: 620;
+  line-height: 1.1;
+}
+.pr-mover-b { margin-top: 10px; font-size: 0.95rem; color: var(--ink-dim); }
+.pr-mover-src {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+
+.pr-rule-wrap {
+  margin-top: clamp(20px, 2.6vw, 32px);
+  padding: clamp(18px, 2.2vw, 28px);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--line);
+}
+.pr-rule-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--magenta-deep);
+}
+.pr-rule {
+  margin-top: 8px;
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  color: var(--ink);
+  max-width: 72ch;
+}
+.pr-excl {
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+}
+.pr-excl-h {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pr-excl ul { list-style: none; margin-top: 8px; display: grid; gap: 6px; }
+.pr-excl li { font-size: 0.92rem; color: var(--ink-dim); max-width: 72ch; }
+.pr-excl b { color: var(--ink); }
+
+/* ——— 5. PAYING ————————————————————————————————————————————————— */
+.pr-pay-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(18px, 2.6vw, 42px);
+  align-items: start;
+}
+.pr-pay-note { min-width: 0; }
+.pr-pay-body {
+  font-size: clamp(1rem, 1.4vw, 1.12rem);
+  color: var(--ink);
+  max-width: 58ch;
+}
+.pr-pay-body--dim { margin-top: 16px; color: var(--ink-dim); font-size: 0.95rem; }
+
+.pr-flow { list-style: none; min-width: 0; display: grid; gap: 2px; }
+.pr-flow-step {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.42);
+}
+.pr-flow-n {
+  font-family: var(--display);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--magenta-deep);
+}
+.pr-flow-h { font-family: var(--display); font-size: 1.02rem; font-weight: 640; }
+.pr-flow-b { margin-top: 4px; font-size: 0.9rem; color: var(--ink-dim); }
+
+.pr-pay-cta {
+  margin-top: clamp(24px, 3vw, 38px);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+.pr-pay-cta-note { font-size: 0.88rem; color: var(--ink-faint); max-width: 40ch; }
+
+/* ——— 6. THE MONEY QUESTIONS ——————————————————————————————————————
+   <details>, so find-in-page opens the answer and the whole block works with
+   JS off — same reasoning as the site's FAQ band. */
+.pr-faq { border-top: 1px solid var(--line); }
+.pr-faq-list { display: grid; gap: 10px; }
+.pr-q {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.42);
+  overflow: hidden;
+}
+.pr-q summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--display);
+  font-size: clamp(1rem, 1.5vw, 1.14rem);
+  font-weight: 620;
+}
+.pr-q summary::-webkit-details-marker { display: none; }
+.pr-q summary i {
+  flex: 0 0 auto;
+  position: relative;
+  width: 14px;
+  height: 14px;
+  transition: transform 0.36s var(--ease);
+}
+.pr-q summary i::before,
+.pr-q summary i::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 2px;
+  background: var(--magenta);
+  border-radius: 2px;
+}
+.pr-q summary i::after { transform: rotate(90deg); transition: opacity 0.3s; }
+.pr-q[open] summary i { transform: rotate(180deg); }
+.pr-q[open] summary i::after { opacity: 0; }
+.pr-q-in { padding: 0 20px 20px; }
+.pr-q-in p { font-size: 0.98rem; color: var(--ink-dim); max-width: 74ch; }
+.pr-faq-more { margin-top: 18px; font-size: 0.9rem; color: var(--ink-faint); }
+.pr-faq-more a { color: var(--magenta-deep); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ——— RESPONSIVE ——————————————————————————————————————————————————
+   Two collapses, both at the width where the two-column rows stop having a
+   sensible measure rather than at a device name. */
+@media (max-width: 900px) {
+  .pr-tier,
+  .pr-step,
+  .pr-pay-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pr-tier-fig {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 4px 14px;
+  }
+  .pr-tier-n { grid-column: 1 / -1; }
+  .pr-tier-price { margin-top: 6px; }
+  .pr-bar { grid-column: 1 / -1; margin-top: 10px; }
+}
+@media (max-width: 560px) {
+  .pr-rail { grid-template-columns: minmax(0, 1fr); }
+  .pr-includes { grid-template-columns: minmax(0, 1fr); }
+  .pr-tier-fig { grid-template-columns: minmax(0, 1fr); align-items: start; }
+}
+
+/* ——— REDUCED MOTION ——————————————————————————————————————————————
+   Nothing here loops, so this is only about the transitions: the lift, the
+   arrow nudge and the chevron flip all become instant state changes. */
+@media (prefers-reduced-motion: reduce) {
+  .pr-chip a,
+  .pr-tier,
+  .pr-tier-cta,
+  .pr-tier-cta i,
+  .pr-q summary i,
+  .pr-q summary i::after {
+    transition: none !important;
+  }
+  .pr-chip a:hover,
+  .pr-chip a:focus-visible { transform: none; }
+  .pr-tier-cta:hover i { transform: none; }
+}

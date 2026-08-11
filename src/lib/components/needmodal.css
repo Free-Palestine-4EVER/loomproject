@@ -1,9 +1,27 @@
 /* ——— The need panel ———
-   Layout contract: the panel is a flex COLUMN with a fixed head (the close
-   button floats over the hero) and a fixed foot (the CTA), and only .nm-body
-   scrolls between them. A single scrolling panel would let the CTA leave the
-   screen, which on a 90vh panel means the reader has to go looking for the
-   one thing the panel exists to offer. */
+   Layout contract: NOTHING IN HERE SCROLLS. The panel is a flex column
+   bounded by `max-height: min(100%, 880px)` — 100% of the scrim's content
+   box, i.e. the viewport minus the scrim's own padding — and the whole need
+   is composed to fit inside that at every width the site ships.
+
+   It used to be a scroller: hook → paragraph → deliverables → facts → proof
+   in one ~900px column inside a ~675px window, with `overflow-y: auto` on
+   .nm-body making up the 230px difference. Measured at 1440x900, the
+   paragraph was cut mid-sentence behind the foot, and the foot wore an opaque
+   dark plate that read as a bug rather than as an edge. Both are gone. The
+   height came out of the layout, not out of the type:
+
+     · the hero is capped at ~20vh instead of holding a 21:9 box, which at
+       940px wide was 402px — over half the panel, spent on art the reader
+       already saw full-size on the tile they clicked;
+     · the prose and the artefact list run as two COLUMNS, so the panel is as
+       tall as the taller one rather than as tall as both;
+     · the foot's CTA is the medium pill, not the big one.
+
+   Where a viewport is genuinely too short for all of it, the fix is to drop a
+   whole block at that breakpoint (see the max-height ladder at the bottom of
+   this file) — never to clip a sentence. A cut sentence is the bug that was
+   just fixed; a block that isn't there reads as a shorter panel. */
 
 /* ——— per-need accent lookup ———
    NEEDS (needs.js) names seven `yarn` values: magenta, violet, blue, crimson,
@@ -57,12 +75,18 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: min(940px, 100%);
-  max-height: min(88vh, 860px);
+  width: min(1000px, 100%);
+  /* 100% is the scrim's CONTENT box — viewport minus its padding — so this is
+     the "fit the window with a margin" bound, not `88vh` guessing at one.
+     88vh of a 900px viewport is 792px inside an 828px box: 36px of the
+     reader's screen left empty while the copy was being cut. */
+  max-height: min(100%, 880px);
   border-radius: clamp(18px, 2vw, 26px);
   overflow: hidden;
   background: linear-gradient(168deg, #ebe1e6 0%, #f0e8eb 58%, #f2ebee 100%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  /* --line, not a white hairline: the panel is a LIGHT surface (see --ink /
+     --paper in styles.css). A 9%-white border on #ebe1e6 is not a border. */
+  border: 1px solid var(--line);
   /* The plain black drop-shadow used to be the only thing separating the
      panel from the page behind it, and both are near-black — dark-on-dark,
      no read as a layer. The second shadow is a wide, soft cast of the
@@ -91,9 +115,15 @@
 .nm-hero {
   position: relative;
   flex: none;
-  /* the ratio the art is rendered at. Stated on the BOX so nothing reflows
-     when the image decodes — the same contract the Counter tiles run on. */
-  aspect-ratio: 21 / 9;
+  /* A HEIGHT, not the art's 21:9 ratio.
+     The ratio is still the honest description of the file, and it is still
+     what the Counter tile wears — but a ratio on a 940px-wide box resolves to
+     402px, and 402px of a 792px panel is the reason the copy underneath it
+     had nowhere to go. The image is a band across the top here, cropped by
+     object-fit, not the subject of the panel: the reader has already seen it
+     full-width on the tile they clicked to get here.
+     Height is stated (never auto) so nothing reflows when the image decodes. */
+  height: clamp(104px, 19vh, 184px);
   overflow: hidden;
 }
 .nm-hero-img {
@@ -107,7 +137,7 @@
 .nm-hero::after {
   content: '';
   position: absolute; inset: auto 0 0 0;
-  height: 74%;
+  height: 66%;
   background: linear-gradient(to top, rgba(251, 226, 238, 1) 0%, rgba(251, 226, 238, 0.94) 6%, rgba(251, 226, 238, 0.72) 42%, rgba(251, 226, 238, 0) 100%);
   pointer-events: none;
 }
@@ -118,9 +148,18 @@
   bottom: clamp(14px, 2vw, 22px);
   z-index: 2;
 }
+/* ——— the accent, as TEXT ———
+   The yarn accents are dye colours: they are chosen to read as a stripe, a
+   tick or a rule on a dark tile, and three of the seven (cyan for AI systems,
+   gold, cream for Not sure yet) are all but invisible as 11px caps on this
+   panel's near-white ground — the "AI" kicker over the hero was the worst of
+   them. Mixing the need's own hue 60/40 into --ink keeps each panel visibly
+   different from the next while putting every one of the seven back over the
+   contrast line. It is the same colour, weighted for a different job — not a
+   second palette. */
 .nm-kicker {
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--nm-yarn, var(--magenta));
+  color: color-mix(in srgb, var(--nm-yarn, var(--magenta)) 60%, var(--ink));
   margin-bottom: 6px;
 }
 .nm-title {
@@ -137,70 +176,95 @@
   top: clamp(12px, 1.6vw, 18px);
   right: clamp(12px, 1.6vw, 18px);
   z-index: 6;
-  width: 42px; height: 42px;
+  width: 40px; height: 40px;
   display: grid; place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--line);
   border-radius: 50%;
-  background: rgba(12, 6, 20, 0.6);
+  /* A light chip, not the dark one this used to be: `rgba(12, 6, 20, 0.6)`
+     with `color: var(--ink)` is a dark disc carrying a dark glyph — the X was
+     barely visible on it, and the disc itself was a black dot on a pink
+     photograph. White at 82% keeps the render readable underneath while the
+     glyph stays full --ink. */
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--ink);
   cursor: pointer;
   transition: background 0.25s, border-color 0.25s, transform 0.25s var(--ease);
 }
 .nm-close svg { width: 18px; height: 18px; }
-.nm-close:hover { background: rgba(12, 6, 20, 0.86); border-color: var(--nm-yarn, var(--magenta)); transform: rotate(90deg); }
+.nm-close:hover { background: #fff; border-color: var(--nm-yarn, var(--magenta)); transform: rotate(90deg); }
 .nm-close:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 3px; }
 
-/* ——— the scrolling middle ——— */
+/* ——— the middle ——— */
 .nm-body {
   flex: 1 1 auto;
-  min-height: 0; /* without this a flex child refuses to shrink and the panel grows past max-height instead of scrolling */
-  overflow-y: auto;
-  overscroll-behavior: contain; /* stops a flick at the end of the panel scrolling the page underneath */
-  padding: clamp(18px, 2.6vw, 30px) clamp(18px, 3vw, 36px) clamp(20px, 3vw, 32px);
+  min-height: 0; /* a flex child that cannot shrink pushes the panel past its own max-height */
+  /* `hidden`, not `auto`. The panel is composed to fit; if a future need's
+     copy stops fitting, the max-height ladder below has to grow a rule for
+     it — the honest failure is a block that isn't shown, not a sentence
+     silently cut behind the foot, which is what `auto` was doing here. */
+  overflow: hidden;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  padding: 0 clamp(16px, 2.6vw, 32px) clamp(16px, 2.2vw, 26px);
 }
 .nm-hero { margin: 0; }
-/* the hero is inside .nm-body so it scrolls away with the copy — the panel
-   is not tall enough to justify pinning a 21:9 image AND a foot */
+/* full-bleed across the top of the panel — .nm-body carries no top padding,
+   so only the horizontal inset has to be cancelled */
 .nm-body > .nm-hero {
-  margin: calc(-1 * clamp(18px, 2.6vw, 30px)) calc(-1 * clamp(18px, 3vw, 36px)) clamp(18px, 2.4vw, 26px);
+  margin: 0 calc(-1 * clamp(16px, 2.6vw, 32px)) clamp(14px, 2vw, 22px);
 }
 
 .nm-hook {
   font-family: var(--bloom); font-weight: 560;
-  font-size: clamp(1.1rem, 1.9vw, 1.45rem);
+  font-size: clamp(1.08rem, 1.75vw, 1.38rem);
   line-height: 1.24;
   color: var(--ink);
-  margin: 0 0 12px;
-  max-width: 40ch;
+  margin: 0 0 10px;
+  max-width: 34ch;
 }
 .nm-para {
   color: var(--ink-dim);
-  font-size: clamp(0.95rem, 1.15vw, 1.03rem);
-  line-height: 1.62;
-  margin: 0 0 clamp(20px, 2.6vw, 28px);
-  max-width: 62ch;
+  font-size: clamp(0.92rem, 1.1vw, 1rem);
+  line-height: 1.58;
+  margin: 0 0 clamp(14px, 1.8vw, 20px);
 }
 
+/* Two columns: what the work IS on the left, what ARRIVES on the right.
+   The split is the whole reason the panel fits — one column of prose plus one
+   column of list is roughly half the height of prose stacked on list, and
+   nothing had to shrink to get there. */
 .nm-grid {
   display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: clamp(20px, 3vw, 40px);
-  padding-top: clamp(16px, 2vw, 22px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  grid-template-columns: 1.08fr 1fr;
+  gap: clamp(18px, 2.6vw, 36px);
+  align-items: start;
 }
+/* the divider between the two columns, drawn on the right one so it spans the
+   full gutter height regardless of which column is taller */
+.nm-col--side {
+  display: flex; flex-direction: column;
+  gap: clamp(13px, 1.7vw, 18px);
+  border-left: 1px solid var(--line);
+  padding-left: clamp(18px, 2.6vw, 36px);
+  margin-left: calc(-1 * clamp(9px, 1.3vw, 18px));
+}
+/* a column, so `.nm-proof { margin-top: auto }` can sit on its floor */
+.nm-col--say { display: flex; flex-direction: column; }
 .nm-h3 {
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--ink-faint);
-  margin: 0 0 12px;
+  margin: 0 0 10px;
 }
-.nm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.nm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .nm-list li {
   position: relative;
   display: flex; align-items: flex-start; gap: 10px;
   color: var(--ink);
-  font-size: clamp(0.92rem, 1.05vw, 0.99rem);
-  line-height: 1.45;
+  font-size: clamp(0.88rem, 1vw, 0.95rem);
+  line-height: 1.42;
 }
 .nm-tick {
   flex: none;
@@ -213,56 +277,73 @@
   clip-path: polygon(14% 46%, 0 62%, 38% 100%, 100% 20%, 84% 4%, 36% 66%);
 }
 
-.nm-col--side { display: flex; flex-direction: column; gap: clamp(16px, 2vw, 22px); }
 .nm-fact-label {
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--ink-faint);
-  margin: 0 0 7px;
+  margin: 0 0 6px;
 }
 .nm-fact-value {
   font-family: var(--bloom); font-weight: 560;
-  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+  font-size: clamp(1rem, 1.35vw, 1.15rem);
   color: var(--ink);
   margin: 0;
 }
 .nm-pairs { display: flex; flex-wrap: wrap; gap: 7px; }
 .nm-pair {
-  font-size: 0.85rem; font-weight: 600;
-  padding: 7px 13px;
+  font-size: 0.82rem; font-weight: 600;
+  padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.045);
+  /* light surface: a 20%-white border and a 4.5%-white fill were both
+     invisible on #f0e8eb — these are the panel's own ground, stated */
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.5);
   color: var(--ink);
   cursor: pointer;
   transition: border-color 0.25s, background 0.25s, color 0.25s;
 }
-.nm-pair:hover { border-color: var(--nm-yarn, var(--magenta)); background: rgba(255, 255, 255, 0.1); color: var(--ink); }
+.nm-pair:hover { border-color: var(--nm-yarn, var(--magenta)); background: #fff; color: var(--ink); }
 .nm-pair:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 2px; }
 
+/* `margin-top: auto` — the proof sits on the BOTTOM of its column, so the two
+   columns end level whichever one is taller, instead of leaving the prose
+   floating halfway up beside a long deliverables list. */
 .nm-proof {
-  margin: clamp(20px, 2.6vw, 28px) 0 0;
-  padding-left: 14px;
+  margin: auto 0 0;
+  padding: 2px 0 2px 13px;
   border-left: 2px solid var(--nm-yarn, var(--magenta));
   color: var(--ink-dim);
-  font-size: 0.93rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 .nm-proof span {
   display: block;
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--nm-yarn, var(--magenta));
-  margin-bottom: 5px;
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  /* the text weighting again — see .nm-kicker. The rule down the left of this
+     block stays the pure dye, because a 2px rule is not being read. */
+  color: color-mix(in srgb, var(--nm-yarn, var(--magenta)) 60%, var(--ink));
+  margin-bottom: 4px;
 }
 
-/* ——— the pinned foot ——— */
+/* ——— the foot ———
+   NO BACKGROUND. This carried `rgba(10, 5, 17, 0.6)` — a 60% near-black plate
+   from the panel's dark-theme ancestry — sitting on a light panel, over the
+   end of the copy, reading as an opaque grey band and taking the "Keep
+   looking" link and the close button down to unreadable with it. It was
+   also, in effect, the "more content below" edge for a scroller that no
+   longer exists. A hairline in --line is the whole separation the row needs;
+   the CTAs sit on the panel's own surface. */
 .nm-foot {
   flex: none;
   display: flex; align-items: center; flex-wrap: wrap;
-  gap: clamp(14px, 2vw, 24px);
-  padding: clamp(14px, 2vw, 20px) clamp(18px, 3vw, 36px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(10, 5, 17, 0.6);
+  gap: clamp(14px, 2vw, 22px);
+  padding: clamp(11px, 1.5vw, 15px) clamp(16px, 2.6vw, 32px);
+  border-top: 1px solid var(--line);
+  background: none;
 }
+/* The CTA is the medium pill (see the `size` prop in NeedModal.svelte), not
+   `big`: a photographed pill is width-driven — `is-big` is clamp(210px, 19vw,
+   252px) across, which at 1440 made a 115px-tall foot for a two-word label,
+   and that 115px came straight out of the copy's budget. */
 .nm-foot-link {
   font-weight: 640; font-size: 0.92rem;
   color: var(--ink-dim);
@@ -275,21 +356,65 @@
 .nm-foot-link:hover { color: var(--ink); border-color: var(--nm-yarn, var(--magenta)); }
 .nm-foot-link:focus-visible { outline: 3px solid var(--yarn-blue); outline-offset: 3px; }
 
-/* ——— phone: the shared bottom sheet ——— */
+/* ——— phone: the shared bottom sheet ———
+   One column again — 390px cannot hold two — so the height that the desktop
+   split saved has to come from somewhere else. It comes from the sheet using
+   the full screen, from a shorter hero, and from ONE dropped block: see the
+   `.nm-proof` rule below. */
 @media (max-width: 767px) {
   .nm-scrim { place-items: end stretch; padding: 0; }
   .nm-panel.is-sheet {
     width: 100%;
-    max-height: 92vh;
+    /* dvh, not vh: on iOS Safari `92vh` is 92% of the LARGE viewport, i.e.
+       measured with the URL bar retracted, so on first paint the sheet is
+       taller than the screen it is in. */
+    height: auto;
+    max-height: calc(100dvh - 10px);
     border-radius: 22px 22px 0 0;
     border-bottom: 0;
   }
-  .nm-grid { grid-template-columns: 1fr; gap: 22px; }
+  .nm-hero { height: clamp(96px, 15dvh, 132px); }
+  /* THE ONE PLACE THAT MAY STILL SCROLL, and only as a safety valve.
+     Every need measures 733–791px inside the 844px sheet on a 390x844 phone,
+     so nothing scrolls at the size this was verified at. What a phone has
+     that a laptop does not is a viewport that changes height under you: iOS
+     retracts and re-shows the URL bar, and `100dvh` follows it down by ~90px
+     mid-gesture. `hidden` there would silently CLIP the last block — the
+     exact bug this whole pass exists to remove — so on phones the overflow
+     degrades to a visible scroll instead. It is the honest failure mode of
+     the two, and it is unreachable at any static phone size the site is
+     tested at. */
+  .nm-body { overflow-y: auto; }
+  .nm-grid { grid-template-columns: 1fr; gap: 18px; }
+  .nm-col--side { border-left: 0; padding-left: 0; margin-left: 0; }
   .nm-close { width: 38px; height: 38px; }
-  /* the foot is the thumb's target on a phone — full-width button, and the
-     secondary link drops below it rather than competing on the same row */
-  .nm-foot { flex-direction: column; align-items: stretch; gap: 12px; }
-  .nm-foot .wool-btn { width: 100%; }
+  /* THE ONE TRIM. `proof` is the sceptic's line — real, and the least load-
+     bearing of the five blocks: the hook says what it is, the paragraph says
+     how it is made, the list says what arrives and the facts say when. On a
+     390x844 phone all five plus the CTA come to roughly 990px inside a ~640px
+     window, and this is the block whose absence changes nothing the reader
+     needs in order to press the button. It is hidden, not shortened — no
+     sentence is cut. */
+  .nm-proof { display: none; }
+  /* the foot is the thumb's target on a phone — the pill leads, the secondary
+     link sits beside it rather than adding a second row of height */
+  .nm-foot { gap: 16px; padding: 10px clamp(16px, 4vw, 22px) max(10px, env(safe-area-inset-bottom)); }
+}
+
+/* ——— the short-viewport ladder ———
+   Laptops open at heights the design cannot simply scale into: a 13" at
+   1280x800 has ~110px less than a 1440x900, and a browser with a bookmarks
+   bar and a dock has less again. The panel gives up whole blocks in order of
+   how little the reader loses, rather than scrolling or clipping a sentence. */
+@media (min-width: 768px) and (max-height: 720px) {
+  .nm-hero { height: clamp(88px, 13vh, 120px); }
+  .nm-proof { display: none; }
+}
+@media (min-width: 768px) and (max-height: 560px) {
+  /* below this there is no honest composition left — the paragraph goes and
+     the panel is hook + what arrives + when, which is still a complete answer
+     to "what is this need", just a terser one */
+  .nm-para { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

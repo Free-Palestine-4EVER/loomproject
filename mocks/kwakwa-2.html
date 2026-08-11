@@ -1,0 +1,246 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  :root{
+    --cream:#f8efe0;
+    --cream-2:#fffaf1;
+    --yellow:#f3c24b;
+    --yellow-dark:#dfa72f;
+    --brown:#4a3b2a;
+    --brown-soft:#9c8b73;
+    --brown-faint:#c4b79d;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ width:540px; height:1174px; overflow:hidden; }
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(70% 40% at 30% 0%, #fffaf0 0%, rgba(255,250,240,0) 60%),
+      linear-gradient(180deg, #f8efe0 0%, #f6ead0 100%);
+    position:relative;
+    color:var(--brown);
+  }
+  .bg-ripple{
+    position:absolute; border-radius:999px; border:2px solid rgba(120,96,50,0.06);
+  }
+
+  /* status bar */
+  .status-bar{
+    position:absolute; top:0; left:0; right:0; height:54px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px; z-index:30;
+  }
+  .status-bar .time{ font-size:17px; font-weight:600; color:var(--brown); }
+  .island{ position:absolute; left:50%; top:11px; transform:translateX(-50%); width:124px; height:34px; border-radius:20px; background:#0b0b0c; }
+  .status-icons{ display:flex; align-items:center; gap:6px; }
+
+  /* chat header */
+  .chat-header{
+    position:absolute; top:54px; left:0; right:0; height:82px;
+    background:rgba(255,251,240,0.92);
+    border-bottom:1px solid rgba(150,120,70,0.10);
+    display:flex; align-items:center; padding:0 18px; gap:12px;
+    z-index:25;
+  }
+  .back-arrow{ color:var(--yellow-dark); }
+  .chat-avatar{
+    width:42px; height:42px; border-radius:50%;
+    background:linear-gradient(160deg,#fbe08c,#f2bb45);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .chat-avatar .pulse{
+    position:absolute; right:-1px; bottom:-1px; width:12px; height:12px; border-radius:50%;
+    background:#5bc46a; border:2.5px solid var(--cream-2);
+  }
+  .chat-title{ flex:1; }
+  .chat-title .name{ font-size:16.5px; font-weight:700; color:var(--brown); }
+  .chat-title .sub{ font-size:12px; color:#5bc46a; font-weight:600; margin-top:1px; }
+  .header-icons{ display:flex; gap:16px; }
+
+  /* messages */
+  .thread{
+    position:absolute; top:150px; bottom:118px; left:0; right:0;
+    padding:18px 20px; overflow:hidden;
+  }
+  .day-divider{
+    text-align:center; font-size:11.5px; font-weight:700; color:var(--brown-faint);
+    letter-spacing:0.4px; text-transform:uppercase; margin:6px 0 18px;
+  }
+  .row{ display:flex; margin-bottom:6px; align-items:flex-end; gap:8px; }
+  .row.left{ justify-content:flex-start; }
+  .row.right{ justify-content:flex-end; }
+  .mini-avatar{
+    width:24px; height:24px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(160deg,#fbe08c,#f2bb45);
+  }
+  .bubble{
+    max-width:340px; padding:11px 16px; font-size:15px; line-height:1.35;
+    box-shadow:0 4px 10px rgba(150,120,70,0.08);
+  }
+  .bubble.left{
+    background:var(--cream-2); color:var(--brown);
+    border-radius:20px 20px 20px 6px;
+  }
+  .bubble.right{
+    background:linear-gradient(160deg,#f6cf6f,#eeae3a); color:#4a3308;
+    border-radius:20px 20px 6px 20px;
+    font-weight:500;
+  }
+  .meta-row{ display:flex; margin-bottom:16px; }
+  .meta-row.left{ justify-content:flex-start; padding-left:32px; }
+  .meta-row.right{ justify-content:flex-end; padding-right:2px; }
+  .timestamp{ font-size:11px; color:var(--brown-faint); margin-top:4px; }
+
+  .voice-bubble{
+    display:flex; align-items:center; gap:10px;
+    background:var(--cream-2); border-radius:20px 20px 20px 6px;
+    padding:10px 16px 10px 10px;
+    box-shadow:0 4px 10px rgba(150,120,70,0.08);
+  }
+  .voice-play{
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(160deg,#f6cf6f,#e0a72e);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .waveform{ display:flex; align-items:center; gap:2.4px; height:20px; }
+  .waveform div{ width:2.6px; border-radius:2px; background:#dba646; }
+  .voice-dur{ font-size:12px; color:var(--brown-soft); font-weight:600; margin-left:2px; }
+
+  /* compose bar */
+  .compose{
+    position:absolute; left:0; right:0; bottom:34px; height:66px;
+    display:flex; align-items:center; gap:10px; padding:0 16px;
+    z-index:25;
+  }
+  .compose-icon{
+    width:38px; height:38px; border-radius:50%; background:var(--cream-2);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    color:var(--yellow-dark);
+    box-shadow:0 3px 8px rgba(150,120,70,0.10);
+  }
+  .compose-field{
+    flex:1; height:42px; border-radius:22px; background:var(--cream-2);
+    display:flex; align-items:center; padding:0 16px;
+    font-size:14.5px; color:var(--brown-faint);
+    box-shadow:0 3px 8px rgba(150,120,70,0.10);
+  }
+  .quack-send{
+    width:48px; height:48px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(160deg,#f6cf6f,#e0a72e);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 16px rgba(224,167,46,0.4);
+  }
+
+  .home-indicator{
+    position:absolute; left:50%; bottom:9px; transform:translateX(-50%);
+    width:134px; height:5px; border-radius:3px; background:rgba(74,59,42,0.55);
+    z-index:30;
+  }
+</style>
+</head>
+<body>
+
+  <div class="bg-ripple" style="width:260px;height:260px;left:-60px;top:400px;"></div>
+  <div class="bg-ripple" style="width:180px;height:180px;right:-50px;top:650px;"></div>
+
+  <!-- status bar -->
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="status-icons">
+      <svg width="18" height="13" viewBox="0 0 18 13" fill="none">
+        <path d="M9 12.2C9.7 12.2 10.3 11.6 10.3 10.9C10.3 10.2 9.7 9.6 9 9.6C8.3 9.6 7.7 10.2 7.7 10.9C7.7 11.6 8.3 12.2 9 12.2Z" fill="#0b0b0c"/>
+        <path d="M9 7.5C10.5 7.5 11.9 8.05 13 9.05L14.1 7.8C12.7 6.55 10.9 5.8 9 5.8C7.1 5.8 5.3 6.55 3.9 7.8L5 9.05C6.1 8.05 7.5 7.5 9 7.5Z" fill="#0b0b0c"/>
+        <path d="M9 3C11.6 3 14 4 15.9 5.75L17 4.5C14.75 2.4 12 1.2 9 1.2C6 1.2 3.25 2.4 1 4.5L2.1 5.75C4 4 6.4 3 9 3Z" fill="#0b0b0c"/>
+      </svg>
+      <svg width="25" height="13" viewBox="0 0 25 13" fill="none">
+        <rect x="1" y="1" width="20" height="11" rx="3" stroke="#0b0b0c" stroke-opacity="0.4" stroke-width="1"/>
+        <rect x="2.5" y="2.5" width="16" height="8" rx="1.8" fill="#0b0b0c"/>
+        <rect x="22.5" y="4" width="1.6" height="5" rx="0.8" fill="#0b0b0c" fill-opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+  <div class="island"></div>
+
+  <!-- chat header -->
+  <div class="chat-header">
+    <svg class="back-arrow" width="12" height="20" viewBox="0 0 12 20" fill="none"><path d="M10 2 L2 10 L10 18" stroke="#dfa72f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="chat-avatar">
+      <svg width="24" height="24" viewBox="0 0 24 24"><ellipse cx="12" cy="15" rx="8" ry="6.5" fill="#eeae3a"/><circle cx="10" cy="8" r="5.5" fill="#f2bb45"/><path d="M4 8 Q0 7.3 0 9.3 Q0 11.3 5.5 10.2 Z" fill="#f28c2e"/><circle cx="9" cy="6.7" r="1" fill="#3a2c1c"/></svg>
+      <div class="pulse"></div>
+    </div>
+    <div class="chat-title">
+      <div class="name">Lubna</div>
+      <div class="sub">Online</div>
+    </div>
+    <div class="header-icons">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z" fill="#dfa72f"/></svg>
+      <svg width="22" height="18" viewBox="0 0 24 20" fill="none"><rect x="1" y="3" width="15" height="14" rx="3" fill="#dfa72f"/><path d="M16 8.5 L23 4.5 V15.5 L16 11.5Z" fill="#dfa72f"/></svg>
+    </div>
+  </div>
+
+  <!-- thread -->
+  <div class="thread">
+    <div class="day-divider">Today</div>
+
+    <div class="row left">
+      <div class="mini-avatar"></div>
+      <div class="bubble left">omg it's raining and the duck went and hid under the little roof thing 🥹</div>
+    </div>
+    <div class="meta-row left"><div class="timestamp">1:20 AM</div></div>
+
+    <div class="row right">
+      <div class="bubble right">wait send a pic i need to see this</div>
+    </div>
+    <div class="meta-row right"><div class="timestamp">1:21 AM</div></div>
+
+    <div class="row left">
+      <div class="mini-avatar"></div>
+      <div class="voice-bubble">
+        <div class="voice-play">
+          <svg width="13" height="13" viewBox="0 0 13 13"><path d="M2 1 L11 6.5 L2 12 Z" fill="#4a3308"/></svg>
+        </div>
+        <div class="waveform">
+          <div style="height:7px"></div><div style="height:14px"></div><div style="height:9px"></div>
+          <div style="height:18px"></div><div style="height:11px"></div><div style="height:16px"></div>
+          <div style="height:8px"></div><div style="height:13px"></div><div style="height:20px"></div>
+          <div style="height:10px"></div><div style="height:15px"></div><div style="height:7px"></div>
+        </div>
+        <div class="voice-dur">0:07</div>
+      </div>
+    </div>
+    <div class="meta-row left"><div class="timestamp">1:24 AM</div></div>
+
+    <div class="row right">
+      <div class="bubble right">did you eat something today or is it just coffee again</div>
+    </div>
+    <div class="meta-row right"><div class="timestamp">7:02 PM</div></div>
+
+    <div class="row left">
+      <div class="mini-avatar"></div>
+      <div class="bubble left">coffee is a food group actually</div>
+    </div>
+    <div class="meta-row left"><div class="timestamp">7:04 PM</div></div>
+
+    <div class="row right">
+      <div class="bubble right">bringing you soup after work, no arguing 💛</div>
+    </div>
+    <div class="meta-row right"><div class="timestamp">7:05 PM</div></div>
+  </div>
+
+  <!-- compose -->
+  <div class="compose">
+    <div class="compose-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 20 L4 15 L15 4 L20 9 L9 20 Z" stroke="#dfa72f" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="compose-field">Send a quack…</div>
+    <div class="quack-send">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2 a5 5 0 0 1 5 5 v5 a5 5 0 0 1 -10 0 V7 a5 5 0 0 1 5 -5 Z" fill="#4a3308"/><path d="M7 11 a5 5 0 0 0 10 0" stroke="#4a3308" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M12 18 v3" stroke="#4a3308" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</body>
+</html>

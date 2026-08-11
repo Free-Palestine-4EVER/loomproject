@@ -96,6 +96,15 @@
     violet: 'var(--yarn-violet)', crimson: '#e0244a', grey: '#a9a8b6', cream: 'var(--yarn-cream)',
   }
 
+  /* One yarn per core deliverable, in the order the four warp threads are
+     already drawn everywhere else on this section (gold → pink → violet →
+     blue). Existing tokens only — nothing new is being invented here, the
+     four cards are just picking up the same rope the index and the ledger
+     rule already ran on. */
+  const CORE_YARNS = [
+    'var(--yarn-gold)', 'var(--yarn-pink)', 'var(--yarn-violet)', 'var(--yarn-blue)',
+  ]
+
   const GROUPS = NICHE_GROUPS.filter((g) => g.id !== 'all')
   const GROUP_LABEL = Object.fromEntries(GROUPS.map((g) => [g.id, g.label]))
   const yarnOf = (n) => GROUP_YARN[n.group] ?? 'magenta'
@@ -211,15 +220,44 @@
   // Same rAF-throttled, passive-listener contract as Products.svelte's
   // stage — a scroll-linked progress read, not a spring simulation on the
   // main thread (see PORTING.md rule 2).
+  /* NOT ONE LAYOUT READ PER SCROLL FRAME. The loop below used to open with
+     `pinEl.getBoundingClientRect().top` and `pinEl.offsetHeight` — two
+     properties the browser cannot answer without flushing pending layout
+     first. Doing that inside a scroll-driven rAF is textbook layout
+     thrashing, and here it landed on the worst possible frame: the same tick
+     the compositor is resolving this element's `position: sticky` offset and
+     Svelte may be swapping the card's text. A forced synchronous layout there
+     is a very plausible source of the sub-pixel judder the client keeps
+     reporting and that no position probe can see, because nothing MOVES —
+     the frame just misses its deadline and the sticky box lands late.
+     So the geometry is cached: the track's document offset and its height are
+     read ONCE on mount and re-read only on resize (and after fonts land,
+     which is the other thing that can change the track's top). Inside the
+     rAF only `window.scrollY` is touched, which is a stored scalar on the
+     window and costs nothing. */
+  let pinTop = 0
+  let pinHeight = 0
+  /* Component-scope, not local to onMount, because `measureCardHeight()` below
+     writes `--sol-card-h` on this same element — a layout change to the track
+     — and the cached numbers have to be refreshed when it does. */
+  const measurePin = () => {
+    if (!pinEl || !browser) return
+    const r = pinEl.getBoundingClientRect()
+    pinTop = r.top + window.scrollY
+    pinHeight = pinEl.offsetHeight
+  }
+
   onMount(() => {
     let raf = 0
+    const measure = measurePin
+
     const paint = () => {
       raf = 0
       if (!pinEl || !pinned) return
-      const total = pinEl.offsetHeight - window.innerHeight
+      const total = pinHeight - window.innerHeight
       if (total <= 0) return
       if (query.length > 0) return
-      const y = Math.min(Math.max(-pinEl.getBoundingClientRect().top, 0), total)
+      const y = Math.min(Math.max(window.scrollY - pinTop, 0), total)
       const p = y / total
       // clamp on both ends: at p===1 the raw index is NICHES.length, which
       // is past the end of the array and would blank the card on the last
@@ -228,14 +266,23 @@
       const key = NICHES[idx].key
       if (pinnedKey !== key) pinnedKey = key
     }
+
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(paint) }
+    // resize is the only thing allowed to re-measure, and it re-measures
+    // BEFORE painting so the cached numbers are never a frame stale.
+    const onResize = () => { measure(); onScroll() }
+
+    measure()
     paint()
+    // web fonts reflow the copy above the track, which moves `pinTop`. One
+    // re-measure when they land, not a read every frame forever.
+    document.fonts?.ready?.then(measure).catch(() => {})
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
+    window.addEventListener('resize', onResize)
     return () => {
       if (raf) cancelAnimationFrame(raf)
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
+      window.removeEventListener('resize', onResize)
     }
   })
 
@@ -249,17 +296,27 @@
      advances, quietly fetch the renders a few industries ahead. `new
      Image()` warms the HTTP cache and nothing else.
 
-     THREE ahead, not thirty: preloading the whole set would pull ~30
-     renders the moment anyone reaches this section, which is worse than the
-     problem. */
+     SIX ahead while the tour is actually pinned (was three, always): a
+     trackpad flick can cross more than three industries between two
+     animation frames, which outran the old lookahead and made
+     `.sol-stage-bg`'s `src` land on an image that was not decoded yet — a
+     real decode stall on the one frame the sticky box is also being
+     recalculated, which is what reads as "the section jiggles" even though
+     nothing actually moved (see the note on `stageFallback` above: the
+     <picture> is a single stable node now, not a remount, so this is the
+     other half of the same fix). Six, not thirty: preloading the whole set
+     would pull ~30 renders the moment anyone reaches this section, which is
+     worse than the problem. Three ahead everywhere else — the pin is the
+     only place the tour can be scrolled PAST this fast. */
   $effect(() => {
     if (!browser) return
     const key = shown.key
     const portrait = window.matchMedia('(max-width: 719px)').matches
     const from = NICHES.findIndex((n) => n.key === key)
     if (from < 0) return
+    const ahead = pinned ? 6 : 3
     const imgs = []
-    for (let k = 1; k <= 3; k++) {
+    for (let k = 1; k <= ahead; k++) {
       const n = NICHES[(from + k) % NICHES.length]
       const img = new Image()
       img.src = portrait ? `/img/niches/${n.key}-9x16.webp` : `/img/niches/${n.key}.webp`
@@ -288,20 +345,64 @@
 
   const sectionAccent = $derived(YARN_HEX[GROUP_YARN[shown.group]])
 
-  // The photograph and its scrim errors: fall back to the portrait, don't
-  // hide. Seven of the thirty industries have only a `-9x16` render on disk;
-  // hiding on error meant those seven showed a BLANK stage on desktop.
+  // ——— THE STAGE PHOTOGRAPH — ONE STABLE NODE, NEVER REMOUNTED ———
+  // This used to be `{#key shown.key}` around the whole <picture>: a fresh
+  // <source>/<img> tree destroyed and recreated on every one of the 30
+  // industries the pinned tour scrubs through. That is real DOM churn
+  // (layout + paint + a fresh decode) happening on the exact same rAF tick
+  // the browser is also recalculating a `position: sticky` box's offset —
+  // and it is the one part of this component an automated position-sampling
+  // pass (getBoundingClientRect every frame) cannot see, because remounting
+  // doesn't move anything, it just stutters the frame the swap lands on.
+  // Client report after that pass came back clean: "still jiggles." This is
+  // the fix — the <picture>/<img> below is now a single element for the
+  // whole scrub; `src`/`srcset` update in place (a plain attribute patch,
+  // not a remount), and the two error-fallback bits that used to reach into
+  // the DOM by hand (`img.dataset`, `pic.querySelectorAll('source').remove()`)
+  // are now ordinary reactive state instead, since there's no longer a fresh
+  // node per industry to hang imperative flags off of.
+  //
+  // Seven of the thirty industries have only a `-9x16` render on disk, so an
+  // errored `-wide` source falls back to the portrait instead of hiding —
+  // `stageFallback` remembers which keys already fell back so the `<source>`
+  // set is skipped for them; `stageBroken` remembers the rare case where even
+  // the fallback 404s, and only then is the node hidden (never removed, so a
+  // later WORKING industry reusing this same element still shows).
+  let stageFallback = $state(new Set())
+  let stageBroken = $state(new Set())
+
+  /* ——— WHICH STAGE IMAGES ARE MOUNTED ———
+     Every industry gets its own <img> in the stage (see the markup), but only
+     the ones in this window carry a real `src`. That is what makes the
+     cross-fade free of decode: a photograph is mounted, fetched and decoded
+     while it is still fully transparent, two to four industries before it is
+     shown, so by the time it fades in there is nothing left to do but
+     composite an opacity.
+
+     The window is deliberately asymmetric — the tour almost always travels
+     forwards, so it reaches further ahead (4) than behind (2). Behind is not
+     zero because a reader scrolling back up needs the same guarantee.
+
+     Keep this SMALL. Every key in here is a live <img> holding a decoded
+     bitmap; widening it to all 30 would hold ~30 full-size decodes in memory
+     for a section most visitors scroll past. */
+  const stageNear = $derived.by(() => {
+    const set = new Set([shown.key])
+    const i = NICHES.findIndex((n) => n.key === shown.key)
+    if (i < 0) return set
+    for (let d = -2; d <= 4; d++) {
+      const j = i + d
+      if (j >= 0 && j < NICHES.length) set.add(NICHES[j].key)
+    }
+    return set
+  })
   function onStageError(n) {
-    return (e) => {
-      const img = e.currentTarget
-      if (img.dataset.fellBack) { img.style.visibility = 'hidden'; return }
-      img.dataset.fellBack = '1'
-      // THE <source> ELEMENTS HAVE TO GO FIRST. Setting img.src alone does
-      // nothing inside a <picture>: the browser has already resolved a
-      // <source>, and that resolution wins over any later src assignment.
-      const pic = img.parentElement
-      if (pic && pic.tagName === 'PICTURE') pic.querySelectorAll('source').forEach((s) => s.remove())
-      img.src = `/img/niches/${n.key}-9x16.webp`
+    return () => {
+      if (stageFallback.has(n.key)) {
+        if (!stageBroken.has(n.key)) { const s = new Set(stageBroken); s.add(n.key); stageBroken = s }
+        return
+      }
+      const s = new Set(stageFallback); s.add(n.key); stageFallback = s
     }
   }
 
@@ -359,11 +460,22 @@
     const kickerEl = ghostCard.querySelector('.sol-answer-head .sol-answer-kicker')
     const items = ghostCard.querySelectorAll('.sol-deliverables li > span')
     const ctaText = ghostCard.querySelector('.sol-cta .wool-btn-text, .sol-cta .wool-btn-label')
+    /* The two blocks restored to the card are per-industry copy of VERY
+       different lengths (the agent paragraph runs 90-190 characters across the
+       thirty), so they have to be swapped in the ghost too. Miss them and the
+       reservation is measured against whichever industry happened to be
+       showing at mount, the card's real height varies underneath a
+       bottom-anchored slot, and the tour gets its top-edge step back — the
+       exact failure `--sol-card-h` exists to prevent. */
+    const moonEl = ghostCard.querySelector('.sol-answer-moon')
+    const agentEl = ghostCard.querySelector('.sol-agent-copy')
 
     let max = 0
     for (const n of NICHES) {
       if (nameEl) nameEl.textContent = n.name
       if (hookEl) hookEl.textContent = n.hook
+      if (moonEl) moonEl.textContent = n.moon
+      if (agentEl) agentEl.textContent = n.agent
       if (kickerEl) kickerEl.textContent = GROUP_LABEL[n.group]
       n.deliverables.forEach((d, i) => {
         const span = items[i]
@@ -382,6 +494,10 @@
 
     ghostSlot.remove()
     if (max > 0) pinEl.style.setProperty('--sol-card-h', `${Math.ceil(max)}px`)
+    // the reservation just changed the track's layout, so the scroll loop's
+    // cached geometry is stale by exactly one write. Refresh it here rather
+    // than let the rAF read it back every frame.
+    measurePin()
   }
 
   // Runs once the real card exists, and again whenever the width it wraps
@@ -478,22 +594,59 @@
         <!-- ——— THE STAGE ——— -->
         <div class="sol-stage">
           {#if !noMatch}
-            {#key shown.key}
-              <picture style="display:contents">
-                <source media="(max-width: 719px)" type="image/avif" srcset="/img/niches/{shown.key}-9x16.avif" />
-                <source media="(max-width: 719px)" type="image/webp" srcset="/img/niches/{shown.key}-9x16.webp" />
-                <source type="image/avif" srcset="/img/niches/{shown.key}.avif" />
-                <img
-                  class="sol-stage-bg"
-                  src="/img/niches/{shown.key}.webp"
-                  alt=""
-                  width="1400"
-                  height="600"
-                  decoding="async"
-                  onerror={onStageError(shown)}
-                />
-              </picture>
-            {/key}
+            <!-- ——— THE FLICKER FIX — 11 Aug 2026 ———
+                 THE VISIBLE IMAGE'S `src` IS NEVER MUTATED. THAT IS THE WHOLE
+                 POINT OF THIS BLOCK; do not "simplify" it back to one <img>.
+
+                 What it was: a single <picture>/<img> whose `src` and the
+                 <source> `srcset`s were patched in place as `shown.key`
+                 changed. That was already the fix for an earlier bug (a
+                 `{#key}` block that destroyed and rebuilt the whole subtree 30
+                 times per scrub) — but it only removed the teardown, not the
+                 decode. Changing `srcset`/`src` on an element that is ON SCREEN
+                 makes the browser re-run source selection and decode a new
+                 file for the element the reader is looking at. Between the
+                 attribute write and the decode landing there is a gap, and in
+                 WebKit that gap paints — reported by the client, repeatedly and
+                 correctly, as the section FLICKERING on scroll. Eager
+                 preloading did not help: warming the HTTP cache does not
+                 prevent a re-decode on the live node.
+
+                 What it is now: every industry owns its OWN <img>, stacked in
+                 the same box, and the scrub only cross-fades OPACITY between
+                 them. Opacity is compositor-only — it cannot flicker, and it
+                 cannot force a decode. An image is mounted with a real `src`
+                 only once it enters a window around the current index
+                 (`stageNear`), so it decodes while still fully transparent,
+                 several industries before anyone sees it. Nodes are keyed by
+                 `n.key`, so sliding the window never re-creates a node that is
+                 already decoded.
+
+                 The `{#each}` is keyed and MUST stay keyed: an unkeyed each
+                 would recycle DOM nodes between industries, which reintroduces
+                 exactly the src-mutation-on-a-visible-node this removes. -->
+            {#each NICHES as n (n.key)}
+              {#if stageNear.has(n.key)}
+                <picture style="display:contents">
+                  {#if !stageFallback.has(n.key)}
+                    <source media="(max-width: 719px)" type="image/avif" srcset="/img/niches/{n.key}-9x16.avif" />
+                    <source media="(max-width: 719px)" type="image/webp" srcset="/img/niches/{n.key}-9x16.webp" />
+                    <source type="image/avif" srcset="/img/niches/{n.key}.avif" />
+                  {/if}
+                  <img
+                    class="sol-stage-bg{n.key === shown.key ? ' is-on' : ''}"
+                    src={stageFallback.has(n.key) ? `/img/niches/${n.key}-9x16.webp` : `/img/niches/${n.key}.webp`}
+                    alt=""
+                    width="1400"
+                    height="600"
+                    decoding="async"
+                    aria-hidden={n.key === shown.key ? undefined : 'true'}
+                    style={stageBroken.has(n.key) ? 'visibility:hidden' : undefined}
+                    onerror={onStageError(n)}
+                  />
+                </picture>
+              {/if}
+            {/each}
           {/if}
           <i class="sol-stage-scrim" aria-hidden="true"></i>
 
@@ -550,9 +703,39 @@
                     </div>
                   </div>
                   <p class="sol-answer-hook">{shown.hook}</p>
+                  <!-- ——— THE ARC, WHICH WAS SITTING IN THE DATA UNUSED ———
+                       Client: "the content where the button is needs more".
+                       Nothing had actually been deleted from this card — the
+                       kicker, name, hook, three deliverables and CTA are the
+                       same nodes they have always been — but the LEFT column
+                       was four short lines and a button, and `NICHES` carries
+                       two fields the card never rendered: `moon` and `agent`.
+                       `moon` is the industry's arc ("From the neighbourhood
+                       spot to the name people book a week ahead") and it goes
+                       here, between the hook and the ask, because that is the
+                       gap the button was standing in on its own. Verbatim
+                       from the data — not one word is written here. -->
+                  <p class="sol-answer-moon">{shown.moon}</p>
+                  <!-- ——— ONE CTA TREATMENT, THIRTY INDUSTRIES ———
+                       This used to be `yarn={yarn}`, i.e. the group's own
+                       colour driving the knitted button's fallback texture —
+                       so the site's single most important conversion rendered
+                       gold on Restaurants, hot pink on Barbershops, grey on
+                       Law Firms and cream on NGOs. Thirty industries, thirty
+                       different primary buttons: not a system, an accident of
+                       a data field leaking into the brand.
+                       Every other primary wool CTA on the site is one fixed
+                       yarn per surface (Pricing → magenta, FAQ/Hiring →
+                       violet, AnswerEngine → gold) and the "not on the list"
+                       card a few lines above was already magenta — so the
+                       resolved card matches it. The industry's own colour is
+                       NOT lost, it just stops being the button: it now sets
+                       the kicker's ink and the accent rule beside it (see
+                       `.sol-console .sol-answer-kicker` in solutions.css),
+                       which is where a per-category signal belongs. -->
                   <WoolButton
                     label={`Build my ${shown.name} system`}
-                    yarn={yarn}
+                    yarn="magenta"
                     class="sol-cta"
                     onclick={() => wizard.open({ niche: shown.name })}
                   />
@@ -579,31 +762,6 @@
         </div>
       </div>
 
-      <!-- the breadth IS the claim — every one of the thirty stays reachable
-           here, set as one continuous run of grouped type instead of thirty
-           bordered rows. -->
-      <nav class="sol-index" aria-label="All industries, by category">
-        <p class="sol-idx-flow">
-          {#each GROUPS as g, gi (g.id)}
-            <span class="sol-idx-group" style="--grp-yarn:{YARN_HEX[GROUP_YARN[g.id]]}">
-              <span class="sol-idx-label">{@render groupIcon(g.id, 'sol-idx-gicon')}{g.label}</span>&nbsp;
-              {#each NICHES.filter((n) => n.group === g.id) as n, i (n.key)}
-                <span>
-                  <button
-                    type="button"
-                    class="sol-idx-btn{n.key === shown.key && !noMatch ? ' is-active' : ''}"
-                    aria-pressed={n.key === shown.key && !noMatch}
-                    onclick={() => pick(n)}
-                  >{n.name}</button>
-                  {#if i < NICHES.filter((x) => x.group === g.id).length - 1}<span class="sol-idx-sep" aria-hidden="true">·</span>{/if}
-                </span>
-              {/each}
-              {#if gi < GROUPS.length - 1}<span class="sol-idx-gap" aria-hidden="true"> — </span>{/if}
-            </span>
-          {/each}
-        </p>
-      </nav>
-
       <!-- the tour's own progress — thirty ticks, the current one lit. -->
       {#if pinned}
         <div class="sol-tour" aria-hidden="true">
@@ -617,32 +775,117 @@
     </div>
   </div>
 
+  <!-- ——— THE INDEX — ALL THIRTY, OUTSIDE THE PIN ———————————————————————
+       This lived INSIDE `.sol-pin-inner`, which is `height: 100svh; overflow:
+       hidden` — a fixed viewport with a head, a search bar, a photographic
+       stage and a progress rail already in it. There was nothing left for
+       thirty industry names, so the index had been squeezed into
+       `columns: 5; max-height: clamp(76px,13vh,116px); overflow: hidden` and
+       was doing exactly what a clipped multi-column box does: orphaning rows
+       mid-name ("E-commerce Brands"), stranding the " — " group separator at
+       the foot of a column with nothing after it ("Catering & Events —"), and
+       — because the whole thing was ONE paragraph of inline type — running
+       each category's LABEL inline off the back of the previous category's
+       last industry ("… — × BEAUTY").
+
+       No amount of column tuning fixes a block that is 300px of content in a
+       110px box. So it moves out of the pin entirely: it is now a sibling of
+       the pin track, landing the moment the tour releases — which is exactly
+       when "now show me all of them" is the question — with no height cap at
+       all. And it stops being an inline paragraph: seven real groups, each a
+       block with its own heading above its own list, so a label can never
+       collide with a name and a name can never be cut. Nothing is clipped
+       because nothing is constrained; the grid reflows 2 → 3 → 4 → 7 columns
+       and every column grows to its content. -->
+  <nav class="sol-index" aria-label="All industries, by category" use:reveal={{ delay: 0.05 }}>
+    <div class="sol-idx-head">
+      <p class="sol-idx-kicker">All {NICHES.length}, by category</p>
+      <span class="sol-idx-rule" aria-hidden="true"></span>
+    </div>
+    <div class="sol-idx-grid">
+      {#each GROUPS as g (g.id)}
+        <div class="sol-idx-group" style="--grp-yarn:{YARN_HEX[GROUP_YARN[g.id]]}">
+          <h3 class="sol-idx-label">
+            {@render groupIcon(g.id, 'sol-idx-gicon')}<span class="sol-idx-labeltext">{g.label}</span>
+          </h3>
+          <ul class="sol-idx-list">
+            {#each NICHES.filter((n) => n.group === g.id) as n (n.key)}
+              <li>
+                <button
+                  type="button"
+                  class="sol-idx-btn{n.key === shown.key && !noMatch ? ' is-active' : ''}"
+                  aria-pressed={n.key === shown.key && !noMatch}
+                  onclick={() => pick(n)}
+                >{n.name}</button>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {/each}
+    </div>
+  </nav>
+
   <!-- ——— THE FOUR EVERYONE GETS ———
        Below the console on purpose. The console answers "what do you build
        for ME"; this answers "and what does everybody get", which only
        matters once they have seen themselves on the page. -->
   <div class="sol-core" use:reveal={{ delay: 0.08 }}>
     <div class="sol-core-head">
+      <p class="sol-core-kicker">The floor</p>
       <h3 class="sol-core-title">Every client gets these four</h3>
       <p class="sol-core-sub">The three above are yours alone. These four are the floor.</p>
     </div>
-    <ul class="sol-core-grid">
+
+    <!-- ——— FOUR COLUMNS OF ONE BOLT, NOT FOUR ROWS OF A LEDGER ———
+         The previous pass set these as a tall stacked ledger: four full-width
+         rows, one under the next, half a screen of scrolling to learn what is
+         a single four-part fact. But the sentence above them is "every client
+         gets these FOUR" — a set, not a sequence. A set has to be taken in at
+         once or it is not read as a set at all, so it is laid across in one
+         line: four equal columns, comparable at a glance.
+         What keeps it from being four plain boxes: there are no boxes. One
+         warp rule runs across the top of all four and each column hangs off
+         its own segment of it, tinted with its own yarn, so they read as four
+         picks of the same bolt of cloth; the numeral is oversized, outlined
+         and half-buried behind the rule the way a selvedge mark is; the three
+         proofs sit on a shared baseline across all four columns (subgrid, so
+         the alignment is real and not a guessed min-height).
+         Copy untouched — every title, blurb and point is CORE_SERVICES
+         verbatim, in order. -->
+    <ol class="sol-core-grid">
       {#each CORE_SERVICES as c, i (c.title)}
-        <li class="sol-core-card">
-          <span class="sol-core-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+        <li
+          class="sol-core-card"
+          style="--card-yarn:{CORE_YARNS[i % CORE_YARNS.length]}"
+          use:reveal={{ delay: 0.1 + i * 0.07 }}
+        >
+          <span class="sol-core-warp" aria-hidden="true"></span>
+          <div class="sol-core-idx">
+            <span class="sol-core-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          </div>
           <h4 class="sol-core-h">{c.title}</h4>
           <p class="sol-core-b">{c.blurb}</p>
           <ul class="sol-core-pts">
-            {#each c.points as p (p)}<li>{p}</li>{/each}
+            {#each c.points as p (p)}
+              <li><i class="sol-stitch" aria-hidden="true"></i><span>{p}</span></li>
+            {/each}
           </ul>
         </li>
       {/each}
-    </ul>
-    <p class="sol-entry">
-      <span class="sol-entry-tag">Start here</span>
-      <span class="sol-entry-title">{ENTRY_OFFER.title}</span>
-      <span class="sol-entry-price">{ENTRY_OFFER.price}</span>
-      <span class="sol-entry-blurb">{ENTRY_OFFER.blurb}</span>
-    </p>
+    </ol>
+
+    <!-- ——— THE TRIPWIRE ———
+         Same words, same figure, given the shape of an offer instead of a
+         footnote: a torn ticket whose stub carries the price. -->
+    <div class="sol-entry">
+      <div class="sol-entry-body">
+        <span class="sol-entry-tag">Start here</span>
+        <span class="sol-entry-title">{ENTRY_OFFER.title}</span>
+        <span class="sol-entry-blurb">{ENTRY_OFFER.blurb}</span>
+      </div>
+      <div class="sol-entry-stub">
+        <span class="sol-entry-price">{ENTRY_OFFER.price}</span>
+      </div>
+    </div>
   </div>
 </svelte:element>

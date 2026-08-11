@@ -11,6 +11,25 @@
 :root {
   /* overshoots slightly then settles — wool has give, it does not click */
   --wool-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ——— how wool sits on THIS ground ———
+     These shadows used to be rgba(0,0,0,0.55) at a 26px blur, which is what a
+     lit object needs when the room is a dark violet atelier. The room is now
+     #ffe9f2. A half-opaque black blur that wide does not read as contact on a
+     pale ground — it reads as a grey plate the cut-out was never taken off,
+     and that is exactly what the client saw around "Make one free". So: plum,
+     not black (it is the ink the whole page is drawn in), tight enough to be a
+     contact shadow rather than a field, and quiet enough that the pill's own
+     photographed shadow is doing most of the work.
+
+     Kept to ONE drop-shadow per element on purpose: each one is a separate
+     blur pass, and this file already carries the note about what 36 live blur
+     layers did to scrolling. */
+  --wool-cast: 0 4px 9px -2px rgba(51, 36, 61, 0.2), 0 10px 20px -10px rgba(51, 36, 61, 0.22);
+  --wool-cast-lift: 0 8px 16px -4px rgba(51, 36, 61, 0.22), 0 18px 30px -14px rgba(51, 36, 61, 0.26);
+  --wool-drop: drop-shadow(0 5px 8px rgba(51, 36, 61, 0.22));
+  --wool-drop-lift: drop-shadow(0 10px 16px rgba(51, 36, 61, 0.24));
+  --wool-drop-tight: drop-shadow(0 3px 5px rgba(51, 36, 61, 0.2));
 }
 
 /* ——— felt surfaces: a dark felt patch stitched onto the room ——— */
@@ -99,11 +118,24 @@
 /* ——————————————————————————————————————————————
    Photographed pills — lit from the front, so they need a bloom not a shadow
    —————————————————————————————————————————————— */
-/* the renders are shot edge-to-edge, so their box IS the pill — these widths
-   are tuned against the CSS pills' cap height, not against the source files */
-.wool-btn--photo { width: var(--wool-btn-w, 190px); }
-.wool-btn--photo.is-big { --wool-btn-w: clamp(210px, 19vw, 252px); }
-.wool-btn--photo.is-small { --wool-btn-w: 146px; }
+/* ——— sizing: a shared CAP HEIGHT, not a shared width ———
+   The renders are shot edge-to-edge, so their box IS the pill — but they are
+   33 separately photographed objects and their aspect ratios run from 1.72:1
+   ("Save") to 2.49:1 ("Start weaving"). Giving them all one WIDTH therefore
+   gave them wildly different heights: "Make one free" (1.77:1) came out
+   190x107 next to "See the work" (2.14:1) at 176x82 — a third taller for the
+   same footprint, which is the cushion the client asked to be flattened.
+   Sizing off the height instead makes every knit on the page the same button,
+   and lets the photograph decide how wide its own label needs to be.
+   --wool-btn-ar is set inline by WoolButton.svelte from the RATIO table; the
+   fallbacks keep the pills sane if it is ever missing, and --wool-btn-w still
+   wins outright wherever a container already pins a width by hand. */
+.wool-btn--photo {
+  --wool-btn-h: clamp(70px, 5.6vw, 84px);
+  width: var(--wool-btn-w, calc(var(--wool-btn-h) * var(--wool-btn-ar, 2.1)));
+}
+.wool-btn--photo.is-big { --wool-btn-h: clamp(86px, 7vw, 104px); }
+.wool-btn--photo.is-small { --wool-btn-h: 62px; }
 /* the nav sits inside a fixed bar — it gets its own, tighter box */
 .nav-cta .wool-btn--photo { --wool-btn-w: 120px; }
 @media (max-width: 900px) {
@@ -111,20 +143,24 @@
 }
 /* the nav is a thin bar — the CTA must not out-shout the wordmark, so its
    resting shadow is tight and its glow is dialled back */
-.nav-cta .wool-btn--photo img { filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)); }
+.nav-cta .wool-btn--photo img { filter: var(--wool-drop-tight); }
 .nav-cta .wool-btn--photo .wool-btn-halo { inset: -10%; opacity: 0; }
 .nav-cta .wool-btn--photo:hover .wool-btn-halo { opacity: 0.75; }
 .wool-btn--photo img {
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55));
+  /* drop-shadow() follows the alpha, so this traces the pill exactly — what
+     made the old value read as a rectangle was not its shape but its size:
+     26px of half-opaque black around a 190px pill is a field, not a contact
+     shadow, and on #ffe9f2 a field of black is a grey plate. */
+  filter: var(--wool-drop);
   transition: filter 0.42s var(--ease);
   pointer-events: none;
   user-select: none;
 }
 .wool-btn--photo:hover img {
-  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.62)) brightness(1.06) saturate(1.04);
+  filter: var(--wool-drop-lift) brightness(1.04) saturate(1.03);
 }
 /* present for screen readers and find-in-page, never drawn */
 .wool-btn--photo .wool-btn-label {
@@ -157,9 +193,12 @@
 .hero-ctas { margin-top: 26px; }
 /* hero pills sit at button scale, not poster scale — the headline is the
    loudest thing in the viewport and the CTAs answer it, they don't compete */
-.hero-ctas .wool-btn--photo { --wool-btn-w: clamp(152px, 13vw, 176px); }
+/* height-driven for the same reason as the defaults: the hero pairs a 2.49:1
+   render with a 2.14:1 one, and pinning the pair to one width left them
+   visibly different heights side by side in a single row */
+.hero-ctas .wool-btn--photo { --wool-btn-h: clamp(64px, 5vw, 76px); }
 @media (max-width: 600px) {
-  .hero-ctas .wool-btn--photo { --wool-btn-w: 144px; }
+  .hero-ctas .wool-btn--photo { --wool-btn-h: 60px; }
   .hero-ctas { gap: 10px; }
 }
 .hero { padding-bottom: clamp(40px, 7vh, 84px); }
@@ -202,10 +241,10 @@
   border-radius: 999px;
   /* box-shadow, not filter: drop-shadow — the plate is already a rounded
      rect, so the cheap version is also the exact one */
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--wool-cast);
   transition: box-shadow 0.42s var(--ease);
 }
-.wool-btn--css:hover .wool-btn-plate { box-shadow: 0 18px 36px -8px rgba(0, 0, 0, 0.66); }
+.wool-btn--css:hover .wool-btn-plate { box-shadow: var(--wool-cast-lift); }
 .wool-btn--css:hover .wool-btn-halo { opacity: 0.8; }
 /* embroidered lettering: lit top edge, shadow where it sinks into the wool */
 .wool-btn-text {
@@ -314,14 +353,16 @@
   height: var(--wool-icon, 42px);
   flex: none;
   object-fit: contain;
-  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.55));
+  /* same correction as the pills: a felt medallion is 26–62px across, so a
+     12px black blur under it was a grey smudge the size of the medallion */
+  filter: var(--wool-drop-tight);
   transition: transform 0.45s var(--ease), filter 0.45s var(--ease);
   user-select: none;
 }
 a:hover > .wool-icon,
 button:hover > .wool-icon {
   transform: rotate(-7deg) scale(1.12);
-  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.6)) brightness(1.06);
+  filter: var(--wool-drop) brightness(1.04);
 }
 .wool-icon--lg { --wool-icon: 62px; }
 .wool-icon--sm { --wool-icon: 30px; }

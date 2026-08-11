@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    width: 540px; height: 1174px;
+    background: #f3ede3;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    color: #1b1a17;
+    position: relative;
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 62px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px 0 30px;
+  }
+  .sb-time { font-size: 17px; font-weight: 600; letter-spacing: 0.2px; padding-top: 4px; color: #1b1a17; }
+  .sb-island {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 37px; border-radius: 20px; background: #000;
+  }
+  .sb-right { display: flex; align-items: center; gap: 7px; padding-top: 5px; }
+
+  /* ---------- header ---------- */
+  .header {
+    position: absolute; top: 76px; left: 0; right: 0;
+    padding: 0 26px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.08);
+    box-shadow: 0 2px 8px rgba(27,26,23,0.06);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-title { text-align: center; }
+  .header-title-ar { font-family: "Baghdad", "Nadeem", serif; font-size: 20px; color: #1b1a17; direction: rtl; }
+  .header-title-en { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(27,26,23,0.4); text-transform: uppercase; margin-top: 3px; }
+
+  /* ---------- preview ---------- */
+  .preview-wrap {
+    position: absolute; top: 126px; left: 26px; right: 26px; height: 138px;
+    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.08);
+    box-shadow: 0 2px 10px rgba(27,26,23,0.05);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .preview-word {
+    font-family: "Farah", "Baghdad", serif;
+    font-size: 76px; color: #e0483c; direction: rtl; line-height: 1;
+  }
+  .preview-tag {
+    position: absolute; bottom: 12px; left: 14px;
+    font-size: 10.5px; font-weight: 700; color: rgba(27,26,23,0.42);
+    background: rgba(27,26,23,0.05);
+    border-radius: 8px; padding: 4px 9px;
+  }
+  .preview-tag.right { left: auto; right: 14px; color: #2f4a8a; background: rgba(47,74,138,0.08); }
+
+  /* ---------- section labels ---------- */
+  .section-label {
+    position: absolute; left: 26px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    color: rgba(27,26,23,0.4);
+  }
+
+  /* ---------- format list ---------- */
+  .format-card {
+    position: absolute; top: 300px; left: 26px; right: 26px;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.08);
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(27,26,23,0.05);
+    padding: 0 18px;
+  }
+  .format-row {
+    display: flex; align-items: center; gap: 13px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(27,26,23,0.07);
+  }
+  .format-row:last-child { border-bottom: none; }
+  .format-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.3px;
+    color: #ffffff;
+  }
+  .format-name { font-size: 15px; font-weight: 700; color: #1b1a17; }
+  .format-meta { font-size: 12px; color: rgba(27,26,23,0.42); font-weight: 500; margin-top: 2px; }
+  .format-info { flex: 1; }
+  .format-chevron { flex-shrink: 0; }
+
+  /* ---------- layers list ---------- */
+  .layers-card {
+    position: absolute; top: 584px; left: 26px; right: 26px;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.08);
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(27,26,23,0.05);
+    padding: 0 18px;
+  }
+  .layer-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(27,26,23,0.07);
+  }
+  .layer-row:last-child { border-bottom: none; }
+  .layer-swatch { width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0; }
+  .layer-name { font-size: 14px; font-weight: 600; color: #1b1a17; }
+  .layer-sub { font-size: 11px; color: rgba(27,26,23,0.42); font-weight: 500; margin-top: 1px; }
+  .layer-info { flex: 1; }
+  .eye-off { opacity: 0.3; }
+
+  /* ---------- destination ---------- */
+  .dest-card {
+    position: absolute; top: 820px; left: 26px; right: 26px;
+    background: #ffffff;
+    border: 1px solid rgba(27,26,23,0.08);
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(27,26,23,0.05);
+    padding: 14px 18px 12px;
+  }
+  .dest-icons { display: flex; justify-content: space-between; padding: 0 8px 12px; }
+  .dest-icon-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .dest-icon-circle {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(27,26,23,0.05);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dest-icon-circle svg { width: 15px; height: 15px; }
+  .dest-icon-label { font-size: 10px; font-weight: 600; color: rgba(27,26,23,0.55); }
+  .dest-recent {
+    border-top: 1px solid rgba(27,26,23,0.07);
+    padding-top: 10px;
+    font-size: 11px; color: rgba(27,26,23,0.42); font-weight: 500;
+  }
+  .dest-recent b { color: #1b1a17; font-weight: 700; }
+
+  /* ---------- fade ---------- */
+  .page-fade {
+    position: absolute; left: 0; right: 0; bottom: 176px; height: 40px;
+    background: linear-gradient(180deg, rgba(243,237,227,0), #f3ede3);
+    pointer-events: none;
+  }
+
+  /* ---------- sticky export bar ---------- */
+  .export-bar {
+    position: absolute; left: 22px; right: 22px; bottom: 110px;
+    height: 66px;
+    border-radius: 22px;
+    background: #1b1a17;
+    box-shadow: 0 12px 28px rgba(27,26,23,0.3);
+    display: flex; align-items: center;
+    padding: 0 14px 0 8px;
+    gap: 12px;
+  }
+  .export-btn-icon {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(180deg, #e85f52, #e0483c);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .export-bar-text { flex: 1; }
+  .export-bar-title { font-size: 14.5px; font-weight: 700; color: #f3ede3; }
+  .export-bar-sub { font-size: 11px; color: rgba(243,237,227,0.5); font-weight: 500; margin-top: 2px; }
+  .export-bar-size { font-size: 13px; font-weight: 700; color: #f0cf8e; }
+
+  /* ---------- tab bar ---------- */
+  .tabbar {
+    position: absolute; left: 20px; right: 20px; bottom: 34px;
+    height: 68px; border-radius: 30px;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid rgba(27,26,23,0.08);
+    box-shadow: 0 10px 30px rgba(27,26,23,0.14);
+    display: flex; align-items: center; justify-content: space-around;
+    backdrop-filter: blur(14px);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100px; }
+  .tab-item svg { width: 22px; height: 22px; }
+  .tab-label { font-size: 10.5px; font-weight: 600; }
+  .tab-item.active .tab-label { color: #e0483c; }
+  .tab-item:not(.active) .tab-label { color: rgba(27,26,23,0.4); }
+
+  /* ---------- home indicator ---------- */
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px;
+    background: rgba(27,26,23,0.55);
+  }
+</style>
+</head>
+<body>
+
+  <!-- status bar -->
+  <div class="statusbar">
+    <div class="sb-time">9:41</div>
+    <div class="sb-island"></div>
+    <div class="sb-right">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M9 10.2C9.66 10.2 10.2 9.66 10.2 9C10.2 8.34 9.66 7.8 9 7.8C8.34 7.8 7.8 8.34 7.8 9C7.8 9.66 8.34 10.2 9 10.2Z" fill="#1b1a17"/><path d="M9 6.3C10.4 6.3 11.68 6.83 12.66 7.7L13.9 6.3C12.6 5.15 10.88 4.5 9 4.5C7.12 4.5 5.4 5.15 4.1 6.3L5.34 7.7C6.32 6.83 7.6 6.3 9 6.3Z" fill="#1b1a17"/><path d="M9 2.1C11.5 2.1 13.78 3 15.56 4.5L16.8 3.1C14.68 1.3 11.98 0.3 9 0.3C6.02 0.3 3.32 1.3 1.2 3.1L2.44 4.5C4.22 3 6.5 2.1 9 2.1Z" fill="#1b1a17"/></svg>
+      <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="1" y="1" width="21" height="11" rx="2.5" stroke="#1b1a17" stroke-opacity="0.6"/><rect x="2.5" y="2.5" width="15" height="8" rx="1.5" fill="#1b1a17"/><rect x="23.5" y="4" width="1.6" height="5" rx="0.8" fill="#1b1a17" fill-opacity="0.6"/></svg>
+    </div>
+  </div>
+
+  <!-- header -->
+  <div class="header">
+    <div class="icon-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1b1a17" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="header-title">
+      <div class="header-title-ar">تصدير</div>
+      <div class="header-title-en">Export</div>
+    </div>
+    <div class="icon-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.8" fill="#1b1a17"/><circle cx="12" cy="12" r="1.8" fill="#1b1a17"/><circle cx="19" cy="12" r="1.8" fill="#1b1a17"/></svg>
+    </div>
+  </div>
+
+  <!-- preview -->
+  <div class="preview-wrap">
+    <div class="preview-word">طرز</div>
+    <div class="preview-tag">1080 &times; 1080</div>
+    <div class="preview-tag right">Diwani</div>
+  </div>
+
+  <!-- formats -->
+  <div class="section-label" style="top:278px;">Formats &middot; الصيغ</div>
+  <div class="format-card" style="top:304px;">
+
+    <div class="format-row">
+      <div class="format-icon" style="background:#e0483c;">SVG</div>
+      <div class="format-info">
+        <div class="format-name">Vector &middot; SVG</div>
+        <div class="format-meta">34 paths &middot; 18 KB</div>
+      </div>
+      <svg class="format-chevron" width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M1 1L7 7L1 13" stroke="rgba(27,26,23,0.28)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="format-row">
+      <div class="format-icon" style="background:#2f4a8a;">PNG</div>
+      <div class="format-info">
+        <div class="format-name">Raster &middot; PNG</div>
+        <div class="format-meta">1080 &times; 1080 &middot; 214 KB</div>
+      </div>
+      <svg class="format-chevron" width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M1 1L7 7L1 13" stroke="rgba(27,26,23,0.28)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="format-row">
+      <div class="format-icon" style="background:#7a6a4f;">PDF</div>
+      <div class="format-info">
+        <div class="format-name">Print &middot; PDF</div>
+        <div class="format-meta">Vector &middot; A4 &middot; 96 KB</div>
+      </div>
+      <svg class="format-chevron" width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M1 1L7 7L1 13" stroke="rgba(27,26,23,0.28)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="format-row">
+      <div class="format-icon" style="background:#c99a44;">GIF</div>
+      <div class="format-info">
+        <div class="format-name">Sticker &middot; WebP</div>
+        <div class="format-meta">512 &times; 512 &middot; transparent &middot; 61 KB</div>
+      </div>
+      <svg class="format-chevron" width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M1 1L7 7L1 13" stroke="rgba(27,26,23,0.28)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+  </div>
+
+  <!-- layers -->
+  <div class="section-label" style="top:568px;">Layers &middot; الطبقات</div>
+  <div class="layers-card">
+
+    <div class="layer-row">
+      <div class="layer-swatch" style="background:#e0483c;"></div>
+      <div class="layer-info">
+        <div class="layer-name">Word</div>
+        <div class="layer-sub">Ink stroke &middot; طرز</div>
+      </div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12C2 12 5.5 5.5 12 5.5C18.5 5.5 22 12 22 12C22 12 18.5 18.5 12 18.5C5.5 18.5 2 12 2 12Z" stroke="#1b1a17" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="#1b1a17" stroke-width="1.8"/></svg>
+    </div>
+
+    <div class="layer-row">
+      <div class="layer-swatch" style="background:rgba(27,26,23,0.4);"></div>
+      <div class="layer-info">
+        <div class="layer-name">Diacritics</div>
+        <div class="layer-sub">Tashkeel marks</div>
+      </div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12C2 12 5.5 5.5 12 5.5C18.5 5.5 22 12 22 12C22 12 18.5 18.5 12 18.5C5.5 18.5 2 12 2 12Z" stroke="#1b1a17" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="#1b1a17" stroke-width="1.8"/></svg>
+    </div>
+
+    <div class="layer-row">
+      <div class="layer-swatch" style="background:rgba(27,26,23,0.18);"></div>
+      <div class="layer-info">
+        <div class="layer-name">Shadow</div>
+        <div class="layer-sub">Soft &middot; 12px blur</div>
+      </div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" class="eye-off"><path d="M2.5 3.5L21.5 20.5" stroke="#1b1a17" stroke-width="1.8" stroke-linecap="round"/><path d="M2 12C2 12 5.5 5.5 12 5.5C18.5 5.5 22 12 22 12C22 12 18.5 18.5 12 18.5C5.5 18.5 2 12 2 12Z" stroke="#1b1a17" stroke-width="1.8"/></svg>
+    </div>
+
+    <div class="layer-row">
+      <div class="layer-swatch" style="background:linear-gradient(160deg,#efe6d4,#ded1b2);"></div>
+      <div class="layer-info">
+        <div class="layer-name">Backdrop</div>
+        <div class="layer-sub">Paper &middot; #F3EDE3</div>
+      </div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12C2 12 5.5 5.5 12 5.5C18.5 5.5 22 12 22 12C22 12 18.5 18.5 12 18.5C5.5 18.5 2 12 2 12Z" stroke="#1b1a17" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="#1b1a17" stroke-width="1.8"/></svg>
+    </div>
+
+  </div>
+
+  <!-- destination -->
+  <div class="section-label" style="top:816px;">Destination &middot; الوجهة</div>
+  <div class="dest-card" style="top:842px;">
+    <div class="dest-icons">
+      <div class="dest-icon-item">
+        <div class="dest-icon-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#1b1a17" stroke-width="1.8"/><circle cx="9" cy="10" r="2" stroke="#1b1a17" stroke-width="1.6"/><path d="M4 18L9 13L13 16L20 9" stroke="#1b1a17" stroke-width="1.6"/></svg></div>
+        <div class="dest-icon-label">Photos</div>
+      </div>
+      <div class="dest-icon-item">
+        <div class="dest-icon-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6.5C3 5.4 3.9 4.5 5 4.5H9.5L11.5 6.5H19C20.1 6.5 21 7.4 21 8.5V17.5C21 18.6 20.1 19.5 19 19.5H5C3.9 19.5 3 18.6 3 17.5V6.5Z" stroke="#1b1a17" stroke-width="1.7"/></svg></div>
+        <div class="dest-icon-label">Files</div>
+      </div>
+      <div class="dest-icon-item">
+        <div class="dest-icon-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3L18 10H14V17H10V10H6L12 3Z" fill="#1b1a17"/><path d="M5 20H19" stroke="#1b1a17" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div class="dest-icon-label">AirDrop</div>
+      </div>
+      <div class="dest-icon-item">
+        <div class="dest-icon-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="13" height="13" rx="2.5" stroke="#1b1a17" stroke-width="1.7"/><path d="M4 15V5.5C4 4.7 4.7 4 5.5 4H15" stroke="#1b1a17" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <div class="dest-icon-label">Copy</div>
+      </div>
+    </div>
+    <div class="dest-recent">Last export &rarr; <b>Files / Tarz Exports</b> &middot; 6 minutes ago</div>
+  </div>
+
+  <div class="page-fade"></div>
+
+  <!-- sticky export bar -->
+  <div class="export-bar">
+    <div class="export-btn-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 15V4M8 8L12 4L16 8" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 15V18.5C4.5 19.6 5.4 20.5 6.5 20.5H17.5C18.6 20.5 19.5 19.6 19.5 18.5V15" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+    <div class="export-bar-text">
+      <div class="export-bar-title">Export SVG</div>
+      <div class="export-bar-sub">34 paths &middot; Diwani &middot; 1080 &times; 1080</div>
+    </div>
+    <div class="export-bar-size">18 KB</div>
+  </div>
+
+  <!-- tab bar -->
+  <div class="tabbar">
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 6H20M4 12H14M4 18H10" stroke="rgba(27,26,23,0.4)" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <div class="tab-label">Type</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/></svg>
+      <div class="tab-label">Styles</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="rgba(27,26,23,0.4)" stroke-width="1.8"/><circle cx="9" cy="9.5" r="1.6" fill="rgba(27,26,23,0.4)"/><circle cx="15" cy="9.5" r="1.6" fill="rgba(27,26,23,0.4)"/><circle cx="9" cy="15" r="1.6" fill="rgba(27,26,23,0.4)"/></svg>
+      <div class="tab-label">Colour</div>
+    </div>
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 15V4M8 8L12 4L16 8" stroke="#e0483c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 15V18.5C4.5 19.6 5.4 20.5 6.5 20.5H17.5C18.6 20.5 19.5 19.6 19.5 18.5V15" stroke="#e0483c" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="tab-label">Export</div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+
+</body>
+</html>

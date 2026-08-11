@@ -16,6 +16,29 @@
 // The subscription and the workshop floors are IMPORTED, not retyped. They are
 // quoted live elsewhere on the page (TheMachine.jsx, Workshops.jsx) and a
 // second hardcoded copy is how two numbers for one product ship.
+//
+// ————— REPRICED FOR AMMAN, 11 Aug 2026 (client instruction) —————
+// The four one-off floors were set against a Gulf/European buyer and read as a
+// different company's price list next to the two figures the rest of the page
+// already publishes: 49 JOD for a hundred photos and 89 JOD/month for The
+// Machine. A Jordanian SME who has just been told a month of content is 89 JOD
+// does not believe 750 JOD is the *floor* for a website — they read it as the
+// quote, and they leave. The ladder below is the local one:
+//
+//   site 500 → store 1,200 → app 2,500 → software 3,900
+//
+// Each step is defensible against the one under it (a store is the site plus a
+// database, a checkout and an admin; an app is the store plus two native
+// targets and a review process; software is the app plus a spec and a support
+// window) and against the subscription anchor (the cheapest floor here is
+// ~5.6 months of The Machine — the same order of magnitude, not another
+// planet). The workshop seat floor at 320 JOD sits inside the ladder on
+// purpose: one seat is cheap, a real cohort lands between the store and the
+// app, which is the truth about what training a company costs.
+//
+// THESE ARE STILL FLOORS. If any of them moves again, the tier's `note` and
+// `includes` move with it — a price can be cut without the scope being cut,
+// but only if the scope line was honest at the higher number too.
 // ————————————————————————————————————————————————————————
 import { THE_MACHINE } from './offers.js'
 import { PRICE_PER_SEAT_BY_MODULE_COUNT, MIN_MODULES } from './workshops.js'
@@ -29,7 +52,7 @@ export const PRICING = [
     id: 'site',
     n: '01',
     name: 'Website',
-    from: 750,
+    from: 500,
     unit: 'JOD',
     period: 'one-off',
     accent: 'var(--yarn-blue)',
@@ -47,7 +70,7 @@ export const PRICING = [
     id: 'store',
     n: '02',
     name: 'Store & platform',
-    from: 1900,
+    from: 1200,
     unit: 'JOD',
     period: 'one-off',
     accent: 'var(--yarn-violet)',
@@ -65,7 +88,7 @@ export const PRICING = [
     id: 'app',
     n: '03',
     name: 'Mobile app',
-    from: 3900,
+    from: 2500,
     unit: 'JOD',
     period: 'one-off',
     accent: 'var(--yarn-pink)',
@@ -83,7 +106,7 @@ export const PRICING = [
     id: 'software',
     n: '04',
     name: 'Custom software',
-    from: 5500,
+    from: 3900,
     unit: 'JOD',
     period: 'one-off',
     accent: 'var(--yarn-gold)',
@@ -114,7 +137,15 @@ export const PRICING = [
       'No retainer, no minimum term',
     ],
     cta: 'Put the machine on my brand',
-    href: '#the-machine',
+    /* A ROUTE, NOT A HASH (11 Aug 2026). This was '#the-machine', which worked
+       only because Pricing was mounted on exactly one page that also mounted
+       The Machine. Pricing now has its own page too (/pricing), and there the
+       hash pointed at an id that does not exist on the document — a dead link
+       on a card whose whole job is "and here is the thing you just read the
+       price of". '/machine' resolves from both, and it is the same section
+       either way; the sibling card below has always been a path for the same
+       reason. */
+    href: '/machine',
   },
   {
     id: 'workshops',

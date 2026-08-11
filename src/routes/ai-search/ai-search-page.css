@@ -1,0 +1,379 @@
+/* ═══ /ai-search — the page's own sheet ═══════════════════════════════════
+   Prefix `as-`, deliberately NOT the `ae-` prefix components/answerengine.css
+   owns: the two must be able to change independently, and the section's sheet
+   is not this page's to edit.
+
+   THE ONE RULE THIS FILE ENFORCES VISUALLY: the honesty flag is never quiet.
+   `.as-flag` sits in the demo card's masthead in the magenta the rest of the
+   page reserves for calls to action, at 700 weight, with a filled dot — it is
+   the most visible label on the card by design, because the card under it is
+   a simulation. Nothing here dims it, hides it on small screens, or moves it
+   below the fold of the card.
+
+   NO INTERFACE IMITATION: no logos, no avatars, no bubbles, no favicons, no
+   window chrome. The demo is a printed example on paper — a white plate, a
+   label above each row, and one highlighted name.
+
+   COLOUR: no new values. Accents are the four yarns per block; accent text
+   resolves --accent-ink. The `<pre>` uses ui-monospace/system mono, which
+   downloads nothing.
+
+   MOTION: entrance reveals only. There is no animation on this page at all —
+   see the header note in +page.svelte for why the demo does not type itself.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.as-hero,
+.as-demo,
+.as-work,
+.as-proof,
+.as-foot {
+  position: relative;
+  padding: clamp(56px, 8vh, 104px) var(--pad);
+}
+.as-hero-in,
+.as-demo-in,
+.as-sec-head,
+.as-blocks,
+.as-file,
+.as-foot-in {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+/* ——— 1. HERO ——————————————————————————————————————————————————————— */
+.as-hero {
+  padding-top: clamp(40px, 6vh, 72px);
+  isolation: isolate;
+  border-bottom: 1px solid var(--line);
+}
+.as-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 46% at 50% 0%, rgba(224, 168, 47, 0.16), transparent 72%),
+    linear-gradient(to bottom, var(--bg-2), var(--bg));
+}
+.as-h1 { max-width: 18ch; font-size: clamp(2.1rem, 5.4vw, 4rem); line-height: 1.02; }
+.as-hero-lede { margin-top: 20px; color: var(--ink-dim); max-width: 62ch; }
+
+.as-engines-rail {
+  list-style: none;
+  margin-top: clamp(24px, 3vw, 34px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+.as-engines-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-right: 4px;
+}
+/* plain text labels, no marks — naming is fair, drawing their UI is not */
+.as-engine {
+  min-width: 0;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+/* ——— shared section head ——————————————————————————————————————————— */
+.as-sec-head { margin-bottom: clamp(26px, 3.6vw, 46px); }
+.as-h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); line-height: 1.05; max-width: 22ch; }
+.as-sec-lede {
+  margin-top: 14px;
+  color: var(--ink-dim);
+  max-width: 66ch;
+  font-size: clamp(0.98rem, 1.3vw, 1.1rem);
+}
+.as-sec-lede code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
+}
+
+/* ——— 2. THE WORKED EXAMPLE ————————————————————————————————————————
+   A lit white plate on the pink ground — the same light-surface idiom the
+   rest of the site uses for a console (#fff + a plum drop shadow). */
+.as-card {
+  border-radius: 22px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 26px 60px -34px rgba(96, 30, 70, 0.42);
+  overflow: hidden;
+}
+.as-mast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 14px clamp(16px, 2vw, 26px);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(to bottom, rgba(255, 223, 236, 0.7), rgba(255, 255, 255, 0));
+}
+.as-mast-label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+/* THE FLAG. Loudest label on the card, permanently. Do not dim this. */
+.as-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--magenta) 45%, transparent);
+  background: color-mix(in srgb, var(--magenta) 10%, #fff);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--magenta-deep);
+}
+.as-flag i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--magenta);
+}
+
+.as-card-body { padding: clamp(20px, 2.6vw, 34px); }
+.as-row-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.as-question {
+  margin-top: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-2);
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  font-weight: 600;
+  color: var(--ink);
+  max-width: 46ch;
+}
+/* the SECOND label in the card — "any .as-row-label that already has one
+   before it". `nth-of-type` would have matched the <p> that is the question,
+   since it counts element type and not class. */
+.as-row-label ~ .as-row-label { margin-top: clamp(22px, 2.6vw, 30px); }
+.as-answer {
+  margin-top: 10px;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  line-height: 1.5;
+  color: var(--ink);
+  max-width: 60ch;
+}
+.as-name {
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--magenta) 32%, transparent) 42%,
+    transparent 42%
+  );
+  color: var(--ink);
+  font-weight: 700;
+  padding: 0 2px;
+}
+.as-card-foot {
+  padding: 14px clamp(16px, 2vw, 26px);
+  border-top: 1px solid var(--line);
+  background: rgba(255, 223, 236, 0.35);
+  font-size: 0.84rem;
+  color: var(--ink-dim);
+  /* no max-width here: this element paints the card's footer band, and a
+     measure on it stops the tint two-thirds of the way across. The measure
+     lives on the line length instead, via the font size and the card width. */
+}
+
+/* ——— 3. THE FOUR MECHANICS ———————————————————————————————————————
+   Two across on desktop, one on a phone, and every block fully open. Nothing
+   on this page is behind a disclosure — that economy belongs to the home
+   page's band, not to the page somebody opened to read them. */
+.as-work { background: linear-gradient(to bottom, var(--bg), var(--bg-2)); }
+.as-blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
+}
+.as-block {
+  min-width: 0;
+  padding: clamp(20px, 2.2vw, 30px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent, var(--magenta)) 10%, transparent),
+    rgba(255, 255, 255, 0.45) 55%
+  );
+}
+.as-block-head { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+.as-block-n {
+  font-family: var(--display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--accent-ink);
+}
+.as-block-h {
+  min-width: 0;
+  font-family: var(--display);
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  font-weight: 640;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.as-block-h.is-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+  letter-spacing: -0.01em;
+}
+.as-block-short {
+  margin-top: 12px;
+  font-size: clamp(1rem, 1.4vw, 1.12rem);
+  font-weight: 600;
+  color: var(--ink);
+  max-width: 46ch;
+}
+.as-block-body { margin-top: 12px; font-size: 0.96rem; color: var(--ink-dim); max-width: 56ch; }
+.as-block-why {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+  color: var(--ink-faint);
+  max-width: 56ch;
+}
+.as-block-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 16px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 45%, transparent);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--accent-ink);
+  transition: background 0.3s, border-color 0.3s;
+}
+.as-block-link:hover,
+.as-block-link:focus-visible {
+  background: #fff;
+  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 80%, transparent);
+}
+
+/* ——— 4. THE PROOF ——————————————————————————————————————————————————
+   A real file, quoted. The <pre> scrolls INSIDE ITSELF on a narrow screen —
+   `overflow-x: auto` on the block, never on the page. */
+.as-file {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 22px 54px -38px rgba(96, 30, 70, 0.45);
+  overflow: hidden;
+}
+.as-file-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 13px clamp(14px, 2vw, 22px);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-2);
+}
+.as-file-head code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--magenta-deep);
+}
+.as-file-meta {
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.as-file-body {
+  margin: 0;
+  padding: clamp(14px, 2vw, 22px);
+  /* the block scrolls INSIDE ITSELF, never the page. No max-height: the
+     excerpt is a fixed 16 lines and a vertical scroller would clip the last
+     two of them behind an invisible edge. */
+  overflow-x: auto;
+}
+.as-file-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--ink-dim);
+  white-space: pre;
+}
+.as-file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 clamp(14px, 2vw, 22px) clamp(16px, 2vw, 22px);
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--magenta) 40%, transparent);
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--magenta-deep);
+  transition: background 0.3s, border-color 0.3s;
+}
+.as-file-link:hover,
+.as-file-link:focus-visible { background: var(--bg-2); border-color: var(--magenta); }
+
+/* ——— 5. CAVEAT + ASK ——————————————————————————————————————————————— */
+.as-foot { border-top: 1px solid var(--line); }
+.as-foot-in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: clamp(20px, 3vw, 44px);
+}
+.as-caveat {
+  min-width: 0;
+  flex: 1 1 420px;
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  color: var(--ink-dim);
+  max-width: 66ch;
+}
+.as-caveat b { color: var(--ink); }
+
+/* ——— RESPONSIVE ——————————————————————————————————————————————————— */
+@media (max-width: 560px) {
+  .as-blocks { grid-template-columns: minmax(0, 1fr); }
+  .as-file-body code { font-size: 0.76rem; }
+}
+
+/* ——— REDUCED MOTION ————————————————————————————————————————————————
+   Nothing on this page animates at rest and nothing types itself; only the
+   two hover transitions need cutting. */
+@media (prefers-reduced-motion: reduce) {
+  .as-block-link,
+  .as-file-link { transition: none !important; }
+}

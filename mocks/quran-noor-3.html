@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    width: 540px; height: 1174px;
+    background: radial-gradient(120% 90% at 50% -10%, #101c31 0%, #0b1220 42%, #080d18 100%);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    color: #ffffff;
+    position: relative;
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 62px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px 0 30px;
+  }
+  .sb-time { font-size: 17px; font-weight: 600; letter-spacing: 0.2px; padding-top: 4px; }
+  .sb-island {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 37px; border-radius: 20px; background: #000;
+  }
+  .sb-right { display: flex; align-items: center; gap: 7px; padding-top: 5px; }
+
+  /* ---------- top block ---------- */
+  .top {
+    position: absolute; top: 78px; left: 0; right: 0;
+    padding: 0 28px;
+    text-align: center;
+  }
+  .city {
+    font-size: 22px; font-weight: 800; color: #f0cf8e; letter-spacing: 0.2px;
+  }
+  .dates {
+    margin-top: 5px;
+    font-size: 12.5px; color: rgba(255,255,255,0.5); font-weight: 500;
+  }
+
+  .countdown-wrap {
+    margin-top: 22px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .countdown-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    color: rgba(217,182,106,0.75);
+    margin-bottom: 6px;
+  }
+  .countdown-time {
+    font-size: 52px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;
+    line-height: 1;
+  }
+  .countdown-sub {
+    margin-top: 8px;
+    font-size: 14px; font-weight: 600; color: #d9b66a;
+  }
+
+  /* ---------- prayer list ---------- */
+  .prayer-list {
+    position: absolute; top: 322px; left: 26px; right: 26px;
+  }
+  .prayer-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 18px;
+    border-radius: 16px;
+    margin-bottom: 9px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .prayer-row.next {
+    background: linear-gradient(90deg, rgba(217,182,106,0.18), rgba(217,182,106,0.05));
+    border: 1px solid rgba(217,182,106,0.5);
+    box-shadow: 0 6px 18px rgba(217,182,106,0.1);
+  }
+  .prayer-left { display: flex; align-items: center; gap: 12px; }
+  .prayer-icon {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .prayer-row.next .prayer-icon { background: rgba(217,182,106,0.22); }
+  .prayer-name { font-size: 15.5px; font-weight: 700; color: rgba(255,255,255,0.85); }
+  .prayer-row.next .prayer-name { color: #f0cf8e; }
+  .prayer-name-ar {
+    font-family: "KFGQPC Uthmanic Script HAFS", "Geeza Pro", "Al Bayan", "Baghdad", serif;
+    font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 1px; direction: rtl;
+  }
+  .prayer-row.next .prayer-name-ar { color: rgba(240,207,142,0.6); }
+  .prayer-time { font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.9); letter-spacing: 0.3px; }
+  .prayer-row.next .prayer-time { color: #f0cf8e; }
+
+  /* ---------- qibla section ---------- */
+  .qibla-section {
+    position: absolute; top: 700px; left: 0; right: 0;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .qibla-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    color: rgba(217,182,106,0.75);
+    margin-bottom: 14px;
+  }
+  .compass-wrap {
+    width: 250px; height: 250px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #16223a 0%, #0e1526 70%, #0a1220 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 30px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .qibla-readout {
+    margin-top: 16px;
+    font-size: 16px; font-weight: 700; color: #d9b66a;
+  }
+  .qibla-sub {
+    margin-top: 4px;
+    font-size: 12px; color: rgba(255,255,255,0.45); font-weight: 500;
+  }
+
+  /* ---------- tab bar ---------- */
+  .tabbar {
+    position: absolute; left: 20px; right: 20px; bottom: 34px;
+    height: 68px; border-radius: 30px;
+    background: rgba(18,25,40,0.92);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: space-around;
+    backdrop-filter: blur(14px);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 76px; }
+  .tab-item svg { width: 22px; height: 22px; }
+  .tab-label { font-size: 10.5px; font-weight: 600; }
+  .tab-item.active .tab-label { color: #d9b66a; }
+  .tab-item:not(.active) .tab-label { color: rgba(255,255,255,0.4); }
+
+  /* ---------- home indicator ---------- */
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px;
+    background: rgba(255,255,255,0.55);
+  }
+</style>
+</head>
+<body>
+
+  <!-- status bar -->
+  <div class="statusbar">
+    <div class="sb-time">17:03</div>
+    <div class="sb-island"></div>
+    <div class="sb-right">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M9 10.2C9.66 10.2 10.2 9.66 10.2 9C10.2 8.34 9.66 7.8 9 7.8C8.34 7.8 7.8 8.34 7.8 9C7.8 9.66 8.34 10.2 9 10.2Z" fill="white"/><path d="M9 6.3C10.4 6.3 11.68 6.83 12.66 7.7L13.9 6.3C12.6 5.15 10.88 4.5 9 4.5C7.12 4.5 5.4 5.15 4.1 6.3L5.34 7.7C6.32 6.83 7.6 6.3 9 6.3Z" fill="white"/><path d="M9 2.1C11.5 2.1 13.78 3 15.56 4.5L16.8 3.1C14.68 1.3 11.98 0.3 9 0.3C6.02 0.3 3.32 1.3 1.2 3.1L2.44 4.5C4.22 3 6.5 2.1 9 2.1Z" fill="white"/></svg>
+      <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="1" y="1" width="21" height="11" rx="2.5" stroke="white" stroke-opacity="0.5"/><rect x="2.5" y="2.5" width="15" height="8" rx="1.5" fill="white"/><rect x="23.5" y="4" width="1.6" height="5" rx="0.8" fill="white" fill-opacity="0.5"/></svg>
+    </div>
+  </div>
+
+  <!-- top -->
+  <div class="top">
+    <div class="city">Amman, Jordan</div>
+    <div class="dates">27 Safar 1448 AH &middot; Tuesday, 11 August 2026</div>
+
+    <div class="countdown-wrap">
+      <div class="countdown-label">Next Prayer &middot; Maghrib</div>
+      <div class="countdown-time">1:24</div>
+      <div class="countdown-sub">19:34 &middot; in 1 hour 24 minutes</div>
+    </div>
+  </div>
+
+  <!-- prayer list -->
+  <div class="prayer-list">
+
+    <div class="prayer-row">
+      <div class="prayer-left">
+        <div class="prayer-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2V6M4.2 4.2L7 7M2 12H6M4.2 19.8L7 17M12 22V18M19.8 19.8L17 17M22 12H18M19.8 4.2L17 7" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" stroke="rgba(255,255,255,0.55)" stroke-width="1.8"/></svg>
+        </div>
+        <div>
+          <div class="prayer-name">Fajr</div>
+          <div class="prayer-name-ar">الفجر</div>
+        </div>
+      </div>
+      <div class="prayer-time">04:32</div>
+    </div>
+
+    <div class="prayer-row">
+      <div class="prayer-left">
+        <div class="prayer-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.8"/><path d="M12 2.5V5M12 19V21.5M21.5 12H19M5 12H2.5M18.4 5.6L16.6 7.4M7.4 16.6L5.6 18.4M18.4 18.4L16.6 16.6M7.4 7.4L5.6 5.6" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="prayer-name">Dhuhr</div>
+          <div class="prayer-name-ar">الظهر</div>
+        </div>
+      </div>
+      <div class="prayer-time">12:41</div>
+    </div>
+
+    <div class="prayer-row">
+      <div class="prayer-left">
+        <div class="prayer-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 17H21M6 17C6 12 8.5 9 12 9C15.5 9 18 12 18 17" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linecap="round"/><path d="M12 3V6" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="prayer-name">Asr</div>
+          <div class="prayer-name-ar">العصر</div>
+        </div>
+      </div>
+      <div class="prayer-time">16:19</div>
+    </div>
+
+    <div class="prayer-row next">
+      <div class="prayer-left">
+        <div class="prayer-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 18H21M5 18C5 14 8 12 12 12C16 12 19 14 19 18" stroke="#f0cf8e" stroke-width="1.8" stroke-linecap="round"/><path d="M12 3C10 5 9 7 9 9C9 10.6 10.3 12 12 12C13.7 12 15 10.6 15 9C15 7 14 5 12 3Z" fill="#f0cf8e"/></svg>
+        </div>
+        <div>
+          <div class="prayer-name">Maghrib</div>
+          <div class="prayer-name-ar">المغرب</div>
+        </div>
+      </div>
+      <div class="prayer-time">19:34</div>
+    </div>
+
+    <div class="prayer-row">
+      <div class="prayer-left">
+        <div class="prayer-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 14.5C18.6 15.5 16.9 16 15 16C10 16 6 12 6 7C6 5.5 6.3 4.1 6.9 2.8C4 4.2 2 7.3 2 10.8C2 15.9 6.1 20 11.2 20C14.9 20 18 17.9 19.5 14.8C19.7 14.7 19.9 14.6 20 14.5Z" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="prayer-name">Isha</div>
+          <div class="prayer-name-ar">العشاء</div>
+        </div>
+      </div>
+      <div class="prayer-time">21:02</div>
+    </div>
+
+  </div>
+
+  <!-- qibla -->
+  <div class="qibla-section">
+    <div class="qibla-label">Qibla Direction</div>
+    <div class="compass-wrap">
+      <svg width="250" height="250" viewBox="0 0 250 250">
+        <!-- outer degree ticks -->
+        <g>
+          <!-- 72 minor ticks every 5deg -->
+          <!-- generated manually as a ring of lines -->
+          <g stroke="rgba(255,255,255,0.18)" stroke-width="1.5">
+            <line x1="125" y1="14" x2="125" y2="22"/>
+            <line x1="176" y1="27.5" x2="171" y2="34.3"/>
+            <line x1="215.5" y1="66" x2="208.7" y2="71"/>
+            <line x1="229" y1="119" x2="221" y2="119"/>
+            <line x1="222.5" y1="176" x2="215.7" y2="171.3"/>
+            <line x1="184" y1="215.5" x2="179" y2="208.7"/>
+            <line x1="131" y1="229" x2="131" y2="221"/>
+            <line x1="74" y1="222.5" x2="78.7" y2="215.7"/>
+            <line x1="34.5" y1="184" x2="41.3" y2="179"/>
+            <line x1="21" y1="131" x2="29" y2="131"/>
+            <line x1="27.5" y1="74" x2="34.3" y2="78.7"/>
+            <line x1="66" y1="34.5" x2="71" y2="41.3"/>
+          </g>
+          <circle cx="125" cy="125" r="103" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+          <circle cx="125" cy="125" r="70" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+        </g>
+        <!-- cardinal labels -->
+        <text x="125" y="42" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="13" font-weight="700" font-family="-apple-system, sans-serif">N</text>
+        <text x="208" y="130" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="12" font-weight="600" font-family="-apple-system, sans-serif">E</text>
+        <text x="125" y="215" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="12" font-weight="600" font-family="-apple-system, sans-serif">S</text>
+        <text x="43" y="130" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="12" font-weight="600" font-family="-apple-system, sans-serif">W</text>
+
+        <!-- gold needle pointing 157deg from N (clockwise) -->
+        <g transform="rotate(157 125 125)">
+          <polygon points="125,32 133,125 125,150 117,125" fill="#f0cf8e"/>
+          <polygon points="125,150 133,125 125,225 117,125" fill="rgba(255,255,255,0.15)"/>
+        </g>
+        <circle cx="125" cy="125" r="9" fill="#0e1526" stroke="#d9b66a" stroke-width="2.5"/>
+
+        <!-- kaaba glyph at needle tip -->
+        <g transform="translate(125 125) rotate(157) translate(0 -103) rotate(-157)">
+          <rect x="-8" y="-8" width="16" height="16" rx="2.5" fill="#0a0a0a" stroke="#d9b66a" stroke-width="1.6"/>
+          <line x1="-8" y1="-2" x2="8" y2="-2" stroke="#d9b66a" stroke-width="1.2"/>
+        </g>
+      </svg>
+    </div>
+    <div class="qibla-readout">Qibla &middot; 157&deg; SE</div>
+    <div class="qibla-sub">Face south-east from Amman toward Makkah</div>
+  </div>
+
+  <!-- tab bar -->
+  <div class="tabbar">
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 4.5C4 3.7 4.7 3 5.5 3H12V21H5.5C4.7 21 4 20.3 4 19.5V4.5Z" fill="rgba(255,255,255,0.4)"/><path d="M20 4.5C20 3.7 19.3 3 18.5 3H12V21H18.5C19.3 21 20 20.3 20 19.5V4.5Z" fill="rgba(255,255,255,0.25)"/></svg>
+      <div class="tab-label">Quran</div>
+    </div>
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#d9b66a" stroke-width="1.8"/><path d="M12 7V12L15.5 14" stroke="#d9b66a" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="tab-label">Prayer</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L14 9L21 9L15.5 13.2L17.5 20L12 15.8L6.5 20L8.5 13.2L3 9L10 9L12 2Z" stroke="rgba(255,255,255,0.4)" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <div class="tab-label">Qibla</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="6" cy="6" r="2" fill="rgba(255,255,255,0.4)"/><circle cx="12" cy="6" r="2" fill="rgba(255,255,255,0.4)"/><circle cx="18" cy="6" r="2" fill="rgba(255,255,255,0.4)"/><circle cx="6" cy="12" r="2" fill="rgba(255,255,255,0.4)"/><circle cx="12" cy="12" r="2" fill="rgba(255,255,255,0.4)"/><circle cx="18" cy="12" r="2" fill="rgba(255,255,255,0.4)"/><circle cx="6" cy="18" r="2" fill="rgba(255,255,255,0.4)"/><circle cx="12" cy="18" r="2" fill="rgba(255,255,255,0.4)"/><circle cx="18" cy="18" r="2" fill="rgba(255,255,255,0.4)"/></svg>
+      <div class="tab-label">Dhikr</div>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="rgba(255,255,255,0.4)" stroke-width="1.8"/><path d="M12 2V5M12 19V22M22 12H19M5 12H2M19.07 4.93L16.95 7.05M7.05 16.95L4.93 19.07M19.07 19.07L16.95 16.95M7.05 7.05L4.93 4.93" stroke="rgba(255,255,255,0.4)" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="tab-label">Settings</div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!--
+  THE FORK — cloth tile (branch 01, "already trading").
+
+  A 32px seamless twill. Deliberately FINER and DENSER than the bed's warp
+  tile (warp.svg, 72px): the bed is the loom, this is finished cloth already
+  on it. Two weights of warp, a weft every 8px, and the stepped 8px blocks
+  that give a twill its diagonal direction — the step advances one cell per
+  row and 32 = 4 x 8, so the diagonal continues unbroken across tile joins.
+
+  Every stroke is centred on a half-pixel: with shape-rendering="crispEdges"
+  a 1px line on a whole coordinate gets snapped and dimmed, and one sitting on
+  the tile edge loses half its width to the clip (see graph.svg's note — the
+  first cut of that file rendered as nothing at all).
+
+  Drawn in pure white so the consumer sets the ink with `opacity`; nothing
+  here is a photograph, which is the whole point (the photographic knit this
+  section used to carry had a visible repeat seam).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <g fill="none" stroke="#ffffff" stroke-width="1">
+    <g opacity="0.34"><path d="M2.5 0V32M10.5 0V32M18.5 0V32M26.5 0V32" /></g>
+    <g opacity="0.15"><path d="M6.5 0V32M14.5 0V32M22.5 0V32M30.5 0V32" /></g>
+    <g opacity="0.18"><path d="M0 4.5H32M0 12.5H32M0 20.5H32M0 28.5H32" /></g>
+  </g>
+  <g fill="#ffffff" opacity="0.09">
+    <rect x="0" y="0" width="8" height="8" />
+    <rect x="8" y="8" width="8" height="8" />
+    <rect x="16" y="16" width="8" height="8" />
+    <rect x="24" y="24" width="8" height="8" />
+  </g>
+</svg>

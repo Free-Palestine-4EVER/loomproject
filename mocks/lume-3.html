@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    width: 540px; height: 1174px;
+    background: #0c0c0f;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Helvetica, Arial, sans-serif;
+    color: #fff;
+    position: relative;
+  }
+
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 62px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 30px; z-index: 60;
+  }
+  .sb-time { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; padding-top: 4px; }
+  .sb-island {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 37px; border-radius: 20px; background: #000;
+  }
+  .sb-right { display: flex; align-items: center; gap: 6px; padding-top: 4px; }
+
+  .grain {
+    position: absolute; inset: 0;
+    filter: url(#grainFilter);
+    opacity: 0.4;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  /* ---------- nav ---------- */
+  .navbar {
+    position: absolute; top: 76px; left: 16px; right: 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-left { display: flex; align-items: center; gap: 10px; }
+  .back-chevron { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+  .nav-title { font-size: 19px; font-weight: 700; }
+  .nav-count { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.4); }
+
+  /* ---------- source strip ---------- */
+  .source-row {
+    position: absolute; top: 116px; left: 16px; right: 16px;
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .source-thumb { position: relative; width: 44px; height: 44px; border-radius: 10px; overflow: hidden; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.08); }
+  .thumb-golden {
+    background:
+      radial-gradient(85% 85% at 72% 22%, rgba(255,201,148,0.65) 0%, rgba(255,179,122,0.1) 45%, rgba(255,179,122,0) 70%),
+      linear-gradient(150deg, #3d2a1a 0%, #201510 45%, #0c0c0e 100%);
+  }
+  .thumb-soft {
+    background:
+      radial-gradient(90% 90% at 30% 18%, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 55%),
+      radial-gradient(70% 70% at 85% 90%, rgba(126,166,255,0.22) 0%, rgba(126,166,255,0) 60%),
+      linear-gradient(155deg, #2c2e34 0%, #17181c 55%, #0c0c0e 100%);
+  }
+  .thumb-hard {
+    background:
+      linear-gradient(112deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 30%, rgba(0,0,0,0) 60%, rgba(126,166,255,0.18) 100%),
+      linear-gradient(160deg, #1c1c1f 0%, #101012 55%, #050506 100%);
+  }
+  .source-mid { flex: 1; min-width: 0; }
+  .source-name { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.9); }
+  .source-sub { margin-top: 2px; font-size: 11.5px; color: rgba(255,255,255,0.42); font-weight: 500; }
+  .source-badge { font-size: 10.5px; font-weight: 700; color: #ffb37a; background: rgba(255,179,122,0.14); border: 1px solid rgba(255,179,122,0.35); border-radius: 8px; padding: 4px 8px; flex-shrink: 0; }
+
+  /* ---------- destination segmented ---------- */
+  .dest-section { position: absolute; top: 186px; left: 16px; right: 16px; }
+  .dest-label { font-size: 12px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: rgba(255,179,122,0.7); margin-bottom: 10px; }
+  .segmented { display: flex; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 3px; }
+  .seg { flex: 1; text-align: center; padding: 9px 0; border-radius: 11px; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.5); }
+  .seg.active { background: linear-gradient(135deg, #ffb37a 0%, #e08b48 100%); color: #1a1208; }
+
+  /* ---------- section header ---------- */
+  .section-head {
+    position: absolute; left: 16px; right: 16px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+    color: rgba(255,179,122,0.7);
+    display: flex; justify-content: space-between;
+  }
+  .section-head .count { color: rgba(255,255,255,0.35); text-transform: none; font-weight: 600; letter-spacing: 0.2px; }
+
+  /* ---------- export rows ---------- */
+  .export-list { position: absolute; top: 314px; left: 16px; right: 16px; }
+  .export-row {
+    padding: 11px 12px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .export-row.active { border: 1px solid rgba(255,179,122,0.4); background: rgba(255,179,122,0.06); }
+  .export-top { display: flex; align-items: center; gap: 11px; }
+  .fmt-icon { width: 34px; height: 34px; border-radius: 9px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .export-mid { flex: 1; min-width: 0; }
+  .export-name { font-size: 14.5px; font-weight: 600; color: rgba(255,255,255,0.9); }
+  .export-dims { margin-top: 2px; font-size: 11.5px; color: rgba(255,255,255,0.42); font-weight: 500; }
+  .export-status { flex-shrink: 0; }
+  .status-done { width: 24px; height: 24px; border-radius: 50%; background: rgba(255,179,122,0.16); display: flex; align-items: center; justify-content: center; }
+  .status-pct { font-size: 13px; font-weight: 700; color: #ffb37a; }
+  .status-queued { font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.32); }
+  .export-progress { margin-top: 10px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); position: relative; overflow: hidden; }
+  .export-progress-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: linear-gradient(90deg,#7ea6ff,#ffb37a); }
+
+  /* ---------- recent exports ---------- */
+  .recent-list { position: absolute; top: 816px; left: 16px; right: 16px; }
+  .recent-row {
+    display: flex; align-items: center; gap: 11px;
+    padding: 6px 12px;
+    border-radius: 13px;
+    margin-bottom: 4px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .recent-thumb { position: relative; width: 34px; height: 34px; border-radius: 8px; overflow: hidden; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.08); }
+  .recent-mid { flex: 1; min-width: 0; }
+  .recent-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); }
+  .recent-sub { margin-top: 1px; font-size: 11px; color: rgba(255,255,255,0.38); font-weight: 500; }
+  .recent-time { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.35); flex-shrink: 0; }
+
+  /* ---------- meta strip ---------- */
+  .meta-card {
+    position: absolute; left: 16px; right: 16px;
+    border-radius: 14px; padding: 2px 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .meta-line {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 29px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13px;
+  }
+  .meta-line:last-child { border-bottom: none; }
+  .meta-line .label { color: rgba(255,255,255,0.68); font-weight: 600; }
+  .meta-line .value { color: #ffb37a; font-weight: 700; }
+  .meta-toggle {
+    font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 4px 9px;
+  }
+
+  /* ---------- summary bar ---------- */
+  .summary-bar {
+    position: absolute; left: 0; right: 0; bottom: 0; top: 1082px;
+    background: linear-gradient(180deg, rgba(12,12,15,0.4) 0%, rgba(12,12,15,0.95) 20%, #0c0c0f 55%);
+    backdrop-filter: blur(10px);
+    z-index: 30;
+  }
+  .summary-row { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 500; color: rgba(255,255,255,0.42); }
+  .summary-row .hl { color: rgba(255,255,255,0.78); font-weight: 700; }
+  .export-bar { position: absolute; left: 16px; right: 16px; top: 46px; }
+  .export-btn {
+    width: 100%; height: 54px; border-radius: 17px;
+    background: linear-gradient(135deg, #ffb37a 0%, #e08b48 100%);
+    color: #1a1208; font-size: 15.5px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 10px 24px rgba(255,179,122,0.28);
+  }
+
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.55); z-index: 60;
+  }
+</style>
+</head>
+<body>
+
+  <svg width="0" height="0" style="position:absolute">
+    <filter id="grainFilter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0"/>
+    </filter>
+  </svg>
+
+  <div class="navbar">
+    <div class="nav-left">
+      <div class="back-chevron">
+        <svg width="11" height="18" viewBox="0 0 11 18" fill="none"><path d="M9.5 1L1.5 9L9.5 17" stroke="#ffb37a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="nav-title">Export</div>
+    </div>
+    <div class="nav-count">6 targets</div>
+  </div>
+
+  <div class="source-row">
+    <div class="source-thumb thumb-golden"><div class="grain"></div></div>
+    <div class="source-mid">
+      <div class="source-name">IMG_LUME_0842.HEIC</div>
+      <div class="source-sub">Golden Hour &middot; relit 09:44</div>
+    </div>
+    <div class="source-badge">SOURCE</div>
+  </div>
+
+  <div class="dest-section">
+    <div class="dest-label">Destination</div>
+    <div class="segmented">
+      <div class="seg">Photos</div>
+      <div class="seg active">LUME Cloud</div>
+      <div class="seg">Shopify</div>
+    </div>
+  </div>
+
+  <div class="section-head" style="top:264px;">
+    <span>Export Targets</span>
+    <span class="count">4 of 6 queued</span>
+  </div>
+
+  <div class="export-list">
+
+    <div class="export-row">
+      <div class="export-top">
+        <div class="fmt-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="14" height="18" rx="2.5" stroke="#ffb37a" stroke-width="1.8"/></svg></div>
+        <div class="export-mid">
+          <div class="export-name">Instagram Feed &middot; 4:5</div>
+          <div class="export-dims">1080&times;1350 &middot; 412 KB</div>
+        </div>
+        <div class="export-status status-done">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#ffb37a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="export-row active">
+      <div class="export-top">
+        <div class="fmt-icon"><svg width="14" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2.5" stroke="#ffb37a" stroke-width="1.8"/></svg></div>
+        <div class="export-mid">
+          <div class="export-name">Instagram Story &middot; 9:16</div>
+          <div class="export-dims">1080&times;1920 &middot; 588 KB (est.)</div>
+        </div>
+        <div class="export-status status-pct">64%</div>
+      </div>
+      <div class="export-progress"><div class="export-progress-fill" style="width:64%;"></div></div>
+    </div>
+
+    <div class="export-row">
+      <div class="export-top">
+        <div class="fmt-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2.5" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"/></svg></div>
+        <div class="export-mid">
+          <div class="export-name">Shopify Square &middot; 1:1</div>
+          <div class="export-dims">2048&times;2048 &middot; 1.1 MB</div>
+        </div>
+        <div class="export-status status-queued">Queued</div>
+      </div>
+    </div>
+
+    <div class="export-row">
+      <div class="export-top">
+        <div class="fmt-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2.5" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"/></svg></div>
+        <div class="export-mid">
+          <div class="export-name">Amazon Listing &middot; 1:1</div>
+          <div class="export-dims">2000&times;2000 &middot; 976 KB</div>
+        </div>
+        <div class="export-status status-queued">Queued</div>
+      </div>
+    </div>
+
+    <div class="export-row">
+      <div class="export-top">
+        <div class="fmt-icon"><svg width="18" height="12" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2.5" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"/></svg></div>
+        <div class="export-mid">
+          <div class="export-name">Web Banner &middot; 16:9</div>
+          <div class="export-dims">1920&times;1080 &middot; 340 KB</div>
+        </div>
+        <div class="export-status status-queued">Queued</div>
+      </div>
+    </div>
+
+    <div class="export-row">
+      <div class="export-top">
+        <div class="fmt-icon"><svg width="14" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2.5" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"/></svg></div>
+        <div class="export-mid">
+          <div class="export-name">Print Ready &middot; 4:5</div>
+          <div class="export-dims">3000&times;3750 &middot; 4.6 MB</div>
+        </div>
+        <div class="export-status status-queued">Queued</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-head" style="top:778px;">
+    <span>Recent Exports</span>
+    <span class="count">Studio / Amman</span>
+  </div>
+
+  <div class="recent-list" style="top:804px;">
+    <div class="recent-row">
+      <div class="recent-thumb thumb-hard"><div class="grain"></div></div>
+      <div class="recent-mid">
+        <div class="recent-name">IMG_LUME_0839.HEIC &rarr; Shopify Square 1:1</div>
+        <div class="recent-sub">2048&times;2048 &middot; 1.1 MB</div>
+      </div>
+      <div class="recent-time">10:02</div>
+    </div>
+    <div class="recent-row">
+      <div class="recent-thumb thumb-soft"><div class="grain"></div></div>
+      <div class="recent-mid">
+        <div class="recent-name">IMG_LUME_0835.HEIC &rarr; Instagram Feed 4:5</div>
+        <div class="recent-sub">1080&times;1350 &middot; 398 KB</div>
+      </div>
+      <div class="recent-time">09:51</div>
+    </div>
+    <div class="recent-row">
+      <div class="recent-thumb thumb-golden"><div class="grain"></div></div>
+      <div class="recent-mid">
+        <div class="recent-name">IMG_LUME_0831.HEIC &rarr; Web Banner 16:9</div>
+        <div class="recent-sub">1920&times;1080 &middot; 322 KB</div>
+      </div>
+      <div class="recent-time">09:36</div>
+    </div>
+  </div>
+
+  <div class="meta-card" style="top:970px;">
+    <div class="meta-line"><span class="label">Color Profile</span><span class="value">sRGB IEC61966-2.1</span></div>
+    <div class="meta-line"><span class="label">JPEG Quality</span><span class="value">92</span></div>
+    <div class="meta-line"><span class="label">Strip EXIF</span><span class="meta-toggle">Off</span></div>
+  </div>
+
+  <div class="summary-bar">
+    <div class="summary-row">
+      <span>6 files &middot; <span class="hl">JPEG / HEIC</span></span>
+      <span class="hl">7.9 MB total</span>
+    </div>
+    <div class="export-bar">
+      <div class="export-btn">
+        Export 6 sizes
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 11l5 5 5-5M5 21h14" stroke="#1a1208" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <div class="sb-time">09:41</div>
+    <div class="sb-right">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 9L1 11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M5 7L5 11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M9 5L9 11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M13 3L13 11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 5C4.5 1.5 11.5 1.5 15 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8C6 6 10 6 12 8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="10.5" r="1" fill="#fff"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="#fff" stroke-opacity="0.5" stroke-width="1"/><rect x="2.5" y="2.5" width="17" height="7" rx="1.3" fill="#fff"/><rect x="22" y="4" width="1.6" height="4" rx="0.8" fill="#fff" fill-opacity="0.5"/></svg>
+    </div>
+  </div>
+  <div class="sb-island"></div>
+
+  <div class="home-indicator"></div>
+
+</body>
+</html>

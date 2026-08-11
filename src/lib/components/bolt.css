@@ -1,0 +1,93 @@
+/* bolt.css — THE BOLT, redesigned as the page's closing call to action.
+
+   WHY A SEPARATE FILE. banners.css holds three unrelated bands (.blk / .cnt-*
+   / .offer-* belong to other sections and are being worked on elsewhere), so
+   every change here lands in its own stylesheet and is imported AFTER it from
+   Bolt.svelte. Selectors are written `section.bolt .bolt-*` — 0,2,1 — so they
+   beat banners.css's own `.bolt .bolt-*` (0,2,0) outright and do not depend on
+   bundle order at all.
+
+   THE CONTRAST FIX (measured, not eyeballed). The felt ground rasterises to an
+   average rgb(29,20,44); the band inherited the site's LIGHT-theme ink
+   (--ink #33243d) straight onto it. Measured 1.23:1 for the claim and 1.63:1
+   for the cities line — both below even the 3:1 large-text floor. The ground
+   is the one thing here that must not change (dark felt IS the band), so the
+   type moves instead: --bg (#ffe9f2) on that felt measures 15.3:1, --bg-3
+   (#f9d2e3) 13.0:1. Both are existing brand tokens; no new colour enters. */
+
+/* ── the frame ──────────────────────────────────────────────────────────
+   The old fixed 1000/300 aspect ratio sized the band before it knew what was
+   in it, which is what pushed the claim down to a whisper to make it fit. A
+   min-height lets the closing statement set its own size. */
+section.bolt .bolt-frame {
+  aspect-ratio: auto;
+  max-height: none;
+  min-height: clamp(300px, 27vw, 400px);
+  padding: clamp(36px, 4.4vw, 68px);
+}
+
+/* ── the lockup ─────────────────────────────────────────────────────────
+   Smaller: it is the signature on the statement, not the statement. */
+section.bolt .bolt-lockup {
+  width: clamp(118px, 11vw, 168px);
+  opacity: 1;
+  margin-bottom: clamp(16px, 1.8vw, 22px);
+}
+
+/* ── AMMAN × SARAJEVO — promoted to the eyebrow ─────────────────────────
+   It used to trail the claim as a footnote. Read first, it frames the claim:
+   two cities, then what they do. */
+section.bolt .bolt-sub {
+  margin-top: 0;
+  margin-bottom: clamp(14px, 1.6vw, 20px);
+  color: var(--bg-3);            /* 13.0:1 on the felt */
+  font-size: 0.76rem;
+  letter-spacing: 0.26em;
+}
+section.bolt .bolt-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* ── the claim ──────────────────────────────────────────────────────────
+   The accessibility failure and the design failure were the same failure: a
+   headline pitched to disappear. Bigger, and in cloth-white. */
+section.bolt .bolt-claim {
+  color: var(--bg);              /* 15.3:1 on the felt */
+  font-size: clamp(2rem, 4.8vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.026em;
+  max-width: 13ch;
+  /* one soft drop only — the old white top-highlight was doing the work of a
+     letterpress on type that had no contrast to begin with */
+  text-shadow: 0 10px 34px rgba(10, 2, 16, 0.7);
+}
+
+/* ── the CTA side ───────────────────────────────────────────────────────
+   The button gets a rule above it so the right-hand column reads as a
+   deliberate end-plate rather than a button floating in felt. */
+section.bolt .bolt-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: clamp(14px, 1.8vw, 20px);
+}
+section.bolt .bolt-cta::before {
+  content: '';
+  width: clamp(64px, 7vw, 104px);
+  height: 3px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 6px,
+    var(--yarn-violet) 6px 12px,
+    var(--yarn-blue) 12px 18px,
+    var(--yarn-gold) 18px 24px
+  );
+}
+
+@media (max-width: 767px) {
+  section.bolt .bolt-frame { min-height: 0; }
+  section.bolt .bolt-cta { align-items: flex-start; }
+}

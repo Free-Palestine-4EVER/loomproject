@@ -29,6 +29,10 @@
   import { wizard } from '$lib/wizard.svelte.js'
   import { BRAND } from '$data/site.js'
   import './banners.css'
+  // loaded AFTER banners.css: the redesign lives in its own file because
+  // banners.css also holds two unrelated bands. Its selectors are 0,2,1 so
+  // they win on specificity, not on bundle order.
+  import './bolt.css'
 
   let frameEl = $state(null)
   let shuttleOn = $state(false)
@@ -87,11 +91,14 @@
               decoding="async"
             />
           </picture>
-          <SplitWords as="h2" class="h2 bolt-claim" text={`${BRAND.positioning}.`} />
+          <!-- the cities now READ FIRST, as the eyebrow. Trailing the claim
+               they were a footnote to a line nobody could see; ahead of it
+               they frame it — where we are, then what we do. -->
           <p class="bolt-sub">
             <WoolIcon name="pin" size="sm" />
             {BRAND.cities.join(' × ')}
           </p>
+          <SplitWords as="h2" class="h2 bolt-claim" text={`${BRAND.positioning}.`} />
         </div>
 
         <!-- the seam. A bolt of cloth is folded, not flat — this is the

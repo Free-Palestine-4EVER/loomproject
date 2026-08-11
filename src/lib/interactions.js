@@ -116,35 +116,33 @@ function threadTrail() {
   }
 }
 
-/** Section headings get a scroll-linked accent — nav marks the active section. */
-function activeSectionNav() {
-  // Mirrors the hash entries in LINKS (Chrome.jsx) — 'crew' and 'ascent' were
-  // still listed here after both sections left the page, so two of the seven
-  // observers watched nothing.
-  const ids = ['work', 'the-machine', 'solutions', 'apps', 'lab', 'own-apps', 'contact']
-  const links = new Map()
-  document.querySelectorAll('.nav-links a').forEach((a) => {
-    const id = a.getAttribute('href')?.replace('#', '')
-    if (id) links.set(id, a)
-  })
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((en) => {
-        const a = links.get(en.target.id)
-        if (a) a.classList.toggle('is-current', en.isIntersecting)
-      })
-    },
-    { rootMargin: '-45% 0px -45% 0px' }
-  )
-  ids.forEach((id) => {
-    const el = document.getElementById(id)
-    if (el) io.observe(el)
-  })
-  return () => io.disconnect()
-}
+/* ── THE SCROLL-SPY IS GONE (11 Aug 2026) ─────────────────────────────────
+   `activeSectionNav()` lived here: an IntersectionObserver over a hardcoded
+   list of section ids that toggled `is-current` on whichever `.nav-links a`
+   had the matching hash. It existed because every nav tab was an anchor into
+   one very long page, so "which tab am I on" could only be answered by
+   measuring the scroll.
+
+   Nine of those tabs are dedicated routes now (see nav-links.js), so the
+   question is the pathname and Nav.svelte answers it directly with a derived
+   `isCurrent(href)` — no observer, no per-scroll work, and nothing left to
+   fight it. Keeping the spy would have done exactly that fighting: it wrote
+   the same class from outside the component, so on '/' it would have stripped
+   `is-current` off Home the moment the hero left the band, and on a route
+   page it would have found no ids at all and left Nav's answer standing only
+   by luck.
+
+   The id list was also a second, hand-maintained copy of the page's structure
+   and it had already rotted — 'crew', 'ascent', 'lab' and 'own-apps' were
+   still being observed long after those sections left the site. It is not
+   replaced by another list here; it is replaced by the URL.
+
+   Removed from this file entirely rather than left as a no-op, because a
+   disabled observer with a stale id array is the thing that rots next. */
+
 
 export function mountInteractions() {
-  const cleanups = [activeSectionNav()]
+  const cleanups = []
   if (FINE() && !REDUCED()) {
     cleanups.push(spotlightAndTilt(), threadTrail())
   }

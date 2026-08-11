@@ -3,6 +3,50 @@
   positioning line and hand the reader to the dedicated page — the booking
   form itself lives there, not here, the same split TypeShowcase/Typeface.jsx
   already uses for the type specimen.
+
+  ── THE 2026-08 REDESIGN ───────────────────────────────────────────────────
+  This used to be a centred column — kicker, headline, paragraph, four pill
+  chips and a button — floating on the /ai-workshops hero photograph pushed
+  down to 16% opacity. At that opacity the picture read as a printing
+  accident rather than a decision, and a centre-stacked column of four
+  identical pills is what every "we do training too" band on the internet
+  looks like. The client's note was exactly that: it needs real design.
+
+  What replaced it:
+
+    1. TWO REAL PHOTOGRAPHS, COMMITTED TO. The washed background layer is
+       gone. In its place is a media cluster — the wide boardroom shot as the
+       main plate, the tall flip-chart shot as a portrait card overlapping its
+       lower-left corner. Both sit in frames with their own shadow and hairline
+       so they read as photographs the studio chose, not wallpaper. Nothing is
+       set behind live type any more, so there is no legibility tax to pay for
+       committing to them at full strength.
+
+    2. AN ASYMMETRIC COMPOSITION. Copy left, flush left, at a size the
+       positioning line deserves; pictures right; the curriculum as a
+       full-width strip underneath. Statement → evidence → what you actually
+       get, which is the order a training buyer reads in.
+
+    3. THE MODULES ARE CONTENT NOW. Four numbered rows carrying the module
+       number and its contact hours straight from $data/workshops.js — the
+       same source of truth /ai-workshops prices from — instead of four
+       equal-weight pills that said nothing about scale or shape.
+
+  ── THE TWO NEW PHOTOGRAPHS ────────────────────────────────────────────────
+  /img/workshops/training-wide.webp   2000x1080 landscape — the boardroom
+  /img/workshops/training-tall.webp   1100x1900 portrait  — the flip chart
+
+  Both paths currently hold BRAND-TINTED PLACEHOLDER PANELS (generated, they
+  say "PHOTO PENDING") so the layout can be judged and so a visitor never eats
+  a 404. Dropping the real files in at the same two paths and the same two
+  aspect ratios is the whole handover — no markup change. On top of that,
+  `onerror` still hides a failed decode and the frame's own brand gradient is
+  what stays behind it, so a deleted file degrades to a tinted panel rather
+  than a broken-image glyph.
+
+  Art direction, per slot: the wide plate is cropped to 16:9 on desktop and
+  the tall card to 3:4, both `object-fit: cover` and centred, so keep the
+  subject away from the extreme edges of each frame.
 -->
 <script>
   import { reveal, magnetic } from '$lib/motion.svelte.js'
@@ -11,56 +55,86 @@
   import './workshops.css'
 
   // Four of the eight modules, enough to signal breadth without repeating the
-  // whole curriculum a click away on the real page.
-  const PREVIEW = MODULES.slice(0, 4).map((m) => m.title)
+  // whole curriculum a click away on the real page. Number and hours ride
+  // along now — they are what turn a list of four names into a curriculum.
+  const PREVIEW = MODULES.slice(0, 4).map((m) => ({ n: m.n, title: m.title, hours: m.hours }))
 </script>
 
 <section class="wkp" id="ai-workshops" aria-label="AI Workshops by LOOM">
-  <div class="wkp-media" aria-hidden="true">
-    <!-- Same art-direction contract as the /ai-workshops hero and Banners'
-         need tiles: -wide panorama under 719px, -pc above it, onerror drops a
-         failed decode rather than leaving a hole — the CSS gradient behind
-         this layer is the fallback either way. -->
-    <picture style="display: contents">
-      <source media="(max-width: 719px)" srcset="/img/workshops/section-wide.webp" />
-      <img
-        src="/img/workshops/section-pc.webp"
-        alt=""
-        width="1400"
-        height="1000"
-        loading="lazy"
-        decoding="async"
-        onerror={(e) => { e.currentTarget.style.display = 'none' }}
-      />
-    </picture>
-  </div>
+  <!-- A soft brand field, not a photograph: the pictures below carry the
+       image weight now, and this only keeps the band from reading as a flat
+       slab of page ground. -->
+  <div class="wkp-field" aria-hidden="true"></div>
+
   <div class="wkp-inner">
-    <p class="wk-kicker"><span>—</span> Corporate training</p>
-    <!-- Plain heading, not SplitWords — styles.css's `.sw { display: inline }`
-         overrides even an `as="h2"` tag, and an inline element ignores
-         `max-width`/`margin:auto` centering. Fine for the hero's two SHORT
-         SplitWords lines above (each its own masked span with no wrap), but
-         this headline is long enough to wrap to two lines here, and an inline
-         box wrapping two lines threw its height off enough to overlap the
-         paragraph right under it. `use:reveal`'s fade-rise reads close enough
-         to SplitWords' reveal for one section-opening line. -->
-    <h2 class="wk-h2 wkp-h2" use:reveal>
-      AI won’t replace your employees. A company that uses it will replace one that doesn’t.
-    </h2>
-    <p class="wkp-body" use:reveal={{ delay: 0.15 }}>
-      LOOM trains the team you already have to run AI agents day to day —
-      sales, marketing, finance, ops, HR and support. {MIN_MODULES}–{MAX_MODULES}
-      modules, picked to fit the department, priced per employee.
-    </p>
-    <div class="wkp-preview" use:reveal={{ delay: 0.22 }}>
-      <ul>
-        {#each PREVIEW as t (t)}<li>{t}</li>{/each}
-      </ul>
-    </div>
-    <div class="wkp-cta" use:reveal={{ delay: 0.3 }}>
-      <div class="magnetic" use:magnetic={{ strength: 0.2 }}>
-        <a class="wk-btn wk-btn--fill" href="/ai-workshops">See AI Workshops by LOOM</a>
+    <div class="wkp-copy">
+      <p class="wk-kicker"><span>—</span> Corporate training</p>
+      <!-- Plain heading, not SplitWords — styles.css's `.sw { display: inline }`
+           overrides even an `as="h2"` tag, and an inline element ignores
+           `max-width`/`margin:auto` centering. Fine for the hero's two SHORT
+           SplitWords lines above (each its own masked span with no wrap), but
+           this headline is long enough to wrap here, and an inline box
+           wrapping several lines threw its height off enough to overlap the
+           paragraph right under it. `use:reveal`'s fade-rise reads close
+           enough to SplitWords' reveal for one section-opening line. -->
+      <h2 class="wk-h2 wkp-h2" use:reveal>
+        AI won’t replace your employees. A company that uses it will replace one that doesn’t.
+      </h2>
+      <p class="wkp-body" use:reveal={{ delay: 0.12 }}>
+        LOOM trains the team you already have to run AI agents day to day —
+        sales, marketing, finance, ops, HR and support. {MIN_MODULES}–{MAX_MODULES}
+        modules, picked to fit the department, priced per employee.
+      </p>
+      <div class="wkp-cta" use:reveal={{ delay: 0.2 }}>
+        <div class="magnetic" use:magnetic={{ strength: 0.2 }}>
+          <a class="wk-btn wk-btn--fill" href="/ai-workshops">See AI Workshops by LOOM</a>
+        </div>
       </div>
     </div>
+
+    <div class="wkp-stage" use:reveal={{ delay: 0.1, y: 24 }}>
+      <figure class="wkp-shot wkp-shot--wide">
+        <!-- Art direction, same contract as the /ai-workshops hero and
+             Banners' need tiles: the portrait scene is the better frame on a
+             phone, the boardroom panorama on anything wider. -->
+        <picture style="display: contents">
+          <source media="(max-width: 719px)" srcset="/img/workshops/training-tall.webp" />
+          <img
+            src="/img/workshops/training-wide.webp"
+            alt="A LOOM workshop in session — the team around a boardroom table, laptops open"
+            width="2000"
+            height="1080"
+            loading="lazy"
+            decoding="async"
+            onerror={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+        </picture>
+      </figure>
+
+      <!-- The inset. `loading="lazy"` is doing double duty: below 900px this
+           card is display:none, and a lazy image inside a hidden box never
+           intersects anything, so the phone never pays for the second file. -->
+      <figure class="wkp-shot wkp-shot--tall" aria-hidden="true">
+        <img
+          src="/img/workshops/training-tall.webp"
+          alt=""
+          width="1100"
+          height="1900"
+          loading="lazy"
+          decoding="async"
+          onerror={(e) => { e.currentTarget.style.display = 'none' }}
+        />
+      </figure>
+    </div>
   </div>
+
+  <ol class="wkp-modules" use:reveal={{ delay: 0.24, y: 24 }}>
+    {#each PREVIEW as m (m.title)}
+      <li class="wkp-module">
+        <span class="wkp-module-n">{m.n}</span>
+        <span class="wkp-module-t">{m.title}</span>
+        <span class="wkp-module-h">{m.hours} hrs</span>
+      </li>
+    {/each}
+  </ol>
 </section>

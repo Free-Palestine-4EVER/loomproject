@@ -139,11 +139,17 @@
               </picture>
             {/if}
           </span>
-          <!-- The button and the peel are siblings of the strip, not
-               children of it. Both are positioned against the TILE — the
-               button to the top-right corner, the peel to the bottom-right —
-               and the strip is now a bare label with no box of its own, so
-               it cannot serve as their containing block. -->
+          <!-- The label sits BELOW the picture, in the tile's normal flow, on
+               the section's own ground (11 Aug 2026 — the scrim that used to
+               let it sit ON the photograph is gone, so it left the image box
+               with it). Dark ink on the pink ground is ~10:1 with nothing
+               tinting the artwork above.
+
+               The button and the peel are siblings of the strip, not children
+               of it. Both are positioned against the TILE — the button to the
+               top-right corner of the picture, the peel to the bottom-right —
+               and the strip is a bare label with no box of its own, so it
+               cannot serve as their containing block. -->
           <span class="cnt-strip">
             <span class="cnt-label">{need}</span>
           </span>
@@ -175,7 +181,7 @@
          "see the work" was the forward move; since the reorder the cases are
          already read by the time anyone gets here, and sending them back up
          is a leak. The Machine is the next thing to sell. -->
-    <a class="cnt-foot-link" href="#the-machine" data-scroll>or see what we sell →</a>
+    <a class="cnt-foot-link" href="/machine">or see what we sell →</a>
   </div>
 </section>
 

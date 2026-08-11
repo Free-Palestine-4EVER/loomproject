@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    width: 540px;
+    height: 1174px;
+    background: #f6f7fb;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Helvetica, Arial, sans-serif;
+    color: #2b2a4a;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 50; }
+  .statusbar .time { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; padding-top: 4px; }
+  .island { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 124px; height: 37px; background: #000; border-radius: 20px; z-index: 51; }
+  .statusbar .right { display: flex; align-items: center; gap: 6px; padding-top: 4px; }
+  .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: rgba(43,42,74,0.55); z-index: 52; }
+
+  .page { position: relative; padding-top: 68px; }
+
+  .navrow { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .nav-back { display: flex; align-items: center; gap: 3px; font-size: 15.5px; font-weight: 500; color: #6e6e93; }
+  .nav-edit { font-size: 14.5px; font-weight: 600; color: #6e6e93; }
+
+  .title-block { padding: 10px 16px 0; }
+  .title-block .title { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+  .title-block .sub { font-size: 14.5px; font-weight: 500; color: #8f8fb5; margin-top: 4px; }
+  .title-block .sub b { color: #e0483f; font-weight: 700; }
+
+  /* filter chips — intentionally overflow the right margin, like a scrollable row */
+  .chip-row { display: flex; gap: 8px; padding: 16px 0 0 16px; overflow: hidden; }
+  .chip { flex-shrink: 0; padding: 7px 14px; border-radius: 14px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .chip.active { background: #2b2a4a; color: #fff; }
+  .chip.inactive { background: rgba(43,42,74,0.07); color: #6e6e93; }
+
+  .section-head { font-size: 12px; font-weight: 700; color: #9a9ac0; text-transform: uppercase; letter-spacing: 0.5px; padding: 18px 16px 8px; }
+
+  .list { padding: 0 16px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(43,42,74,0.07); }
+  .row:last-child { border-bottom: none; }
+  .thumb {
+    width: 46px; height: 46px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .row-text { flex: 1; min-width: 0; }
+  .row-text .fn { font-size: 15.5px; font-weight: 600; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row-text .meta { font-size: 12.5px; font-weight: 500; color: #9a9ac0; margin-top: 2px; }
+  .row-remove { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,93,93,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  .thumb.chat { background: linear-gradient(135deg,#eef0f8,#e2e4f2); }
+  .thumb.photo { background: linear-gradient(180deg,#cfe0ea 0%,#cfe0ea 55%,#7f8f6a 55%,#63734f 100%); }
+  .thumb.doc { background: #eceef7; }
+  .thumb.map { background: linear-gradient(135deg,#e4e7f5,#d5d9ee); }
+  .thumb.receipt { background: linear-gradient(135deg,#f3e9d8,#e9d8b8); }
+
+  .fade-mask {
+    position: relative; height: 0;
+  }
+  .list-wrap { position: relative; }
+  .list-wrap::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 46px;
+    background: linear-gradient(180deg, rgba(246,247,251,0), #f6f7fb);
+    pointer-events: none;
+  }
+
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 16px 34px; background: #f6f7fb; }
+  .foot .warn { text-align: center; font-size: 12px; font-weight: 600; color: #b3546a; margin-bottom: 10px; }
+  .foot .warn .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ff5d5d; margin-right: 6px; vertical-align: middle; }
+  .cta { height: 54px; border-radius: 18px; background: #ff5d5d; box-shadow: 0 12px 24px rgba(255,93,93,0.32); display: flex; align-items: center; justify-content: center; gap: 8px; color: #fff; font-size: 16px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+  <div class="page">
+
+    <div class="navrow">
+      <div class="nav-back">
+        <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L1.5 7.5L8 14" stroke="#6e6e93" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Review
+      </div>
+      <div class="nav-edit">Select</div>
+    </div>
+
+    <div class="title-block">
+      <div class="title">Ready to delete</div>
+      <div class="sub">312 items &middot; frees <b>1.8 GB</b> &middot; queued 14:11</div>
+    </div>
+
+    <div class="chip-row">
+      <div class="chip active">All &middot; 312</div>
+      <div class="chip inactive">Screenshots &middot; 287</div>
+      <div class="chip inactive">Duplicates &middot; 18</div>
+      <div class="chip inactive">Receipts &middot; 7</div>
+    </div>
+
+    <div class="section-head">312 items</div>
+
+    <div class="list-wrap">
+      <div class="list">
+
+        <div class="row">
+          <div class="thumb chat"></div>
+          <div class="row-text"><div class="fn">IMG_4471.PNG</div><div class="meta">12 Jun &middot; 2.1 MB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb photo"></div>
+          <div class="row-text"><div class="fn">IMG_4398.PNG</div><div class="meta">3 Jun &middot; 890 KB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb doc"></div>
+          <div class="row-text"><div class="fn">IMG_4512.PNG</div><div class="meta">18 Jun &middot; 3.4 MB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb map"></div>
+          <div class="row-text"><div class="fn">IMG_4287.PNG</div><div class="meta">28 May &middot; 1.2 MB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb chat"></div>
+          <div class="row-text"><div class="fn">IMG_4466.PNG</div><div class="meta">11 Jun &middot; 640 KB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb receipt"></div>
+          <div class="row-text"><div class="fn">IMG_4501.PNG</div><div class="meta">16 Jun &middot; 2.8 MB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb doc"></div>
+          <div class="row-text"><div class="fn">IMG_4322.PNG</div><div class="meta">31 May &middot; 1.6 MB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb photo"></div>
+          <div class="row-text"><div class="fn">IMG_4489.PNG</div><div class="meta">14 Jun &middot; 970 KB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb map"></div>
+          <div class="row-text"><div class="fn">IMG_4455.PNG</div><div class="meta">9 Jun &middot; 4.1 MB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb chat"></div>
+          <div class="row-text"><div class="fn">IMG_4370.PNG</div><div class="meta">2 Jun &middot; 1.1 MB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb doc"></div>
+          <div class="row-text"><div class="fn">IMG_4530.PNG</div><div class="meta">21 Jun &middot; 2.3 MB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+        <div class="row">
+          <div class="thumb receipt"></div>
+          <div class="row-text"><div class="fn">IMG_4488.PNG</div><div class="meta">13 Jun &middot; 1.4 MB</div></div>
+          <div class="row-remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="#e0483f" stroke-width="3" stroke-linecap="round"/></svg></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <div class="warn"><span class="dot"></span>Nothing has been deleted yet</div>
+    <div class="cta">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 7H20" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M9 7V5C9 4.4 9.4 4 10 4H14C14.6 4 15 4.4 15 5V7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 7L7 19C7 19.6 7.4 20 8 20H16C16.6 20 17 19.6 17 19L18 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Delete 312 items &middot; frees 1.8 GB
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <div class="time">14:11</div>
+    <div class="right">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 9L1 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/><path d="M5 7L5 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/><path d="M9 5L9 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/><path d="M13 3L13 11" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 5C4.5 1.5 11.5 1.5 15 5" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8C6 6 10 6 12 8" stroke="#2b2a4a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="10.5" r="1" fill="#2b2a4a"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="#2b2a4a" stroke-opacity="0.5" stroke-width="1"/><rect x="2.5" y="2.5" width="17" height="7" rx="1.3" fill="#2b2a4a"/><rect x="22" y="4" width="1.6" height="4" rx="0.8" fill="#2b2a4a" fill-opacity="0.5"/></svg>
+    </div>
+  </div>
+  <div class="island"></div>
+  <div class="home-indicator"></div>
+
+</body>
+</html>

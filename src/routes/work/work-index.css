@@ -1,0 +1,397 @@
+/* ————————————————————————————————————————————————————————————————
+   work-index.css — the /work archive page. Owned by WorkIndex.svelte and
+   imported by nothing else.
+
+   NO NEW TOKENS. Every colour, radius, easing and gutter here resolves to a
+   variable already declared in styles.css (--ink / --ink-dim / --ink-faint /
+   --magenta / --line / --bg-2 / --bg-3 / --pad / --radius / --ease). The one
+   thing this file introduces is a NAMESPACE, `wx-`, which exists nowhere
+   else in the app, so it can never collide with the section components the
+   home page mounts.
+
+   The type scale is the site's: `.h2`, `.kicker`, `.lede` and `.filter` are
+   borrowed verbatim from styles.css rather than restated, and the two places
+   a chip needed more (a count badge, a disabled state) are additive rules on
+   top of `.filter`.
+
+   LAYOUT CONTRACT: nothing here may create horizontal overflow. Every grid
+   item carries `min-width: 0` (a grid item's default `min-width: auto`
+   floors its track at its own min-content, which is how a card grid quietly
+   widens the document on a 390px phone), the chip rows WRAP rather than
+   scroll, and the archive collapses 3 → 2 → 1 columns.
+   ———————————————————————————————————————————————————————————————— */
+
+/* ═══════════════════════════════════════════════════════════════
+   1. HERO
+   ═══════════════════════════════════════════════════════════════ */
+.wx-hero .section-head { padding-bottom: clamp(20px, 3vh, 34px); }
+.wx-hero h1.h2 { max-width: 20ch; }
+
+/* The stat strip. Four facts, each one counted off CASES at render time —
+   see the header note in WorkIndex.svelte for where each number comes from. */
+.wx-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 var(--pad);
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.wx-stat {
+  min-width: 0;
+  background: var(--bg-2);
+  padding: clamp(16px, 2.2vw, 26px) clamp(14px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wx-stat b {
+  font-family: var(--bloom);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.4vw, 2.6rem);
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.wx-stat span {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   2. CONTROLS
+   ═══════════════════════════════════════════════════════════════ */
+.wx-controls {
+  padding: clamp(28px, 5vh, 54px) var(--pad) clamp(14px, 2vh, 24px);
+}
+.wx-ctl + .wx-ctl { margin-top: 18px; }
+.wx-ctl-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+.wx-chips {
+  display: flex;
+  flex-wrap: wrap;   /* WRAP, never scroll — a hidden overflow row on a phone
+                        is a filter the reader never finds */
+  gap: 8px;
+}
+/* additive on top of styles.css's `.filter` — the pill itself is unchanged */
+.wx-chip { gap: 8px; padding-inline: 16px; }
+.wx-chip i {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 999px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+.wx-chip.is-active i { color: var(--ink); background: rgba(255, 255, 255, 0.42); }
+.wx-chip:disabled { opacity: 0.34; pointer-events: none; }
+.wx-chip--plain { padding-inline: 18px; }
+
+.wx-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  /* THE RULE IS A BAND BOUNDARY. It closes the whole control block and opens
+     the archive under it, so it runs the full width of the viewport like the
+     one under `.wx-end` — pulled out to the page edges by the gutter and
+     pushed back in by an equal padding, which moves the border and leaves the
+     type exactly where `--pad` put it. Negative margin only, so nothing can
+     escape the page's scroll width. */
+  margin-inline: calc(var(--pad) * -1);
+  padding-inline: var(--pad);
+}
+.wx-result {
+  font-size: 0.92rem;
+  color: var(--ink-dim);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.wx-result b {
+  font-family: var(--bloom);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+.wx-clear {
+  font-size: 0.82rem;
+  font-weight: 640;
+  letter-spacing: 0.02em;
+  color: var(--magenta-deep);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+  transition: color 0.24s var(--ease);
+}
+.wx-clear:hover { color: var(--ink); }
+.wx-clear:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+.wx-sort { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.wx-sort .wx-ctl-label { margin-bottom: 0; }
+
+/* ═══════════════════════════════════════════════════════════════
+   3. THE INDEX
+   ═══════════════════════════════════════════════════════════════ */
+.wx-index { padding: clamp(18px, 3vh, 34px) var(--pad) clamp(60px, 9vh, 110px); }
+.wx-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 2.4vw, 34px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+/* The CELL stretches (grid default) and the CARD has to be told to fill it,
+   or three cards in a row end on three different baselines the moment one
+   client name wraps to two lines. */
+.wx-cell { min-width: 0; display: flex; }
+.wx-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.42s var(--ease), border-color 0.3s, box-shadow 0.42s var(--ease);
+}
+.wx-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--magenta);
+  box-shadow: 0 26px 50px -30px rgba(51, 36, 61, 0.55);
+}
+.wx-card:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+.wx-card:active { transform: translateY(-2px) scale(0.995); }
+
+.wx-shot {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--bg-3);
+}
+.wx-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity 420ms var(--ease), transform 700ms var(--ease);
+}
+.wx-shot img.is-loaded { opacity: 1; }
+.wx-card:hover .wx-shot img { transform: scale(1.045); }
+.wx-rank {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-family: var(--display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--ink);
+  background: rgba(255, 233, 242, 0.86);
+  backdrop-filter: blur(6px);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.wx-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  padding: clamp(16px, 1.8vw, 22px);
+}
+.wx-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.wx-top h3 {
+  font-family: var(--bloom);
+  font-weight: 600;
+  font-size: clamp(1.05rem, 1.5vw, 1.32rem);
+  line-height: 1.14;
+  color: var(--ink);
+  min-width: 0;
+}
+.wx-year {
+  flex: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.wx-title {
+  font-size: 0.98rem;
+  font-weight: 620;
+  color: var(--magenta-deep);
+  line-height: 1.28;
+}
+.wx-copy {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--ink-dim);
+  /* Clamped so a long case and a short one leave the grid on one baseline —
+     the full copy is one click away in the dialog. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+.wx-scope { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.wx-scope span {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.wx-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.wx-market {
+  font-size: 0.78rem;
+  font-weight: 620;
+  color: var(--ink-dim);
+  min-width: 0;
+}
+.wx-open {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--magenta-deep);
+}
+.wx-open svg {
+  width: 13px; height: 13px;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+  transition: transform 0.34s var(--ease);
+}
+.wx-card:hover .wx-open svg { transform: translate(2px, -2px); }
+
+.wx-empty {
+  padding: clamp(40px, 8vh, 90px) 0;
+  text-align: center;
+  color: var(--ink-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. CLOSING BAND
+   ═══════════════════════════════════════════════════════════════ */
+.wx-end {
+  padding: clamp(56px, 9vh, 110px) var(--pad);
+  border-top: 1px solid var(--line);
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgba(242, 28, 140, 0.08), transparent 62%),
+    var(--bg-2);
+}
+.wx-end .h2 { max-width: 18ch; }
+.wx-end-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 26px;
+  margin-top: 30px;
+}
+.wx-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 640;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 3px;
+  transition: color 0.28s var(--ease), border-color 0.28s var(--ease);
+}
+.wx-link svg {
+  width: 15px; height: 15px;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+  transition: transform 0.34s var(--ease);
+}
+.wx-link:hover { color: var(--magenta-deep); border-color: var(--magenta); }
+.wx-link:hover svg { transform: translate(2px, -2px); }
+.wx-link:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE — real layouts at each stop, not a squashed desktop grid
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .wx-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .wx-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wx-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  /* On one column the card has room to read as a row: cover on top, but the
+     copy gets the full measure and the clamp opens up. */
+  .wx-copy { -webkit-line-clamp: 5; line-clamp: 5; }
+  .wx-shot { aspect-ratio: 3 / 2; }
+  .wx-bar { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 460px) {
+  .wx-stats { grid-template-columns: minmax(0, 1fr); }
+  .wx-chip { padding-inline: 13px; font-size: 0.84rem; }
+  .wx-top { flex-direction: column; align-items: flex-start; gap: 4px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REDUCED MOTION — every transition above is transform/opacity, so the
+   collapse is total: no lift, no crop push, no arrow travel. The reveal
+   primitive short-circuits itself (motion.svelte.js), so nothing here has to
+   undo it.
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .wx-card,
+  .wx-shot img,
+  .wx-open svg,
+  .wx-link,
+  .wx-link svg,
+  .wx-clear {
+    transition: none !important;
+  }
+  .wx-card:hover { transform: none; }
+  .wx-card:hover .wx-shot img { transform: none; }
+  .wx-card:active { transform: none; }
+  .wx-card:hover .wx-open svg,
+  .wx-link:hover svg { transform: none; }
+  .wx-shot img { transform: none; }
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 128px;
+    height: 128px;
+    overflow: hidden;
+    background: transparent;
+  }
+  .icon {
+    width: 128px;
+    height: 128px;
+    border-radius: 36px;
+    background: linear-gradient(135deg, #2b2a4a 0%, #3a3a68 45%, #2fbf8f 100%);
+    position: relative;
+  }
+</style>
+</head>
+<body>
+  <div class="icon">
+    <svg width="128" height="128" viewBox="0 0 128 128">
+      <defs>
+        <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+          <stop offset="62%" stop-color="#ffffff" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+        <mask id="dissolve">
+          <rect x="0" y="0" width="128" height="128" fill="url(#fade)"/>
+        </mask>
+      </defs>
+
+      <!-- screenshot frame, right edge dissolving away -->
+      <g mask="url(#dissolve)">
+        <rect x="38" y="30" width="52" height="68" rx="10" fill="none" stroke="#ffffff" stroke-width="4.2"/>
+        <rect x="47" y="42" width="30" height="5" rx="2.5" fill="#ffffff" fill-opacity="0.9"/>
+        <rect x="47" y="53" width="22" height="5" rx="2.5" fill="#ffffff" fill-opacity="0.55"/>
+        <rect x="47" y="64" width="26" height="5" rx="2.5" fill="#ffffff" fill-opacity="0.55"/>
+        <rect x="47" y="80" width="16" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.9"/>
+      </g>
+
+      <!-- swept-away particles trailing right -->
+      <circle cx="96" cy="46" r="2.6" fill="#ffffff" fill-opacity="0.85"/>
+      <circle cx="104" cy="58" r="2" fill="#ffffff" fill-opacity="0.6"/>
+      <circle cx="99" cy="70" r="1.6" fill="#ffffff" fill-opacity="0.45"/>
+      <circle cx="109" cy="40" r="1.4" fill="#ffffff" fill-opacity="0.4"/>
+      <circle cx="108" cy="80" r="1.8" fill="#ffffff" fill-opacity="0.5"/>
+
+      <!-- clean swipe check -->
+      <path d="M30 92 L38 100 L54 82" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+</body>
+</html>

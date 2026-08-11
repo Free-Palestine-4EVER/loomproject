@@ -1,11 +1,30 @@
-/* ——— PRICING — the rate card (redesigned 10 Aug 2026) ———
-   Six rows, not six boxes. See Pricing.jsx for why: a price list is read down
-   its price column, and a grid puts the six numbers at six different x
-   positions. As rows every figure lands in the same column, so the
-   cheapest-to-dearest read costs the eye nothing.
+/* ——— PRICING — THE LADDER BOARD (11 Aug 2026, second redesign) ———
+   Six tiers on one board instead of six full-width bands down three screens.
+   See Pricing.svelte for the argument; the short version is that the stack
+   was rejected twice for the same two reasons — it was tall, and its six
+   rows were six copies of one object, so the layout said nothing about how
+   the tiers differ. Do not reintroduce `.price-row`.
 
-   The only chrome is one hairline between rows and one yarn stub per row. No
-   card borders — the section is one object, not six. */
+   THE STRUCTURE
+     .price-board   one grid, four columns at desktop
+     .ptile         a build tier — one column, price is the largest thing in it
+     .ptile--on     an ONGOING offer (per month / per seat) — spans two
+                    columns on the second row and lays out side-by-side, so
+                    the two families are visibly two families
+     .ptile-rule    the rung: a top-edge bar whose width is --step, this
+                    floor against the dearest one. Four of them side by side
+                    are the price ladder drawn as a chart. Dashed on the
+                    ongoing tiles, which are a rate and not a rung.
+
+   COLOUR BUDGET: no new values. Every tint is a color-mix of the tier's own
+   --accent (one of the four yarns, set inline per tile) against transparent,
+   and every piece of accent-coloured TEXT uses --accent-ink, the token that
+   exists precisely because a raw yarn is 1.8:1 on the pink ground. Rules,
+   ticks and fills keep the bright yarn, as styles.css instructs.
+
+   MOTION: entry is one reveal per tile; at rest nothing animates. Everything
+   else is a hover transition, and all of them are cut under
+   prefers-reduced-motion at the foot of this file. */
 
 .price {
   position: relative;
@@ -26,12 +45,12 @@
 }
 
 .price-head {
-  padding: 0 var(--pad) clamp(20px, 2.6vw, 32px);
+  padding: 0 var(--pad) clamp(20px, 2.6vw, 30px);
   max-width: 1180px;
   margin: 0 auto;
 }
 /* a step down from the global .h2: this headline ran to two lines of ~62px,
-   which is 180px of head on a section that has six rows to get through */
+   which is 180px of head on a section that has a whole board to get through */
 .price-h2 {
   max-width: 18ch;
   font-size: clamp(1.9rem, 3.6vw, 3rem);
@@ -39,167 +58,314 @@
 }
 .price-sub { margin-top: 12px; color: var(--ink-dim); max-width: 52ch; }
 
-.price-card {
+/* ——— the board ———
+   Four columns. The four build floors take one each, in price order, so the
+   rank is left-to-right; the two ongoing offers span two each underneath. */
+.price-board {
   max-width: 1180px;
   margin: 0 auto;
   padding: 0 var(--pad);
-  border-top: 1px solid var(--line);
-}
-.price-row-wrap { display: block; }
-
-/* ——— a row ———
-   Grid, five areas. The price column is a FIXED track rather than auto, so a
-   four-digit figure and a two-digit one start at the same x — with `auto` the
-   column width follows the widest cell and the shorter numbers sit ragged,
-   which is the exact scanning problem the grid layout had. */
-.price-row {
-  position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) clamp(150px, 15vw, 190px) auto;
-  grid-template-areas:
-    'n what fig cta'
-    'n note note note';
-  align-items: start;
-  gap: 4px clamp(14px, 2vw, 28px);
-  padding: clamp(13px, 1.5vw, 18px) 0;
-  border-bottom: 1px solid var(--line);
-  transition: background 0.35s var(--ease);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(10px, 1.1vw, 16px);
+  align-items: stretch;
 }
-.price-row:hover { background: rgba(255, 255, 255, 0.022); }
-/* the yarn stub, same chrome budget as Proof's stat rail */
-.price-row::before {
+
+/* ——— a tile ——— */
+.ptile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(16px, 1.5vw, 22px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--accent, var(--magenta)) 9%, transparent),
+      color-mix(in srgb, var(--accent, var(--magenta)) 3%, transparent) 42%
+    );
+  overflow: hidden;
+  transition: transform 0.4s var(--ease), border-color 0.35s var(--ease),
+    box-shadow 0.4s var(--ease);
+}
+.ptile:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 42%, transparent);
+  box-shadow: 0 14px 34px -22px color-mix(in srgb, var(--accent, var(--magenta)) 70%, transparent);
+}
+
+/* THE RUNG. Sits on the tile's top edge over a faint full-width track, so
+   what you see is "this much of the bar filled" — the ladder, drawn. */
+.ptile-rule {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: color-mix(in srgb, var(--accent, var(--magenta)) 16%, transparent);
+}
+.ptile-rule::after {
   content: '';
   position: absolute;
-  left: 0; top: clamp(13px, 1.5vw, 18px);
-  width: 3px; height: 26px;
-  border-radius: 2px;
+  inset: 0 auto 0 0;
+  width: var(--step, 100%);
   background: var(--accent, var(--magenta));
-  opacity: 0;
-  transition: opacity 0.35s var(--ease);
+  border-radius: 0 3px 3px 0;
+  transform-origin: 0 50%;
+  transition: filter 0.35s var(--ease);
 }
-.price-row:hover::before { opacity: 1; }
+.ptile:hover .ptile-rule::after { filter: brightness(1.12); }
+/* the two rates are not on the builds' scale, so their rule is drawn rather
+   than measured — a full-width dash, no implied magnitude */
+.ptile--on .ptile-rule::after {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--accent, var(--magenta)) 0 9px,
+    transparent 9px 16px
+  );
+  border-radius: 0;
+}
 
-.price-n {
-  grid-area: n;
+.ptile-a, .ptile-b { display: flex; flex-direction: column; min-width: 0; }
+.ptile-b { gap: 12px; margin-top: auto; }
+
+.ptile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ptile-n {
   font-family: var(--display);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.18em;
+  font-variant-numeric: tabular-nums;
   color: var(--accent-ink);
-  padding-top: 6px;
-  width: 2.4em;
 }
-
-.price-what { grid-area: what; min-width: 0; }
-.price-name {
-  font-family: var(--bloom);
-  font-weight: 560;
-  font-size: clamp(1.3rem, 2.2vw, 1.85rem);
-  line-height: 1.02;
-  color: var(--ink);
-}
-.price-lede {
-  margin-top: 4px;
-  font-size: clamp(0.82rem, 0.95vw, 0.9rem);
-  line-height: 1.4;
-  color: var(--ink-dim);
-  max-width: 46ch;
-}
-/* the includes, inline. Twenty-four bullets across six rows would make this
-   the tallest section on the page; as one dotted run they read as a spec line
-   under the name, which is what they are. */
-.price-list {
-  margin-top: 6px;
-  font-size: 0.75rem;
-  line-height: 1.45;
-  color: var(--ink-faint);
-  max-width: 60ch;
-}
-.price-list i {
-  font-style: normal;
-  margin: 0 7px;
-  color: var(--accent, var(--magenta));
-  opacity: 0.7;
-}
-
-/* ——— the price column ——— */
-.price-fig {
-  grid-area: fig;
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0 7px;
-  padding-top: 2px;
-}
-/* FIXED MEASURE, not auto. `from` is a baseline flex item, so without a set
-   width the numeral after it starts wherever that word happens to end — and
-   at these sizes that is a 15px stagger between "750" and "1,900", which is
-   exactly the ragged price column the grid layout was replaced to fix. */
-.price-from {
-  min-width: 3.1em;
-  font-size: 0.72rem;
+.ptile-per {
+  font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-faint);
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  white-space: nowrap;
 }
-.price-val {
+
+.ptile-name {
   font-family: var(--bloom);
   font-weight: 560;
-  font-size: clamp(1.7rem, 2.9vw, 2.4rem);
-  line-height: 0.95;
-  letter-spacing: -0.01em;
+  font-size: clamp(1.16rem, 1.5vw, 1.42rem);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
   color: var(--ink);
 }
-.price-unit {
-  font-family: var(--display);
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--accent-ink);
+.ptile-lede {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  line-height: 1.42;
+  color: var(--ink-dim);
+  /* three lines whether the sentence needs them or not, so the four figures
+     land on ONE baseline across the rank. Without it the shortest lede lifts
+     its price ~20px above its neighbours and the row stops being a scale you
+     can read across. */
+  min-height: calc(3 * 1.42em);
 }
-.price-period {
-  flex-basis: 100%;
-  margin-top: 4px;
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
+
+/* ——— the figure ———
+   Nothing in the tile is allowed to be bigger than this. "from" and the unit
+   sit on the numeral's baseline at a fraction of its size, so the number is
+   the only thing the eye lands on and the qualifier is still legible. */
+.ptile-fig {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
+  align-items: baseline;
+  column-gap: 7px;
+  margin-top: 14px;
+}
+/* "from" takes its own line above the numeral rather than sitting beside it.
+   Beside it, the four-digit floors pushed the unit onto a second line inside a
+   ~190px tile — "3,900" and "JOD" split across two lines is the one thing a
+   price is not allowed to do. Above it, every numeral also starts at the same
+   x down a column, which is the comparison this board is for. */
+.ptile-from {
+  grid-column: 1 / -1;
+  margin-bottom: 2px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
-
-.price-cta { grid-area: cta; padding-top: 6px; }
-.price-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-family: var(--body);
-  font-size: 0.88rem;
+.ptile-val {
+  font-family: var(--bloom);
+  font-weight: 560;
+  font-size: clamp(2.3rem, 3vw, 2.95rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.ptile-unit {
+  font-family: var(--display);
+  font-size: 0.9rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--accent-ink);
+}
+
+/* ——— what the floor buys ——— */
+.ptile-feats {
+  padding: 12px 0 0;
+  margin: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.ptile-feat {
+  position: relative;
+  padding-left: 19px;
+  font-size: 0.745rem;
+  line-height: 1.36;
+  color: var(--ink-dim);
+}
+/* a drawn tick, not a bullet — two borders on an empty box, rotated. Not the
+   raw yarn: at a 1.6px stroke --yarn-blue (1.8:1 on the pink ground) reads as
+   a smudge, so the tick takes the same accent/ink mix the accent text does,
+   pitched brighter because it is a mark and not a letter. Hue identity
+   survives — the blue tier still ticks blue. */
+.ptile-feat::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.3em;
+  width: 8px;
+  height: 4.5px;
+  border-left: 1.7px solid color-mix(in srgb, var(--accent, var(--magenta)) 62%, var(--ink));
+  border-bottom: 1.7px solid color-mix(in srgb, var(--accent, var(--magenta)) 62%, var(--ink));
+  transform: rotate(-45deg);
+}
+
+.ptile-note {
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--accent, var(--magenta)) 40%, transparent);
+  font-size: 0.7rem;
+  line-height: 1.45;
+  color: var(--ink-faint);
+}
+
+.ptile-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent, var(--magenta)) 6%, transparent);
+  font-family: var(--body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left;
   color: var(--ink);
   cursor: pointer;
   text-decoration: none;
-  white-space: nowrap;
-  transition: color 0.3s var(--ease);
+  transition: color 0.3s var(--ease), border-color 0.3s var(--ease), background 0.3s var(--ease);
 }
-.price-link i {
+.ptile-cta i {
+  flex: none;
   font-style: normal;
-  color: var(--accent, var(--magenta));
+  color: var(--accent-ink);
   transition: transform 0.35s var(--ease);
 }
-.price-link:hover { color: var(--accent, var(--magenta)); }
-.price-link:hover i { transform: translateX(5px); }
-.price-link:focus-visible { outline: 2px solid var(--accent, var(--magenta)); outline-offset: 4px; border-radius: 4px; }
+.ptile-cta:hover {
+  color: var(--accent-ink);
+  border-color: color-mix(in srgb, var(--accent, var(--magenta)) 55%, transparent);
+  background: color-mix(in srgb, var(--accent, var(--magenta)) 13%, transparent);
+}
+.ptile-cta:hover i { transform: translateX(4px); }
+.ptile-cta:focus-visible { outline: 2px solid var(--accent, var(--magenta)); outline-offset: 3px; }
 
-.price-note {
-  grid-area: note;
-  margin-top: 4px;
-  font-size: 0.72rem;
-  line-height: 1.4;
-  color: var(--ink-faint);
-  opacity: 0.85;
-  max-width: 74ch;
+/* ——— the ongoing pair ———
+   Two columns wide and laid out side-by-side rather than stacked, so the row
+   is short and the two families do not look like the same object at two
+   widths. */
+.ptile--on {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: clamp(16px, 2vw, 30px);
+}
+/* the number anchors the bottom of its half rather than floating mid-tile:
+   these two are twice as wide as a build tile, and a figure sitting directly
+   under a three-line lede left ~90px of nothing beneath it */
+.ptile--on .ptile-fig { margin-top: auto; padding-top: 16px; }
+.ptile--on .ptile-b { margin-top: 0; }
+/* and the action sits on the same baseline as the figure opposite it */
+.ptile--on .ptile-cta { margin-top: auto; }
+.ptile--on .ptile-lede { max-width: 44ch; }
+.ptile--on .ptile-val { font-size: clamp(2.6rem, 3.4vw, 3.4rem); }
+
+/* ——— tablet / narrow desktop ———
+   Four one-column tiles stop working below here: the figure and a 34-char
+   tick line cannot share ~200px. Two up, and the ongoing pair goes back to a
+   stacked tile at the same width as the builds. */
+@media (max-width: 1100px) {
+  .price-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ptile--on {
+    grid-column: span 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .ptile--on .ptile-fig { margin-top: 14px; padding-top: 0; }
+  .ptile--on .ptile-cta { margin-top: 0; }
+  .ptile--on .ptile-b { margin-top: auto; }
+  .ptile-lede { min-height: 0; }
+}
+
+/* ——— phone ———
+   One column. The tiers must stay COMPARABLE here, not merely fit: every tile
+   keeps its rung, so scrolling the six is still reading one bar chart, and
+   the head of each tile puts the name and the figure on ONE line so two
+   adjacent floors are never more than a thumb-flick apart. */
+@media (max-width: 720px) {
+  .price-board { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .ptile { gap: 12px; }
+  .ptile-a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: 14px;
+  }
+  .ptile-top { grid-column: 1 / -1; margin-bottom: 8px; }
+  .ptile-name { grid-column: 1; }
+  .ptile-lede { grid-column: 1; grid-row: 3; }
+  .ptile-fig {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    align-self: center;
+    justify-content: end;
+    justify-items: end;
+    margin-top: 0;
+  }
+  .ptile-val { font-size: 2.3rem; }
+  .ptile--on .ptile-lede { max-width: none; }
+}
+
+@media (max-width: 380px) {
+  /* below this the one-line name + figure head collides; the figure drops
+     under the name and keeps its size rather than shrinking to fit */
+  .ptile-a { display: flex; }
+  .ptile-fig { margin-top: 12px; justify-content: start; justify-items: start; }
 }
 
 /* ——— the caveat + one last CTA ——— */
@@ -209,35 +375,25 @@
   justify-content: space-between;
   gap: clamp(20px, 3vw, 44px);
   max-width: 1180px;
-  margin: clamp(26px, 3.4vw, 40px) auto 0;
+  margin: clamp(22px, 2.8vw, 34px) auto 0;
   padding: 0 var(--pad);
 }
 .price-foot-note {
   max-width: 62ch;
-  font-size: 0.88rem;
-  line-height: 1.6;
+  font-size: 0.86rem;
+  line-height: 1.55;
   color: var(--ink-dim);
 }
-
-@media (max-width: 900px) {
-  /* the price and the CTA drop under the name rather than beside it — a
-     150px price track next to a 40ch lede is two columns of four words each */
-  .price-row {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      'n what'
-      '. fig'
-      '. cta'
-      '. note';
-    gap: 10px clamp(12px, 3vw, 18px);
-  }
-  .price-fig { padding-top: 0; }
+@media (max-width: 720px) {
   .price-foot { flex-direction: column; align-items: flex-start; }
-}
-@media (max-width: 520px) {
-  .price-lede, .price-list, .price-note { max-width: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .price-row, .price-row::before, .price-link, .price-link i { transition: none; }
+  .ptile,
+  .ptile-rule::after,
+  .ptile-cta,
+  .ptile-cta i {
+    transition: none;
+  }
+  .ptile:hover { transform: none; }
 }

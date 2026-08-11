@@ -78,6 +78,66 @@
   font-display: swap;
 }
 
+/* LOOM PATTERNS — the third family (11 Aug 2026), built in LOOM-Patterns/.
+   Four pattern cuts, each in a FILL and an OUTLINE variant. Caps-only display
+   faces by design: the pattern IS the letter, so they are unreadable below
+   ~40px and must never be used for body copy, nav, buttons or captions.
+
+   WEIGHT WARNING — these are outline-heavy and do NOT belong sitewide:
+     Organic  30 KB / 31 KB      Linear   85 KB /  80 KB
+     Retro   111 KB / 106 KB     Flora   249 KB / 221 KB
+   ~913 KB for all eight. Load the ones a page actually sets, and subset for
+   any fixed word (see scripts/subset-bloom-home.mjs for the Bloom precedent —
+   the hero cuts its glyph set that way rather than shipping the full face). */
+@font-face {
+  font-family: 'LOOM Organic';
+  src: url('/fonts/loom-patterns/LOOMOrganic-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Organic Outline';
+  src: url('/fonts/loom-patterns/LOOMOrganicOutline-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Retro';
+  src: url('/fonts/loom-patterns/LOOMRetro-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Retro Outline';
+  src: url('/fonts/loom-patterns/LOOMRetroOutline-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Linear';
+  src: url('/fonts/loom-patterns/LOOMLinear-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Linear Outline';
+  src: url('/fonts/loom-patterns/LOOMLinearOutline-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Flora';
+  src: url('/fonts/loom-patterns/LOOMFlora-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Flora Outline';
+  src: url('/fonts/loom-patterns/LOOMFloraOutline-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
 /* "Home" cuts — glyph subsets of the seven planted faces above, carrying only
    the characters the HOME PAGE actually sets in them (the hero headline in
    Daisy, the cycling "BLOOM" word in every cut, and Rose's drifting cut-name
@@ -126,6 +186,36 @@
 @font-face {
   font-family: 'LOOM Bloom Meadow Home';
   src: url('/fonts/loom-bloom/LOOMBloomMeadow-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* Pattern "Home" cuts — the same idea applied to LOOM Linear (11 Aug 2026),
+   for the hero headline only. 19 characters instead of 98:
+   " .ABCDEFGHINORSTVWY", which is "WE WEAVE BRANDS ON THE EDGE OF CREATIVITY."
+   and nothing else. 82.6 KB -> 22.3 KB fill, 78.4 KB -> 20.2 KB outline; the
+   hero pays 42.5 KB for its headline instead of 161 KB, and /type still points
+   at the full faces above.
+
+   `font-display: swap` and NOT `block` on purpose. These are metrically
+   identical to the Bloom faces the headline used before (both measure 9.072em
+   for the long line), and the fallback below them in the stack is the same
+   drawn Bloom cut — so the swap is a texture change inside letterforms that do
+   not move, not a reflow. Blocking would trade that for invisible LCP text.
+
+   REBUILD WITH: node scripts/subset-patterns-home.mjs  (the exact fontTools
+   invocation and the copy-change warning live in that file). A character
+   missing from the subset falls back to the next family, not to tofu — a stale
+   subset reads as one plain letter inside a patterned word, not as a crash. */
+@font-face {
+  font-family: 'LOOM Linear Home';
+  src: url('/fonts/loom-patterns/LOOMLinear-Home.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LOOM Linear Outline Home';
+  src: url('/fonts/loom-patterns/LOOMLinearOutline-Home.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
@@ -414,22 +504,79 @@ html.cursor-hot .cursor-ring {
   position: fixed; top: 0; left: 0; right: 0; z-index: 80;
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px var(--pad);
-  /* unscrolled state sits directly on the hero photo — .nav-links a is
-     .ink-dim, which measures well under 4.5:1 against the pink cloud
-     backdrop with no scrim at all. This gradient is just enough to hold
-     contrast without reading as a bar; .nav--scrolled's solid fill wins
-     over it once the user scrolls. */
-  background: linear-gradient(180deg, rgba(9,4,16,0.4) 0%, rgba(9,4,16,0.12) 70%, rgba(9,4,16,0) 100%);
+  /* ONE HEADER, NOT THREE — 11 Aug 2026.
+
+     The bar used to paint three different ways and the client saw all three:
+       1. unscrolled — `linear-gradient(rgba(9,4,16,0.4) -> transparent)`
+       2. scrolled   — frosted pink + denim texture + blur
+       3. reduced-transparency — a solid #ffdfec plate
+     so scrolling the page swapped the header between a dark bar, a pink one
+     and a white one.
+
+     State 1 was a straight theme-flip bug, not a style: that dark scrim was
+     written when the site sat on a dark violet ground. After the flip to the
+     rose ground the links became `--ink-dim` — DARK text — so the unscrolled
+     header was painting a near-black plate behind dark type. The old comment
+     here still claimed the gradient was "just enough to hold contrast", which
+     stopped being true the moment the ground changed underneath it.
+
+     There are TWO states now and only two, exactly as the client asked for:
+     over the hero the header paints NOTHING AT ALL — no plate, no blur, no
+     texture, no border — and once scrolled it is the frosted rose plate.
+     An intermediate translucent-plate resting state was tried first and read
+     as a third header (a grey-mauve bar over the hero), so it is gone.
+
+     The nav links are `--ink-dim` (dark) and the hero art behind them is the
+     pale rose cloud render, so dark type on no plate is the correct contrast
+     direction here. If the hero art is ever swapped for something dark, this
+     resting state has to be revisited — a transparent header is only safe
+     over a light hero. */
+  background: transparent;
   /* the blur radius is NOT interpolated — ramping 0->14px across a 1440px bar
      every frame for 450ms was the expensive half of this transition */
-  transition: background 0.45s, padding 0.45s;
+
+  /* THE BAR'S HEIGHT IS NOW CONSTANT — 11 Aug 2026. This transitioned
+     `padding` as well (16px unscrolled -> 10px scrolled, over 450ms), which
+     is a LAYOUT animation: for 450ms straight the browser re-laid out a
+     full-width `position: fixed` bar every frame and re-resolved the vertical
+     position of the wordmark, ten nav links, the Get started pill and Sign in
+     along with it. On desktop that read exactly as the client described it —
+     the header glitching on scroll. It also meant the bar's height genuinely
+     changed, so anything measuring against it (anchor landings, the
+     scroll-spy) saw a moving target mid-transition.
+
+     Padding is a single value now and is NOT transitioned. The scrolled state
+     changes only background, backdrop-filter and the border — all composited,
+     none of them touching layout, so the state flip costs nothing and moves
+     nothing. The bar still visibly changes on scroll (transparent gradient ->
+     frosted pink plate); it just no longer resizes to do it.
+
+     The hysteresis in Nav.svelte (turn on above 56px, off below 32px) is
+     unrelated and stays — that guards against the state flickering when a
+     reader rests the page near the threshold, which is a different bug. */
+  transition: background 0.45s, border-color 0.45s;
+  /* one stable compositor layer, so flipping backdrop-filter on and off does
+     not make WebKit tear the layer down and rebuild it mid-scroll */
+  transform: translateZ(0);
+  /* THE BORDER IS RESERVED, NOT ADDED (11 Aug 2026). The scrolled state grows
+     a bottom border — 1px here, overridden to `2px dashed` in wool.css:430 —
+     and a border is part of the box, so adding it on scroll made the bar 2px
+     taller. That was the second half of the desktop header glitch: with the
+     padding animation gone the contents held still, but the bar itself still
+     stepped 95.47px -> 97.47px every time the state flipped. Declaring the
+     full 2px up front in `transparent` means the scrolled state only changes
+     the border's COLOUR, which is free. Any future restyle of this border
+     must keep the width at 2px in both states. */
+  border-bottom: 2px solid transparent;
 }
 .nav--scrolled {
-  background: rgba(255, 233, 242, 0.72);
+  /* the one and only painted state. Height is NOT part of it — the 2px border
+     is reserved transparently on `.nav` above, so appearing here costs no
+     layout and the bar never resizes. */
+  background: rgba(255, 233, 242, 0.86);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  padding: 10px var(--pad);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px solid var(--line);
 }
 .nav-logo {
   display: flex; align-items: center; gap: 10px;
@@ -539,6 +686,79 @@ html.cursor-hot .cursor-ring {
   min-width: 44px; min-height: 44px; align-items: center; justify-content: center;
 }
 .burger span { width: 22px; height: 2px; background: var(--ink); transition: transform 0.4s var(--ease), opacity 0.3s; }
+
+/* ————————————————————————————————————————————————————————————————————————
+   THE PHONE HEADER ROW — 11 Aug 2026 (client: "Get started" and "Sign in"
+   must be in the collapsed mobile header).
+
+   MEASURED FIRST, at 360 / 390 / 430 in webkit, before changing anything.
+   Both controls were ALREADY in the bar — `.nav-cta` renders on every width
+   and only `.nav-links` drops out at 1100px — but the row had NO SLACK LEFT:
+   at 360 and at 390 the wordmark ran 20 -> 133 and `.nav-cta` started at
+   exactly 133. Zero gap. The wool "Get started" spool is a photograph with a
+   soft lit edge, so butting it against the M of LOOM read, correctly, as the
+   pill sitting on top of the wordmark — which is what a header looks like
+   when it has failed to fit, and is why the controls were reported as not
+   being there at all. (Nothing was actually overlapping and nothing wrapped:
+   `.nav` is a flex row with no `flex-wrap`, so the next failure past zero
+   slack would have been a silent overflow, not a second line.)
+
+   THE SPACE COMES OUT OF THE CTAs, NEVER THE WORDMARK. `.nav-logo` is
+   `flex: none` for a documented reason — under the default flex-shrink it has
+   the largest basis in the row and absorbed almost the entire squeeze,
+   collapsing to ~8px and vanishing. So this block shrinks the two controls
+   and the gaps around them and leaves the logo's box alone:
+
+     spool   104 -> 92px  (height follows the render's aspect: 56 -> 49.5px)
+     pill    68  -> 56px  (shorter tracking + tighter padding, not a smaller
+                           tap target — `min-height: 44px` is asserted below)
+     gap     14  -> 9px
+
+   which buys 43px of gap at 360 and 390 where there were 0. The burger keeps
+   its full 44x44. Verified at all three widths: no overlap, no wrap, and
+   `.nav-cta`'s right edge still lands on the `--pad` gutter.
+
+   EVERY SELECTOR HERE IS DELIBERATELY OVER-QUALIFIED WITH `.nav`. Both
+   properties it sets are already declared by a LATER authority at equal
+   specificity, and equal specificity is decided by source order:
+     · `.nav-auth-pill` is re-sized in the `@media (max-width: 1200px)` block
+       further down THIS file (height 32, padding 0 12px, font 0.66rem);
+     · `.nav-cta .wool-btn--photo` is set to 104px inside `@media (max-width:
+       900px)` in wool.css, and wool.css is imported LAST on purpose ("loaded
+       last, so it wins over styles.css / textile.css on ties").
+   One extra class on each selector settles it in the cascade rather than by
+   where a future editor happens to move this block. */
+@media (max-width: 767px) {
+  .nav .nav-cta { gap: 9px; }
+  /* the pill's own height rule sets 32px; a 44px hit area is bought with a
+     transparent inset instead of a taller pill, so the bar's height (set by
+     the spool, not by this) does not move */
+  .nav .nav-auth-pill {
+    height: 30px; padding: 0 11px;
+    font-size: 0.6rem; letter-spacing: 0.08em;
+    position: relative;
+  }
+  .nav .nav-auth-pill::after {
+    content: ''; position: absolute; left: 0; right: 0;
+    top: 50%; transform: translateY(-50%);
+    height: 44px; min-width: 44px;
+  }
+  .nav .nav-cta .wool-btn--photo { --wool-btn-w: 92px; }
+}
+/* 360px AND NARROWER NEEDS ANOTHER 10px. Measured with the block above in
+   place: at 360 the row totalled 369.4px against a 360px screen — the wordmark
+   (112.6) plus `.nav-cta` (216.8) plus two 20px gutters — and a flex row with
+   no `flex-wrap` answers that by overflowing its right padding, which is what
+   `.nav-cta` was doing (right edge at 349.4 where the gutter wants 340).
+   Nothing visibly broke, because the overflow lands in the burger's own
+   padding, but the bar had no gutter left on the right and none at all
+   between the wordmark and the spool. 82px keeps the spool's rendered height
+   at 44.2px, still a full tap target, and 7px gaps bring the row to 355.4 —
+   4.6px of real slack at 360. Below 360 there is no phone left to support. */
+@media (max-width: 384px) {
+  .nav .nav-cta { gap: 7px; }
+  .nav .nav-cta .wool-btn--photo { --wool-btn-w: 82px; }
+}
 .burger.is-open span:first-child { transform: translateY(3.5px) rotate(45deg); }
 .burger.is-open span:last-child { transform: translateY(-3.5px) rotate(-45deg); }
 
@@ -632,32 +852,224 @@ html.cursor-hot .cursor-ring {
   .menu-bg-bloom { animation: none; }
 }
 
+/* THE DRAWER IS DESIGNED NOW — 11 Aug 2026 (client: "make the menu more
+   designed please").
+
+   WHAT IT WAS: `.menu-links` — twelve <a>s in one flex column, all at
+   `clamp(2.6rem, 9vw, 4.6rem)`, weight 560, `--ink`, centred, `gap: 10px`.
+   Home and FAQ were typographically the same sentence. Centring twelve
+   different-length words also gave the column two ragged edges and no
+   vertical rhythm to hang anything off, which is exactly why it read as a
+   nav dump rather than as a menu.
+
+   WHAT IT IS: two tiers, left-aligned, on a ruled grid.
+     · TIER ONE (.menu-primary) — five destinations, set in the studio's own
+       LOOM Organic, each row an index numeral + the word + a yarn thread that
+       draws itself across on the row you are on.
+     · TIER TWO (.menu-secondary) — the remaining seven, as small tracked caps
+       under a label, in a two-column grid.
+   The tiers are computed from LINKS in Nav.svelte; nothing about the set of
+   links, their labels or their destinations changed.
+
+   `justify-content: safe center` and the 92px + notch top padding are kept
+   verbatim from the old rule — see the .menu comment above for the tap bug
+   they fix (centring pushed the first two items under the fixed bar and
+   `document.elementFromPoint` returned `header.nav` for both). `safe` still
+   flips to start-alignment the moment the content is taller than the drawer,
+   which after this change is the normal case on a short phone, and
+   `overflow-y: auto` still owns the rest.
+
+   TWO THINGS DID HAVE TO CHANGE.
+
+   `align-items`: `center` on a flex column shrink-wraps every child to its
+   own content width, which made a left-aligned tier impossible — each block
+   would have found its own left edge. `stretch` gives all four the same
+   measure, so the numerals, the words and the second tier's columns line up
+   down one axis.
+
+   `justify-content`: `safe center` is GONE, replaced by a plain
+   `flex-start`. It was the right rule for the old drawer and is the wrong one
+   for this one. `safe` only falls back to start-alignment in browsers that
+   parse it, and it was doing real work: measured in webkit at 390x844 with
+   the new content in place, the first primary row painted at y≈55 — UNDER the
+   fixed header, with the kicker above it scrolled off the top of a container
+   that cannot be scrolled up to reach it, which is precisely the failure the
+   `.menu` comment above documents (`document.elementFromPoint` over the first
+   items returning `header.nav`). The old content sometimes fit and sometimes
+   did not, so centring-with-a-fallback was a reasonable hedge; this drawer's
+   composition is top-anchored by design and its content is taller than a
+   phone at every width, so the hedge has no upside left and one very sharp
+   downside. Start-aligned, the 92px + notch top padding is honoured as
+   padding always is, and the header can never eat a link again. */
 .menu-content {
   position: relative; z-index: 1;
   height: 100%;
-  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5vh;
-  justify-content: safe center;
+  display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;
+  gap: clamp(16px, 2.6vh, 30px);
   padding: calc(env(safe-area-inset-top, 0px) + 92px) var(--pad)
            calc(env(safe-area-inset-bottom, 0px) + 28px);
   overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
-  text-align: center;
+  text-align: left;
+  /* one measure for every tier, so the drawer does not become a full-bleed
+     wall of type on a tablet-width phone */
+  --menu-measure: min(520px, 100%);
 }
-.menu-links { display: flex; flex-direction: column; gap: 10px; }
-.menu-links a {
-  font-family: var(--display); font-weight: 560;
-  font-size: clamp(2.6rem, 9vw, 4.6rem); line-height: 1.15;
+
+/* THE STAGGER. One keyframe, driven off the `--i` each row carries (see the
+   markup note in Nav.svelte for why the ramp is numbered the way it is).
+   `both` matters: `backwards` is what holds a row at opacity 0 through its
+   own delay — without it every row paints in full, then jumps back to the
+   start of its animation, which is the classic "the stagger flashes" bug. */
+@keyframes menu-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
 }
-.menu-links a { display: inline-block; transition: color 0.3s, transform 0.3s var(--ease); }
-.menu-links a:hover { color: var(--magenta); transform: translateX(10px); }
-.menu-links a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 4px; border-radius: 8px; }
+.menu-kicker,
+.menu-primary .menu-p,
+.menu-secondary,
+.menu-rise,
+.menu-meta {
+  animation: menu-rise 0.42s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 38ms);
+}
+
+/* the drawer's own dateline — a small anchor at the top of the composition so
+   the first primary link is not the first thing on the screen */
+.menu-kicker {
+  display: flex; align-items: center; gap: 12px;
+  width: var(--menu-measure);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.menu-kicker-thread {
+  flex: 1; height: 3px; border-radius: 3px;
+  /* the site's four yarns, the same repeating rope .kicker::after uses */
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px, var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px, var(--yarn-gold) 21px 28px
+  );
+  opacity: 0.55;
+}
+
+/* ——— tier one ——— */
+.menu-primary {
+  width: var(--menu-measure);
+  display: flex; flex-direction: column;
+}
+.menu-p {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.6em 1fr;
+  align-items: baseline;
+  gap: 0 0.5em;
+  padding: clamp(3px, 0.55vh, 9px) 0;
+  transition: color 0.3s, transform 0.3s var(--ease);
+}
+.menu-p-idx {
+  font-family: var(--display);
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em;
+  color: var(--ink-faint);
+  transition: color 0.3s;
+}
+/* THE PATTERN CUT WAS TRIED HERE AND REJECTED ON EVIDENCE — 11 Aug 2026.
+   Built first with `font-family: 'LOOM Organic'` (30 KB, fetched only on the
+   drawer's first open, `font-display: swap`, so it costs no page's critical
+   path) at clamp(40px, 11.5vw, 54px) — 41.4px at 360, 44.9px at 390. Rendered
+   and looked at in webkit at all three widths: the zebra ribbons punch the
+   drawer's own pink ground straight through the middle of the R, the D and
+   the G, HOME and CONTACT stop resolving as words at a glance, and the whole
+   column reads as texture. This file's own hero note already predicted it —
+   "Organic's zebra ribbons are thick enough to punch the background through
+   the middle of B/R/D and the line stops reading as words at 43px" — which is
+   above every size a phone gets here. A drawer is the one surface on the site
+   where a reader is mid-task and scanning, so it is the last place to spend
+   legibility on personality.
+
+   THE CHARACTER IS IN THE COMPOSITION INSTEAD, and it costs zero bytes: the
+   index numerals, the yarn thread that draws itself under the row you are on,
+   the two tiers, the ruled second column and the staggered rise. The face is
+   the site's system display stack, uppercase and tightly tracked at display
+   size, which is the same treatment `.kicker` and the nav tabs use — so the
+   drawer now looks like the rest of the site rather than like a font demo.
+
+   THE SIZE STAYS IN PIXELS even though the face changed. `html { font-size:
+   90% }` under 768px (the mobile type ramp at the foot of this file) silently
+   scales anything expressed in rem, and this is a display size that must not
+   drift with it; 9.6vw is 34.6px at 360, 37.4px at 390, 41.3px at 430. */
+.menu-p-word {
+  font-family: var(--display);
+  font-size: clamp(34px, 9.6vw, 46px);
+  font-weight: 660;
+  line-height: 1.04;
+  text-transform: uppercase;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  transition: color 0.3s;
+}
+/* the thread — a yarn rule that draws itself across the row, from the word's
+   own left edge. Scale, not width: a transform is composited, and this sits
+   under type that is already the most expensive thing in the drawer to
+   repaint. */
+.menu-p-thread {
+  grid-column: 2;
+  display: block; height: 2px; margin-top: 6px;
+  background: linear-gradient(90deg, var(--magenta), var(--yarn-violet) 60%, transparent);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform 0.42s var(--ease);
+}
+.menu-p:hover .menu-p-word,
+.menu-p:focus-visible .menu-p-word { color: var(--magenta); }
+.menu-p:hover .menu-p-thread { transform: scaleX(0.34); }
+.menu-p:focus-visible { outline: 2px solid var(--magenta); outline-offset: 6px; border-radius: 10px; }
+/* WHERE YOU ARE. Colour alone would be the only signal and would be the only
+   signal a colour-blind reader misses, so the current row states it three
+   ways: the numeral goes magenta, the thread is drawn all the way, and the
+   row carries aria-current="page" for anyone not looking at it at all. */
+.menu-p.is-current .menu-p-idx { color: var(--magenta); }
+.menu-p.is-current .menu-p-thread { transform: scaleX(1); }
 @media (prefers-reduced-motion: reduce) {
-  .menu-links a:hover { transform: none; }
+  .menu-kicker, .menu-primary .menu-p, .menu-secondary, .menu-rise, .menu-meta { animation: none; }
+  .menu-p, .menu-p-thread { transition: none; }
+}
+
+/* ——— tier two ——— */
+.menu-secondary { width: var(--menu-measure); }
+.menu-s-label {
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+/* two columns, not a wrapped chip cloud: seven items of very different label
+   lengths (MCP against AI WORKSHOPS) wrap into a ragged shape that reads as
+   an accident. A grid gives them a second alignment axis for free. */
+.menu-s-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 2px 14px;
+}
+.menu-s {
+  display: flex; align-items: center;
+  min-height: 44px;
+  font-family: var(--display);
+  font-size: 0.84rem; font-weight: 640; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-dim);
+  border-bottom: 1px solid var(--line);
+  transition: color 0.25s, border-color 0.25s;
+}
+.menu-s:hover, .menu-s:focus-visible { color: var(--magenta); border-color: var(--magenta); }
+.menu-s:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; }
+.menu-s.is-current { color: var(--ink); border-color: var(--magenta); }
+.menu-s.is-current::before {
+  content: ''; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%;
+  background: var(--magenta); flex: none;
 }
 
 /* ——— MenuIndustries — the mobile disclosure (Chrome.jsx) ———
    A secondary way into the 30-niche index, deliberately smaller type than
-   .menu-links: this is a lookup, not one of the page's primary destinations. */
-.menu-industries { width: min(440px, 88vw); }
+   the primary tier: this is a lookup, not one of the page's destinations. */
+/* was min(440px, 88vw) — its own measure, which put its left edge somewhere
+   between the two tiers' now that they are left-aligned rather than centred */
+.menu-industries { width: var(--menu-measure); }
 .menu-ind-toggle {
   width: 100%;
   display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -768,11 +1180,31 @@ html.cursor-hot .cursor-ring {
 @media (prefers-reduced-motion: reduce) {
   .nav-drop-chev, .menu-ind-chev { transition: none; }
 }
-.menu-meta { display: flex; flex-direction: column; gap: 8px; color: var(--ink-dim); font-size: 0.95rem; }
+.menu-meta {
+  display: flex; flex-direction: column; gap: 8px;
+  width: var(--menu-measure);
+  align-items: flex-start;
+  color: var(--ink-dim); font-size: 0.95rem;
+  /* the drawer used to end on a bare list of contact lines; a rule closes the
+     composition and separates the CTA from the two ways to reach a human */
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+/* The "Start weaving" spool is `size="big"` (clamp(210px, 19vw, 252px), so
+   210 x 113 on a phone) — poster scale, chosen when this was the only thing
+   in the drawer with any visual weight. Against five 45px display rows it is
+   no longer carrying the composition on its own, and 113px of the drawer's
+   vertical budget is the difference between the whole menu fitting a 390x844
+   screen and it opening already scrolled. The label, the photo and the
+   component call are untouched; only the box it is drawn in is smaller. */
+/* `.menu-content` prefixed on purpose: `.wool-btn--photo.is-big` in wool.css
+   is also two classes, and wool.css is imported last, so a two-class selector
+   here would lose the tie on source order alone. */
+.menu-content .menu-meta .wool-btn--photo { --wool-btn-w: 168px; }
 /* the phone number and the address at the foot of the drawer measured
    210 x 24.3 — the two smallest targets inside the mobile navigation. */
 .menu-meta a {
-  display: inline-flex; align-items: center; justify-content: center;
+  display: inline-flex; align-items: center; justify-content: flex-start;
   min-height: 44px; min-width: 44px;
 }
 .menu-meta a:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 6px; }
@@ -860,12 +1292,15 @@ html.cursor-hot .cursor-ring {
   display: grid; align-items: end;
   padding: 118px var(--pad) clamp(60px, 10vh, 110px);
   overflow: clip;
-  /* The client asked for the hero to keep the custom face. .hero-h1 itself
-     is already set in var(--bloom-daisy), untouched by the sitewide swap
-     above — but .hero-line--accent (the outlined "on the edge") is set in
-     var(--bloom) directly, which is now the system stack by default. Scope
-     it back to the drawn face so the headline's outline half doesn't switch
-     fonts out from under its filled half. */
+  /* The client asked for the hero to keep the custom face. This override was
+     added when .hero-line--accent was set in var(--bloom) directly — sitewide
+     that resolves to the system stack, which would have switched the
+     headline's outline half out from under its filled half. Both halves now
+     name their LOOM Linear cuts explicitly (see .hero-h1) and nothing inside
+     .hero reads var(--bloom) any more, so this line currently changes
+     nothing. It is kept as the scope guarantee for the section: any drawn
+     heading dropped into the hero later gets the drawn face, not the system
+     one, without having to rediscover why. */
   --bloom: var(--bloom-stack);
 }
 /* Desktop gets more than 100svh so the planet has room to be a subject rather
@@ -894,7 +1329,18 @@ html.cursor-hot .cursor-ring {
     padding-top: 96px;
   }
   /* smaller: at 8.2vw the headline ran three lines and pushed the planet off
-     the fold entirely, which is the thing being fixed */
+     the fold entirely, which is the thing being fixed.
+
+     ⚠ THIS DECLARATION IS DEAD AND HAS BEEN FOR A WHILE (found 11 Aug 2026).
+     `.hero-h1` is (re)declared at equal specificity ~230 lines BELOW this
+     media block, and later wins, so the phone has always rendered the base
+     `clamp(2.7rem, 8.2vw, 7rem)` — 38.88px at 390, not the 2.15rem this line
+     asks for. Same trap catches `.hero-sub` and `.hero-eyebrow` here. Left
+     in place rather than "fixed" because deleting it or hoisting the base
+     rule would silently resize three elements on every phone, which is a
+     layout decision and not this change's to make. The wrap guard the
+     headline actually needed lives on the base rule instead — see the
+     `min(... calc(10.8vw - 4px))` there. */
   .hero-h1 { font-size: clamp(2.15rem, 6.6vw, 3rem); }
   .hero-sub { margin-top: 18px; font-size: 0.96rem; }
   .hero-eyebrow { margin-bottom: 16px; }
@@ -1075,37 +1521,120 @@ html.cursor-hot .cursor-ring {
   color: var(--ink); text-shadow: 0 1px 14px rgba(9,4,16,0.55); margin-bottom: 26px;
 }
 .hero-eyebrow .x { color: var(--magenta); }
-/* The hero is the one headline set in a PLANTED cut — LOOM Bloom Daisy.
-   Why Daisy and not Rose/Tulip/Ivy: all four were rendered at the real hero
-   sizes (112px desktop, 43.2px at 390 and again at 3x device pixels) over the
-   real cloud photograph. Daisy's motif is discrete — small starbursts and two
-   leaves, with clear white between them — so every letterform survives whole.
-   Rose's spirals close the counters of B/R/D; Tulip chews the cap line and
-   reads as torn paper; Ivy's angular leaves read as compression noise. Daisy
-   is also the only one that matches the world it sits on: the hero planet is
-   covered in cherry blossom, and daisies read as blossom.
-   Weight stays under 600 — Bloom Daisy ships one weight and Chrome would
-   synthesise a fake bold above that, thickening the stems until the flowers
-   fill in. */
+/* The hero headline is the one on the site set in a PATTERN cut — LOOM Linear
+   (11 Aug 2026, replacing LOOM Bloom Daisy; the Daisy reasoning is kept below
+   because it still explains the fallback).
+
+   WHY LINEAR AND NOT ORGANIC/RETRO/FLORA: all four were rendered at the real
+   hero sizes over the real cloud photograph. This headline sits on a
+   photograph, under a planet, next to a magenta accent — the loud choice is
+   already spoken for. Organic's zebra ribbons are thick enough to punch the
+   background through the middle of B/R/D and the line stops reading as words
+   at 43px; Retro's crackle mesh is fine but its cells are dense enough to grey
+   the whole line down against the vignette contrast this section was tuned to;
+   Flora is 249 KB and its scattered flowers would say the same thing the Bloom
+   typeface section further down the page already says, twice. Linear's texture
+   is hairline — the silhouette stays a clean wide grotesk at every size, and
+   the pattern reads as a material the letters are cut from rather than as
+   noise on top of them.
+
+   FILL FOR THE STATEMENT, OUTLINE FOR THE ACCENT (see .hero-line--accent).
+   That is the composition the hero already had; the outline half is now a
+   DRAWN cut instead of a -webkit-text-stroke, so it is the same family talking
+   to itself rather than an effect applied to a font.
+
+   CAPS ONLY, AND `text-transform` IS LOAD-BEARING: the pattern faces ship
+   A-Z/0-9/punctuation and NO LOWERCASE AT ALL. Without the transform every
+   lowercase letter in "We weave brands" drops to the OS sans mid-word. The
+   source string in Hero.svelte stays sentence case for the document outline;
+   this is what the reader sees.
+
+   NO LAYOUT SHIFT: Linear and Bloom Daisy are metrically identical (both
+   measure 9.072em for "WE WEAVE BRANDS" / "We weave brands", same 0.9/-0.2
+   hhea box), so the three lines set to the same widths and the same line
+   count they always did, and `line-height: 1.005` still holds.
+
+   Weight stays at a single 400 — Linear ships one weight and Chrome
+   synthesises a fake bold above ~600, which on a pattern face thickens the
+   contours until the texture floods and the counters close.
+
+   FALLBACK STACK: the 22 KB subset, then the full 83 KB Linear face, then
+   Clash Display. NOT var(--bloom-daisy), which is what this headline used to
+   be set in — measured at 390/768/1440, naming LOOMBloomDaisy-Home as a third
+   fallback made Chrome fetch all 32 KB of it on every single load even though
+   the subset above it matched every character and Daisy never painted a
+   pixel. Nothing else on the site references that family any more, so the
+   whole file went with it: leaving one word of graceful degradation in the
+   stack cost more bytes than the face this change was built to shrink.
+   Clash Display is already on the page for the nav and measures 9.145em to
+   Linear's 9.072em, so even the last step of the stack barely moves the line.
+
+   (The Daisy reasoning, for whoever wants it back: its motif is discrete —
+   small starbursts and two leaves with clear white between them — so every
+   letterform survived whole, and the hero planet is covered in cherry blossom
+   which daisies read as. It lost to Linear on the photograph, not on paper.) */
 .hero-h1 {
-  font-family: var(--bloom-daisy); font-weight: 580;
-  font-size: clamp(2.7rem, 8.2vw, 7rem);
+  font-family: 'LOOM Linear Home', 'LOOM Linear', 'Clash Display', 'Avenir Next', sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  /* THE min() IS A WRAP GUARD, NOT A SECOND OPINION ON SIZE. The longest
+     line, "WE WEAVE BRANDS", measures 9.072em — identically in LOOM Linear,
+     in LOOM Linear Outline and in the Bloom cuts behind them, which is why
+     the pattern swap moved nothing horizontally. But 9.072em is wide: at 390
+     the 2.7rem floor put that line at 353px inside 350px of usable width
+     (390 minus 2 x the 20px --pad floor) and it broke to a FOURTH line,
+     pushing the planet off the fold — the exact failure the mobile block
+     further up was written to prevent, and could not, because that block's
+     font-size never applied (see the note there).
+     The clamp floor cannot see the viewport, so it needs a cap that can:
+     9.072em must fit inside (100vw - 40px), i.e. 11.02vw - 4.4px. 10.8vw-4px
+     is that, rounded down so the last S keeps a few pixels of air. It only
+     binds below ~400px; from 430 up the clamp wins untouched, so desktop
+     type size is exactly what it was.
+     Redo this arithmetic if the headline copy changes — it is pinned to the
+     longest line's em width, the same string scripts/subset-patterns-home.mjs
+     is pinned to. */
+  font-size: min(clamp(2.7rem, 8.2vw, 7rem), calc(10.8vw - 4px));
   line-height: 1.005; letter-spacing: 0;
 }
 .hero-line { display: block; overflow: hidden; }
 .hero-line > span { display: block; }
-/* The accent line is a 1.5px OUTLINE with no fill, and an outline of a planted
-   cut is unreadable: every petal and leaf contributes its own contour, so
-   "ON THE EDGE" comes out as magenta confetti at every size tested. It gets
-   the plain cut instead. This costs nothing in rhythm — Daisy and Regular
-   share their metrics exactly, so the line still sets to the same width and
-   the same letter positions; it just reads as the stem before the flower. */
+/* The accent line is the family's own OUTLINE cut now, not a stroke effect.
+   It used to be `color: transparent` + `-webkit-text-stroke: 1.5px` over the
+   plain Bloom face, because stroking a planted cut turned "ON THE EDGE" into
+   magenta confetti (every petal contributes its own contour) and the flowered
+   cut had to be dropped for that line. LOOM Linear Outline is a real hollow
+   letterform with the hairline texture drawn INSIDE it, so the accent line
+   keeps its pattern instead of giving it up, and the outline weight is the
+   designer's, consistent at 43px and at 112px — a fixed 1.5px stroke is
+   neither. It also drops a -webkit- prefixed property from the render path of
+   the LCP element.
+
+   Fill and outline share their metrics exactly (both 6.173em for this line),
+   so the middle line still sets to the same width and the same letter
+   positions it always did. `-webkit-text-stroke: 0` is left explicit to unset
+   any inherited stroke rather than relying on the cascade.
+
+   Same stack tail as .hero-h1, and for the same measured reason — naming a
+   third drawn family here pulls its whole file down even when the subset
+   matches every character. Note this line loses its magenta OUTLINE entirely
+   if it ever falls back that far (Clash has no hollow cut), which is another
+   argument for keeping the subset in sync with the copy. */
 .hero-line--accent {
-  font-family: var(--bloom);
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--magenta);
+  font-family: 'LOOM Linear Outline Home', 'LOOM Linear Outline', 'Clash Display', 'Avenir Next', sans-serif;
+  color: var(--magenta);
+  -webkit-text-stroke: 0;
 }
-.hero-h1 .dot { color: var(--magenta); -webkit-text-stroke: 0; }
+/* `display: inline` overrides `.hero-line > span { display: block }` above,
+   which is there to give each of the React version's per-line motion wrappers
+   its own row and catches this full stop as collateral. It cost little when
+   the headline was set in Bloom — a small blossom dropped under the last line
+   — but a pattern-cut period is a chunky textured SQUARE, and on its own row
+   in magenta it reads as a rendering glitch sitting between the headline and
+   the sub-lede rather than as punctuation. It belongs on the end of
+   "OF CREATIVITY", which is also where it stops adding a third line box to a
+   three-line headline. */
+.hero-h1 .dot { display: inline; color: var(--magenta); -webkit-text-stroke: 0; }
 .hero-sub { margin-top: 30px; max-width: 54ch; color: var(--ink-dim); font-size: clamp(1rem, 1.4vw, 1.18rem); }
 .hero-ctas { margin-top: 38px; display: flex; gap: 16px; flex-wrap: wrap; }
 .hero-scrollhint {
@@ -1267,32 +1796,72 @@ html.cursor-hot .cursor-ring {
    public/img/manifesto/laptop-mascot-cutout.webp is a colour-key cutout
    (see scripts/clean-manifesto-alpha.mjs) with the backdrop removed down to
    real alpha, so it floats straight on the section instead of carrying its
-   own competing rectangle. `.manifesto-media` needs overflow:visible (the
-   default) for the 1.5x scale below to spill past its grid column without
-   clipping — nothing here declares overflow:hidden, so it already does. */
-.manifesto-media { position: relative; }
+   own competing rectangle.
+
+   THE BLEED IS GONE (11 Aug 2026, client: the laptop was "cut off" and the
+   poster inside it stretched). This used to be `width: 150%` (120% under
+   900px) with `max-width: none`, deliberately overflowing its own grid column
+   to the right and relying on `.manifesto`'s `overflow-x: clip` to catch it.
+   Two things were wrong with that at every width:
+
+     · at 1280 and below, 150% of a 0.85fr column is wider than the space left
+       between the column and the page's outer padding, so the clip actually
+       fired and TOOK THE RIGHT-HAND THIRD OF THE LAPTOP OFF. A cutout with no
+       frame gives the eye no cue that a crop is intentional, so it reads as a
+       broken image rather than a bleed;
+     · `.manifesto-media` also carries a scroll-driven
+       `scale()/rotateY()/rotateX()` (Manifesto.svelte), and a 3D-rotated box
+       is WIDER than its layout width — the transform pushed the already
+       oversized image further past the clip than the CSS above accounted for.
+
+   The image is now CONTAINED: it never exceeds its column, so neither the clip
+   nor the rotation can eat an edge, and the section cannot open a horizontal
+   scrollbar at any width. `object-fit: contain` + the intrinsic 4:3 aspect
+   ratio is what guarantees the poster art inside the screen is never scaled on
+   one axis only. `.manifesto-media` keeps overflow visible so the rotation's
+   own few px of perspective spill are not clipped either. */
+.manifesto-media { position: relative; max-width: 100%; }
 .manifesto-laptop {
   display: block;
-  width: 150%;
-  max-width: none;
-  /* grows RIGHT only — the left edge stays put at the column's own start.
-     A negative margin-left here (the first version) pulled the extra size
-     back over the copy column and overlapped the body text at wider
-     viewports; growing right instead runs into the page's own outer
-     padding / the viewport edge, which .manifesto's overflow-x:clip now
-     catches instead of creating a horizontal scrollbar. */
-  margin-left: 0;
+  /* the cap is the asset's own top useful size — the source is 1700x1275 and
+     the responsive ladder tops out at 1600, so anything past ~640 CSS px is
+     upscaling a cutout with soft alpha edges */
+  width: 100%;
+  max-width: min(100%, 640px);
+  height: auto;
+  /* belt and braces against a future flex/grid parent stretching it: with an
+     explicit aspect-ratio and `contain`, a wrong box letterboxes rather than
+     distorting the poster art on the screen. */
+  aspect-ratio: 1700 / 1275;
+  object-fit: contain;
+  object-position: center;
+  margin-inline: auto;
 }
-@media (max-width: 900px) {
-  /* same fix as desktop, same reason: a negative margin-left here cropped
-     the laptop's own left edge off the viewport instead of just growing
-     into the outer padding, which read as a broken/cut-off image rather
-     than an intentional bleed. Grows right only, same as above. */
-  .manifesto-laptop { width: 120%; margin-left: 0; }
+@media (max-width: 1000px) {
+  /* one column from here down (see the responsive block at the foot of this
+     file): the laptop is no longer beside the copy but under it, so it centres
+     in the full content width instead of filling it — a 900px-wide laptop
+     photo under a 26ch headline is a poster, not an illustration. */
+  .manifesto-laptop { max-width: min(100%, 520px); }
+}
+@media (max-width: 767px) {
+  /* 390px: the content box is 350px after --pad, and the cutout carries its
+     own transparent margin, so 100% of that box puts the laptop itself at
+     ~320px — deliberate, in frame, and clear of both edges. */
+  .manifesto-laptop { max-width: 100%; }
 }
 .manifesto-caption {
   margin-top: 14px; color: var(--ink-faint);
   font-style: italic; font-size: 0.92rem; text-align: right;
+}
+/* Below 1000 the grid is one column and the laptop is CENTRED inside it
+   (capped at 520px), so a right-aligned caption no longer sits under the
+   image's right edge — it sits out in the column's own empty margin, reading
+   as a stray line of text. Centre it on the same axis the image is on.
+   MUST live after the base rule, not inside the max-width:1000px block above:
+   both are (0,1,0) and the later one wins. */
+@media (max-width: 1000px) {
+  .manifesto-caption { text-align: center; }
 }
 
 /* ——— services ——— */
@@ -1755,7 +2324,12 @@ html.cursor-hot .cursor-ring {
   border: 1px solid var(--line); transition: all 0.3s;
 }
 .wstep.is-now { color: var(--ink); }
-.wstep.is-now i { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
+/* --ink on --magenta measured 1.80:1 — the CURRENT step's numeral, i.e. the
+   one element in the rail that has to be readable, was the least readable
+   thing in it. Another theme-flip leftover: dark ink on a lit magenta fill was
+   legible against the old dark ground and is not against the light one.
+   --bg on --magenta-deep measures 5.66:1. (11 Aug 2026) */
+.wstep.is-now i { background: var(--magenta-deep); border-color: var(--magenta-deep); color: var(--bg); }
 .wstep.is-done { color: var(--ink-dim); cursor: pointer; }
 .wstep.is-done i { border-color: var(--magenta); color: var(--magenta); }
 .wstep:disabled { cursor: default; }
@@ -1788,7 +2362,9 @@ html.cursor-hot .cursor-ring {
   border: 1px solid var(--line); color: var(--ink-dim); transition: all 0.25s;
 }
 .wchip:hover { border-color: var(--magenta); color: var(--ink); }
-.wchip.is-on { background: var(--magenta); border-color: var(--magenta); color: var(--ink); }
+/* same 1.80:1 failure as .wstep.is-now i above, same fix: a SELECTED need chip
+   was the hardest chip in the row to read. 5.66:1 now. (11 Aug 2026) */
+.wchip.is-on { background: var(--magenta-deep); border-color: var(--magenta-deep); color: var(--bg); }
 .wform { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0 24px; }
 .wform label { display: flex; flex-direction: column; gap: 7px; }
 .wform label span { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
@@ -2747,3 +3323,104 @@ html.cursor-hot .cursor-ring {
    scripts/responsive.mjs plus honest `sizes` attributes, which is done and
    which cost nothing in correctness. */
 
+
+/* ————————————————————————————————————————————————————————————————————————
+   THE MOBILE TYPE SCALE (added 11 Aug 2026 — client: the fonts on mobile are
+   "toooo big")
+
+   This block is the ONLY place mobile type is shrunk. It is here, in the
+   global sheet, rather than distributed across the twenty-odd section
+   stylesheets, for two reasons: those files are edited by other people, and a
+   scale that lives in twenty places is a scale that drifts.
+
+   WHY THE ROOT FONT SIZE IS THE MAIN LEVER, AND WHY IT IS ENOUGH.
+   Almost every heading on this site is `clamp(<rem min>, <vw>, <rem max>)`.
+   Work out where those resolve on a phone: .h2 is clamp(2rem, 5.2vw, 4.4rem)
+   and 5.2vw at 390px is 20px, well under the 32px minimum — so THE MINIMUM IS
+   WHAT PAINTS, on essentially every clamp on the site, at every phone width.
+   The vw term is dead below ~615px. That is exactly why the page reads as
+   oversized on a phone and normal on a laptop: the fluid middle everyone tuned
+   is not the part a phone ever sees.
+
+   The minimums are all in `rem`, so 90% here rescales every one of them —
+   including the ones in stylesheets this file cannot touch — by a flat 10%,
+   and touches NOTHING on desktop, where the block does not apply at all and
+   where the vw/max terms are what resolve anyway.
+
+   `body` then takes its own size back up, because a 10% cut is right for a
+   48px headline and wrong for 16px body copy: the complaint is about display
+   type dominating the screen, and shrinking the paragraph under it fixes
+   nothing and costs readability. Same for .kicker, which is already 0.8rem of
+   0.22em-tracked caps and cannot afford 11px.
+
+   The explicit clamps below are the second lever, for the handful of global
+   display sizes where a flat 10% is not enough — a 44px "NO BOUNDARIES?" is
+   still a 40px one after the root change. Each re-tunes the vw term as well,
+   so it is a real mobile ramp from 320 to 767 rather than a min that ignores
+   the viewport. All of them are inside this max-width block: no desktop
+   rendering changes by a pixel.
+   ———————————————————————————————————————————————————————————————————————— */
+@media (max-width: 767px) {
+  html { font-size: 90%; }
+  /* 1.06rem of a 14.4px root ≈ 15.3px — a hair under the 16px default, which
+     is the intent (the client did say everything, not only the headlines),
+     but nowhere near the 10% cut the display type takes. */
+  body { font-size: 1.06rem; }
+
+  /* THE SECTION HEADING — the single biggest offender, because every band on
+     the page has one. Was clamp(2rem, 5.2vw, 4.4rem): a flat 30px at 390 and
+     a flat 30px at 767, since the vw term never won. Now 5.6vw actually
+     drives it across the range — 21.8px at 390, 43px at 767 — under a 2.1rem
+     (30px) cap so a tablet-width phone is not handed the desktop size.
+     max-width goes from 26ch to 18ch: 26ch of a 22px face is wider than a
+     390px screen, so the measure was doing nothing at all here and headlines
+     wrapped wherever the words fell. 18ch gives a 2-3 line headline with an
+     intentional break instead. */
+  .h2 {
+    font-size: clamp(1.5rem, 5.6vw, 2.1rem);
+    line-height: 1.08;
+    max-width: 18ch;
+  }
+  .lede { font-size: clamp(1rem, 3.4vw, 1.12rem); line-height: 1.55; }
+  .body-dim { font-size: 0.97rem; }
+  /* held up against the root cut — see the note above */
+  .kicker { font-size: 0.78rem; letter-spacing: 0.18em; margin-bottom: 16px; }
+
+  /* the close. Was clamp(2.8rem, 9vw, 7.5rem) = a 45px flat minimum, the
+     largest live type on the phone page after the hero. */
+  .contact-h2 { font-size: clamp(1.9rem, 8.4vw, 2.9rem); }
+  .contact-sub { font-size: 1rem; margin-top: 20px; }
+
+  /* THE `.menu-links a` MOBILE SIZE IS GONE WITH THE SELECTOR — 11 Aug 2026.
+     It read `clamp(1.55rem, 6.6vw, 2.4rem)`, cutting the drawer's twelve
+     equal-weight links down so they were not three screenfuls. The drawer is
+     two tiers now (see .menu-primary / .menu-secondary above) and each tier
+     sizes itself for the phone at its own definition — the primary rows in
+     px, on purpose, because this very block's `html { font-size: 90% }` is
+     what would otherwise drag a rem-based floor under LOOM Organic's
+     legibility limit. Nothing matches `.menu-links` any more; leaving the
+     rule here would have been a second, invisible authority for anyone who
+     reintroduced the class. */
+
+  /* first paint, before anything else is on screen to give it scale */
+  .loader-word { font-size: clamp(2.2rem, 9vw, 3.2rem); }
+
+  /* section-level display type that also resolved to a flat minimum here */
+  .svc-title { font-size: clamp(1.25rem, 4.6vw, 1.7rem); }
+  .studio-card h3 { font-size: clamp(1.45rem, 5.4vw, 1.9rem); }
+  .overlay-head h2 { font-size: clamp(1.6rem, 6vw, 2.3rem); }
+  .overlay-title { font-size: clamp(1rem, 3.4vw, 1.2rem); }
+  .wq { font-size: clamp(1.15rem, 4.4vw, 1.5rem); }
+
+  /* NOTHING MAY OVERFLOW SIDEWAYS. The scale above is chosen so it does not,
+     but a heading is a string somebody edits later — a 14-character brand
+     name in a 22px condensed face is one CMS edit away from a scrollbar, and
+     `body { overflow-x: clip }` would hide the symptom while leaving the word
+     sliced off at the edge. Breaking the word is the honest failure.
+
+     `break-word`, not `anywhere`: `anywhere` also shrinks an element's
+     min-content width, which would let flex and grid tracks the rest of this
+     file sizes by content collapse. `break-word` changes the wrap and nothing
+     about layout. */
+  h1, h2, h3, p, .h2, .lede { overflow-wrap: break-word; }
+}

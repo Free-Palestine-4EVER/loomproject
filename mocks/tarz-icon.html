@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    width: 128px; height: 128px;
+    overflow: hidden;
+    background: transparent;
+  }
+  .tile {
+    width: 128px; height: 128px;
+    border-radius: 35.84px;
+    background: linear-gradient(155deg, #f3ede3 0%, #ded1b2 46%, #1b1a17 100%);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .glow {
+    position: absolute; width: 120px; height: 120px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(224,72,60,0.22), rgba(224,72,60,0) 68%);
+  }
+  .letter {
+    position: relative;
+    font-family: "Mishafi Gold", "Mishafi", "Farah", "Baghdad", serif;
+    font-size: 78px;
+    line-height: 1;
+    color: #e0483c;
+    direction: rtl;
+    transform: translateY(-2px);
+    text-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  }
+</style>
+</head>
+<body>
+  <div class="tile">
+    <div class="glow"></div>
+    <div class="letter">ط</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,352 @@
+/* ═══ /contact — the page's own sheet ═════════════════════════════════════
+   Prefix `ct-`, used nowhere else. components/contact.css owns the mounted
+   `<Contact />` band and components/hiring.css owns `<Hiring />`; neither is
+   touched, and nothing in this file selects into either — the two mounted
+   sections must render on this route exactly as they render on the home page.
+
+   THE STRUCTURAL DECISION: this sheet styles only the FRAME around that form.
+   Hero and routes above it, studios above it, the "after you send" flow and
+   the careers hand-off below it. The `<Contact />` band is a dark felt chassis
+   with a lit paper screen, so the two sections that touch it are given
+   deliberately quiet grounds — the form stays the brightest, heaviest object
+   on the page, which is the entire reason it is mounted rather than rebuilt.
+
+   COLOUR: no new values. Accents are yarns set inline per card; accent text
+   always resolves --accent-ink.
+
+   MOTION: entrance only (`use:reveal`) plus hover transitions on the three
+   route cards and the studio links. Cut at the foot of this file.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.ct-hero,
+.ct-studios,
+.ct-next {
+  position: relative;
+  padding: clamp(56px, 8vh, 104px) var(--pad);
+}
+.ct-hero-in,
+.ct-sec-head,
+.ct-studio-grid,
+.ct-flow,
+.ct-terms,
+/* The measure-capped trailing paragraphs sit inside a .ct-wrap rather than
+   centring themselves: `margin-inline: auto` on a 66ch paragraph inside a
+   1440px band centres it, and a centred line under a column of left-aligned
+   cards reads as a mistake. The wrapper carries the page's 1180px column, the
+   paragraph carries its own measure, and the left edge stays where every
+   other left edge on the page is. */
+.ct-wrap {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+/* ——— 1. HERO ——————————————————————————————————————————————————————— */
+.ct-hero {
+  padding-top: clamp(40px, 6vh, 72px);
+  isolation: isolate;
+  border-bottom: 1px solid var(--line);
+}
+.ct-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(56% 48% at 20% 0%, rgba(242, 28, 140, 0.15), transparent 70%),
+    radial-gradient(50% 44% at 88% 6%, rgba(89, 230, 255, 0.14), transparent 72%),
+    linear-gradient(to bottom, var(--bg-2), var(--bg));
+}
+.ct-h1 {
+  max-width: 17ch;
+  font-size: clamp(2.1rem, 5.4vw, 4rem);
+  line-height: 1.02;
+}
+.ct-hero-lede {
+  margin-top: 20px;
+  color: var(--ink-dim);
+  max-width: 58ch;
+}
+
+/* the three routes */
+.ct-routes {
+  list-style: none;
+  margin: clamp(28px, 3.6vw, 44px) 0 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(14px, 1.8vw, 20px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.ct-route {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(18px, 2.2vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.6);
+  transition: border-color 0.28s var(--ease), transform 0.28s var(--ease), background 0.28s var(--ease);
+}
+.ct-route:hover,
+.ct-route:focus-within {
+  border-color: var(--accent, var(--magenta));
+  background: #fff;
+  transform: translateY(-3px);
+}
+.ct-route-a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  position: relative;
+  padding-right: 28px;
+}
+.ct-route-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+.ct-route-value {
+  margin-top: 8px;
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 1.7vw, 1.32rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.ct-route-arrow {
+  position: absolute;
+  right: 0;
+  top: 26px;
+  color: var(--accent-ink);
+  transition: transform 0.28s var(--ease);
+}
+.ct-route:hover .ct-route-arrow { transform: translateX(4px); }
+.ct-route-body {
+  margin-top: 12px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+
+.ct-hero-cta {
+  margin-top: clamp(26px, 3.2vw, 38px);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+.ct-hero-note { font-size: 0.86rem; color: var(--ink-faint); max-width: 32ch; }
+
+/* ——— shared section head ——————————————————————————————————————————— */
+.ct-sec-head { margin-bottom: clamp(26px, 3.6vw, 46px); }
+.ct-h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); line-height: 1.05; max-width: 22ch; }
+.ct-sec-lede {
+  margin-top: 16px;
+  max-width: 62ch;
+  color: var(--ink-dim);
+  font-size: clamp(1rem, 1.2vw, 1.08rem);
+  line-height: 1.6;
+}
+/* Every borrowed sentence names its source. Small, dim, and on its own line —
+   a citation, not a caption competing with the claim above it. */
+.ct-src {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+  opacity: 0.85;
+}
+
+/* ——— 2. STUDIOS ———————————————————————————————————————————————————— */
+.ct-studios { border-bottom: 1px solid var(--line); }
+.ct-studio-grid {
+  display: grid;
+  gap: clamp(16px, 2vw, 24px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.ct-studio {
+  min-width: 0;
+  position: relative;
+  padding: clamp(22px, 2.8vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+}
+.ct-studio::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--accent, var(--magenta));
+}
+.ct-studio-city {
+  font-family: var(--display);
+  font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+.ct-studio-country {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.ct-studio-role {
+  margin-top: 14px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  max-width: 30ch;
+}
+.ct-studio-contact {
+  margin-top: 18px;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.ct-studio-a {
+  display: inline-block;
+  margin-top: 14px;
+  color: var(--accent-ink);
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  transition: opacity 0.24s var(--ease);
+}
+.ct-studio-a:hover { opacity: 0.72; }
+.ct-studio-foot {
+  max-width: 72ch;
+  margin-top: clamp(20px, 2.6vw, 30px);
+  color: var(--ink-dim);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+/* ——— 4. AFTER YOU SEND ————————————————————————————————————————————— */
+.ct-next {
+  border-top: 1px solid var(--line);
+  background: linear-gradient(to bottom, var(--bg), var(--bg-2));
+}
+.ct-flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(14px, 1.8vw, 20px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  counter-reset: none;
+}
+.ct-flow-step {
+  min-width: 0;
+  padding: clamp(18px, 2.2vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.55);
+  display: flex;
+  flex-direction: column;
+}
+.ct-flow-n {
+  font-family: var(--display);
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--magenta-deep);
+}
+.ct-flow-h {
+  margin-top: 12px;
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 1.6vw, 1.24rem);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+}
+.ct-flow-b {
+  margin-top: 10px;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+.ct-flow-src {
+  margin-top: auto;
+  padding-top: 16px;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+
+.ct-terms {
+  margin-top: clamp(20px, 2.6vw, 32px);
+  display: grid;
+  gap: clamp(14px, 1.8vw, 20px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.ct-term {
+  min-width: 0;
+  padding: clamp(18px, 2.2vw, 26px);
+  border-left: 3px solid var(--magenta);
+  background: rgba(255, 255, 255, 0.42);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.ct-term-h {
+  font-family: var(--display);
+  font-size: clamp(1rem, 1.5vw, 1.16rem);
+  line-height: 1.2;
+}
+.ct-term-b {
+  margin-top: 10px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+.ct-next-foot {
+  max-width: 66ch;
+  margin-top: clamp(22px, 3vw, 34px);
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+.ct-next-foot a { color: var(--magenta-deep); font-weight: 600; }
+
+/* ——— 5. CAREERS HAND-OFF ——————————————————————————————————————————— */
+.ct-careers {
+  padding: clamp(30px, 4vh, 52px) var(--pad) 0;
+}
+.ct-careers-p {
+  max-width: 60ch;
+  font-size: clamp(1rem, 1.3vw, 1.14rem);
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+
+/* ——— RESPONSIVE ——————————————————————————————————————————————————— */
+@media (max-width: 1000px) {
+  .ct-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .ct-routes { grid-template-columns: minmax(0, 1fr); }
+  .ct-studio-grid { grid-template-columns: minmax(0, 1fr); }
+  .ct-terms { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .ct-flow { grid-template-columns: minmax(0, 1fr); }
+  .ct-flow-src { margin-top: 14px; padding-top: 0; }
+  .ct-route-value { font-size: 1.05rem; }
+}
+
+/* ——— REDUCED MOTION ——————————————————————————————————————————————— */
+@media (prefers-reduced-motion: reduce) {
+  .ct-route,
+  .ct-route-arrow,
+  .ct-studio-a {
+    transition: none;
+  }
+  .ct-route:hover,
+  .ct-route:focus-within { transform: none; }
+  .ct-route:hover .ct-route-arrow { transform: none; }
+}

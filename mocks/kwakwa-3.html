@@ -1,0 +1,257 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  :root{
+    --cream:#f8efe0;
+    --cream-2:#fffaf1;
+    --yellow:#f3c24b;
+    --yellow-dark:#dfa72f;
+    --brown:#4a3b2a;
+    --brown-soft:#9c8b73;
+    --brown-faint:#c4b79d;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ width:540px; height:1174px; overflow:hidden; }
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(70% 40% at 70% 0%, #fffaf0 0%, rgba(255,250,240,0) 60%),
+      linear-gradient(180deg, #f8efe0 0%, #f5e7c7 100%);
+    position:relative;
+    color:var(--brown);
+  }
+
+  /* status bar */
+  .status-bar{
+    position:absolute; top:0; left:0; right:0; height:54px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px; z-index:30;
+  }
+  .status-bar .time{ font-size:17px; font-weight:600; color:var(--brown); }
+  .island{ position:absolute; left:50%; top:11px; transform:translateX(-50%); width:124px; height:34px; border-radius:20px; background:#0b0b0c; }
+  .status-icons{ display:flex; align-items:center; gap:6px; }
+
+  .page-title{
+    position:absolute; top:66px; left:24px; right:24px;
+  }
+  .page-title h1{ font-size:26px; font-weight:800; color:var(--brown); }
+  .page-title p{ font-size:13px; color:var(--brown-soft); margin-top:3px; }
+
+  /* now playing card */
+  .now-playing{
+    position:absolute; top:140px; left:20px; right:20px;
+    background:var(--cream-2);
+    border-radius:28px;
+    padding:22px;
+    box-shadow:0 16px 32px rgba(150,120,70,0.14);
+    z-index:15;
+  }
+  .np-top{ display:flex; gap:16px; align-items:center; }
+  .album-art{
+    width:78px; height:78px; border-radius:18px; flex-shrink:0;
+    background:linear-gradient(150deg,#f6cf6f,#e0a72e);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 16px rgba(224,167,46,0.35);
+  }
+  .np-info{ flex:1; min-width:0; }
+  .np-title{ font-size:17px; font-weight:700; color:var(--brown); }
+  .np-artist{ font-size:13px; color:var(--brown-soft); margin-top:2px; }
+  .np-tag{
+    display:inline-flex; align-items:center; gap:5px; margin-top:8px;
+    background:rgba(243,194,75,0.22); border-radius:20px; padding:4px 10px 4px 4px;
+  }
+  .np-tag .init{
+    width:16px; height:16px; border-radius:50%; background:var(--yellow-dark);
+    color:#fff; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .np-tag span{ font-size:11px; font-weight:600; color:var(--yellow-dark); }
+
+  .scrub{ margin-top:20px; }
+  .scrub-track{ height:5px; border-radius:3px; background:rgba(150,120,70,0.14); position:relative; overflow:hidden; }
+  .scrub-fill{ position:absolute; left:0; top:0; bottom:0; width:38%; border-radius:3px; background:linear-gradient(90deg,#f3c24b,#e0a72e); }
+  .scrub-thumb{ position:absolute; left:38%; top:50%; transform:translate(-50%,-50%); width:13px; height:13px; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(150,120,70,0.4); }
+  .scrub-times{ display:flex; justify-content:space-between; margin-top:7px; font-size:11px; color:var(--brown-faint); font-weight:600; }
+
+  .transport{ display:flex; align-items:center; justify-content:center; gap:34px; margin-top:16px; }
+  .transport .play{
+    width:56px; height:56px; border-radius:50%;
+    background:linear-gradient(160deg,#f6cf6f,#e0a72e);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 20px rgba(224,167,46,0.4);
+  }
+  .transport .side{ color:var(--brown); opacity:0.75; }
+
+  /* up next list */
+  .section-label{
+    position:absolute; top:388px; left:26px;
+    font-size:13px; font-weight:700; color:var(--brown-soft);
+    text-transform:uppercase; letter-spacing:0.6px;
+  }
+  .queue{
+    position:absolute; top:420px; left:20px; right:20px; bottom:118px;
+    overflow:hidden;
+  }
+  .q-row{ display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid rgba(150,120,70,0.08); }
+  .q-thumb{ width:46px; height:46px; border-radius:12px; flex-shrink:0; }
+  .q-info{ flex:1; min-width:0; }
+  .q-title{ font-size:14.5px; font-weight:600; color:var(--brown); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .q-artist{ font-size:12px; color:var(--brown-soft); margin-top:1px; }
+  .q-added{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+  .q-added .init{
+    width:20px; height:20px; border-radius:50%; color:#fff; font-size:10px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .q-added .init.z{ background:linear-gradient(160deg,#f3c24b,#d99a2b); }
+  .q-added .init.l{ background:linear-gradient(160deg,#e8917a,#c96a52); }
+  .q-added span{ font-size:11.5px; color:var(--brown-soft); font-weight:600; }
+
+  /* tab bar */
+  .tab-bar{
+    position:absolute; left:0; right:0; bottom:0; height:104px;
+    background:rgba(255,251,240,0.92);
+    border-top:1px solid rgba(150,120,70,0.10);
+    display:flex; align-items:flex-start; padding-top:10px;
+    z-index:20;
+  }
+  .tab{ flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; color:var(--brown-faint); }
+  .tab.active{ color:var(--yellow-dark); }
+  .tab .lbl{ font-size:10.5px; font-weight:600; }
+  .tab.quack{ position:relative; top:-22px; color:var(--brown); }
+  .quack-btn{
+    width:58px; height:58px; border-radius:50%;
+    background:linear-gradient(160deg,#f6cf6f,#e0a72e);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 20px rgba(224,167,46,0.45), 0 0 0 6px var(--cream);
+    margin-bottom:2px;
+  }
+  .home-indicator{
+    position:absolute; left:50%; bottom:9px; transform:translateX(-50%);
+    width:134px; height:5px; border-radius:3px; background:rgba(74,59,42,0.55);
+    z-index:30;
+  }
+</style>
+</head>
+<body>
+
+  <!-- status bar -->
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="status-icons">
+      <svg width="18" height="13" viewBox="0 0 18 13" fill="none">
+        <path d="M9 12.2C9.7 12.2 10.3 11.6 10.3 10.9C10.3 10.2 9.7 9.6 9 9.6C8.3 9.6 7.7 10.2 7.7 10.9C7.7 11.6 8.3 12.2 9 12.2Z" fill="#0b0b0c"/>
+        <path d="M9 7.5C10.5 7.5 11.9 8.05 13 9.05L14.1 7.8C12.7 6.55 10.9 5.8 9 5.8C7.1 5.8 5.3 6.55 3.9 7.8L5 9.05C6.1 8.05 7.5 7.5 9 7.5Z" fill="#0b0b0c"/>
+        <path d="M9 3C11.6 3 14 4 15.9 5.75L17 4.5C14.75 2.4 12 1.2 9 1.2C6 1.2 3.25 2.4 1 4.5L2.1 5.75C4 4 6.4 3 9 3Z" fill="#0b0b0c"/>
+      </svg>
+      <svg width="25" height="13" viewBox="0 0 25 13" fill="none">
+        <rect x="1" y="1" width="20" height="11" rx="3" stroke="#0b0b0c" stroke-opacity="0.4" stroke-width="1"/>
+        <rect x="2.5" y="2.5" width="16" height="8" rx="1.8" fill="#0b0b0c"/>
+        <rect x="22.5" y="4" width="1.6" height="5" rx="0.8" fill="#0b0b0c" fill-opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+  <div class="island"></div>
+
+  <div class="page-title">
+    <h1>Our Playlist</h1>
+    <p>Everything we've been sending each other</p>
+  </div>
+
+  <!-- now playing -->
+  <div class="now-playing">
+    <div class="np-top">
+      <div class="album-art">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M9 18V6l11-2v11" stroke="#4a3308" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="18" r="2.6" fill="#4a3308"/><circle cx="18" cy="15" r="2.6" fill="#4a3308"/></svg>
+      </div>
+      <div class="np-info">
+        <div class="np-title">Duck Duck Goose</div>
+        <div class="np-artist">Marina &amp; the Waves</div>
+        <div class="np-tag"><div class="init">L</div><span>Lubna added this</span></div>
+      </div>
+    </div>
+    <div class="scrub">
+      <div class="scrub-track"><div class="scrub-fill"></div><div class="scrub-thumb"></div></div>
+      <div class="scrub-times"><span>1:12</span><span>3:08</span></div>
+    </div>
+    <div class="transport">
+      <svg class="side" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M19 5 L8 12 L19 19 Z" fill="#4a3b2a"/><rect x="5" y="5" width="2.4" height="14" rx="1" fill="#4a3b2a"/></svg>
+      <div class="play"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M3 1 L15 9 L3 17 Z" fill="#4a3308"/></svg></div>
+      <svg class="side" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 5 L16 12 L5 19 Z" fill="#4a3b2a"/><rect x="16.6" y="5" width="2.4" height="14" rx="1" fill="#4a3b2a"/></svg>
+    </div>
+  </div>
+
+  <div class="section-label">Up next</div>
+
+  <div class="queue">
+    <div class="q-row">
+      <div class="q-thumb" style="background:linear-gradient(150deg,#e8917a,#c96a52);"></div>
+      <div class="q-info">
+        <div class="q-title">Slow Dancing in a Burning Room</div>
+        <div class="q-artist">John Mayer</div>
+      </div>
+      <div class="q-added"><div class="init z">Z</div><span>Zeid</span></div>
+    </div>
+    <div class="q-row">
+      <div class="q-thumb" style="background:linear-gradient(150deg,#f6cf6f,#e0a72e);"></div>
+      <div class="q-info">
+        <div class="q-title">Little Duckling Blues</div>
+        <div class="q-artist">Fenn Rush</div>
+      </div>
+      <div class="q-added"><div class="init l">L</div><span>Lubna</span></div>
+    </div>
+    <div class="q-row">
+      <div class="q-thumb" style="background:linear-gradient(150deg,#c9a3e8,#8a5fc9);"></div>
+      <div class="q-info">
+        <div class="q-title">Nights Like This</div>
+        <div class="q-artist">Kehlani</div>
+      </div>
+      <div class="q-added"><div class="init z">Z</div><span>Zeid</span></div>
+    </div>
+    <div class="q-row">
+      <div class="q-thumb" style="background:linear-gradient(150deg,#9dd6c4,#5aa98e);"></div>
+      <div class="q-info">
+        <div class="q-title">Home to You</div>
+        <div class="q-artist">Rex Orange County</div>
+      </div>
+      <div class="q-added"><div class="init l">L</div><span>Lubna</span></div>
+    </div>
+    <div class="q-row">
+      <div class="q-thumb" style="background:linear-gradient(150deg,#f2b8c6,#d97b93);"></div>
+      <div class="q-info">
+        <div class="q-title">Yellow Feathers</div>
+        <div class="q-artist">The Marías</div>
+      </div>
+      <div class="q-added"><div class="init z">Z</div><span>Zeid</span></div>
+    </div>
+  </div>
+
+  <!-- tab bar -->
+  <div class="tab-bar">
+    <div class="tab">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12 L12 5 L20 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11 V19 H18 V11" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>
+      <div class="lbl">Pond</div>
+    </div>
+    <div class="tab">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 6 h16 v10 H10 l-4 4 v-4 H4 Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>
+      <div class="lbl">Chat</div>
+    </div>
+    <div class="tab quack">
+      <div class="quack-btn">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 2 a5 5 0 0 1 5 5 v5 a5 5 0 0 1 -10 0 V7 a5 5 0 0 1 5 -5 Z" fill="#4a3b2a"/><path d="M7 11 a5 5 0 0 0 10 0" stroke="#4a3b2a" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M12 18 v3" stroke="#4a3b2a" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="lbl">Quack</div>
+    </div>
+    <div class="tab active">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="17" r="3" stroke="currentColor" stroke-width="2.2"/><circle cx="17" cy="15" r="3" stroke="currentColor" stroke-width="2.2"/><path d="M10 17 V6 l10 -2 v11" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>
+      <div class="lbl">Playlist</div>
+    </div>
+    <div class="tab">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 20 C6 15.5 3 12 3 8.2 C3 5.4 5.2 3.4 7.8 3.4 C9.4 3.4 10.8 4.2 12 5.6 C13.2 4.2 14.6 3.4 16.2 3.4 C18.8 3.4 21 5.4 21 8.2 C21 12 18 15.5 12 20 Z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/></svg>
+      <div class="lbl">Us</div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</body>
+</html>

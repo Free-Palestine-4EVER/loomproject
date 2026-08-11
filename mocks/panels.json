@@ -1,0 +1,173 @@
+{
+  "_": "The App Store panels on #apps. One entry per panel: a Higgsfield plate from static/img/plates/ as the scene, the real rendered app screen from static/img/suite/ inside a phone drawn in CSS, and a headline set in the site's own type. Nothing here is generated text or generated interface — the model only ever draws the ROOM. scripts/panels.mjs turns this into static/img/panels/<id>.webp.",
+  "panels": [
+    {
+      "id": "evora-scan-1",
+      "plate": "evora-scan-1",
+      "screen": "evora-scan",
+      "ink": "dark",
+      "head": "Scan the room in a walk",
+      "sub": "Point the phone, walk once, and the room is measured."
+    },
+    {
+      "id": "evora-scan-2",
+      "plate": "evora-scan-2",
+      "screen": "evora-scan-2",
+      "ink": "light",
+      "head": "A model, not a photo",
+      "sub": "Real geometry you can turn, cut and export."
+    },
+    {
+      "id": "evora-scan-3",
+      "plate": "evora-scan-3",
+      "screen": "evora-scan-3",
+      "ink": "dark",
+      "head": "The plan draws itself",
+      "sub": "Every wall and doorway, to the centimetre."
+    },
+    {
+      "id": "quran-noor-1",
+      "plate": "quran-noor-1",
+      "screen": "quran-noor",
+      "ink": "light",
+      "head": "The whole mushaf, offline",
+      "sub": "Uthmani script, anywhere in the world."
+    },
+    {
+      "id": "quran-noor-2",
+      "plate": "quran-noor-2",
+      "screen": "quran-noor-2",
+      "ink": "light",
+      "head": "Prayer times that travel",
+      "sub": "Wherever you wake up, the day is already set."
+    },
+    {
+      "id": "quran-noor-3",
+      "plate": "quran-noor-3",
+      "screen": "quran-noor-3",
+      "ink": "light",
+      "head": "A qibla you can trust",
+      "sub": "Point the phone and face Makkah from anywhere."
+    },
+    {
+      "id": "kwakwa-1",
+      "plate": "kwakwa-1",
+      "screen": "kwakwa",
+      "ink": "dark",
+      "head": "Never far from your person",
+      "sub": "Every little moment, saved in your pond."
+    },
+    {
+      "id": "kwakwa-2",
+      "plate": "kwakwa-2",
+      "screen": "kwakwa-2",
+      "ink": "light",
+      "head": "One code, one person",
+      "sub": "Send it to them and the pond is yours alone."
+    },
+    {
+      "id": "kwakwa-3",
+      "plate": "kwakwa-3",
+      "screen": "kwakwa-3",
+      "ink": "dark",
+      "head": "Quacks, not notifications",
+      "sub": "Voice notes, photos and a song you both queued."
+    },
+    {
+      "id": "ellie-1",
+      "plate": "ellie-1",
+      "screen": "ellie",
+      "ink": "dark",
+      "head": "Every paper, one place",
+      "sub": "Vaccinations, weight, family tree — all of it."
+    },
+    {
+      "id": "ellie-2",
+      "plate": "ellie-2",
+      "screen": "ellie-2",
+      "ink": "dark",
+      "head": "The passport, both languages",
+      "sub": "Species, breed, weight — and who to call."
+    },
+    {
+      "id": "ellie-3",
+      "plate": "ellie-3",
+      "screen": "ellie-3",
+      "ink": "dark",
+      "head": "Vets near you, open now",
+      "sub": "Clinics, hours and ratings across Amman."
+    },
+    {
+      "id": "lume-1",
+      "plate": "lume-1",
+      "screen": "lume",
+      "ink": "light",
+      "head": "A studio in your pocket",
+      "sub": "Relight anything on your own kitchen table."
+    },
+    {
+      "id": "lume-2",
+      "plate": "lume-2",
+      "screen": "lume-2",
+      "ink": "light",
+      "head": "Light it like a studio",
+      "sub": "Key, fill, temperature — every value in your hand."
+    },
+    {
+      "id": "lume-3",
+      "plate": "lume-3",
+      "screen": "lume-3",
+      "ink": "light",
+      "head": "One shot, every size",
+      "sub": "Feed, story, storefront — exported in a tap."
+    },
+    {
+      "id": "tarz-1",
+      "plate": "tarz-1",
+      "screen": "tarz",
+      "ink": "dark",
+      "head": "Your word, a dozen ways",
+      "sub": "Kufic, Diwani, Thuluth, Naskh — instantly."
+    },
+    {
+      "id": "tarz-2",
+      "plate": "tarz-2",
+      "screen": "tarz-2",
+      "ink": "dark",
+      "head": "Pick the hand",
+      "sub": "Six centuries of Arabic lettering, side by side."
+    },
+    {
+      "id": "tarz-3",
+      "plate": "tarz-3",
+      "screen": "tarz-3",
+      "ink": "light",
+      "head": "Take it out as SVG",
+      "sub": "Real curves, into whatever you're designing."
+    },
+    {
+      "id": "naqi-1",
+      "plate": "naqi-1",
+      "screen": "naqi",
+      "ink": "dark",
+      "head": "1,284 screenshots. Gone.",
+      "sub": "Swipe left to keep, right to bin."
+    },
+    {
+      "id": "naqi-2",
+      "plate": "naqi-2",
+      "screen": "naqi-2",
+      "ink": "dark",
+      "head": "Nothing goes until you say so",
+      "sub": "Review the whole pile before a single file moves."
+    },
+    {
+      "id": "naqi-3",
+      "plate": "naqi-3",
+      "screen": "naqi-3",
+      "ink": "dark",
+      "head": "Gigabytes back",
+      "sub": "And a camera roll you can actually scroll."
+    }
+  ]
+}
