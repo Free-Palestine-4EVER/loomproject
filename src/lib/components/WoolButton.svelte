@@ -21,10 +21,28 @@
      *  timing it. `eager` lets Hero.svelte opt its two buttons out of the
      *  lazy default without changing every other call site's contract. */
     eager = false,
+    /** OPT OUT OF THE PHOTOGRAPH FOR THIS LABEL.
+     *
+     *  The 29 renders were shot as individual objects, and they are not all
+     *  equally good. "Make one free" is the worst of the set: it is the
+     *  squarest (1.77:1 against "See the work"'s 2.14) AND it carries a thick
+     *  four-yarn rope border the slimmer renders do not have, so at CTA size
+     *  it reads as a knitted coaster rather than as something you press. The
+     *  height-normalisation in `--wool-btn-ar` below fixed how TALL it is; it
+     *  cannot fix what the object looks like.
+     *
+     *  Rather than change approved copy to reach a better photograph, or
+     *  delete a render other call sites still use happily, a call site can say
+     *  `photo={false}` and take the CSS-drawn pill instead — same three
+     *  layers, same hover, same press, and it stretches to its own label. Use
+     *  it sparingly and say why at the call site: the photographs are the
+     *  site's whole material argument and the drawn pill is the fallback, not
+     *  the default. */
+    photo = true,
     ...rest
   } = $props()
 
-  const asset = $derived(RENDERED[norm(label)])
+  const asset = $derived(photo ? RENDERED[norm(label)] : undefined)
   const sizeClass = $derived(size === 'big' ? ' is-big' : size === 'small' ? ' is-small' : '')
   const src = $derived(asset ? `/img/wool/buttons/${asset}.webp` : null)
   const h = $derived(asset ? Math.round(720 / RATIO[asset]) : 0)

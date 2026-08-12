@@ -27,7 +27,21 @@
    plates, rgba(255,255,255,.05) chips, --accent used directly as text — were
    all corrected in this pass. Accent-coloured TEXT uses --accent-ink (the
    global mix that keeps the hue and clears 4.5:1 on pink); rules, fills and
-   borders keep the bright yarn. */
+   borders keep the bright yarn.
+
+   REWORK 2 — 12 Aug 2026, client: "make the images bigger and the section
+   needs lil redesign". The card split into two boxes stacked in one flex
+   column — `.mcp-media` (full-bleed photo, replaces the old 56px
+   `.mcp-thumb`) then `.mcp-body` (the padding the whole card used to carry).
+   Padding moved off `.mcp-card` onto `.mcp-body` for exactly one reason: a
+   photo that is supposed to read as "bigger" cannot sit inside the same
+   16-20px gutter as the copy, it has to touch the card's own edge. `overflow:
+   hidden` on the card is what clips the photo's top corners to the card's
+   border-radius without a second radius value anywhere.
+
+   The accent hairline (`::before`) moved from `.mcp-card` to `.mcp-body` for
+   the same reason — it marked the copy column, not the photograph, and a
+   full-height spine would have run straight through the image. */
 
 .mcp {
   position: relative;
@@ -175,7 +189,10 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: clamp(16px, 1.5vw, 20px);
+  /* padding lives on .mcp-body now — the photo has to reach the card's own
+     edge to read as "bigger", not sit fenced inside the copy's gutter */
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: clamp(14px, 1.2vw, 18px);
   background:
@@ -196,79 +213,107 @@
   box-shadow: 0 20px 44px -26px color-mix(in srgb, var(--accent, var(--magenta)) 70%, transparent);
 }
 
-/* the accent hairline down the left edge — dim at rest, lit once the gate is
-   open and full-bright once the request is in, so the card reports its own
-   state without a second badge */
-.mcp .mcp-card::before {
+/* ——— the media ———
+   FULL-BLEED, not a corner thumbnail: this is the client's ask, verbatim. 16:9
+   is the shape every -480 asset already ships in (checked before committing
+   to it — no crop surprises). object-fit: cover, never contain: a studio
+   photo that letterboxes reads as a broken layout, not as "generous". */
+.mcp .mcp-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  /* THE FALLBACK, and it is deliberate: a dyed field in the server's own
+     accent sits under the photograph, so a render that is missing, still
+     loading or blocked reads as a coloured plate rather than a hole. */
+  background:
+    radial-gradient(120% 100% at 30% 15%, color-mix(in srgb, var(--accent, var(--magenta)) 55%, transparent), transparent 72%),
+    var(--bg-3);
+}
+
+.mcp .mcp-media-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease);
+}
+/* the one place this section moves on hover besides the lift — a slow
+   push-in, the classic "this plate is alive" tell, capped by reduced-motion
+   below same as everything else */
+.mcp .mcp-card:hover .mcp-media-img,
+.mcp .mcp-card:focus-within .mcp-media-img {
+  transform: scale(1.045);
+}
+
+/* a floor under the numeral, not a full scrim — the photo is the point, the
+   mark just needs somewhere legible to stand */
+.mcp .mcp-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 58%, rgba(20, 8, 16, 0.5) 100%);
+  pointer-events: none;
+}
+
+.mcp .mcp-media-n {
+  position: absolute;
+  left: clamp(12px, 1.4vw, 16px);
+  bottom: clamp(8px, 1vw, 11px);
+  z-index: 1;
+  font-family: var(--bloom);
+  font-size: clamp(1.5rem, 2.6vw, 2.05rem);
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+/* ——— the body ———
+   everything that used to be the card's own padding lives here instead. */
+.mcp .mcp-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: clamp(14px, 1.4vw, 18px) clamp(16px, 1.5vw, 20px) clamp(16px, 1.5vw, 20px);
+}
+
+/* the accent hairline down the copy's left edge — dim at rest, lit once the
+   gate is open and full-bright once the request is in, so the card reports
+   its own state without a second badge. Lives on the body, not the card: a
+   full-card-height spine would have run straight through the photograph. */
+.mcp .mcp-body::before {
   content: '';
   position: absolute;
   left: 0;
-  top: clamp(16px, 1.5vw, 20px);
-  bottom: clamp(16px, 1.5vw, 20px);
+  top: 10px;
+  bottom: clamp(14px, 1.4vw, 18px);
   width: 2px;
   border-radius: 0 2px 2px 0;
   background: var(--accent, var(--magenta));
   opacity: 0.5;
   transition: opacity 0.4s var(--ease);
 }
-.mcp .mcp-card:hover::before,
-.mcp .mcp-card:focus-within::before,
-.mcp .mcp-card.is-form::before,
-.mcp .mcp-card.is-sent::before { opacity: 1; }
+.mcp .mcp-card:hover .mcp-body::before,
+.mcp .mcp-card:focus-within .mcp-body::before,
+.mcp .mcp-card.is-form .mcp-body::before,
+.mcp .mcp-card.is-sent .mcp-body::before { opacity: 1; }
 
 /* ——— the head ———
-   THE OVERLAP FIX. Three explicit tracks and three named areas: the badge has
-   a column of its own that no sibling is placed into, so "TOOLS"/anything
-   else cannot land on top of it the way the rack's flipped rail did. */
+   Down to two items now the thumb moved into the media block: titles, then
+   the badge. Flex, not grid — there is nothing left for a third track to
+   protect the badge from. */
 .mcp .mcp-card-head {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: 'thumb titles beta';
-  align-items: center;
-  gap: 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.mcp .mcp-thumb {
-  grid-area: thumb;
-  position: relative;
-  overflow: hidden;
-  flex: none;
-  width: clamp(48px, 5vw, 58px);
-  aspect-ratio: 1;
-  border-radius: 11px;
-  /* THE FALLBACK, and it is deliberate: a dyed tile in the server's own accent
-     sits under the photograph, so a render that is missing, still loading or
-     blocked reads as a coloured tile rather than as a hole. */
-  background:
-    radial-gradient(120% 100% at 30% 15%, color-mix(in srgb, var(--accent, var(--magenta)) 70%, transparent), transparent 72%),
-    var(--bg-3);
-}
-
-.mcp .mcp-thumb-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* the photograph is a plate, not a picture — it must not out-shout the
-     server name beside it */
-  opacity: 0.95;
-}
-
-.mcp .mcp-thumb-n {
-  position: absolute;
-  right: 3px;
-  bottom: 1px;
-  font-family: var(--bloom);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #fff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75);
-  pointer-events: none;
-}
-
-.mcp .mcp-titles { grid-area: titles; min-width: 0; }
+.mcp .mcp-titles { min-width: 0; }
 
 .mcp .mcp-name {
   font-family: var(--bloom);
@@ -301,7 +346,7 @@
 }
 
 .mcp .mcp-beta {
-  grid-area: beta;
+  flex: none;
   align-self: start;
   padding: 4px 9px;
   border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 34%, var(--line));
@@ -323,14 +368,64 @@
   text-wrap: pretty;
 }
 
+/* ——— the redacted endpoint ———
+   PROMOTED. This used to be the last, quietest thing on the card — a dashed
+   footnote under the chips — despite being the one fact here nobody can
+   dispute: a real slug, a real (if blanked) host. It now sits right under the
+   blurb, ahead of the chips, in a solid box instead of a dashed one: dashed
+   reads as "unfinished", solid reads as "this is the real shape of it, one
+   field is withheld on purpose". */
+.mcp .mcp-config {
+  margin-top: clamp(11px, 1.3vh, 15px);
+  padding: 9px 11px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 38%, var(--line));
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.32)), var(--bg-2);
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  /* anywhere, not break-word: the host is one unbroken token and a card track
+     can be as narrow as 390px − the page gutter */
+  overflow-wrap: anywhere;
+}
+
+.mcp .mcp-config-slug { color: var(--accent-ink); font-weight: 700; white-space: nowrap; }
+.mcp .mcp-config-arrow { color: color-mix(in srgb, var(--accent, var(--magenta)) 65%, transparent); }
+.mcp .mcp-config-url { min-width: 0; }
+
+/* THE REDACTION, restyled to look chosen rather than broken. The old flat
+   rgba(96,40,76,.2) rectangle read as a translucency bug — like an asset
+   failed to load. A diagonal hatch is the universal "redacted on purpose"
+   mark (think a document stamp), so the missing host now reads as the
+   studio's decision, not the page's. */
+.mcp .mcp-redact {
+  font-style: normal;
+  color: transparent;
+  background: repeating-linear-gradient(
+    45deg,
+    color-mix(in srgb, var(--accent, var(--magenta)) 62%, var(--ink)) 0 3px,
+    color-mix(in srgb, var(--accent, var(--magenta)) 30%, var(--ink)) 3px 6px
+  );
+  border-radius: 3px;
+  padding-inline: 2px;
+  user-select: none;
+}
+
 /* ——— the tools, as chips ———
-   Was a bordered column with a "TOOLS" rail label beside the badge — the
-   thing that collided. The names are the payload; each chip carries its
-   one-line description as its title, so nothing was dropped, it just stopped
-   costing four rows of height per card. */
+   Demoted a step, deliberately: with the endpoint now bold and first, the
+   chips are the card's secondary evidence, not competing with it. Same chip
+   shape, quieter ink and a hair smaller so the eye reads config → chips, not
+   both at once. Each chip still carries its one-line description as its
+   title, so nothing here was dropped. */
 .mcp .mcp-chips {
   list-style: none;
-  margin-top: clamp(10px, 1.2vh, 13px);
+  margin-top: clamp(9px, 1.1vh, 12px);
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -341,11 +436,11 @@
 
 .mcp .mcp-chips code {
   font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   letter-spacing: -0.01em;
-  color: var(--accent-ink);
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 22%, var(--line));
+  color: var(--ink-dim);
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid color-mix(in srgb, var(--accent, var(--magenta)) 16%, var(--line));
   border-radius: 7px;
   padding: 3px 8px;
   max-width: 100%;
@@ -353,46 +448,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: help;
-  transition: background 0.3s var(--ease), border-color 0.3s var(--ease), transform 0.3s var(--ease);
+  transition: background 0.3s var(--ease), border-color 0.3s var(--ease), color 0.3s var(--ease), transform 0.3s var(--ease);
 }
 .mcp .mcp-chips code:hover {
+  color: var(--accent-ink);
   background: color-mix(in srgb, var(--accent, var(--magenta)) 14%, rgba(255, 255, 255, 0.7));
   border-color: color-mix(in srgb, var(--accent, var(--magenta)) 50%, transparent);
   transform: translateY(-1px);
-}
-
-/* ——— the redacted endpoint ——— */
-.mcp .mcp-config {
-  margin-top: clamp(10px, 1.2vh, 13px);
-  padding: 7px 10px;
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 2px 7px;
-  border: 1px dashed color-mix(in srgb, var(--accent, var(--magenta)) 30%, var(--line));
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.42);
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
-  font-size: 0.66rem;
-  line-height: 1.5;
-  color: var(--ink-faint);
-  /* anywhere, not break-word: the host is one unbroken token and a card track
-     can be as narrow as 390px − the page gutter */
-  overflow-wrap: anywhere;
-}
-
-.mcp .mcp-config-slug { color: var(--accent-ink); white-space: nowrap; }
-.mcp .mcp-config-arrow { color: color-mix(in srgb, var(--accent, var(--magenta)) 60%, transparent); }
-.mcp .mcp-config-url { min-width: 0; }
-
-/* visibly a placeholder, never a plausible token */
-.mcp .mcp-redact {
-  font-style: normal;
-  color: transparent;
-  background: rgba(96, 40, 76, 0.2);
-  border-radius: 3px;
-  padding-inline: 2px;
-  user-select: none;
 }
 
 /* ——— the gate ———
@@ -498,16 +560,54 @@
 .mcp .mcp-sent b { color: var(--ink); }
 
 /* ═══ THE FOURTH CARD — "need one that doesn't exist yet?" ═══
-   Was a full-width strip under the rack. As the grid's fourth cell it squares
-   the 2×2 off and costs the section nothing extra in height. */
+   Was a full-width strip under the rack, then a plain dashed box once it
+   became the grid's fourth cell. Client's redesign note plus "the fourth
+   panel says nothing about being a different kind of thing" (this file's own
+   review) means it now gets a header block too, matching the three server
+   cards' proportions — but an invitation has no product to photograph, so
+   the block carries the section's own mark instead of a plate: the same
+   three-yarn repeating-linear-gradient the top rail (`.mcp-rail`) runs. Three
+   photographs and one signature is the whole difference, visible before
+   either panel is read. Border stays dashed — the one leftover from the
+   previous pass that still earns its keep: dashed here now reads correctly
+   as "this card is provisional/open", the opposite of the endpoint boxes
+   that were just switched off dashed for saying the wrong thing. */
 .mcp .mcp-card--ask {
   --accent: var(--magenta);
+  border-style: dashed;
+}
+
+.mcp .mcp-ask-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.22)),
+    repeating-linear-gradient(
+      115deg,
+      var(--yarn-pink) 0 14px,
+      var(--yarn-violet) 14px 28px,
+      var(--yarn-blue) 28px 42px
+    );
+}
+
+.mcp .mcp-ask-plus {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: clamp(2.3rem, 4.6vw, 3.1rem);
+  font-weight: 300;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 2px 16px rgba(60, 20, 40, 0.28);
+}
+
+.mcp .mcp-card--ask .mcp-body {
   justify-content: center;
   gap: 9px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.08)),
-    var(--bg-3);
-  border-style: dashed;
 }
 
 .mcp .mcp-ask-h {
@@ -555,27 +655,23 @@
 
 /* ═══ NARROW ════════════════════════════════════════════════ */
 @media (max-width: 480px) {
-  /* The badge drops to a row of its own rather than being squeezed against
-     the name — the one place the three-track head cannot hold at 390px. */
-  .mcp .mcp-card-head {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      'thumb titles'
-      'beta  beta';
-    gap: 10px 11px;
-  }
-  .mcp .mcp-beta { justify-self: start; }
+  /* The head is flex now, not the old three-track grid, so it already wraps
+     the badge under the titles on its own at 390px — nothing to force here.
+     Only the two-up signup form still needs to fold to one column. */
   .mcp .mcp-form { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .mcp .mcp-card,
-  .mcp .mcp-card::before,
+  .mcp .mcp-card .mcp-media-img,
+  .mcp .mcp-body::before,
   .mcp .mcp-chips code,
   .mcp .mcp-unlock,
   .mcp .mcp-unlock-ico .mcp-shackle,
   .mcp .mcp-field input,
   .mcp .mcp-mail { transition: none; }
+  .mcp .mcp-card:hover .mcp-media-img,
+  .mcp .mcp-card:focus-within .mcp-media-img { transform: none; }
   .mcp .mcp-card:hover,
   .mcp .mcp-card:focus-within,
   .mcp .mcp-chips code:hover,

@@ -91,9 +91,9 @@ export const SUITE = [
     grad: ['#ffc740', '#2e7d5b'],
     bg: '/img/suite/bg/quran-noor.webp',
     shots: [
-      { src: '/img/suite/quran-noor.webp', w: 720, h: 1564 },
-      { src: '/img/suite/quran-noor-2.webp', w: 720, h: 1564 },
-      { src: '/img/suite/quran-noor-3.webp', w: 720, h: 1564 },
+      { src: '/img/suite/quran-noor.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/quran-noor-2.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/quran-noor-3.webp', w: 1320, h: 2868 },
     ],
   },
   {
@@ -107,9 +107,9 @@ export const SUITE = [
     grad: ['#7b2fbe', '#f21c8c'],
     bg: '/img/suite/bg/ellie.webp',
     shots: [
-      { src: '/img/suite/ellie.webp', w: 720, h: 1564 },
-      { src: '/img/suite/ellie-2.webp', w: 720, h: 1564 },
-      { src: '/img/suite/ellie-3.webp', w: 720, h: 1564 },
+      { src: '/img/suite/ellie.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/ellie-2.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/ellie-3.webp', w: 1320, h: 2868 },
     ],
   },
   {
@@ -123,9 +123,9 @@ export const SUITE = [
     grad: ['#ffc740', '#f21c8c'],
     bg: '/img/suite/bg/kwakwa.webp',
     shots: [
-      { src: '/img/suite/kwakwa.webp', w: 720, h: 1564 },
-      { src: '/img/suite/kwakwa-2.webp', w: 720, h: 1564 },
-      { src: '/img/suite/kwakwa-3.webp', w: 720, h: 1564 },
+      { src: '/img/suite/kwakwa.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/kwakwa-2.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/kwakwa-3.webp', w: 1320, h: 2868 },
     ],
   },
   {
@@ -139,9 +139,9 @@ export const SUITE = [
     grad: ['#59e6ff', '#7b2fbe'],
     bg: '/img/suite/bg/evora-scan.webp',
     shots: [
-      { src: '/img/suite/evora-scan.webp', w: 720, h: 1564 },
-      { src: '/img/suite/evora-scan-2.webp', w: 720, h: 1564 },
-      { src: '/img/suite/evora-scan-3.webp', w: 720, h: 1564 },
+      { src: '/img/suite/evora-scan.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/evora-scan-2.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/evora-scan-3.webp', w: 1320, h: 2868 },
     ],
   },
   // ——— the four added 12 Aug 2026 ———
@@ -160,9 +160,9 @@ export const SUITE = [
     grad: ['#f21c8c', '#7b2fbe'],
     bg: '/img/suite/bg/lahza.webp',
     shots: [
-      { src: '/img/suite/lahza.webp', w: 720, h: 1565 },
-      { src: '/img/suite/lahza-2.webp', w: 720, h: 1565 },
-      { src: '/img/suite/lahza-3.webp', w: 720, h: 1565 },
+      { src: '/img/suite/lahza.webp', w: 1206, h: 2622 },
+      { src: '/img/suite/lahza-2.webp', w: 1206, h: 2622 },
+      { src: '/img/suite/lahza-3.webp', w: 1206, h: 2622 },
     ],
   },
   {
@@ -176,9 +176,9 @@ export const SUITE = [
     grad: ['#ffc740', '#f21c8c'],
     bg: '/img/suite/bg/glowbar.webp',
     shots: [
-      { src: '/img/suite/glowbar.webp', w: 720, h: 1564 },
-      { src: '/img/suite/glowbar-2.webp', w: 720, h: 1564 },
-      { src: '/img/suite/glowbar-3.webp', w: 720, h: 1564 },
+      { src: '/img/suite/glowbar.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/glowbar-2.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/glowbar-3.webp', w: 1320, h: 2868 },
     ],
   },
   {
@@ -192,9 +192,9 @@ export const SUITE = [
     grad: ['#7b2fbe', '#ffc740'],
     bg: '/img/suite/bg/myfairytrail.webp',
     shots: [
-      { src: '/img/suite/myfairytrail.webp', w: 720, h: 1564 },
-      { src: '/img/suite/myfairytrail-2.webp', w: 720, h: 1564 },
-      { src: '/img/suite/myfairytrail-3.webp', w: 720, h: 1564 },
+      { src: '/img/suite/myfairytrail.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/myfairytrail-2.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/myfairytrail-3.webp', w: 1320, h: 2868 },
     ],
   },
   {
@@ -213,9 +213,9 @@ export const SUITE = [
     grad: ['#ffc740', '#1e3a5f'],
     bg: '/img/suite/bg/ajniha.webp',
     shots: [
-      { src: '/img/suite/ajniha.webp', w: 720, h: 1564 },
-      { src: '/img/suite/ajniha-2.webp', w: 720, h: 1564 },
-      { src: '/img/suite/ajniha-3.webp', w: 720, h: 1564 },
+      { src: '/img/suite/ajniha.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/ajniha-2.webp', w: 1320, h: 2868 },
+      { src: '/img/suite/ajniha-3.webp', w: 1320, h: 2868 },
     ],
   },
 ]

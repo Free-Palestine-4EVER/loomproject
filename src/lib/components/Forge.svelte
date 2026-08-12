@@ -698,8 +698,15 @@
         <em>your first one is free.</em>
       </p>
       <div class="forge-cta">
+        <!-- `photo={false}` on purpose, and it is the ONE place on the page
+             that opts out. The photographed "Make one free" render is the
+             squarest and heaviest in the set — a thick roped pill that reads
+             as a coaster next to a price, which is exactly what the client
+             called out. This is the primary action of the only self-serve
+             product on the site and it has to look pressable before it looks
+             knitted. See WoolButton's `photo` prop for the full argument. -->
         <div class="magnetic" use:magnetic={{ strength: 0.25 }}>
-          <WoolButton label="Make one free" onclick={openPopup} />
+          <WoolButton label="Make one free" onclick={openPopup} photo={false} size="big" />
         </div>
         <span class="forge-formats">{FORMATS.join(' · ')}</span>
       </div>

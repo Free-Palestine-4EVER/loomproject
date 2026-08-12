@@ -24,20 +24,39 @@
   endpoint + CTA + a bordered TOOLS column) ran to three viewports and the
   flipped unit's TOOLS rail landed on top of the PRIVATE BETA badge. It is now
   a COMPACT CARD GRID — two across on desktop, one on a phone — where every
-  card is the same shape, so nothing alternates and nothing can collide:
+  card is the same shape, so nothing alternates and nothing can collide.
 
-      thumb (56px square) · name + role · PRIVATE BETA   ← one 3-column row
-      two lines of copy
-      the four tools as chips
-      the redacted endpoint, one mono line
-      one small CTA
+  REWORK 2 — 12 Aug 2026, "make the images bigger and the section needs lil
+  redesign" (client). What changed and why:
 
-  The plates survive as the thumbnail (the -160 variant, which already
-  existed), the tool descriptions survive as each chip's title, and the
-  "need one that doesn't exist yet?" strip is now the fourth cell of the same
-  grid instead of a separate full-width block under it. Every factual claim in
-  the copy is the claim it was before — the sentences are shorter, not
-  different, and nothing new is asserted.
+    - THE PLATE WAS A DECORATION PRETENDING TO BE AN ILLUSTRATION. A 56px
+      square thumbnail with a numeral badge in its corner reads as an icon,
+      not a picture. It is now a full-bleed 16:9 header on every card (the
+      -480 variant, not -160 — a card this wide earns the bigger asset) with
+      the numeral surviving as a large mark burned into the image itself
+      instead of a corner tag, so the photograph is the first thing the eye
+      lands on, the way the client asked.
+    - HIERARCHY WAS FLAT: logo row, blurb, chips, URL, button all reading at
+      the same weight. The endpoint line — the most technical, most credible
+      fact on the card — used to sit as a dashed-border footnote below the
+      chips. It now sits directly under the blurb, boxed solid, bold slug,
+      ahead of the chips: the thing that proves this is a real server leads,
+      the tool list (already legible as chip titles) follows quieter.
+    - THE REDACTION LOOKED LIKE A RENDERING BUG (a faint see-through rectangle)
+      rather than a deliberate act. It is now a diagonal hatch fill — the
+      universal "this is classified, on purpose" mark — so it reads as the
+      studio choosing to withhold the host, not as broken CSS.
+    - THE FOURTH PANEL IS A DIFFERENT KIND OF THING. Three cards are servers
+      with a photographed product; the fourth is an invitation with nothing to
+      photograph. Giving it a header block anyway — the section's own
+      three-yarn stripe (the same repeating-linear-gradient the top rail
+      uses) instead of a photograph — keeps the 2×2 square while making the
+      difference visible at a glance: three plates, one signature.
+
+  The plates survive as the header photograph, the tool descriptions survive
+  as each chip's title, and the "need one that doesn't exist yet?" strip is
+  still the fourth cell of the same grid. Every factual claim in the copy is
+  the claim it was before — nothing reworded, nothing new asserted.
 
   LEAD STATEMENT ON TOP (client, explicit): "WE HAVE OUR OWN MCP" is the very
   first thing in the section, above the headline, with the section's own name
@@ -189,11 +208,16 @@
 
 <!--
   ——— a server card ———
-  ONE SHAPE, repeated. The head is a three-column grid — thumb, titles, badge —
-  so PRIVATE BETA owns its own track and can never be sat on by anything else;
-  on a phone the badge drops to its own row rather than being squeezed. The
-  tools are chips (name visible, description on the chip's title) instead of
-  the bordered rail column that used to collide with the badge.
+  ONE SHAPE, repeated, now in two blocks: a full-bleed photograph (the media
+  the client asked to see bigger) and a padded body. The head inside the body
+  is a two-item flex row — titles, badge — instead of the old three-column
+  grid, because the thumb that used to need its own track lives in the media
+  block now; PRIVATE BETA still cannot land on top of anything since it has
+  nothing beside it but the (short, single-line) role.
+
+  ORDER INSIDE THE BODY changed too: line → config → chips, not line → chips
+  → config. The endpoint is the card's one fact nobody could dispute, so it
+  now outranks the tool-name chips instead of sitting under them.
 
   EVERYTHING FUNCTIONAL IS UNTOUCHED — configBlock, accessForm, the three gate
   states and their swap keep their markup and class names, so the honesty
@@ -207,75 +231,78 @@
     style="--accent: {s.accent}"
     use:reveal={{ delay: i * 0.05, y: 28 }}
   >
-    <header class="mcp-card-head">
-      <!-- THE THUMB. The photograph degrades honestly: a dyed square in the
-           server's own accent sits underneath, so a render that is missing,
-           blocked or still loading reads as a coloured tile rather than a
-           hole. The -160 variant already existed — a 56px box never needs
-           the 900px plate. -->
-      <span class="mcp-thumb">
-        <picture>
-          <source type="image/avif" srcset="/img/mcp/{s.photo}-160.avif" />
-          <img
-            class="mcp-thumb-img"
-            src="/img/mcp/{s.photo}-160.webp"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            fetchpriority="low"
-            onerror={(e) => { e.currentTarget.style.display = 'none' }}
-          />
-        </picture>
-        <span class="mcp-thumb-n" aria-hidden="true">{s.n}</span>
-      </span>
+    <!-- THE MEDIA. Full-bleed 16:9, not a 56px corner thumbnail — this is the
+         card's lead element now. It still degrades honestly: a dyed tile in
+         the server's own accent sits underneath so a render that is missing,
+         blocked or still loading reads as a coloured plate, not a hole. The
+         -480 variant replaces -160 — a header this wide earns the bigger
+         asset; -160 was sized for a 56px box that no longer exists. -->
+    <div class="mcp-media">
+      <picture>
+        <source type="image/avif" srcset="/img/mcp/{s.photo}-480.avif" />
+        <img
+          class="mcp-media-img"
+          src="/img/mcp/{s.photo}-480.webp"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          fetchpriority="low"
+          onerror={(e) => { e.currentTarget.style.display = 'none' }}
+        />
+      </picture>
+      <span class="mcp-media-n" aria-hidden="true">{s.n}</span>
+    </div>
 
-      <div class="mcp-titles">
-        <h3 class="mcp-name">
-          <span class="mcp-name-pre">LOOM</span>{s.name}
-        </h3>
-        <p class="mcp-role">{s.role}</p>
-      </div>
-
-      <span class="mcp-beta">Private beta</span>
-    </header>
-
-    <p class="mcp-line">{s.line}</p>
-
-    <ul class="mcp-chips" aria-label="Tools {s.name} exposes">
-      {#each s.tools as [t, d] (t)}
-        <li><code title={d}>{t}</code></li>
-      {/each}
-    </ul>
-
-    {@render configBlock(s)}
-
-    <div class="mcp-gate">
-      {#if state.value === 'shut'}
-        <button
-          type="button"
-          class="mcp-unlock"
-          onclick={() => (state.value = 'form')}
-          in:fly={{ y: 6, duration: 300, easing: cubicOut }}
-          out:fly={{ y: -6, duration: 300, easing: cubicOut }}
-        >
-          <span class="mcp-unlock-ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7">
-              <rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2" />
-              <path class="mcp-shackle" d="M8 10.5V7.6a4 4 0 0 1 7.8-1.3" />
-            </svg>
-          </span>
-          Request access
-        </button>
-      {:else if state.value === 'form'}
-        <div in:fly={{ y: 6, duration: 300, easing: cubicOut }} out:fly={{ y: -6, duration: 300, easing: cubicOut }}>
-          {@render accessForm(s, `${uid}-${s.id}`, (email) => { state.email = email; state.value = 'sent' })}
+    <div class="mcp-body">
+      <header class="mcp-card-head">
+        <div class="mcp-titles">
+          <h3 class="mcp-name">
+            <span class="mcp-name-pre">LOOM</span>{s.name}
+          </h3>
+          <p class="mcp-role">{s.role}</p>
         </div>
-      {:else}
-        <p class="mcp-sent" role="status" in:fly={{ y: 0, duration: 350, easing: cubicOut }}>
-          <b>Request in.</b> If it fits, the key and the real host come back
-          to {state.email || 'your inbox'} by hand — usually the same week.
-        </p>
-      {/if}
+
+        <span class="mcp-beta">Private beta</span>
+      </header>
+
+      <p class="mcp-line">{s.line}</p>
+
+      {@render configBlock(s)}
+
+      <ul class="mcp-chips" aria-label="Tools {s.name} exposes">
+        {#each s.tools as [t, d] (t)}
+          <li><code title={d}>{t}</code></li>
+        {/each}
+      </ul>
+
+      <div class="mcp-gate">
+        {#if state.value === 'shut'}
+          <button
+            type="button"
+            class="mcp-unlock"
+            onclick={() => (state.value = 'form')}
+            in:fly={{ y: 6, duration: 300, easing: cubicOut }}
+            out:fly={{ y: -6, duration: 300, easing: cubicOut }}
+          >
+            <span class="mcp-unlock-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7">
+                <rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2" />
+                <path class="mcp-shackle" d="M8 10.5V7.6a4 4 0 0 1 7.8-1.3" />
+              </svg>
+            </span>
+            Request access
+          </button>
+        {:else if state.value === 'form'}
+          <div in:fly={{ y: 6, duration: 300, easing: cubicOut }} out:fly={{ y: -6, duration: 300, easing: cubicOut }}>
+            {@render accessForm(s, `${uid}-${s.id}`, (email) => { state.email = email; state.value = 'sent' })}
+          </div>
+        {:else}
+          <p class="mcp-sent" role="status" in:fly={{ y: 0, duration: 350, easing: cubicOut }}>
+            <b>Request in.</b> If it fits, the key and the real host come back
+            to {state.email || 'your inbox'} by hand — usually the same week.
+          </p>
+        {/if}
+      </div>
     </div>
   </article>
 {/snippet}
@@ -306,19 +333,30 @@
       {@render serverCard(s, i)}
     {/each}
 
+    <!-- THE FOURTH PANEL IS NOT A SERVER — an invitation has nothing to
+         photograph, so instead of a plate it wears the section's own mark:
+         the same three-yarn repeating-linear-gradient the top rail runs.
+         Three photographed products, one studio signature — the difference
+         between "server" and "come talk to us" is visible before either
+         panel is read. -->
     <article class="mcp-card mcp-card--ask" use:reveal={{ delay: 0.15, y: 28 }}>
-      <h3 class="mcp-ask-h">Need one that doesn’t exist yet?</h3>
-      <p class="mcp-ask-p">
-        Half of what the studio builds started as “can it just talk to our
-        system?” Tell us what your team asks for twice a week and we will
-        tell you whether it is a server.
-      </p>
-      <a
-        class="mcp-mail"
-        href="mailto:{BRAND.email}?subject={encodeURIComponent('LOOM — MCP access')}"
-      >
-        {BRAND.email}
-      </a>
+      <div class="mcp-ask-media" aria-hidden="true">
+        <span class="mcp-ask-plus">+</span>
+      </div>
+      <div class="mcp-body">
+        <h3 class="mcp-ask-h">Need one that doesn’t exist yet?</h3>
+        <p class="mcp-ask-p">
+          Half of what the studio builds started as “can it just talk to our
+          system?” Tell us what your team asks for twice a week and we will
+          tell you whether it is a server.
+        </p>
+        <a
+          class="mcp-mail"
+          href="mailto:{BRAND.email}?subject={encodeURIComponent('LOOM — MCP access')}"
+        >
+          {BRAND.email}
+        </a>
+      </div>
     </article>
   </div>
 </section>
