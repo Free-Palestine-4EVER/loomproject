@@ -3406,3 +3406,36 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
      about layout. */
   h1, h2, h3, p, .h2, .lede { overflow-wrap: break-word; }
 }
+
+/* ——— the retracting header ———
+   Hidden on the way down, back on the way up. `translateY(-100%)` and not
+   `top` or `display`: transform is the only one of the three the compositor
+   can animate without laying the page out again, and the bar is `position:
+   fixed` over content that is scrolling underneath it.
+
+   -102% rather than -100% so the bar's own shadow clears the top edge too —
+   at exactly -100% a 2px rim of it stays visible against the pale ground.
+
+   `visibility` rides the same transition so the links leave the tab order
+   while the bar is off screen; without it a keyboard user tabs into a header
+   they cannot see. */
+.nav {
+  transition:
+    transform 0.42s var(--ease),
+    visibility 0s linear 0s,
+    background 0.4s var(--ease),
+    backdrop-filter 0.4s var(--ease),
+    border-color 0.4s var(--ease);
+  will-change: transform;
+}
+.nav--hidden {
+  transform: translateY(-102%);
+  visibility: hidden;
+  transition-delay: 0s, 0.42s, 0s, 0s, 0s;
+}
+
+/* A reader who has asked for less motion still gets the space back — the bar
+   just cuts rather than sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .nav { transition: none; }
+}

@@ -27,6 +27,7 @@
 
   let open = $state(false)
   let scrolled = $state(false)
+  let hidden = $state(false)
   let burgerEl = $state(null)
   let menuEl = $state(null)
 
@@ -49,8 +50,33 @@
   // ── the header's scrolled state ──────────────────────────────────────────
   // Hysteresis, not a single threshold: a bar that toggles at exactly one
   // scrollY flickers when a reader rests the page near it.
+  /* ── and whether it is hidden ──
+     The bar retracts on the way DOWN and comes back the moment the reader
+     scrolls up, which gives the page its full height while reading and puts
+     navigation one flick away instead of one scroll-to-top away.
+
+     Three guards, each for a real failure:
+       · a 6px dead zone, because trackpad inertia and rubber-banding emit
+         tiny alternating deltas and a bar that answers those flutters;
+       · never hidden above 120px, so the top of the page always has its
+         header rather than it vanishing on the first nudge;
+       · never hidden while the drawer or an overlay is open — retracting the
+         bar out from under an open menu leaves the menu attached to nothing.
+     The whole thing is one passive listener writing one boolean, and it
+     animates on transform, so it stays on the compositor. */
   onMount(() => {
-    const fn = () => { scrolled = window.scrollY > 56 ? true : window.scrollY < 32 ? false : scrolled }
+    let last = window.scrollY
+    const fn = () => {
+      const y = window.scrollY
+      scrolled = y > 56 ? true : y < 32 ? false : scrolled
+      const dy = y - last
+      if (Math.abs(dy) > 6) {
+        const locked = document.documentElement.classList.contains('menu-open') ||
+          document.documentElement.classList.contains('overlay-open')
+        hidden = dy > 0 && y > 120 && !locked
+        last = y
+      }
+    }
     fn()
     window.addEventListener('scroll', fn, { passive: true })
     return () => window.removeEventListener('scroll', fn)
@@ -332,7 +358,7 @@
   })
 </script>
 
-<header class="nav {scrolled ? 'nav--scrolled' : ''}">
+<header class="nav {scrolled ? 'nav--scrolled' : ''} {hidden ? 'nav--hidden' : ''}">
   <a class="nav-logo" href="#top" onclick={(e) => go(e, '#top')} aria-label="LOOM — home">
     <img class="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" width="480" height="162" />
   </a>
