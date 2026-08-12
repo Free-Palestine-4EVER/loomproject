@@ -41,6 +41,9 @@
   import '$lib/styles/brand-skin.css'
   import '$lib/styles/sheet.css'
   import '$lib/styles/wool.css'
+  // LAST of all: the button scale settles ties between the ten component
+  // stylesheets that each sized their own CTA. See button-scale.css.
+  import '$lib/styles/button-scale.css'
 
   let { children } = $props()
 

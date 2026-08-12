@@ -1,0 +1,141 @@
+/* ————————————————————————————————————————————————————————
+   LOOM — the button scale
+
+   MEASURED 12 Aug 2026 across twelve routes at 1440x900: 413 button-shaped
+   elements in 69 distinct classes. The chip tier was already coherent — the
+   filters, the wizard steps, the machine controls, the footer icon buttons and
+   the typeface switches all land on exactly 44px without anyone having written
+   that down. The CTA tier was not: eleven near-identical heights doing one job.
+
+     46.1  .px-store          51.5  .mp-btn           56.7  .wool-btn is-small
+     47.0  .pr-tier-cta       52.4  .ts-btn / .pm-btn 57.6  .wk-btn
+     50.1  .fk-cta            53.0  .hire-apply       61.6  .wool-btn--css
+     50.3  .foot-cta          54.4  .tf-btn
+
+   Every one of those was an independent `padding: 13px 22px`-style guess, and
+   thirteen different font sizes came with them (12.48px through 16px). Sizes
+   that differ by one or two pixels are the worst case: too close to read as a
+   deliberate hierarchy, too far apart to look aligned when two sit side by
+   side, which is exactly how they appear in the footer and on /pricing.
+
+   So this file states the scale once. It is loaded LAST, after wool.css, so it
+   settles ties without any of the ten component stylesheets having to be
+   rewritten — and it can be deleted in one move if the scale is ever wrong.
+
+   Padding-block goes to zero and `min-height` does the work instead: a button
+   whose label wraps to two lines then GROWS from a known floor rather than
+   inheriting whatever its padding happened to sum to. Every rule below is
+   min-height, never height, so nothing can clip its own text.
+   ———————————————————————————————————————————————————————— */
+
+:root {
+  /* the three sizes, and nothing between them */
+  --btn-h-sm: 44px;   /* chips, filters, switches, icon buttons */
+  --btn-h: 52px;      /* every standard call to action */
+  --btn-h-lg: 62px;   /* the primary wool CTA, one per view at most */
+
+  --btn-fs-sm: 0.8125rem; /* 13px */
+  --btn-fs: 0.9375rem;    /* 15px */
+  --btn-fs-lg: 1rem;      /* 16px */
+}
+
+/* ——— the standard CTA ———
+   Named individually rather than through a shared class because these live in
+   ten different components and none of them share a base class today. Adding
+   one would mean touching ten markup files; naming them here means touching
+   none, and the list is the honest record of how many there are. */
+.foot-cta.foot-cta,
+.fk-cta.fk-cta,
+.pr-tier-cta.pr-tier-cta,
+.tf-btn.tf-btn,
+.ts-btn.ts-btn,
+.wk-btn.wk-btn,
+.mp-btn.mp-btn,
+.mp-ask.mp-ask,
+.px-store.px-store,
+.pm-btn.pm-btn,
+.hire-apply.hire-apply,
+.mcp-unlock.mcp-unlock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--btn-h);
+  padding-block: 0;
+  padding-inline: 26px;
+  font-size: var(--btn-fs);
+  line-height: 1.25;
+  border-radius: 999px;
+}
+
+/* ——— the small CTA ———
+   These sit inside cards and tiles where a 52px pill would out-shout the
+   content it belongs to. They keep the chip height so they line up with the
+   filters and switches they share a surface with. */
+.ptile-cta.ptile-cta,
+.ae-replay.ae-replay,
+.sl-need-cta.sl-need-cta,
+.sl-det-cta.sl-det-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--btn-h-sm);
+  padding-block: 0;
+  padding-inline: 18px;
+  font-size: var(--btn-fs-sm);
+  line-height: 1.25;
+}
+
+/* ——— the wool CTA ———
+   The photographed variants are excluded on purpose: `.wool-btn--photo` IS a
+   picture of a knitted pill, so its height is the image's aspect ratio and
+   forcing a min-height on it would either letterbox the photograph or stretch
+   the knit. Only the CSS-built variant is normalised. */
+.wool-btn--css.wool-btn--css {
+  min-height: var(--btn-h-lg);
+  padding-block: 0;
+  font-size: var(--btn-fs-lg);
+}
+.wool-btn--css.wool-btn--css.is-small {
+  min-height: var(--btn-h);
+  padding-block: 0;
+  font-size: var(--btn-fs);
+}
+.wool-btn--css.wool-btn--css.is-big {
+  min-height: 72px;
+  padding-block: 0;
+}
+
+/* ——— `.sol-cta` is deliberately 87px and is NOT normalised ———
+
+   The industry tour's button reads 87px against the 62px every other wool CTA
+   now uses, and that is on purpose: see the note at `.sol-pin.is-pinned
+   .sol-cta` in solutions.css. It carries the industry's own name, so "Build my
+   Med Spas & Aesthetics system" wraps where "Build my Law Firms system" does
+   not, and the pinned card is bottom-anchored — its height IS its top edge. A
+   button free to change height would step that edge 25.6px as the scrub walks
+   past. The row reserves two lines and centres a one-line label in it.
+
+   The visible cost is that the plate — three photographs, a left cap, a right
+   cap and a repeating middle, pinned with `background-size: auto 100%` — is
+   stretched from its shot height to 87px, and the caps scaling past the middle
+   tile put a soft seam across the face of the button.
+
+   The clean fix is to move the 87px reservation onto a WRAPPER so the row
+   still holds its height while the button inside stays 62px and sits centred.
+   That needs a markup change in Solutions.svelte, inside the sticky layout
+   that is already sensitive to sub-pixel movement, so it is deliberately left
+   alone here rather than smuggled into a stylesheet-only pass. */
+
+/* Chips were already consistent at 44px — this only writes the existing
+   behaviour down so a new one cannot drift, and adds the min-height that makes
+   a wrapped two-line chip grow from the same floor. */
+.filter.filter,
+.wstep.wstep,
+.machine-btn.machine-btn,
+.pm-chip.pm-chip,
+.tf-switch-btn.tf-switch-btn,
+.wk-chip.wk-chip,
+.fq-jump-a.fq-jump-a,
+.mo-filter-opt.mo-filter-opt {
+  min-height: var(--btn-h-sm);
+}
