@@ -42,12 +42,40 @@
     return () => mq.removeEventListener('change', sync)
   })
 
-  // Past the hero only. The hero already carries "Start weaving" as its own
-  // primary button — showing this over it would be the same offer twice in
-  // one screenful, and the floating copy would be the weaker of the two.
+  /* Past the hero only. The hero already carries "Start weaving" as its own
+     primary button — showing this over it would be the same offer twice in
+     one screenful, and the floating copy would be the weaker of the two.
+
+     ——— AND IT RETRACTS WHILE THE READER IS READING (13 Aug 2026) ———
+     A UI pass down the finished page found this pill sitting ON TOP of real
+     content at most scroll positions — over a pricing card's "from" figure,
+     over the software section's captions, over the app stage. That is the
+     cost of a permanently parked centre-bottom object on a page this long,
+     and it is not a z-index or spacing problem: no amount of page padding
+     helps something that is fixed to the viewport.
+
+     So it follows the header's own rule, which this site already established:
+     retract on the way DOWN, come back the instant the reader scrolls UP.
+     Reading is downward, so the pill is out of the way exactly while it would
+     be covering something; the moment anyone looks back up — the gesture that
+     precedes deciding — it is there. Same three guards as Nav.svelte's bar,
+     for the same reasons: a 6px dead zone (trackpad inertia and rubber-band
+     scrolling emit tiny alternating deltas, and a control that answers those
+     flutters), never retracted near the top of the page, and never retracted
+     while an overlay owns the screen (handled by `locked` below). */
+  let retracted = $state(false)
   $effect(() => {
     if (!browser || !isDesktop) return
-    const onScroll = () => { pastHero = window.scrollY > window.innerHeight * 0.82 }
+    let last = window.scrollY
+    const onScroll = () => {
+      const y = window.scrollY
+      pastHero = y > window.innerHeight * 0.82
+      const dy = y - last
+      if (Math.abs(dy) > 6) {
+        retracted = dy > 0 && y > window.innerHeight * 1.2
+        last = y
+      }
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -67,7 +95,7 @@
     return () => obs.disconnect()
   })
 
-  const show = $derived(isDesktop && pastHero && !locked)
+  const show = $derived(isDesktop && pastHero && !locked && !retracted)
 </script>
 
 {#if show}
