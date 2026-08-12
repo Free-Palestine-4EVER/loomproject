@@ -405,3 +405,86 @@
   .wk-hero-inner { transform: none !important; }
   .wkp-module, .wkp-module::before { transition: none; }
 }
+
+/* ——— the stakes ———
+   Two columns the reader can stand in, so "falls behind" is a position on the
+   page rather than an adjective. The untrained side is drawn in the ink's
+   muted grey and the trained side in brand magenta; the contrast does the
+   arguing, so the copy never has to raise its voice. */
+.wkp-stakes {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  gap: clamp(10px, 1.6vw, 18px);
+  margin: clamp(22px, 3.4vh, 34px) 0 clamp(18px, 2.6vh, 26px);
+}
+.wkp-stake {
+  border-radius: 16px;
+  padding: clamp(14px, 1.8vw, 20px);
+  border: 1px solid rgba(51, 36, 61, 0.12);
+  background: rgba(255, 255, 255, 0.34);
+}
+.wkp-stake--yes {
+  border-color: rgba(242, 28, 140, 0.34);
+  background: rgba(242, 28, 140, 0.06);
+}
+.wkp-stake-tag {
+  display: inline-block;
+  margin-bottom: 10px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+.wkp-stake--yes .wkp-stake-tag { color: var(--magenta); opacity: 1; }
+.wkp-stake ul { list-style: none; display: grid; gap: 8px; margin: 0; padding: 0; }
+.wkp-stake li {
+  position: relative;
+  padding-left: 18px;
+  font-size: clamp(0.8rem, 1.05vw, 0.9rem);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+/* A cross against a tick — the one place in this section where a glyph is
+   carrying meaning, so it is drawn rather than left to a bullet. */
+.wkp-stake--no li::before {
+  content: '×';
+  position: absolute; left: 0; top: -1px;
+  font-weight: 700;
+  opacity: 0.45;
+}
+.wkp-stake--yes li::before {
+  content: '✓';
+  position: absolute; left: 0; top: -1px;
+  font-weight: 700;
+  color: var(--magenta);
+}
+.wkp-stake--no li { opacity: 0.72; }
+
+.wkp-stake-vs {
+  align-self: center;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+.wkp-kicker-warn {
+  margin-bottom: clamp(18px, 2.6vh, 26px);
+  padding-left: 14px;
+  border-left: 3px solid var(--magenta);
+  font-size: clamp(0.86rem, 1.15vw, 0.98rem);
+  line-height: 1.55;
+  font-weight: 560;
+  text-wrap: pretty;
+}
+
+/* Stacked on a phone: three columns would put two words on a line. The `vs`
+   becomes a horizontal rule between the two states rather than a column. */
+@media (max-width: 760px) {
+  .wkp-stakes { grid-template-columns: minmax(0, 1fr); }
+  .wkp-stake-vs { justify-self: center; padding: 2px 0; }
+}

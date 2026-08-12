@@ -85,6 +85,36 @@
         sales, marketing, finance, ops, HR and support. {MIN_MODULES}–{MAX_MODULES}
         modules, picked to fit the department, priced per employee.
       </p>
+      <!-- THE STAKES, MADE LITERAL.
+           The headline states the argument but leaves the reader to do the
+           arithmetic. This is the same sentence as two columns they can stand
+           in: the team that was trained against the team that was not. Side by
+           side, "stays behind" is a position on the page, not a warning. -->
+      <div class="wkp-stakes" use:reveal={{ delay: 0.16 }}>
+        <div class="wkp-stake wkp-stake--no">
+          <span class="wkp-stake-tag">Untrained team</span>
+          <ul>
+            <li>Every task still costs a whole person-hour</li>
+            <li>AI used in secret, badly, with your client data in it</li>
+            <li>Your competitor quotes in a day; you quote in a week</li>
+          </ul>
+        </div>
+        <span class="wkp-stake-vs" aria-hidden="true">vs</span>
+        <div class="wkp-stake wkp-stake--yes">
+          <span class="wkp-stake-tag">Trained team</span>
+          <ul>
+            <li>The same headcount clears several times the work</li>
+            <li>One agreed way of working, and data that stays yours</li>
+            <li>You answer first — and that is usually who wins it</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="wkp-kicker-warn" use:reveal={{ delay: 0.18 }}>
+        The tools are already free. The advantage is not the software —
+        it is the team that knows what to ask it.
+      </p>
+
       <div class="wkp-cta" use:reveal={{ delay: 0.2 }}>
         <div class="magnetic" use:magnetic={{ strength: 0.2 }}>
           <a class="wk-btn wk-btn--fill" href="/ai-workshops">See AI Workshops by LOOM</a>
