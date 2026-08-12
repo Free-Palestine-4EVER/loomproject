@@ -44,10 +44,8 @@
     // 2048x2048 masters, 12 Aug 2026. These replaced 1040px covers encoded at
     // 8-11KB, which the wall was stretching to ~1780 device px on a 2x screen
     // — that upscale, not the photographs, was why the tiles looked soft.
-    // ellie keeps its original: its render was never downloaded.
     auraa: [2048, 2048], evorahome: [2048, 2048], maison: [2048, 2048],
-    ojar: [2048, 2048], slatko: [2048, 2048],
-    ellie: [1040, 715],
+    ojar: [2048, 2048], slatko: [2048, 2048], ellie: [2048, 2048],
   }
 
   // Spelled-out numerals up to the range this board can plausibly reach;
