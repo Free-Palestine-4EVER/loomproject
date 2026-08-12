@@ -57,7 +57,7 @@ const DRY = process.argv.includes('--dry')
  *  outside WIDTHS and this script neither reads nor deletes them.) */
 const SETS = ['img/cases', 'img/niches', 'img/needs', 'img/apps', 'img/suite', 'img/workshops', 'img/lab', 'img/mcp', 'img/manifesto', 'img/hero', 'img/tree', 'img/loom']
 
-const WIDTHS = [160, 320, 480, 768, 1024, 1600]
+const WIDTHS = [160, 320, 480, 768, 1024, 1600, 2048]
 const SRC_EXT = new Set(['.webp', '.png', '.jpg', '.jpeg'])
 
 // Encoder settings. Quality is chosen per format: avif holds detail at a much
