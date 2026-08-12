@@ -101,6 +101,30 @@
     return out.slice().sort((a, b) => lastYear(b) - lastYear(a))
   })
 
+  /* THE WALL IS A FULL 3x3 — 12 Aug 2026, to the reference (doc.ba/our-work).
+     Its power is that the grid is COMPLETE: nine tiles, butt-jointed, no ragged
+     last row. Six real cases leave a row of three and then a row of three with
+     a hole, which reads as an unfinished page rather than an archive.
+
+     So the tail is padded by repeating from the top until the count reaches a
+     multiple of three. `isDupe` is carried through so a repeat can never claim
+     to be a new case — it is not counted anywhere, not linked, and not read out
+     to a screen reader. THIS IS SCAFFOLDING: the moment CASES holds nine, the
+     padding stops on its own and nothing here has to be undone. */
+  const tiles = $derived.by(() => {
+    const src = list
+    if (!src.length) return []
+    const target = Math.max(9, Math.ceil(src.length / 3) * 3)
+    return Array.from({ length: target }, (_, i) => ({
+      c: src[i % src.length],
+      // The key has to be unique or Svelte keys two tiles the same and the
+      // second one never renders.
+      key: `${src[i % src.length].slug}-${i}`,
+      isDupe: i >= src.length,
+      n: i,
+    }))
+  })
+
   const isFiltered = $derived(discipline !== 'all' || market !== 'all' || year !== 'all')
   function clearFilters() { discipline = 'all'; market = 'all'; year = 'all' }
 
@@ -392,7 +416,8 @@
   {:else}
     <div use:reveal={{ delay: 0.05, y: 26 }}>
       <ol class="wx-grid">
-        {#each list as c, i (c.slug)}
+        {#each tiles as t, i (t.key)}
+          {@const c = t.c}
           <li class="wx-cell">
             <!-- A LINK, NOT A BUTTON — 12 Aug 2026.
                  These used to open a dialog over the index. Each case now has
@@ -401,8 +426,11 @@
                  crawled, none of which a dialog trigger could do. The dialog
                  code is still below and still serves the home page's grid. -->
             <a
-              class="wx-card" href="/work/{c.slug}" data-cursor
-              aria-label="{c.client} — {c.title}"
+              class="wx-card" class:is-dupe={t.isDupe}
+              href="/work/{c.slug}" data-cursor
+              aria-hidden={t.isDupe ? "true" : undefined}
+              tabindex={t.isDupe ? -1 : undefined}
+              aria-label={t.isDupe ? undefined : `${c.client} — ${c.title}`}
             >
               <span class="wx-shot">
                 <img
