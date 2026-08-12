@@ -198,3 +198,88 @@
   .wtile:hover, .wtile:focus-visible { transform: none; }
   .wtile .wm-rev { max-height: 150px; opacity: 1; transform: none; }
 }
+
+/* ————————————————————————————————————————————————————————
+   THE MARK ON THE TILE — 12 Aug 2026, to the reference the client sent
+   (doc.ba/our-work), applied here so the home wall and /work read as one
+   surface.
+
+   THIS REVERSES THE "NO SCRIM" NOTE AT THE TOP OF THIS FILE, deliberately and
+   on the record. That rule came from a literal complaint — "on hover i get
+   overlay" — about a translucent plate that dropped over the photograph ON
+   HOVER to make a device mock legible. This is a different thing: a scrim that
+   is ALWAYS there, at a fixed strength, carrying a centred white wordmark. It
+   never appears or disappears under the pointer, which is what was actually
+   objectionable. The mock it existed for is still gone.
+   ———————————————————————————————————————————————————————— */
+
+.wtile { display: block; }
+
+.wm-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* Set by the lightest cover in the set, not the average: these run from a
+     near-white product still to a black bakery interior, and white type has to
+     hold on the pale one. */
+  background: linear-gradient(180deg, rgba(51, 36, 61, 0.46), rgba(51, 36, 61, 0.64));
+  transition: background 0.45s var(--ease);
+}
+.wtile:hover .wm-scrim,
+.wtile:focus-visible .wm-scrim {
+  background: linear-gradient(180deg, rgba(51, 36, 61, 0.62), rgba(51, 36, 61, 0.8));
+}
+
+.wm-plate {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10%;
+  text-align: center;
+  pointer-events: none;
+  transition: transform 0.5s var(--ease);
+}
+.wtile:hover .wm-plate,
+.wtile:focus-visible .wm-plate { transform: translateY(-16px); }
+
+/* The wall is a MOSAIC — a 1x1 tile and a 4x2 tile in the same row — so one
+   fixed size would either drown the small tiles or look timid on the big one.
+   `cqw` sizes each mark against ITS OWN tile: the container query unit makes
+   the type a constant fraction of the tile it sits in, whatever the tile. */
+.wtile { container-type: inline-size; }
+.wm-mark {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.05rem, 7cqw, 2.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: #fff;
+  text-wrap: balance;
+  text-shadow: 0 2px 22px rgba(51, 36, 61, 0.5);
+}
+.wm-mark-sub {
+  font-size: clamp(0.54rem, 2.4cqw, 0.72rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* The caption loses the client name (the mark carries it now) and keeps the
+   rank pinned top-left with the rest sliding up from the foot. */
+.wm-cap { z-index: 3; }
+.wm-cap h3 { display: none; }
+
+@media (hover: none) {
+  .wtile .wm-plate { transform: translateY(-18px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wtile:hover .wm-plate,
+  .wtile:focus-visible .wm-plate { transform: none; }
+}

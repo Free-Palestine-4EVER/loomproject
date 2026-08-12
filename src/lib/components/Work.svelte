@@ -369,13 +369,16 @@
       {#key filter}
         <div class="wmosaic">
           {#each wall as { c, size, lead }, i (c.slug)}
-            <button
-              type="button"
+            <!-- A LINK, NOT A DIALOG TRIGGER — 12 Aug 2026.
+                 Matches /work: every case now has a real prerendered page, so
+                 a tile on the home page is an anchor and behaves like one
+                 (new tab, copy link, share, crawl). -->
+            <a
               class="wtile {size}"
+              href="/work/{c.slug}"
               data-slug={c.slug}
               data-cursor
-              onclick={(e) => openCase(c.slug, e)}
-              aria-label="Open case study: {c.client} — {c.title}"
+              aria-label="{c.client} — {c.title}"
             >
               <span class="wm-ph"><span class="wm-par">
                 <!-- `sizes` describes the TILE, not the viewport — the mosaic
@@ -397,11 +400,18 @@
                 <video class="wm-video" src={c.video} poster={c.cover}
                   muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
               {/if}
+              <span class="wm-scrim" aria-hidden="true"></span>
               <span class="wm-thread" aria-hidden="true"></span>
               {#if c.video}<span class="wm-reel" aria-hidden="true">REEL</span>{/if}
+              <!-- The mark is centred over the picture now, matching /work and
+                   the reference. The caption keeps the rank, the title and the
+                   meta and slides up from the foot on hover. -->
+              <span class="wm-plate">
+                <span class="wm-mark">{c.client}</span>
+                <span class="wm-mark-sub">{c.scope[0]}</span>
+              </span>
               <span class="wm-cap {lead ? 'is-lead' : ''}">
                 <span class="wm-rank">{n2(i)}</span>
-                <h3>{c.client}</h3>
                 <span class="wm-rev">
                   <p>{c.title}</p>
                   <span class="wm-meta">
@@ -414,7 +424,7 @@
               <span class="wm-seal" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7v8" /></svg>
               </span>
-            </button>
+            </a>
           {/each}
         </div>
       {/key}
