@@ -63,9 +63,9 @@ export class StageViews {
     // the grey ones, the row would be selling the lighting, not the pipeline.
     const key = new THREE.DirectionalLight(0xffffff, 2.5)
     key.position.set(2, 2.6, 2.4)
-    const fill = new THREE.DirectionalLight(0x8fd8ee, 1.0) // the site's cyan, as fill: ties the render to the band's own palette
+    const fill = new THREE.DirectionalLight(0xffd7e9, 0.85) // the page's own pink, as fill: on a paper ground the bounce would be warm, and a cyan fill (what this was) reads as a studio gel nobody in the photograph is standing under
     fill.position.set(-2.6, 0.8, -1.2)
-    const amb = new THREE.AmbientLight(0xffffff, 0.78) // lifted: the textured pup is dark grey fur on this band's dark ground, and at 0.6 the fourth tile — the one that has to look like the finished product — read as a silhouette
+    const amb = new THREE.AmbientLight(0xffffff, 0.62) // pulled back from 0.78: that value was fighting a dark slab. On white cards the same ambient flattens the model into the panel
     this.scene.add(key, fill, amb)
 
     this.group = new THREE.Group()
@@ -84,7 +84,13 @@ export class StageViews {
     this.lastT = null
     this._dragYawStart = 0
     this._dragXStart = 0
-    this.idleRate = 0.16 // rad/s — about 40s for a full turn; slow enough to read as alive, not as a spinning demo
+    // 0.34 rad/s — a full turn in about 18s. The earlier 0.16 was chosen to
+    // read as "alive"; the brief is the opposite and it is right: the tiles
+    // have to be UNDERSTOOD as 3D by someone who glances at them for two
+    // seconds, and at 40s per revolution a glance sees a still image. This is
+    // fast enough that the parallax is obvious immediately and slow enough
+    // that it never reads as a spinning product demo.
+    this.idleRate = 0.34
 
     this._onPointerDown = (e) => {
       this.dragging = true
@@ -126,30 +132,24 @@ export class StageViews {
     geo.applyMatrix4(src.matrixWorld)
 
     const textured = Array.isArray(src.material) ? src.material[0].clone() : src.material.clone()
-    // THE TWO GREY TILES HAVE TO READ AS DIFFERENT THINGS AT 320px. The first
-    // capture of the row had them near-identical, which quietly destroys the
-    // argument: if "geometry" and "detail" look the same, the row is showing
-    // four stages and proving three. So the difference is pushed as far as
-    // the honest range allows — the bare tile is matte and diffuse (roughness
-    // 0.95 scatters light evenly and flattens the form to pure silhouette and
-    // volume), the detail tile is glossier and its normal map is scaled up,
-    // because a rougher surface literally cannot show fine relief: the
-    // specular lobe that makes each hair visible is the thing roughness
-    // destroys. Nothing is added to the model in either pass — the second one
-    // is the first one plus a map the GLB already ships.
-    const detail = new THREE.MeshStandardMaterial({
-      color: 0xdcd7e6,
-      roughness: 0.55,
-      metalness: 0,
-      normalMap: textured.normalMap || null // the fur, as geometry-shaped light rather than as colour
-    })
-    if (detail.normalMap) detail.normalScale = new THREE.Vector2(1.9, 1.9)
+    // TWO PASSES, NOT THREE. An earlier build had a middle "detail" material
+    // (grey plus the normal map) between these two. It went, on instruction —
+    // the row is three panels now — and it is not missed: at tile size the
+    // bare-grey and normal-mapped greys were the two hardest to tell apart,
+    // so the cut removes the weakest comparison in the row rather than a real
+    // one. The fur still arrives, in the textured pass, where the normal map
+    // ships anyway.
+    //
+    // The bare material is deliberately matte (roughness 0.95 scatters light
+    // evenly, flattening the surface to pure silhouette and volume) — that is
+    // what "geometry, no texture" looks like, and it makes the jump to the
+    // textured tile as large as the truth allows.
     const geometryOnly = new THREE.MeshStandardMaterial({
-      color: 0xaeaabb,
+      color: 0x8e879e, // mid, not light: these panels are white cards now, and the pale grey this was tuned to on the old dark slab lost its silhouette against them
       roughness: 0.95,
       metalness: 0
     })
-    this.materials = [geometryOnly, detail, textured]
+    this.materials = [geometryOnly, textured]
 
     this.mesh = new THREE.Mesh(geo, geometryOnly)
     // Frame it: centre the bounding box at the origin and scale the longest
