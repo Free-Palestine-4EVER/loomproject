@@ -891,8 +891,8 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   position: relative; z-index: 1;
   height: 100%;
   display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;
-  gap: clamp(16px, 2.6vh, 30px);
-  padding: calc(env(safe-area-inset-top, 0px) + 92px) var(--pad)
+  gap: clamp(14px, 2vh, 24px);
+  padding: calc(env(safe-area-inset-top, 0px) + 86px) var(--pad)
            calc(env(safe-area-inset-bottom, 0px) + 28px);
   overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   text-align: left;
@@ -924,7 +924,7 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
 .menu-kicker {
   display: flex; align-items: center; gap: 12px;
   width: var(--menu-measure);
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
   color: var(--ink-faint);
 }
 .menu-kicker-thread {
@@ -943,18 +943,24 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   width: var(--menu-measure);
   display: flex; flex-direction: column;
 }
+/* The numeral column is 2.6em of the WORD's size, so shrinking the word
+   shrinks the gutter with it and the two columns stay in proportion.
+   `min-height` is what keeps the row a legal touch target now that the type
+   no longer supplies 44px on its own. */
 .menu-p {
   position: relative;
   display: grid;
-  grid-template-columns: 2.6em 1fr;
+  grid-template-columns: 2.4em 1fr;
   align-items: baseline;
   gap: 0 0.5em;
-  padding: clamp(3px, 0.55vh, 9px) 0;
+  min-height: 44px;
+  align-content: center;
+  padding: clamp(2px, 0.35vh, 6px) 0;
   transition: color 0.3s, transform 0.3s var(--ease);
 }
 .menu-p-idx {
   font-family: var(--display);
-  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em;
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.16em;
   color: var(--ink-faint);
   transition: color 0.3s;
 }
@@ -983,13 +989,22 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
    90% }` under 768px (the mobile type ramp at the foot of this file) silently
    scales anything expressed in rem, and this is a display size that must not
    drift with it; 9.6vw is 34.6px at 360, 37.4px at 390, 41.3px at 430. */
+/* SMALLER, 13 Aug 2026 — client: the drawer's type is too big. It was
+   clamp(34px, 9.6vw, 46px): five rows at 37px on a 390 screen, plus their
+   padding, ate 260px of an 844px drawer and pushed the second tier, the
+   industries toggle and the whole contact block below the fold, so the menu
+   opened as something you scroll rather than something you read. At
+   clamp(26px, 7vw, 34px) — 27.3px at 390 — the rows are still unmistakably
+   the primary tier against tier two's 0.78rem, and the composition fits.
+   Still expressed in PIXELS, not rem: `html { font-size: 90% }` under 768px
+   would otherwise scale a display size that must not drift. */
 .menu-p-word {
   font-family: var(--display);
-  font-size: clamp(34px, 9.6vw, 46px);
+  font-size: clamp(26px, 7vw, 34px);
   font-weight: 660;
-  line-height: 1.04;
+  line-height: 1.06;
   text-transform: uppercase;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.006em;
   color: var(--ink);
   transition: color 0.3s;
 }
@@ -1022,9 +1037,9 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
 /* ——— tier two ——— */
 .menu-secondary { width: var(--menu-measure); }
 .menu-s-label {
-  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--ink-faint);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 /* two columns, not a wrapped chip cloud: seven items of very different label
    lengths (MCP against AI WORKSHOPS) wrap into a ragged shape that reads as
@@ -1037,7 +1052,7 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   display: flex; align-items: center;
   min-height: 44px;
   font-family: var(--display);
-  font-size: 0.84rem; font-weight: 640; letter-spacing: 0.12em; text-transform: uppercase;
+  font-size: 0.76rem; font-weight: 640; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--ink-dim);
   border-bottom: 1px solid var(--line);
   transition: color 0.25s, border-color 0.25s;
@@ -1059,12 +1074,12 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
 .menu-ind-toggle {
   width: 100%;
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 13px 22px;
+  padding: 11px 20px;
   border-radius: 999px;
   border: 1px solid rgba(51, 36, 61, 0.22);
   background: rgba(255, 255, 255, 0.4);
   font-family: var(--display); font-weight: 560;
-  font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--ink-dim);
   transition: border-color 0.3s, color 0.3s, background 0.3s;
 }
@@ -1170,10 +1185,10 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   display: flex; flex-direction: column; gap: 8px;
   width: var(--menu-measure);
   align-items: flex-start;
-  color: var(--ink-dim); font-size: 0.95rem;
+  color: var(--ink-dim); font-size: 0.85rem;
   /* the drawer used to end on a bare list of contact lines; a rule closes the
      composition and separates the CTA from the two ways to reach a human */
-  padding-top: 18px;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
 }
 /* The "Start weaving" spool is `size="big"` (clamp(210px, 19vw, 252px), so
@@ -2547,7 +2562,7 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
 .studio-card footer {
   display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
   margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line);
-  color: var(--ink-dim); font-size: 0.95rem;
+  color: var(--ink-dim); font-size: 0.85rem;
 }
 /* "WhatsApp us →" / "Email the studio →" are the only controls on these two
    cards and they measured 24.3px tall. The footer is a `space-between` flex
@@ -3407,35 +3422,21 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   h1, h2, h3, p, .h2, .lede { overflow-wrap: break-word; }
 }
 
-/* ——— the retracting header ———
-   Hidden on the way down, back on the way up. `translateY(-100%)` and not
-   `top` or `display`: transform is the only one of the three the compositor
-   can animate without laying the page out again, and the bar is `position:
-   fixed` over content that is scrolling underneath it.
-
-   -102% rather than -100% so the bar's own shadow clears the top edge too —
-   at exactly -100% a 2px rim of it stays visible against the pale ground.
-
-   `visibility` rides the same transition so the links leave the tab order
-   while the bar is off screen; without it a keyboard user tabs into a header
-   they cannot see. */
+/* ——— the header does not retract ———
+   This block used to slide the bar out of view on the way down and back on
+   the way up (`.nav--hidden { translateY(-102%) }`, driven by a scroll
+   listener in Nav.svelte). Both halves are gone. The bar is plainly fixed:
+   the only thing that changes on scroll is how it PAINTS — transparent over
+   the hero, frosted rose once past it — and those are composited properties,
+   so the transition below costs no layout and the bar never moves or resizes.
+   `will-change: transform` went with the transform it was reserving a layer
+   for; `.nav` already carries `translateZ(0)` for the backdrop-filter. */
 .nav {
   transition:
-    transform 0.42s var(--ease),
-    visibility 0s linear 0s,
     background 0.4s var(--ease),
     backdrop-filter 0.4s var(--ease),
     border-color 0.4s var(--ease);
-  will-change: transform;
 }
-.nav--hidden {
-  transform: translateY(-102%);
-  visibility: hidden;
-  transition-delay: 0s, 0.42s, 0s, 0s, 0s;
-}
-
-/* A reader who has asked for less motion still gets the space back — the bar
-   just cuts rather than sliding. */
 @media (prefers-reduced-motion: reduce) {
   .nav { transition: none; }
 }
