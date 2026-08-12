@@ -165,7 +165,24 @@
     }
     // any remainder (a block size with no map) still renders, smallest class
     for (; at < cards.length; at++) out.push({ c: cards[at], size: 'wm-s', lead: false })
-    return out
+
+    /* THE HOME WALL IS A COMPLETE 3x3 — 12 Aug 2026, same call as /work.
+       The reference (doc.ba/our-work) reads as an archive because its grid has
+       no ragged edge. Six cases left a hole in the second row.
+
+       Every tile is forced to the small square class: the mosaic's size variety
+       WAS the ranking, and a 3x3 states the same six cases without claiming one
+       outranks another — which is exactly what the reference does. Duplicates
+       then fill to nine and are marked so they stay out of assistive tech and
+       are never counted. Self-removing: at nine real cases the padding stops. */
+    const uniform = out.map((o) => ({ ...o, size: 'wm-s', lead: false }))
+    if (!uniform.length) return uniform
+    const target = Math.max(9, Math.ceil(uniform.length / 3) * 3)
+    return Array.from({ length: target }, (_, i) => ({
+      ...uniform[i % uniform.length],
+      key: uniform[i % uniform.length].c.slug + '-' + i,
+      isDupe: i >= uniform.length,
+    }))
   })
 
   // ══════════════════════════════════════════════════════════════════════
@@ -368,13 +385,15 @@
     <div use:reveal={{ delay: 0.05, y: 28 }}>
       {#key filter}
         <div class="wmosaic">
-          {#each wall as { c, size, lead }, i (c.slug)}
+          {#each wall as { c, size, lead, isDupe, key }, i (key)}
             <!-- A LINK, NOT A DIALOG TRIGGER — 12 Aug 2026.
                  Matches /work: every case now has a real prerendered page, so
                  a tile on the home page is an anchor and behaves like one
                  (new tab, copy link, share, crawl). -->
             <a
-              class="wtile {size}"
+              class="wtile {size}" class:is-dupe={isDupe}
+              aria-hidden={isDupe ? 'true' : undefined}
+              tabindex={isDupe ? -1 : undefined}
               href="/work/{c.slug}"
               data-slug={c.slug}
               data-cursor

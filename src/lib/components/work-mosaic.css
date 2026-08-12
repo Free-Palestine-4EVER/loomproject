@@ -283,3 +283,35 @@
   .wtile:hover .wm-plate,
   .wtile:focus-visible .wm-plate { transform: none; }
 }
+
+/* ——— the home wall is a 3x3 ———
+   Was a four-column mosaic where a tile could span 2x2 or 4x2 and size WAS the
+   ranking. Work.svelte now hands every tile the same class, so the grid drops
+   to three even columns of square tiles and butt-joints them, matching /work
+   and the reference. The span rules below still exist for the mosaic and are
+   simply never asked for while every tile is `wm-s`. */
+.wmosaic {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* The mosaic pinned rows to clamp(118px, 12.2vw, 176px) because a tile was
+     sized by its SPAN, not its content. A square tile in a three-column grid
+     wants roughly a third of the width in height (~470px at 1440), so against
+     a 176px row it overflowed and the next section showed through the wall.
+     Square tiles size their own rows. */
+  grid-auto-rows: auto;
+  gap: 0;
+}
+.wmosaic .wtile {
+  aspect-ratio: 1;
+  border-radius: 0;
+  /* the mosaic's spans must not survive into the square grid */
+  grid-column: auto !important;
+  grid-row: auto !important;
+}
+.wmosaic .wtile:hover { transform: none; }
+
+@media (max-width: 900px) {
+  .wmosaic { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .wmosaic { grid-template-columns: minmax(0, 1fr); }
+}
