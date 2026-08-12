@@ -219,3 +219,38 @@ export const SUITE = [
     ],
   },
 ]
+
+// ——— SOFTWARE, BACK AS ITS OWN SECTION (12 Aug 2026) ———
+// These two were cut from SUITE on 12 Aug when the stage became "the apps we
+// have real device captures for", and the MacBook branch went with them. The
+// client has now asked for them back as a section of their own, under the app
+// stage, on the MacBook mockups they always used — so they live here rather
+// than in SUITE: SUITE is the phone stage and its length is read as the app
+// count in three places, and quietly re-adding two desktop products to it
+// would miscount the apps everywhere that number appears.
+//
+// STILL NOT A CLAIM. Both are internal tools with no download, no store link
+// and no user numbers, and `status` says exactly that. The screenshots are
+// genuine captures of the real tools — the same two files the stage used —
+// not drawn interfaces. If either ever gets a real release, it earns an
+// `href` here and nowhere else.
+export const SOFTWARE = [
+  {
+    key: '2d3d',
+    name: '2D3D',
+    tag: 'Web · Floor plans',
+    status: 'In the lab',
+    blurb: 'Drop in a flat floor plan and it reads the walls, finds the rooms and stands the whole thing up in 3D — furniture placed, no drawing by hand.',
+    grad: ['#f21c8c', '#59e6ff'],
+    shot: { src: '/img/suite/2d3d.webp', w: 720, h: 325 },
+  },
+  {
+    key: 'kun',
+    name: 'KUN',
+    tag: 'Software · Generative 3D',
+    status: 'In the lab',
+    blurb: 'Describe a scene and watch it assemble. A conversational 3D studio — say what you want in the room and the room builds itself.',
+    grad: ['#f21c8c', '#7b2fbe'],
+    shot: { src: '/img/suite/kun.webp', w: 720, h: 325 },
+  },
+]

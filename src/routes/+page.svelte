@@ -50,8 +50,8 @@
   import TheMachine from '$lib/components/TheMachine.svelte'
   import AnswerEngine from '$lib/components/AnswerEngine.svelte'
   import WorkshopsPromo from '$lib/components/WorkshopsPromo.svelte'
-  import Forge from '$lib/components/Forge.svelte'
   import AppsShowcase from '$lib/components/AppsShowcase.svelte'
+  import SoftwareShowcase from '$lib/components/SoftwareShowcase.svelte'
   import LoomMcp from '$lib/components/LoomMcp.svelte'
   import TypeShowcase from '$lib/components/TypeShowcase.svelte'
   import Studios from '$lib/components/Studios.svelte'
@@ -244,19 +244,16 @@
      rather than trailing the capability one. -->
 <WorkshopsPromo />
 
-<!-- FORGE closes the SELL band (10 Aug 2026) — the smallest, cheapest and only
-     instantly self-serve thing LOOM sells: 2 JOD a model, first one free, no
-     brief and no call. It sits LAST in SELL and immediately above CAPABLE on
-     purpose. Last, because the band is ranked by what LOOM wants sold and a
-     2 JOD self-serve tool does not outrank a subscription; immediately above
-     CAPABLE, because AppsShowcase (#apps) is the section directly under it and
-     this is that lab with a price on it.
-
-     It is a SMALL band by instruction — the pitch and the price only. Every
-     interactive step lives in the popup it owns, which also carries the fixed
-     side tab. The popup NEVER opens itself: two explicit clicks, no timer, no
-     seen-flag. -->
-<Forge />
+<!-- FORGE (the 2D→3D band, #forge) WAS REMOVED FROM THE PAGE on 12 Aug 2026 at
+     the client's instruction — "remove the 3d section totally" — and the app
+     stage took its slot, which is why CAPABLE now opens the moment SELL ends.
+     The component and its popup are still in the repo (components/Forge.svelte,
+     ForgeBand.svelte, StageViews.js) and /lab still mounts the band, so the
+     product is not deleted, it is simply not on the homepage. `#forge` no
+     longer resolves from here, and the fixed "TRY 2D TO 3D" side tab it owned
+     goes with it. If it ever comes back it belongs LAST in SELL again: it is
+     the cheapest, most self-serve thing LOOM sells and does not outrank a
+     subscription. -->
 
 <!-- CAPABLE — everything that answers "can they actually build it?" rather than
      "what am I buying?". AppsShowcase (#apps) and ToolsLab (#lab, the 3D Lab)
@@ -268,6 +265,20 @@
      product centre stage, an icon rail of tabs" design, WITHOUT the live
      mockups. #lab no longer resolves and its nav tab is gone. -->
 <AppsShowcase />
+
+<!-- SOFTWARE (#software) — restored 12 Aug 2026, directly under the app stage,
+     at the client's instruction ("below the mobile apps section put softwares
+     section, the old one with the MacBook mockups").
+
+     It is the desktop half of the same claim: the stage above is eight products
+     on phones, this is the two that are not phone products at all, on the
+     MacBook mockup they always used. Those two (2D3D and KUN) were cut from
+     SUITE on 12 Aug when the stage became "the apps we have real captures for",
+     and the component's software branch went with them — the .dv-mac CSS never
+     left appscreens.css, so this restores the original mockup rather than
+     drawing a new one. They live in their own SOFTWARE list, not back in SUITE,
+     because SUITE.length is read as the APP count in three places. -->
+<SoftwareShowcase />
 
 <!-- OwnApps ("We build our own products too") was REMOVED FROM THE PAGE on
      10 Aug 2026 at the client's request; not ported. #own-apps no longer
