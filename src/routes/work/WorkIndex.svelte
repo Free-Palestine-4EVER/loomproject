@@ -394,40 +394,46 @@
       <ol class="wx-grid">
         {#each list as c, i (c.slug)}
           <li class="wx-cell">
-            <button
-              type="button" class="wx-card" data-cursor
-              onclick={(e) => openCase(c.slug, e)}
-              aria-label="Open case study: {c.client} — {c.title}"
+            <!-- A LINK, NOT A BUTTON — 12 Aug 2026.
+                 These used to open a dialog over the index. Each case now has
+                 a real prerendered page at /work/[slug], so the tile is an
+                 anchor: it can be opened in a new tab, copied, shared and
+                 crawled, none of which a dialog trigger could do. The dialog
+                 code is still below and still serves the home page's grid. -->
+            <a
+              class="wx-card" href="/work/{c.slug}" data-cursor
+              aria-label="{c.client} — {c.title}"
             >
               <span class="wx-shot">
                 <img
-                  src={c.cover} alt="{c.client} — {c.title}"
+                  src={c.cover} alt=""
                   srcset={webpSrcset(c.cover)}
                   sizes="(max-width: 640px) 92vw, (max-width: 1100px) 46vw, 30vw"
                   width={COVER_DIMS[c.slug]?.[0]} height={COVER_DIMS[c.slug]?.[1]}
                   loading={i < 3 ? 'eager' : 'lazy'} decoding="async"
                   use:imgFade onload={onImgLoad}
                 />
+                <!-- The scrim carries the wordmark's contrast. It is on the
+                     TILE and not the photograph so it cannot be scaled by the
+                     hover zoom underneath it — a wash that grows with the
+                     image visibly lightens at the edges mid-transition. -->
+                <span class="wx-scrim" aria-hidden="true"></span>
                 <span class="wx-rank">{n2(i)}</span>
-              </span>
-              <span class="wx-body">
-                <span class="wx-top">
-                  <h3>{c.client}</h3>
-                  <span class="wx-year">{c.year}</span>
+                <span class="wx-plate">
+                  <span class="wx-mark">{c.client}</span>
+                  <span class="wx-mark-sub">{c.scope[0]}</span>
                 </span>
-                <span class="wx-title">{c.title}</span>
-                <span class="wx-copy">{c.copy}</span>
-                <span class="wx-scope">
-                  {#each c.scope as s (s)}<span>{s}</span>{/each}
-                </span>
-                <span class="wx-foot">
-                  <span class="wx-market">{c.country}</span>
-                  <span class="wx-open">Open case
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M17 7H9M17 7v8" /></svg>
+                <span class="wx-hoverfoot">
+                  <span class="wx-title">{c.title}</span>
+                  <span class="wx-foot">
+                    <span class="wx-market">{c.country} · {c.year}</span>
+                    <span class="wx-open">Open case
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M17 7H9M17 7v8" /></svg>
+                    </span>
                   </span>
                 </span>
               </span>
-            </button>
+            </a>
           </li>
         {/each}
       </ol>
