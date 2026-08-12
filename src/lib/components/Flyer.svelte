@@ -145,23 +145,75 @@
         return
       }
 
+      /* ── HOW SCROLL REACHES THE FLIGHT (rewritten 13 Aug 2026) ───────────
+         The old version did all of its work synchronously inside the scroll
+         event, and it had two faults that both show up as the butterfly
+         hitching while the page moves.
+
+         ONE — IT FORCED LAYOUT ON EVERY SCROLL EVENT.
+         `document.documentElement.scrollHeight` is a layout read. Read it
+         while anything on the page has dirtied layout and the browser must
+         flush style and layout for the WHOLE document before it can answer —
+         and this document is 36,000px with nineteen other scroll listeners on
+         it, several of which write styles from their own handlers. Whether
+         this one stalls therefore depends on whether it happens to be
+         registered after a writer, which is why it is intermittent, and when
+         it does stall it stalls the main thread — so every other animation on
+         the page drops the same frames the butterfly does. That is the
+         "it glitches and the other animations get affected" symptom exactly.
+         The height is cached now and re-measured only when it can actually
+         change: on resize, and from a ResizeObserver, whose callback runs
+         AFTER layout, where the read is free.
+
+         TWO — THE VELOCITY WAS QUANTISED BY A 16ms FLOOR.
+         `dt = max(16, now - lastT)` was written for a 60Hz assumption. On a
+         120Hz display real frames are 8.3ms, so every sample was divided by
+         roughly twice the elapsed time — and the moment the browser coalesced
+         two frames into one event, dt was honest again and the velocity
+         target doubled. The flight speed was therefore swinging on event
+         cadence rather than on how fast the reader is actually scrolling,
+         which is a glitch that costs ZERO dropped frames and so never shows
+         up in a frame-time profile. Sampling once per rAF removes the reason
+         the floor existed; 4ms is left only as a divide-by-zero guard.
+
+         Sampling in rAF also means at most one sample per painted frame no
+         matter how fast the events arrive, and it lands in the same frame the
+         renderer is about to draw. */
       let lastY = window.scrollY
       let lastT = performance.now()
+      let docH = 1
+      let queued = 0
 
-      const onScroll = () => {
-        const now = performance.now()
-        const dt = Math.max(16, now - lastT) / 1000
-        const dy = window.scrollY - lastY
-        lastY = window.scrollY
-        lastT = now
-        const doc = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
-        field.setScroll(window.scrollY / doc, dy / window.innerHeight / dt)
+      const measureDoc = () => {
+        docH = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
       }
-      onScroll()
+
+      const sample = () => {
+        queued = 0
+        const now = performance.now()
+        const dt = Math.max(4, now - lastT) / 1000
+        const y = window.scrollY
+        const dy = y - lastY
+        lastY = y
+        lastT = now
+        field.setScroll(y / docH, dy / window.innerHeight / dt)
+      }
+
+      const onScroll = () => { if (!queued) queued = requestAnimationFrame(sample) }
+      const onResize = () => { measureDoc(); onScroll() }
+
+      measureDoc()
+      sample()
+
+      // The page grows after first paint — lazy images landing, sections
+      // expanding — and a stale height would put the butterfly at the wrong
+      // point of its path. This fires after layout, so the read costs nothing.
+      const docObs = new ResizeObserver(measureDoc)
+      docObs.observe(document.documentElement)
 
       const onVis = () => { document.hidden ? field.stop() : field.start() }
       window.addEventListener('scroll', onScroll, { passive: true })
-      window.addEventListener('resize', onScroll, { passive: true })
+      window.addEventListener('resize', onResize, { passive: true })
       document.addEventListener('visibilitychange', onVis)
 
       // A case study or the wizard opening locks page scroll but leaves the
@@ -182,9 +234,11 @@
 
       teardown = () => {
         lockObs.disconnect()
+        docObs.disconnect()
+        if (queued) cancelAnimationFrame(queued)
         delete window.__loomFlyer
         window.removeEventListener('scroll', onScroll)
-        window.removeEventListener('resize', onScroll)
+        window.removeEventListener('resize', onResize)
         document.removeEventListener('visibilitychange', onVis)
         field.dispose()
       }
