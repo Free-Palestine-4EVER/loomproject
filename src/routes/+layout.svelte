@@ -6,7 +6,7 @@
   progress bar, the nav, the footer, the butterfly, and the persistent CTAs.
 
   In the React build all of this was wrapped in <AuthProvider><WizardProvider>.
-  Both are gone — the rune singletons in lib/auth.svelte.js and
+  Both are gone — the rune singleton in
   lib/wizard.svelte.js are reactive to every importer with no tree wrapping,
   so the shell is the shell rather than the shell plus two context frames.
 -->
@@ -15,7 +15,6 @@
   import { browser } from '$app/environment'
   import { reducedMotion, coarsePointer } from '$lib/motion.svelte.js'
   import { mountAnchorLinks } from '$lib/scroll.svelte.js'
-  import { auth } from '$lib/auth.svelte.js'
 
   import Loader from '$lib/components/Loader.svelte'
   import ScrollProgress from '$lib/components/ScrollProgress.svelte'
@@ -55,10 +54,8 @@
     const stopCP = coarsePointer.start()
     const stopAnchors = mountAnchorLinks()
 
-    // The account check. Client-only by construction — the server has no
-    // localStorage and no session, so `auth.loading` stays true through the
-    // prerender and no signed-out state is ever baked into the HTML.
-    auth.start()
+    // (The account check that used to run here is gone with Forge — nothing
+    // on this site is behind a login any more.)
 
     // What the page may spend off-screen: parks looping animations, and on
     // touch devices evicts far-off image bitmaps so a fast flick cannot walk

@@ -38,15 +38,33 @@
   translate: 0 -50%;
   width: min(46vw, 640px);
   aspect-ratio: 1;
-  background: url('/img/hero/planet.webp') no-repeat center / contain;
-  /* AVIF is 38% smaller (221 KB vs 354 KB) at matched quality; browsers that
-     don't understand image-set() ignore this whole declaration and keep the
-     plain url() above, so there is no unsupported-browser fallback to wire
-     up by hand. */
-  background: image-set(url('/img/hero/planet.avif') type('image/avif'), url('/img/hero/planet.webp') type('image/webp')) no-repeat center / contain;
+  background: url('/img/hero/planet-1024.webp') no-repeat center / contain;
+  /* AVIF is 38% smaller at matched quality; browsers that don't understand
+     image-set() ignore this whole declaration and keep the plain url() above,
+     so there is no unsupported-browser fallback to wire up by hand.
+
+     THE SIZE IS THE POINT, NOT THE CODEC (13 Aug 2026). This used to load
+     planet.avif — the full 221 KB original — and it was the single heaviest
+     request on the homepage, for an element that is at most `min(46vw,
+     640px)` wide. A 640px box was being handed a render several times its own
+     resolution. The responsive ladder already existed (scripts/responsive.mjs
+     writes -320/-480/-768/-1024); this just uses it. 1024 covers the 640px
+     cap at DPR 1.6, and the 2x branch below covers retina — where the file is
+     still only the original, and only on the screens that can actually
+     resolve it. 221 KB → 83 KB for everyone else. */
+  background: image-set(url('/img/hero/planet-1024.avif') type('image/avif'), url('/img/hero/planet-1024.webp') type('image/webp')) no-repeat center / contain;
   filter: drop-shadow(0 0 60px rgba(255, 200, 230, 0.35));
   opacity: 0.95;
   animation: hero-static-planet-float 7s ease-in-out infinite;
+}
+/* Retina only, and only on a screen wide enough for the planet to actually be
+   large: 1024 at DPR 2 in a 640px box is a soft edge on a light ground, which
+   is visible on this particular render's terminator. Everyone else keeps the
+   83 KB file above. */
+@media (min-resolution: 2dppx) and (min-width: 1100px) {
+  .hero-static-planet-inner {
+    background: image-set(url('/img/hero/planet.avif') type('image/avif'), url('/img/hero/planet.webp') type('image/webp')) no-repeat center / contain;
+  }
 }
 @keyframes hero-static-planet-float {
   0%   { transform: translateY(0) rotate(0deg) scale(1); }

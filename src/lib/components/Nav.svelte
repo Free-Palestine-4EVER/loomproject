@@ -19,7 +19,6 @@
   import { magnetic, reducedMotion } from '$lib/motion.svelte.js'
   import { navigate } from '$lib/scroll.svelte.js'
   import { wizard } from '$lib/wizard.svelte.js'
-  import { auth } from '$lib/auth.svelte.js'
   import { LINKS } from './nav-links.js'
 
   import WoolButton from './WoolButton.svelte'
@@ -323,22 +322,12 @@
   const isCurrent = (href) =>
     href.startsWith('#') ? page.url.pathname === '/' : page.url.pathname === href
 
-  let authOpen = $state(false)
-  let authEl = $state(null)
-
-  $effect(() => {
-    if (!browser || !authOpen) return
-    const onDoc = (e) => { if (authEl && !authEl.contains(e.target)) authOpen = false }
-    const onKey = (e) => { if (e.key === 'Escape') authOpen = false }
-    document.addEventListener('mousedown', onDoc)
-    window.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDoc)
-      window.removeEventListener('keydown', onKey)
-    }
-  })
-
-  const initial = $derived((auth.user?.email || '?').trim().charAt(0).toUpperCase() || '?')
+  /* THE ACCOUNT UI IS GONE (13 Aug 2026). Sign in, the avatar, its menu and
+     the outside-click/Escape effect that served it all existed for ONE thing:
+     /dashboard, the Forge workspace. Forge is deleted — the band, the popup,
+     the dashboard, the auth singleton and the API client with it — so an
+     account has nothing left to be an account OF. Nothing else on this site
+     is gated, so this header now has exactly one action in it. */
 
   /* THE MOBILE MENU'S BACKGROUND — code-generated, nothing fetched. Lane,
      size, drift, duration and delay all derive from the index by the same
@@ -426,35 +415,6 @@
     <div class="magnetic" use:magnetic={{ strength: 0.25 }}>
       <WoolButton label="Get started" size="small" onclick={() => { open = false; wizard.open({}) }} />
     </div>
-
-    <!-- Signed out: a small pill that is the ONLY way into /dashboard from the
-         header, since that route has no nav tab either. Signed in: a round
-         initial that opens a two-item menu. `loading` renders NOTHING rather
-         than flashing "Sign in" before an existing session resolves. -->
-    {#if !auth.loading}
-      {#if !auth.user}
-        <a class="nav-auth-pill" href="/dashboard" aria-label="Sign in to your account">Sign in</a>
-      {:else}
-        <div class="nav-auth" bind:this={authEl}>
-          <button
-            type="button"
-            class="nav-auth-avatar"
-            aria-haspopup="menu"
-            aria-expanded={authOpen}
-            aria-label="Account menu — {auth.user.email || 'signed in'}"
-            onclick={() => (authOpen = !authOpen)}
-          >{initial}</button>
-
-          {#if authOpen}
-            <div class="nav-auth-menu" role="menu" transition:fly={{ y: -6, duration: 180, easing: cubicOut }}>
-              <span class="nav-auth-email">{auth.user.email}</span>
-              <a role="menuitem" href="/dashboard" onclick={() => (authOpen = false)}>Dashboard</a>
-              <button type="button" role="menuitem" onclick={() => { authOpen = false; auth.signOut() }}>Sign out</button>
-            </div>
-          {/if}
-        </div>
-      {/if}
-    {/if}
 
     <button
       bind:this={burgerEl}

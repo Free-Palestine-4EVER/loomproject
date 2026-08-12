@@ -309,18 +309,60 @@
      would pull ~30 renders the moment anyone reaches this section, which is
      worse than the problem. Three ahead everywhere else — the pin is the
      only place the tour can be scrolled PAST this fast. */
+  /* ——— THE LOOKAHEAD IS GATED ON PROXIMITY, AND IT HAS TO BE ———
+     MEASURED (13 Aug 2026, production build, 1440×900): the homepage pulled
+     1,310 KB of images before a reader had scrolled a pixel, and six of the
+     ten heaviest files were industry renders — burger, cafe, catering,
+     fine-dining, dental, bakery, ~250 KB together — for a section several
+     screens down that nobody had reached. This effect was the cause: it reads
+     `shown.key`, which has a value from the first render, so the "few
+     industries ahead" warm-up ran at mount and raced the hero for bandwidth.
+     Cloudflare's own Observatory flagged exactly this ("resource load duration
+     exceeding 10% of LCP").
+     The lookahead itself is right and stays — it is what keeps a fast flick
+     from landing on an undecoded render. It just may not start until the
+     section is within a screen of the viewport. */
+  let nearTour = $state(false)
   $effect(() => {
-    if (!browser) return
+    if (!browser || !pinEl || nearTour) return
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { nearTour = true; io.disconnect() } },
+      { rootMargin: '900px 0px' } // ~one screen of warning: enough for six renders to land before the first one is needed, not so much that they compete with the hero
+    )
+    io.observe(pinEl)
+    return () => io.disconnect()
+  })
+
+  /* AND IT PREFETCHES THE FORMAT THE BROWSER WILL ACTUALLY USE. The warm-up
+     hardcoded `.webp` while the <picture> below offers AVIF first, so on every
+     modern browser these six requests warmed a cache entry nothing would ever
+     read, and the AVIF was then fetched a second time on display — the burger
+     render appeared TWICE in the measurement above, 61 KB of WebP plus 35 KB
+     of AVIF. One decode probe, once per session, settles which extension to
+     warm. */
+  let avifOk = $state(null)
+  $effect(() => {
+    if (!browser || avifOk !== null) return
+    const probe = new Image()
+    probe.onload = () => { avifOk = probe.width === 1 }
+    probe.onerror = () => { avifOk = false }
+    // 1×1 AVIF, the standard support probe.
+    probe.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAABQaWluZgAAAAAAAQAAABJpbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQAMAAAAABNjb2xybmNseAACAAIABoAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgABogQEDQgMgkQAAAAB8dSLfI='
+  })
+
+  $effect(() => {
+    if (!browser || !nearTour) return
     const key = shown.key
     const portrait = window.matchMedia('(max-width: 719px)').matches
     const from = NICHES.findIndex((n) => n.key === key)
     if (from < 0) return
+    const ext = avifOk ? 'avif' : 'webp'
     const ahead = pinned ? 6 : 3
     const imgs = []
     for (let k = 1; k <= ahead; k++) {
       const n = NICHES[(from + k) % NICHES.length]
       const img = new Image()
-      img.src = portrait ? `/img/niches/${n.key}-9x16.webp` : `/img/niches/${n.key}.webp`
+      img.src = portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`
       imgs.push(img)
     }
     return () => imgs.forEach((im) => { im.src = '' })
@@ -641,6 +683,7 @@
                     width="1400"
                     height="600"
                     decoding="async"
+                    loading="lazy"
                     aria-hidden={n.key === shown.key ? undefined : 'true'}
                     style={stageBroken.has(n.key) ? 'visibility:hidden' : undefined}
                     onerror={onStageError(n)}

@@ -244,16 +244,13 @@
      rather than trailing the capability one. -->
 <WorkshopsPromo />
 
-<!-- FORGE (the 2D→3D band, #forge) WAS REMOVED FROM THE PAGE on 12 Aug 2026 at
-     the client's instruction — "remove the 3d section totally" — and the app
-     stage took its slot, which is why CAPABLE now opens the moment SELL ends.
-     The component and its popup are still in the repo (components/Forge.svelte,
-     ForgeBand.svelte, StageViews.js) and /lab still mounts the band, so the
-     product is not deleted, it is simply not on the homepage. `#forge` no
-     longer resolves from here, and the fixed "TRY 2D TO 3D" side tab it owned
-     goes with it. If it ever comes back it belongs LAST in SELL again: it is
-     the cheapest, most self-serve thing LOOM sells and does not outrank a
-     subscription. -->
+<!-- FORGE — THE 2D→3D PRODUCT — IS DELETED (13 Aug 2026), not just unmounted.
+     The client's instruction was "delete the 3d totally even the login and
+     everything", so the band, its popup, /dashboard, the auth singleton, the
+     API client, the model viewer and every asset they used are gone from the
+     repo. Nothing on this site is behind a login any more, and the header has
+     one action in it. Recover from git history if it ever comes back; it
+     belonged LAST in SELL. -->
 
 <!-- CAPABLE — everything that answers "can they actually build it?" rather than
      "what am I buying?". AppsShowcase (#apps) and ToolsLab (#lab, the 3D Lab)

@@ -28,8 +28,19 @@ import { releaseRenderer } from './glContext.js'
 // WebGL context but not decode AVIF into an <img>. TextureLoader's onError
 // covers that without a feature-detect: if the AVIF request fails to decode,
 // it just loads the webp next.
-const PLANET_MAP = '/img/hero/planet.avif'
-const PLANET_MAP_FALLBACK = '/img/hero/planet.webp'
+//
+// THE 1024 LADDER RUNG, NOT THE ORIGINAL (13 Aug 2026). This loaded
+// planet.avif — 221 KB — and it was the single heaviest request on the
+// homepage, measured on the production build; Cloudflare's Observatory
+// flagged the same thing from real traffic ("resource load duration exceeding
+// 10% of LCP for 75% of your traffic"). The quad it maps is at most ~640 CSS
+// px wide (see `planetScale` below and the matching `min(46vw, 640px)` cap on
+// the CSS fallback), so the original was several times the resolution
+// anything could resolve — and it is a soft, glowing, out-of-focus render,
+// the least detail-critical texture on the site. 221 KB → 83 KB, on every
+// desktop load, for no visible difference.
+const PLANET_MAP = '/img/hero/planet-1024.avif'
+const PLANET_MAP_FALLBACK = '/img/hero/planet-1024.webp'
 
 // The site's own palette — styles.css :root, not a new set of colours.
 const MAGENTA = new THREE.Color('#b3126a')
