@@ -211,7 +211,12 @@
        every gap. The two 3D panels are EMPTY boxes: they hold no canvas of
        their own, they are the rectangles the single shared renderer draws
        into (see StageViews.js). -->
-  <div class="fgw-row" bind:this={rowEl}>
+  <!-- THE BOARD. The row used to float loose on the page's dotted paper, which
+       is why it read as five unrelated objects scattered across pink rather
+       than as one exhibit: nothing held them. This is the reference's canvas —
+       a single white surface with the dot grid inside it, one shadow, one
+       hairline — and everything in the process happens on it. -->
+  <div class="fgw-board" bind:this={rowEl}>
     {#if wantsCanvas}
       <!-- One canvas over the whole row. It sits ABOVE the panels rather than
            behind them: the panels are white cards now, and a card with a
@@ -221,26 +226,38 @@
       <canvas bind:this={canvasEl} class="fgw-canvas" class:is-ready={ready} aria-hidden="true"></canvas>
     {/if}
 
+    <!-- EVERY PANEL IS THE SAME SIZE AND SITS ON THE SAME TWO LINES.
+         The previous build let the photo keep its own taller ratio and gave
+         each stage its own column width, which produced three panels of three
+         sizes at three heights with the captions scattered under them, and
+         connectors stranded in the middle of gutters they never reached. A
+         row of specimens is only a row if the specimens are framed alike.
+
+         `display: contents` on each stage is what buys that: the frame and
+         the caption block become direct children of THIS grid, so all three
+         frames share row 1 and all three caption blocks share row 2 — no
+         matter what is inside them. It also means the connectors can be
+         placed in row 1 and vertically centred against the panels rather
+         than against panel-plus-caption, which is why they now meet the
+         panels' own midline. On phones the same declaration collapses to a
+         single column in source order for free. -->
     <ol class="fgw-tiles">
       <li class="fgw-tile fgw-tile--photo">
-        <!-- FULL FRAME, NOT CROPPED. This panel used to be forced square like
-             its neighbours, which cut the pup's ears and tail off — the one
-             panel whose whole job is to be "the picture you already have" was
-             the only one not showing a whole picture. It takes the image's own
-             aspect ratio now, so nothing is cropped at any width. -->
         <figure class="fgw-frame fgw-frame--photo">
           <picture>
             <source srcset="/img/forge/wolf-source.avif" type="image/avif" />
             <img src="/img/forge/wolf-source.webp" alt="The photograph that was sent — a grey wolf pup" width="760" height="868" loading="lazy" decoding="async" />
           </picture>
         </figure>
-        <p class="fgw-cap"><span class="fgw-n">{STAGES[0].n}</span> {STAGES[0].name}</p>
-        <p class="fgw-note">{STAGES[0].note}</p>
+        <div class="fgw-capblock">
+          <p class="fgw-cap"><span class="fgw-n">{STAGES[0].n}</span> {STAGES[0].name}</p>
+          <p class="fgw-note">{STAGES[0].note}</p>
+        </div>
       </li>
 
       <li class="fgw-link" aria-hidden="true"><i></i><i></i></li>
 
-      <!-- THE BUBBLE — the reference's prompt card, and the piece the last
+      <!-- THE BUBBLE — the reference's prompt card, and the piece an earlier
            build was missing. It is what turns three pictures into a sentence:
            the picture, the thing you ask for, the thing that comes back. It
            shows an upload and a request rather than a text field, because
@@ -273,13 +290,15 @@
                 ? 'The wolf pup as bare 3D geometry, untextured'
                 : 'The finished 3D model with its textures applied'}
               width="520"
-              height="520"
+              height="650"
               loading="lazy"
               decoding="async"
             />
           </div>
-          <p class="fgw-cap"><span class="fgw-n">{STAGES[i].n}</span> {STAGES[i].name}</p>
-          <p class="fgw-note">{STAGES[i].note}</p>
+          <div class="fgw-capblock">
+            <p class="fgw-cap"><span class="fgw-n">{STAGES[i].n}</span> {STAGES[i].name}</p>
+            <p class="fgw-note">{STAGES[i].note}</p>
+          </div>
         </li>
       {/each}
     </ol>
@@ -321,9 +340,10 @@
     isolation: isolate;
     padding: clamp(48px, 6vw, 84px) clamp(20px, 4vw, 56px) clamp(56px, 6vw, 88px);
     color: var(--ink);
-    background:
-      radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0 / 24px 24px,
-      linear-gradient(180deg, #fff6fa 0%, var(--bg) 55%, var(--bg-2) 100%);
+    /* The page's own paper, no dots. The grid moved INSIDE the board where it
+       belongs — a canvas has a grid, a page does not, and the full-bleed
+       version was texture applied to everything rather than to the thing. */
+    background: linear-gradient(180deg, #fff6fa 0%, var(--bg) 55%, var(--bg-2) 100%);
   }
 
   .fgw-head { max-width: 44rem; margin: 0 auto clamp(28px, 3.4vw, 44px); text-align: center; }
@@ -358,7 +378,18 @@
     color: var(--ink-dim);
   }
 
-  .fgw-row { position: relative; max-width: 1180px; margin: 0 auto; }
+  .fgw-board {
+    position: relative;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(20px, 2.6vw, 40px) clamp(18px, 2.6vw, 40px) clamp(18px, 2.2vw, 32px);
+    border-radius: 26px;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--ink) 12%, transparent) 1px, transparent 0) 0 0 / 22px 22px,
+      #fffdfe;
+    box-shadow: 0 40px 70px -52px rgba(51, 36, 61, 0.7), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+  }
 
   /* ONE CANVAS, THE WHOLE ROW, ON TOP. It is a drawing surface the panels are
      cut out of, not furniture: only the two scissored rectangles are ever
@@ -377,9 +408,10 @@
   .fgw-canvas.is-ready { opacity: 1; }
   .fgw-canvas:active { cursor: grabbing; }
 
-  /* Seven columns: three panels, the bubble, and a connector in each gap. The
-     connectors are real grid items rather than pseudo-elements so that the
-     mobile stack gets them for free — they simply become rows. */
+  /* Seven columns: three EQUAL panels (1fr each — same width, same ratio, so
+     the same size), the bubble, and a connector in every gutter. Two rows:
+     panels, then captions. The connectors are real elements rather than
+     pseudo-elements so the mobile stack gets them for free. */
   .fgw-tiles {
     position: relative;
     z-index: 1;
@@ -387,19 +419,25 @@
     padding: 0;
     list-style: none;
     display: grid;
-    grid-template-columns: 1.1fr auto 0.95fr auto 1fr auto 1fr;
-    align-items: stretch;
-    gap: clamp(8px, 1.2vw, 18px);
+    grid-template-columns: 1fr auto minmax(150px, 0.66fr) auto 1fr auto 1fr;
+    grid-template-rows: auto auto;
+    align-items: start;
+    column-gap: clamp(6px, 0.8vw, 12px);
+    row-gap: 0.7rem;
   }
-  /* THE PANELS BOTTOM-ALIGN, so the three caption blocks land on one line.
-     The photo keeps its own taller ratio (it must — cropping it was the last
-     fault fixed here), which means the panels genuinely are different heights;
-     letting them all start at the top put the three "01 / 02 / 03" labels at
-     three different heights, which read as a broken row rather than as a
-     sequence. `margin-top: auto` on the frame pushes each panel to the bottom
-     of an equal-height cell, and the captions follow it. */
-  .fgw-tile { display: flex; flex-direction: column; justify-content: flex-end; gap: 0.4rem; }
-  .fgw-frame { margin-top: auto; }
+  /* See the markup note: this is what puts all three frames on row 1 and all
+     three caption blocks on row 2. */
+  .fgw-tile { display: contents; }
+  /* Each caption is pinned to ITS panel's column. Without this the three
+     blocks auto-flow into the first three columns of row 2 and end up under
+     the photo, the first connector and the bubble — captions describing the
+     wrong things, which the first capture of this layout showed exactly.
+     The tiles are the 1st, 5th and 7th <li> (the connectors and the bubble
+     are the others), and those are the columns their frames land in. */
+  .fgw-capblock { grid-row: 2; display: flex; flex-direction: column; gap: 0.2rem; }
+  .fgw-tile:nth-of-type(1) .fgw-capblock { grid-column: 1; }
+  .fgw-tile:nth-of-type(5) .fgw-capblock { grid-column: 5; }
+  .fgw-tile:nth-of-type(7) .fgw-capblock { grid-column: 7; }
 
   /* THE CONNECTOR — the reference's curved blue line, as a stretched SVG in a
      background image (one cubic from the lower-left to the upper-right, drawn
@@ -410,9 +448,10 @@
      wildly different in the two orientations. */
   .fgw-link {
     position: relative;
+    grid-row: 1; /* row 1 is the panels — this is what makes the line meet their midline instead of floating somewhere near panel-plus-caption */
     align-self: center;
-    width: clamp(28px, 3.4vw, 54px);
-    height: 54px;
+    width: clamp(30px, 3.6vw, 56px);
+    height: 46px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60' preserveAspectRatio='none'%3E%3Cpath d='M2,52 C36,52 62,8 98,8' fill='none' stroke='%23f21c8c' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-size: 100% 100%;
@@ -431,18 +470,30 @@
      White cards on paper, the way the reference's panels sit on its canvas.
      Square for the two 3D panels because the renderer frames the model to a
      square viewport; the photo panel keeps the picture's own ratio. */
+  /* ——— THE PANELS ———
+     One ratio for all three (4:5, portrait — the pup sits, and a square left
+     a third of every panel as empty floor). They are tiles ON the board, not
+     cards floating over the page, so they carry a flat tint and a hairline
+     rather than a second drop shadow: two shadow levels inside one white
+     surface is what made the last version look like a slide deck. */
   .fgw-frame {
     position: relative;
-    margin: 0 0 0; /* top margin is set to auto above — see the bottom-align note */
-    aspect-ratio: 1 / 1;
-    border-radius: 16px;
+    grid-row: 1;
+    margin: 0;
+    aspect-ratio: 4 / 5;
+    border-radius: 14px;
     overflow: hidden;
-    background: #fff;
+    background: linear-gradient(170deg, #f7f4f9, #efeaf3);
     border: 1px solid var(--line);
-    box-shadow: 0 18px 34px -26px rgba(51, 36, 61, 0.55);
   }
-  .fgw-frame--photo { aspect-ratio: 760 / 868; }
+  /* The photograph keeps its dark ground and shows WHOLE — `contain`, not
+     `cover`: this panel's entire job is to be "the picture you already have",
+     and a cropped picture is a different picture. Its own backdrop is the
+     image's dark grey, so the letterboxing reads as the photo's mount rather
+     than as bars. */
+  .fgw-frame--photo { background: #26232c; }
   .fgw-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .fgw-frame--photo img { object-fit: contain; }
 
   /* The stills sit inside the 3D panels and fade out as the live canvas above
      them comes up. They are never removed: without WebGL the canvas element
@@ -469,12 +520,13 @@
      language as the panels (radius, hairline, the same shadow) so it belongs
      to the row rather than floating over it. */
   .fgw-bubble {
+    grid-row: 1;
     align-self: center;
     border-radius: 14px;
     overflow: hidden;
     background: #fff;
     border: 1px solid var(--line);
-    box-shadow: 0 18px 34px -26px rgba(51, 36, 61, 0.55);
+    box-shadow: 0 16px 30px -24px rgba(51, 36, 61, 0.6); /* the ONE lifted object on the board: it is the only thing here that is an action rather than an exhibit */
   }
   .fgw-bubble-bar {
     padding: 0.5rem 0.75rem;
@@ -517,9 +569,9 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.8rem clamp(16px, 2.4vw, 32px);
+    gap: 0.7rem clamp(12px, 1.6vw, 20px); /* tight, and deliberately so: the site's fixed "Start a project" pill sits at the bottom centre of the viewport, and every pixel this row spreads rightward is a pixel closer to sitting under it */
     max-width: 1180px;
-    margin: clamp(28px, 3.4vw, 44px) auto 0;
+    margin: clamp(24px, 2.8vw, 36px) auto 0;
   }
   .fgw-price {
     display: flex;
@@ -564,8 +616,30 @@
      renders below the size at which "grey mesh" and "textured" are legibly
      different, which is the entire argument. */
   @media (max-width: 1080px) and (min-width: 681px) {
-    .fgw-tiles { grid-template-columns: 1.15fr auto 1fr; row-gap: clamp(20px, 3vw, 32px); }
-    .fgw-link:nth-of-type(2) { display: none; } /* the connector that would have crossed the line break */
+    /* Photo + bubble on the first line, the two renders on the second. Four
+       panels across 900px would put each under 190px, below the size at which
+       "grey mesh" and "textured" are legibly different — which is the whole
+       argument. Explicit placement rather than auto-flow, because `display:
+       contents` means the frames and caption blocks are siblings here and
+       auto-flow would interleave them. */
+    .fgw-tiles {
+      grid-template-columns: 1fr auto minmax(150px, 0.8fr);
+      grid-template-rows: auto auto auto auto;
+      row-gap: 0.7rem;
+    }
+    .fgw-tile--photo .fgw-frame { grid-area: 1 / 1; }
+    .fgw-tile--photo .fgw-capblock { grid-area: 2 / 1; }
+    .fgw-link:nth-of-type(1) { grid-area: 1 / 2; }
+    .fgw-bubble { grid-area: 1 / 3; }
+    .fgw-link:nth-of-type(2) { display: none; } /* it would have pointed across the line break at nothing */
+    .fgw-tiles > .fgw-tile:nth-of-type(2) .fgw-frame { grid-area: 3 / 1; }
+    .fgw-tiles > .fgw-tile:nth-of-type(2) .fgw-capblock { grid-area: 4 / 1; }
+    .fgw-link:nth-of-type(3) { grid-area: 3 / 2; }
+    .fgw-tiles > .fgw-tile:nth-of-type(3) .fgw-frame { grid-area: 3 / 3; }
+    .fgw-tiles > .fgw-tile:nth-of-type(3) .fgw-capblock { grid-area: 4 / 3; }
+    .fgw-tiles { margin-top: 0; }
+    .fgw-tiles > .fgw-tile:nth-of-type(2) .fgw-frame,
+    .fgw-tiles > .fgw-tile:nth-of-type(3) .fgw-frame { margin-top: clamp(18px, 3vw, 30px); }
   }
 
   /* ——— PHONE: one below the other, as asked ———
@@ -574,11 +648,27 @@
   @media (max-width: 680px) {
     .fgw-tiles {
       grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none; /* `display: contents` means everything flows here in source order — frame, caption, link, bubble, link, frame, caption… which is exactly the reading order */
       justify-items: stretch;
       max-width: 340px;
       margin: 0 auto;
       gap: 0;
     }
+    /* THE COLUMN PINS HAVE TO BE UNDONE AT EQUAL SPECIFICITY. The desktop
+       rules pin each caption to its panel's column (`.fgw-tile:nth-of-type(5)
+       .fgw-capblock { grid-column: 5 }`, three selectors deep); a plain
+       `.fgw-capblock { grid-column: 1 }` here loses to them, and the grid
+       obligingly invents columns 5 and 7 in a one-column layout — which is
+       what produced a 44px panel and captions wrapping one letter per line. */
+    .fgw-frame,
+    .fgw-bubble,
+    .fgw-capblock,
+    .fgw-link,
+    .fgw-tile:nth-of-type(1) .fgw-capblock,
+    .fgw-tile:nth-of-type(5) .fgw-capblock,
+    .fgw-tile:nth-of-type(7) .fgw-capblock { grid-row: auto; grid-column: 1; }
+    .fgw-frame, .fgw-bubble { width: 100%; }
+    .fgw-capblock { margin-top: 0.55rem; }
     .fgw-link {
       width: 44px;
       height: clamp(30px, 8vw, 44px);

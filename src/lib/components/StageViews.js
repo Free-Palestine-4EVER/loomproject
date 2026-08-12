@@ -160,13 +160,20 @@ export class StageViews {
     const box = new THREE.Box3().setFromObject(this.mesh)
     const size = new THREE.Vector3(); box.getSize(size)
     const center = new THREE.Vector3(); box.getCenter(center)
-    // 1.42, not 1.62: at 1.62 the pup filled the tile and then some — ears
-    // clipped at the top edge and paws at the bottom, at every viewport,
-    // because the tile is square and the model is tall. The row is a
-    // comparison, and a comparison of three crops is not one.
-    const s = 1.42 / (Math.max(size.x, size.y, size.z) || 1)
+    // THE PANEL IS 4:5 NOW, AND THE MODEL IS SIZED TO IT. While the panels
+    // were square this had to stay small (1.42) to keep the ears and paws
+    // inside the frame, which left the pup adrift in a large empty tile — the
+    // "tiny model floating in white" fault. A portrait panel is the shape a
+    // sitting animal actually is, so the same model can be much larger in it
+    // without touching an edge. Sized against the panel's SHORT axis via the
+    // camera below, not guessed.
+    const s = 1.45 / (Math.max(size.x, size.y, size.z) || 1)
     this.mesh.scale.setScalar(s)
-    this.mesh.position.set(-center.x * s, -center.y * s - size.y * s * 0.04, -center.z * s)
+    // Lifted slightly rather than centred on the bounding box: at 1.62 with no
+    // lift the pup's paws and the base of its tail were cut off by the panel's
+    // bottom edge in every frame. A sitting animal needs a little floor under
+    // it to read as sitting rather than as cropped.
+    this.mesh.position.set(-center.x * s, -center.y * s + size.y * s * 0.03, -center.z * s)
 
     this.group.add(this.mesh)
     this.ready = true
@@ -223,6 +230,13 @@ export class StageViews {
       this.renderer.setViewport(v.x, y, v.w, v.h)
       this.renderer.setScissor(v.x, y, v.w, v.h)
       this.camera.aspect = v.w / Math.max(1, v.h)
+      // PULL BACK ON A NARROW PANEL. A perspective camera's `fov` is VERTICAL,
+      // so a portrait viewport keeps the model's height and squeezes its
+      // width — on a 4:5 panel the pup's near arm and tail would leave frame
+      // even though there is spare room above its head. Backing the camera off
+      // in proportion to how far the aspect falls below 1 restores the
+      // horizontal margin without changing how large the model reads.
+      this.camera.position.z = 3.15 / Math.min(1, Math.max(0.6, this.camera.aspect / 0.86))
       this.camera.updateProjectionMatrix()
       this.mesh.material = mat
       this.renderer.render(this.scene, this.camera)
