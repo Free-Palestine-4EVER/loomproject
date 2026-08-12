@@ -306,26 +306,47 @@ export const NICHE_GROUPS = [
 // appeared in 17 of 30, "Reels engine" in 12), which made the section read as
 // one product with the nouns swapped. Anything universal belongs in this
 // array; `deliverables` below is ONLY what is specific to that trade.
+//
+// `img`/`alt` were added Aug 2026 when the four went from plain text columns to
+// picture-led ones. THE PICTURES ARE NOT EVIDENCE AND MUST NEVER BE READ AS
+// ANY. Two of these four — SEO & Google Business, and paid ads — have no case
+// study anywhere in CASES to draw a real screenshot from, and the other two are
+// only evidenced as imagery feeding a store, not as a site LOOM built. So none
+// of the four is illustrated with a screenshot, a dashboard, a chart with
+// numbers on it or anything else a reader could mistake for a result. Each is a
+// felted-wool still life in the same house language as /img/needs — the same
+// material the buttons and the mascots are made of — and every panel, card and
+// screen inside them is deliberately BLANK. If a re-run ever comes back with a
+// legible figure, a ranking, a follower count or an invented mark on it, that
+// render is unusable here; regenerate it, do not crop it and hope.
 export const CORE_SERVICES = [
   {
     title: 'Website or online store',
     blurb: 'Bilingual, fast, and built to sell — Arabic that reads as Arabic, not a translation.',
     points: ['Booking, ordering or checkout built in', 'Works on a phone on 4G', 'You own it — no monthly hostage'],
+    img: '/img/core/website.webp',
+    alt: 'A knitted laptop and a felted phone in wool, a yarn cable running from one into a small woollen shopping bag, their screens blank',
   },
   {
     title: 'SEO & Google Business',
     blurb: 'Get found for what people actually type, and look right when they find you.',
     points: ['Ranking for real local searches', 'Reviews answered every week', 'Hours, photos and listings always correct'],
+    img: '/img/core/seo.webp',
+    alt: 'A felted map pin standing on a knitted map of stitched streets, a woollen magnifying glass leaning against it and five knitted stars strung above',
   },
   {
     title: 'Content engine',
     blurb: 'One shoot day becomes a month of posts, reels and stories — scheduled, not scrambled.',
     points: ['A month of content per shoot', 'Posted at the hours your buyers are awake', 'Arabic and English captions'],
+    img: '/img/core/content.webp',
+    alt: 'A knitted camera on a small tripod feeding one long ribbon of wool that folds into a stack of blank felted tiles, a grid of blank knitted squares pinned behind it',
   },
   {
     title: 'Paid ads that report back',
     blurb: 'Meta and Google campaigns with the tracking to prove what came back.',
     points: ['Built and managed monthly', 'Tracking that survives iOS', 'A number you can check, not a vibe'],
+    img: '/img/core/ads.webp',
+    alt: 'A knitted board with a single blue yarn line stitched climbing across it above four blank woollen bars, a felted target and arrow beside it',
   },
 ]
 

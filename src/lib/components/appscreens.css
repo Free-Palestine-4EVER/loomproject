@@ -98,8 +98,22 @@
 /* THE SLOT carries the width, not the phone — a flex item that sizes itself
    from its child cannot also be the thing that child's percentage resolves
    against. `min()` is the guard: the fan shrinks to fit a narrow column
-   rather than spilling out of it. */
-.dv-fan .dv-slot { flex: none; width: min(30%, calc(var(--dv-h) * 0.415)); }
+   rather than spilling out of it. Raised from `min(30%, calc(var(--dv-h) *
+   0.415))` alongside the panel and `--dv-h` bumps above — three numbers had
+   to move together here, because the smallest of the three was always going
+   to be the one that decided the phone's real size, and leaving any one of
+   them at its old value would have silently capped the other two.
+
+   `0.458`, NOT a round number — `.dv-phone`'s aspect-ratio is 9 / 19.5, so a
+   phone at width W is always 2.1667×W tall, and this box's HEIGHT is fixed
+   at `--dv-h`. Solve `W × 2.1667 = --dv-h` and W lands at `0.4615 × --dv-h`;
+   anything above that and the phone is taller than the box it stands in and
+   spills out the bottom, which is exactly what `0.47` did here on the first
+   pass — invisible on the desktop fan (the `34%` width cap bound first) but
+   real and visible on the single-phone mobile layout below, where nothing
+   else was there to cap it. `0.458` sits just under the exact-fit line on
+   purpose, the same margin the original `0.415` kept, just a smaller one. */
+.dv-fan .dv-slot { flex: none; width: min(34%, calc(var(--dv-h) * 0.458)); }
 .dv-fan .dv-slot--l .dv-phone { transform: scale(0.83) rotate(-6.5deg) translateY(3%); }
 .dv-fan .dv-slot--r .dv-phone { transform: scale(0.83) rotate(6.5deg) translateY(3%); }
 .dv-fan .dv-slot--l .dv-phone,
@@ -312,12 +326,23 @@
 .stg {
   /* the ONE height token. Viewport-relative with a px floor and ceiling, so
      a laptop, a 4K display and a short window all get a usable stage and
-     none of them get a stage that changes size when the product changes. */
-  --dv-h: clamp(300px, 40vh, 440px);
+     none of them get a stage that changes size when the product changes.
+     Raised from `clamp(300px, 40vh, 440px)` — these are real device
+     screenshots, the whole point of a "screens" section, and at the old
+     ceiling the fan's own 30%-of-panel slot cap (below) was clipping the
+     phones down to a sliver long before this token ran out of room. Pushing
+     the FLOOR is what matters most: `40vh` alone still let a short, wide
+     window (a laptop in a browser that isn't maximised) sit near 300px. */
+  --dv-h: clamp(360px, 46vh, 520px);
 }
-/* the fan needs a real column: three phones, not one */
+/* the fan needs a real column: three phones, not one, and the client's word
+   was explicit — "make the 3 phones bigger on all". `.stg-info` caps itself
+   at 46ch and was never using the rest of the card, so this column grows
+   into that slack rather than fighting it for space: raised from
+   `clamp(300px, 40vw, 520px)`, both ends up, because the old ceiling meant
+   even a wide desktop window handed the fan no more room than a laptop did. */
 .stg-panel {
-  width: clamp(300px, 40vw, 520px);
+  width: clamp(380px, 48vw, 640px);
   min-height: var(--dv-h);
 }
 /* and the ROW is pinned to the same height, so the card cannot breathe when
@@ -337,9 +362,16 @@
 .dv-cta .stg-open { margin-top: 14px; }
 
 @media (max-width: 1080px) {
-  .stg { --dv-h: clamp(280px, 38vh, 400px); }
-  /* stacked, the imagery has the whole card to itself */
-  .stg-panel { width: min(100%, 560px); }
+  /* stacked, so the imagery no longer shares a row with the copy column —
+     the fan can afford to be TALLER here than it was at desktop, not just
+     as wide, since it has the whole card's width to itself and nothing
+     beside it competing for height. Raised from `clamp(280px, 38vh, 400px)`. */
+  .stg { --dv-h: clamp(320px, 42vh, 440px); }
+  /* stacked, the imagery has the whole card to itself. Raised from 560px so
+     the bump above actually has somewhere to put the extra pixels — a taller
+     `--dv-h` capped by an unchanged panel width would have just clipped the
+     fan back down via the `min(34%, …)` slot rule. */
+  .stg-panel { width: min(100%, 620px); }
   /* stacked, `.stg-stage`'s min-height is exceeded by info + imagery, so the
      copy column's own reserve is what holds the card still — four lines is
      the longest blurb in the six at this column width. */
@@ -348,19 +380,29 @@
 }
 @media (max-width: 760px) {
   /* svh so a sliding URL bar doesn't resize the stage mid-scroll — the same
-     rule products-stage.css states for the track it sits in */
-  .stg { --dv-h: clamp(260px, 42svh, 360px); }
-  .stg-panel { width: min(100%, 360px); }
+     rule products-stage.css states for the track it sits in. Raised from
+     `clamp(260px, 42svh, 360px)` — same reasoning as 1080px above. */
+  .stg { --dv-h: clamp(300px, 46svh, 420px); }
+  .stg-panel { width: min(100%, 420px); }
 }
 /* ——— narrow: ONE phone. Two rotated flanks in a 320px column is a smear,
    not a mockup, so they are dropped and the hero takes the room. The stage
-   keeps its height, so nothing below it moves. ——— */
+   keeps its height, so nothing below it moves. Slot fraction raised from
+   `min(60%, calc(var(--dv-h) * 0.44))` — one phone alone can be much larger
+   than its share inside a three-up fan, and at this width it is the ONLY
+   thing on the stage, so it should look like the hero it is. ——— */
 @media (max-width: 700px) {
   .dv-fan .dv-slot--l,
   .dv-fan .dv-slot--r,
   .dv-cards .dv-slot--l,
   .dv-cards .dv-slot--r { display: none; }
-  .dv-fan .dv-slot { width: min(60%, calc(var(--dv-h) * 0.44)); }
+  /* SAME `0.458` as the fan above, not a bigger number — a lone phone reads
+     as "the hero" from being the only thing on the stage, not from breaking
+     the one piece of math that keeps it inside its own box. `0.56` was tried
+     first and pushed the phone about 20% taller than `--dv-h`, so its bottom
+     third hung off the bottom of the card — caught on the 390px screenshot,
+     invisible at 1440/1080 because those widths never reach this rule at all. */
+  .dv-fan .dv-slot { width: min(70%, calc(var(--dv-h) * 0.458)); }
   /* a panel carries a headline as well as a device, so at one-up it wants
      more room than a bare phone does — and it is the only thing on the stage */
   .dv-cards .dv-slot { width: min(72%, calc(var(--dv-h) * 0.72)); }

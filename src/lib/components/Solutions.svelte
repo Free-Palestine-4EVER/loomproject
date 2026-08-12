@@ -38,6 +38,7 @@
   import { wizard } from '$lib/wizard.svelte.js'
   import SplitWords from './SplitWords.svelte'
   import WoolButton from './WoolButton.svelte'
+  import Pic from './Pic.svelte'
   import './solutions.css'
 
   /** `merged` = this is act two of the Counter section, not a section of its
@@ -846,10 +847,27 @@
          What keeps it from being four plain boxes: there are no boxes. One
          warp rule runs across the top of all four and each column hangs off
          its own segment of it, tinted with its own yarn, so they read as four
-         picks of the same bolt of cloth; the numeral is oversized, outlined
-         and half-buried behind the rule the way a selvedge mark is; the three
-         proofs sit on a shared baseline across all four columns (subgrid, so
-         the alignment is real and not a guessed min-height).
+         picks of the same bolt of cloth; the three proofs sit on a shared
+         baseline across all four columns (subgrid, so the alignment is real
+         and not a guessed min-height).
+
+         EACH COLUMN NOW LEADS WITH A PICTURE (Aug 2026). Everything above was
+         true and the block still read flat, for a reason the structure could
+         not fix: four columns of body copy at one weight give the eye nothing
+         to land on, so "every client gets these four" arrived as a paragraph
+         in four pieces rather than as four things. Each column opens with its
+         own still life now, shot in the same felted-wool language as
+         /img/needs, and the numeral has moved OUT of its own row and onto the
+         picture's bottom edge — one object instead of a label above a label.
+         The warp rule moved above the picture with it.
+
+         WHAT THE PICTURES ARE ALLOWED TO BE is a content rule, not a taste
+         one, and it is written out at CORE_SERVICES in site.js: these four are
+         the least evidenced things on the page (two of them have no case study
+         at all), so not one of them may be illustrated with a screenshot, a
+         dashboard or a chart carrying a number. Every screen and card inside
+         them is blank on purpose. Read that comment before replacing an image.
+
          Copy untouched — every title, blurb and point is CORE_SERVICES
          verbatim, in order. -->
     <ol class="sol-core-grid">
@@ -860,9 +878,23 @@
           use:reveal={{ delay: 0.1 + i * 0.07 }}
         >
           <span class="sol-core-warp" aria-hidden="true"></span>
-          <div class="sol-core-idx">
+          <!-- Same art-direction contract as the need tiles and WorkshopsPromo:
+               a failed decode removes the <img> and leaves the figure's own
+               tinted plate rather than a broken-image hole. The numeral is a
+               sibling of the picture, not a child of it, so it survives that. -->
+          <figure class="sol-core-fig">
+            <Pic
+              src={c.img}
+              alt={c.alt}
+              sizes="(max-width: 700px) 92vw, (max-width: 1079px) 44vw, 22vw"
+              width="1200"
+              height="896"
+              loading="lazy"
+              decoding="async"
+              onerror={(e) => { e.currentTarget.style.display = 'none' }}
+            />
             <span class="sol-core-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-          </div>
+          </figure>
           <h4 class="sol-core-h">{c.title}</h4>
           <p class="sol-core-b">{c.blurb}</p>
           <ul class="sol-core-pts">
@@ -876,15 +908,57 @@
 
     <!-- ——— THE TRIPWIRE ———
          Same words, same figure, given the shape of an offer instead of a
-         footnote: a torn ticket whose stub carries the price. -->
+         footnote: a torn ticket whose stub carries the price.
+
+         Redesigned 12 Aug 2026 — the old build had two dead zones: the body's
+         middle third was empty pink (the blurb capped at 62ch, the grid cell
+         kept going past it), and the stub was a big blank frame with a number
+         floating alone in the centre. Nothing below is new copy. It's the
+         same three frozen ENTRY_OFFER strings, only re-cut: the price split
+         on its own space into figure + unit, the blurb split on its own
+         sentence boundary into promise + cost. -->
     <div class="sol-entry">
       <div class="sol-entry-body">
         <span class="sol-entry-tag">Start here</span>
         <span class="sol-entry-title">{ENTRY_OFFER.title}</span>
-        <span class="sol-entry-blurb">{ENTRY_OFFER.blurb}</span>
+        <!-- THE SENTENCE WAS ALREADY A COMPARISON — it just ran on as the
+             tail of a paragraph, so the eye discounted "a hundred finished
+             images" as the usual filler line and never really landed on the
+             clause doing the actual selling: what a studio day costs for a
+             twelfth of the pictures. `.split('. ')` cuts on the period that
+             was already there — no character added, none removed — and the
+             two halves get opposed instead of run together: the give in the
+             dim ink everything else uses, the cost in full ink with its own
+             rule, so it reads as an argument and not a footnote. -->
+        <div class="sol-entry-case">
+          <p class="sol-entry-give">{ENTRY_OFFER.blurb.split('. ')[0]}.</p>
+          <p class="sol-entry-cost">{ENTRY_OFFER.blurb.split('. ')[1]}</p>
+        </div>
       </div>
+      <!-- THE HUNDRED, SHOWN NOT STATED. A 10×10 dot field sized in
+           `background-size: 10% 10%` rather than counted out as 100 real
+           elements — a single radial-gradient tiled by percentage IS exactly
+           100 marks regardless of the box's final clamped size, which a
+           `{#each Array(100)}` loop would need JS and a hundred DOM nodes to
+           guarantee instead. It also used to be the exact rectangle of dead
+           air the client was complaining about; now it's the one thing
+           living there. Purely decorative — the number is already read as
+           text two lines up — so it's `aria-hidden` and drops out below 760,
+           where the ticket unfolds to one column and the text alone owns the
+           full measure. -->
+      <span class="sol-entry-count" aria-hidden="true"></span>
       <div class="sol-entry-stub">
-        <span class="sol-entry-price">{ENTRY_OFFER.price}</span>
+        <!-- notches: a real ticket is scored where the stub tears free, and
+             the tear line meets the outer edge at two points. Two circles
+             the exact colour of the page floor (`--bg`, not white — the card
+             sits on the pink ground, not on paper) punched at those two
+             points read as an actual perforation, not a decorative dash. -->
+        <span class="sol-entry-notch sol-entry-notch--top" aria-hidden="true"></span>
+        <span class="sol-entry-notch sol-entry-notch--bottom" aria-hidden="true"></span>
+        <span class="sol-entry-price">
+          <span class="sol-entry-fig">{ENTRY_OFFER.price.split(' ')[0]}</span>
+          <span class="sol-entry-unit">{ENTRY_OFFER.price.split(' ')[1]}</span>
+        </span>
       </div>
     </div>
   </div>

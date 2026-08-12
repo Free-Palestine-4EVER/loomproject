@@ -30,6 +30,54 @@
   --wool-drop: drop-shadow(0 5px 8px rgba(51, 36, 61, 0.22));
   --wool-drop-lift: drop-shadow(0 10px 16px rgba(51, 36, 61, 0.24));
   --wool-drop-tight: drop-shadow(0 3px 5px rgba(51, 36, 61, 0.2));
+
+  /* ——— the CSS knit's rib, shared by every yarn colour ———
+     `yarn-mid.webp` (the photographed tile the fallback pill used to tile
+     `repeat-x`) is not a flat swatch — it is a photograph of a round spool,
+     so it carries the spool's own top-lit / bottom-shadowed banding baked
+     into the pixels. Tiling that meant re-painting the same bright band /
+     dark band pair every ~90-140px, and the dark band read as a second,
+     shorter pill sitting in front of the label — exactly the "two capsules"
+     the client saw, on every button, at a spacing that tracked the tile
+     width, not the label. A repeating-linear-gradient has no photograph
+     underneath it to carry that banding, and it has no tile edge for two
+     copies to butt against, so it cannot reintroduce either bug. Angled
+     rather than vertical so the ribs read as a diagonal knit stitch instead
+     of a barcode.
+     Kept DELIBERATELY faint and blended `soft-light` (not `overlay`) against
+     the grain photo underneath — the first version ran this at `overlay`,
+     which is a harsh, contrast-doubling blend, and stacked on top of a
+     photograph that already has its own diagonal fibre striations at a
+     similar angle it beat against them and produced a plaid/moiré crosshatch,
+     not a knit. `soft-light` is the same idea at a fraction of the
+     contrast — it nudges the photo's existing highlights and shadows instead
+     of drawing a second pattern over them, so two diagonals stop being able
+     to fight. */
+  --wool-rib: repeating-linear-gradient(
+    98deg,
+    rgba(255, 255, 255, 0.16) 0 2px,
+    rgba(255, 255, 255, 0) 2px 6px,
+    rgba(20, 4, 14, 0.14) 6px 9px,
+    rgba(20, 4, 14, 0) 9px 13px
+  );
+
+  /* ——— the cylindrical sheen ———
+     What actually sold the photographed pills as ROUND objects was never the
+     fibre grain, it was the single light-top / dark-bottom falloff a real
+     lit cylinder has. That is precisely the thing the old tiled mid photo
+     could not be trusted to reproduce (see --wool-rib above) because tiling
+     repeated it. Drawing it once, here, as a plain linear-gradient gets the
+     same read with the one property a repeated photo can never have: there
+     is exactly one copy, at any pill width, so it cannot seam and it cannot
+     double. */
+  --wool-sheen: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.06) 24%,
+    rgba(20, 4, 14, 0) 48%,
+    rgba(20, 4, 14, 0.14) 74%,
+    rgba(20, 4, 14, 0.3) 100%
+  );
 }
 
 /* ——— felt surfaces: a dark felt patch stitched onto the room ——— */
@@ -205,10 +253,31 @@
 
 /* ——————————————————————————————————————————————
    Yarn pills — for every label that was never photographed.
-   Built from the SAME yarn plate as the renders (caps pinned, middle tiled),
-   so an arbitrary label still reads as a real spool rather than a CSS pill.
-   Colour comes from rotating the photograph, so the fibre detail survives.
-   —————————————————————————————————————————————— */
+   USED TO be caps pinned left/right with a tiled photograph running the
+   middle, "cut from the same yarn plate as the renders". Two things were
+   wrong with that plate, not one, and the client's report ("all the buttons
+   have this exact same problem") only makes sense once you see both:
+     1. yarn-cap-l/r.webp are not D-shaped pill ends — pull the alpha channel
+        and they're a ROUND crop (a photographed skein/ball), fully opaque in
+        the middle and transparent at all four corners of their own frame.
+        Pinned at `left center` / `right center`, a round shape doesn't meet
+        a flat tile edge anywhere; it just floats a disc in front of it.
+     2. yarn-mid.webp is a photograph of a round spool, not a flat swatch, so
+        it carries the spool's own light-top/dark-bottom shading baked into
+        its pixels. `repeat-x` at "auto 100%" repainted that same bright/dark
+        pair every tile width (~90-140px depending on button height) — the
+        dark band is what the client saw as "a second, shorter pill in
+        front of the label", and the tile boundary is the "hard vertical
+        seam", both on a spacing that tracked the PHOTOGRAPH, never the text.
+   Neither bug survives dropping the photograph for a drawn knit: a
+   repeating-linear-gradient has no tile edge (nothing to seam) and no baked
+   lighting (nothing to misread as a second pill), and border-radius:999px on
+   this element caps both ends at ANY width with nothing that can misalign,
+   because there is no separate cap asset left to misalign. See --wool-rib.
+   Colour still comes from the real photographed yarn, kept as a soft grain
+   wash UNDER the rib (stretched to the box, never tiled, so it can't reseam)
+   so the pill still reads as fibre and not a flat sticker — the gradient is
+   doing the shape-reading, the photograph is doing the material-reading. */
 .wool-btn--css {
   padding: 18px 40px;
   border-radius: 999px;
@@ -229,15 +298,24 @@
   inset: 0;
   z-index: -1;
   display: block;
-  background-image:
-    url('/img/wool/yarn/magenta/yarn-cap-l.webp'),
-    url('/img/wool/yarn/magenta/yarn-cap-r.webp'),
-    url('/img/wool/yarn/magenta/yarn-mid.webp');
-  background-position: left center, right center, center center;
-  background-repeat: no-repeat, no-repeat, repeat-x;
-  background-size: auto 100%, auto 100%, auto 100%;
-  /* the tiled middle paints the full box, so without this the caps' own
-     curvature sits on an opaque rectangle and the pill reads square */
+  /* three layers, sheen on top, rib in the middle, grain photo underneath —
+     painted in that order because CSS lists the FRONT-most layer first, and
+     the sheen (the cue that reads as "round") has to sit above the rib (the
+     cue that reads as "knit"), which has to sit above the grain (the cue
+     that reads as "real fibre"). The grain photo is STRETCHED, not tiled —
+     "100% 100%" instead of the old "auto 100%" is the one change that
+     removes the seam, because a stretched single copy has no second copy of
+     itself to butt against, at any pill width. */
+  background-image: var(--wool-sheen), var(--wool-rib), url('/img/wool/yarn/magenta/yarn-mid.webp');
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  /* the sheen is composited plainly (it is already fully transparent in its
+     middle band, so "normal" just lays its highlight/shadow over whatever is
+     under it); the rib rides `soft-light` on the grain so the knit direction
+     bends the photo's own tones instead of drawing a second diagonal pattern
+     across them — see the long note on --wool-rib for why `overlay` was
+     wrong here. */
+  background-blend-mode: normal, soft-light, normal;
   border-radius: 999px;
   /* box-shadow, not filter: drop-shadow — the plate is already a rounded
      rect, so the cheap version is also the exact one */
@@ -256,48 +334,32 @@
     0 2px 6px rgba(30, 3, 20, 0.5);
 }
 
-/* one rule per yarn — the same spool, respun */
+/* one rule per yarn — the same spool, respun. Only the grain layer changes;
+   --wool-rib is declared once on :root and stays identical for all seven so
+   the knit's rhythm reads as one system rather than seven different combs. */
 .wool-btn--violet { --wool-glow: rgba(155, 85, 201, 0.85); }
 .wool-btn--violet .wool-btn-plate {
-  background-image:
-    url('/img/wool/yarn/violet/yarn-cap-l.webp'),
-    url('/img/wool/yarn/violet/yarn-cap-r.webp'),
-    url('/img/wool/yarn/violet/yarn-mid.webp');
+  background-image: var(--wool-sheen), var(--wool-rib), url('/img/wool/yarn/violet/yarn-mid.webp');
 }
 .wool-btn--blue { --wool-glow: rgba(92, 192, 232, 0.8); }
 .wool-btn--blue .wool-btn-plate {
-  background-image:
-    url('/img/wool/yarn/blue/yarn-cap-l.webp'),
-    url('/img/wool/yarn/blue/yarn-cap-r.webp'),
-    url('/img/wool/yarn/blue/yarn-mid.webp');
+  background-image: var(--wool-sheen), var(--wool-rib), url('/img/wool/yarn/blue/yarn-mid.webp');
 }
 .wool-btn--gold { --wool-glow: rgba(224, 168, 47, 0.8); }
 .wool-btn--gold .wool-btn-plate {
-  background-image:
-    url('/img/wool/yarn/gold/yarn-cap-l.webp'),
-    url('/img/wool/yarn/gold/yarn-cap-r.webp'),
-    url('/img/wool/yarn/gold/yarn-mid.webp');
+  background-image: var(--wool-sheen), var(--wool-rib), url('/img/wool/yarn/gold/yarn-mid.webp');
 }
 .wool-btn--crimson { --wool-glow: rgba(224, 36, 74, 0.85); }
 .wool-btn--crimson .wool-btn-plate {
-  background-image:
-    url('/img/wool/yarn/crimson/yarn-cap-l.webp'),
-    url('/img/wool/yarn/crimson/yarn-cap-r.webp'),
-    url('/img/wool/yarn/crimson/yarn-mid.webp');
+  background-image: var(--wool-sheen), var(--wool-rib), url('/img/wool/yarn/crimson/yarn-mid.webp');
 }
 .wool-btn--grey { --wool-glow: rgba(170, 170, 180, 0.6); }
 .wool-btn--grey .wool-btn-plate {
-  background-image:
-    url('/img/wool/yarn/grey/yarn-cap-l.webp'),
-    url('/img/wool/yarn/grey/yarn-cap-r.webp'),
-    url('/img/wool/yarn/grey/yarn-mid.webp');
+  background-image: var(--wool-sheen), var(--wool-rib), url('/img/wool/yarn/grey/yarn-mid.webp');
 }
 .wool-btn--cream { --wool-glow: rgba(239, 231, 218, 0.7); }
 .wool-btn--cream .wool-btn-plate {
-  background-image:
-    url('/img/wool/yarn/cream/yarn-cap-l.webp'),
-    url('/img/wool/yarn/cream/yarn-cap-r.webp'),
-    url('/img/wool/yarn/cream/yarn-mid.webp');
+  background-image: var(--wool-sheen), var(--wool-rib), url('/img/wool/yarn/cream/yarn-mid.webp');
 }
 
 /* gold is the brightest yarn in the set — its lit strands run to ~1.7:1 against

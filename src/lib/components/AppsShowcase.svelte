@@ -63,6 +63,8 @@
     lume: [128, 128],
     tarz: [128, 128],
     naqi: [128, 128],
+    myfairytrail: [256, 256],
+    ajniha: [256, 256],
   }
 
   const two = (n) => String(n + 1).padStart(2, '0')
@@ -267,6 +269,38 @@
        aura and the floor pool below the device are made of — a colour
        transition on two gradients, not a repaint of anything -->
   <div class="stg" style="--g1:{item.grad[0]};--g2:{item.grad[1]}">
+    <!-- ——— the card's own place (12 Aug 2026) ———
+         Every product now sits on a photograph of the world it belongs to
+         rather than on the shared page ground: the eight cards were one card
+         with the nouns swapped, and the aura's two tinted pools were the only
+         thing distinguishing a wedding app from a helicopter app.
+
+         DECORATIVE, AND HELD THAT WAY ON PURPOSE. aria-hidden, no alt, and
+         `.stg-scrim` lies over it — the pictures are deliberately far out of
+         focus and dark, and the scrim then takes another bite out of the
+         contrast, because the readable things on this card are the blurb and
+         three phone screenshots and neither may lose to scenery. If a
+         background ever fights them, the background is wrong.
+
+         `{#key}` on the image, not on the wrapper, so a tab change swaps the
+         file and re-runs the fade rather than tearing down the frame. The
+         `onerror` drops a failed decode and leaves the aura and the card's
+         plain ground exactly as they were before this existed — a missing
+         background costs a picture, never a layout. -->
+    {#if item.bg}
+      <div class="stg-bg" aria-hidden="true">
+        {#key item.key}
+          <img
+            src={item.bg}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onerror={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+        {/key}
+      </div>
+      <div class="stg-scrim" aria-hidden="true"></div>
+    {/if}
     <div class="stg-aura" aria-hidden="true"></div>
     <!-- svelte-ignore a11y_interactive_supports_focus -->
     <div class="stg-rail" role="tablist" aria-label="Choose a product" onkeydown={onRailKeydown}>

@@ -47,6 +47,7 @@
   import { reveal, magnetic, reducedMotion } from '$lib/motion.svelte.js'
   import { BRAND, CLIQ } from '$data/site.js'
   import WoolButton from './WoolButton.svelte'
+  import Pic from './Pic.svelte'
   import {
     register, signIn, signOut, sendReset, isSignedIn,
     me, startJob, jobStatus, createOrder, fileToDataUrl, ForgeError,
@@ -55,6 +56,132 @@
   import './forge.css'
 
   const PRICE_JOD = 2
+
+  /** The four files a finished job actually comes back with — the same four
+   *  the popup lists for download off `job.modelUrls`. Named here so the band
+   *  prints them in exactly one place instead of twice (the pipeline caption
+   *  and the offer plate both read this array). The popup's own list is
+   *  deliberately in a DIFFERENT order — glb, usdz, fbx, obj, the two useful
+   *  ones first, next to a line explaining what each is for — so it is left
+   *  spelled out there rather than sorted to match this. Same four files
+   *  either way; if the pipeline ever stops returning one, both lists have to
+   *  change. */
+  const FORMATS = ['GLB', 'FBX', 'OBJ', 'USDZ']
+
+  /** The three stations of the band, in order.
+   *
+   *  EVERY CAPTION IS THE OLD LEDE, VERBATIM AND IN ORDER. The band used to
+   *  carry one paragraph — "One picture of the thing — a chair, a bottle, a
+   *  shoe, a part — and our pipeline rebuilds it as real geometry you can
+   *  spin, light and drop into a website, a game or an AR view. About a
+   *  minute per model." — under the headline. It is not rewritten here, it is
+   *  cut into the three pieces it was always three pieces of, so each one
+   *  lands beside the picture of the stage it describes. Read the three
+   *  captions plus the chip end to end and you have that sentence back.
+   *
+   *  THE PICTURES ARE ONE OBJECT AT THREE STAGES. That is the whole point and
+   *  it is the thing to preserve if these are ever regenerated: the same sofa
+   *  in all three, or the band goes back to illustrating a transformation it
+   *  does not show. The source still is LOOM's own studio work. */
+  const STAGES = [
+    {
+      id: 'in',
+      img: '/img/forge/stage-photo.webp',
+      label: 'You send',
+      caption: 'One picture of the thing — a chair, a bottle, a shoe, a part.',
+      alt: 'An ordinary phone snapshot of a curved boucle sofa standing on a shop floor',
+    },
+    {
+      id: 'build',
+      img: '/img/forge/stage-mesh.webp',
+      label: 'We rebuild it',
+      caption: 'Our pipeline rebuilds it as real geometry.',
+      chip: 'About a minute per model',
+      mesh: true,
+      alt: 'The same sofa as an untextured grey 3D mesh under a cyan wireframe, in a dark modelling viewport',
+    },
+    {
+      id: 'out',
+      img: '/img/forge/stage-model.webp',
+      label: 'You get it back',
+      caption: 'Spin it, light it, and drop it into a website, a game or an AR view.',
+      formats: true,
+      alt: 'The same sofa as a finished, fully textured 3D model turning on a lit platform',
+    },
+  ]
+
+  // ---------------------------------------------------------------------
+  // THE SCRUBBER — one value, three ways to move it
+  //
+  // `t` is the whole state of the band's stage: 0 = the photograph that was
+  // sent, 0.5 = the untextured mesh, 1 = the finished model. Everything else
+  // here derives from it, and the CSS reads it as one custom property.
+  //
+  // IT STARTS AT 0.5, NOT 0. A visitor who never touches the control still has
+  // to be told the whole story by the frame they land on, and the midpoint is
+  // the only position that shows the photograph AND the geometry at once, with
+  // the seam between them. Parking at 0 would show a plain snapshot of a sofa
+  // and nothing else — the band would look like it had failed to load.
+  // ---------------------------------------------------------------------
+
+  let t = $state(0.5)
+  let stageEl = $state(null)
+  let dragging = false
+
+  /** Which station the frame is currently showing. Thirds, not halves: the
+   *  reader is "on" the mesh for the whole middle of the travel, so the live
+   *  station does not flicker between two as the handle crosses the exact
+   *  midpoint. */
+  const liveIndex = $derived(t < 0.34 ? 0 : t < 0.72 ? 1 : 2)
+  const liveStage = $derived(STAGES[liveIndex])
+
+  const clamp01 = (n) => (n < 0 ? 0 : n > 1 ? 1 : n)
+
+  /** Pointer x → t, in the stage's own coordinates. */
+  function tFromEvent(e) {
+    const r = stageEl?.getBoundingClientRect()
+    if (!r || !r.width) return t
+    return clamp01((e.clientX - r.left) / r.width)
+  }
+
+  function onScrubDown(e) {
+    // Ignore the secondary buttons — a right-click on the frame should open
+    // the context menu (people save these images), not yank the seam.
+    if (e.button != null && e.button !== 0) return
+    dragging = true
+    // Capture, so a drag that leaves the frame (or the window) keeps tracking
+    // and, more importantly, still gets its pointerup. Without this a fast
+    // drag off the edge leaves `dragging` true and the seam glued to the
+    // cursor for the rest of the page's life.
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+    t = tFromEvent(e)
+  }
+  function onScrubMove(e) { if (dragging) t = tFromEvent(e) }
+  function onScrubUp(e) {
+    dragging = false
+    e.currentTarget.releasePointerCapture?.(e.pointerId)
+  }
+
+  /** Arrow keys move by a twentieth; PageUp/Down and the Home/End pair jump
+   *  to the stations. This is why the handle is a real `role="slider"` — the
+   *  transformation is the whole point of the band and it must not be
+   *  reachable only by dragging a mouse. */
+  function onScrubKey(e) {
+    const STEP = 0.05
+    let next = null
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = t + STEP
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = t - STEP
+    else if (e.key === 'PageUp') next = t + 0.5
+    else if (e.key === 'PageDown') next = t - 0.5
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = 1
+    if (next === null) return
+    e.preventDefault()
+    t = clamp01(next)
+  }
+
+  /** The three station buttons under the frame. */
+  function setStage(i) { t = i === 0 ? 0 : i === 1 ? 0.5 : 1 }
 
   /** Meshy takes roughly 40-90s. Poll often enough that the bar moves, rarely
    *  enough that a tab left open overnight is not a thousand function calls:
@@ -364,23 +491,41 @@
 </button>
 
 <section class="forge" id="forge" aria-labelledby="forge-title">
-  <!-- FOUR PARTS, NOT TWO COLUMNS. The band used to be one block of copy
-       beside one picture, which reads on a desktop as a paragraph trailing off
-       under a headline and on a phone as a plain stack with the ask at the
-       bottom. It is now four independently placed pieces — heading, media,
-       lede, offer — so the two viewports can order them differently:
+  <!-- ═══ THE BAND IS THE PIPELINE NOW (rebuilt Aug 2026) ═══════════════
+       WHAT WAS WRONG. The previous pass put a headline and a five-line lede
+       down the left and one picture on the right, and that picture was two
+       copies of the SAME frame — the mascot illustration, flattened on one
+       side of a lit seam and mesh-overlaid on the other. It was doing the
+       hardest job on the band, and it could not do it: both halves showed the
+       same two knitted characters, so the seam swept across and nothing
+       actually changed. The section claimed a transformation and illustrated
+       it with a filter. The client's note was that it read as poorly designed
+       and unclear, and unclear was the accurate half — a reader had no way to
+       learn from the picture what goes in or what comes out.
 
-         desktop   heading / lede / offer stacked down the left, the media
-                   held centred beside all three, and the offer card riding
-                   over its left edge so the two halves are one composition
-                   rather than two rectangles;
+       WHAT IT IS INSTEAD. Three stations of one pipeline, in order, each with
+       its OWN photograph of the SAME object at that stage: the snapshot that
+       gets sent, the untextured mesh the pipeline builds, the finished model
+       that comes back. One yarn thread runs behind all three and draws itself
+       left to right as the band scrolls past. That is the entire explanation,
+       and it is carried by the pictures rather than by the paragraph.
 
-         phone     heading, then the picture (which IS the pitch, in one
-                   frame), then the sentence that explains it, then the offer
-                   as the last thing before the thumb — the ask is no longer
-                   buried under a five-line paragraph.
+       WHERE THE LEDE WENT. It is not cut — it is distributed. Every clause of
+       "One picture of the thing — a chair, a bottle, a shoe, a part — and our
+       pipeline rebuilds it as real geometry you can spin, light and drop into
+       a website, a game or an AR view. About a minute per model." is below,
+       verbatim, split across the three captions and the chip on station two,
+       which is what lets the paragraph go without losing a single approved
+       word. Nothing here states a fact the file did not already state: the
+       price, the free first model, the minute, and the four formats are the
+       only numbers on the band, and all four come from PRICE_JOD and the
+       format list the popup actually offers.
 
-       Every word below is unchanged. -->
+       THE SOURCE PHOTOGRAPH is LOOM's own — the product still from the Evora
+       Future Home case, which is real studio work from this studio, rebuilt
+       through the same stages. It is deliberately NOT captioned as that
+       client's job: it demonstrates the transformation, it does not claim an
+       engagement. -->
   <div class="forge-inner">
     <div class="forge-head">
       <p class="forge-kicker"><span>—</span> New from the 3D Lab</p>
@@ -389,66 +534,164 @@
       </h2>
     </div>
 
-    <!-- ═══ the transformation ═══
-         The band's claim is "send a photo, get a model back", and a single
-         flat picture states it without showing it. Two copies of the same
-         frame are stacked instead: the lower one flattened and drained to
-         read as the photograph that went in, the upper one full-strength
-         under a wireframe mesh to read as the geometry that came out, with a
-         lit seam between them. The seam's position is one custom property,
-         and the only thing that moves it is the page scrolling past — a
-         scroll-driven CSS animation, so it runs off the main thread, stops
-         dead when the section is off screen, and needs no JS at all. Where
-         `animation-timeline` is unsupported (and under reduced motion) the
-         seam simply parks at the middle and the split stands still, which is
-         the same picture, just not built in front of you. -->
-    <div class="forge-media">
-      <div class="forge-xform">
-        <!-- Same art-direction contract as WorkshopsPromo and the need tiles:
-             onerror drops a failed decode rather than leaving a hole, and the
-             CSS gradient behind the layer is the fallback. -->
-        <img
-          class="forge-x-flat"
-          src="/img/forge/forge-mascots.webp"
-          alt="Two LOOM wool mascots — one holding a flat printed photo of an armchair, the other holding the same chair rebuilt as a glowing 3D wireframe"
-          width="1400"
-          height="781"
-          loading="lazy"
-          decoding="async"
-          onerror={(e) => { e.currentTarget.style.display = 'none' }}
-        />
-        <!-- The rebuilt half. Decorative and aria-hidden: it is the same
-             photograph as the layer underneath, and a screen reader being
-             handed that alt text twice learns nothing the second time. -->
-        <div class="forge-x-solid" aria-hidden="true">
-          <img
-            src="/img/forge/forge-mascots.webp"
-            alt=""
-            width="1400"
-            height="781"
+    <!-- ═══ the pipeline ═══
+         An <ol>, because it is genuinely ordered and a reader on a screen
+         reader should be told so; the numerals are aria-hidden because the
+         list already numbers itself.
+
+         NOTHING BUT <li> MAY BE A CHILD OF THIS LIST. The thread that runs
+         through the three stations was briefly a <span> in here, and a bare
+         span inside an <ol> is not only invalid HTML — it is an extra GRID
+         ITEM, so it took cell one and pushed station three onto a second row.
+         The thread is drawn by pseudo-elements on each station's own label
+         instead; see forge.css. Its length is a registered custom property
+         driven by a scroll-driven animation — off the main thread, idle while
+         the band is off screen, no JS. Without support (or under reduced
+         motion) it simply sits at full length, which is the same picture minus
+         the drawing. -->
+    <!-- ═══ THE SCRUBBER ═══
+         ONE frame, three states, and the visitor drives it. Three pictures in
+         a row stated the pipeline; this one makes the reader perform it, which
+         is the difference between a diagram and a demo — and this band is the
+         only self-serve product on the page, so it should behave like one.
+
+         `t` runs 0 → 1 across the whole transformation: 0 is the photograph
+         that was sent, 0.5 is the untextured mesh, 1 is the finished model.
+         The two upper layers are revealed by a hard left-to-right wipe rather
+         than a crossfade, because a dissolve between two pictures of one sofa
+         reads as a blurry sofa, while a wipe reads as one object BECOMING
+         another — you can see both states at once with the edge between them.
+
+         THREE WAYS TO DRIVE IT, one value:
+           · drag the handle (pointer, and it captures so the drag survives
+             leaving the frame);
+           · the arrow keys / Home / End — it is a real `role="slider"` with
+             `aria-valuetext`, so it is operable and announced without a mouse;
+           · the three stage buttons under the frame, which jump it to 0 / .5 / 1.
+         Scroll does NOT drive it. That was the first design and it was wrong:
+         a control that moves on its own while you are reaching for it is a
+         control you cannot use, and a visitor who never touches it still sees
+         the whole story because the frame parks at the mesh (t = 0.5), the one
+         state that shows the photograph AND the geometry in the same picture.
+
+         NOTHING HERE IS A CLAIM. The three captions and the chip are still the
+         old lede's own clauses, verbatim; the formats and the price come from
+         FORMATS and PRICE_JOD. -->
+    <div class="forge-scrub" use:reveal={{ delay: 0.06 }}>
+      <div
+        class="forge-stage-wrap"
+        style="--t:{t}"
+        bind:this={stageEl}
+        onpointerdown={onScrubDown}
+        onpointermove={onScrubMove}
+        onpointerup={onScrubUp}
+        onpointercancel={onScrubUp}
+      >
+        <!-- LAYER 0 — the photograph that was sent. The only one with real alt
+             text: the three layers are the same sofa, and a screen reader
+             handed that fact three times learns nothing the second and third
+             time. The stage's own role/label below carries the meaning. -->
+        <div class="forge-layer forge-layer--photo">
+          <Pic
+            src={STAGES[0].img}
+            alt={STAGES[0].alt}
+            sizes="(max-width: 760px) 92vw, 62vw"
+            width="1200"
+            height="896"
             loading="lazy"
             decoding="async"
             onerror={(e) => { e.currentTarget.style.display = 'none' }}
           />
-          <span class="forge-x-mesh"></span>
         </div>
-        <span class="forge-x-seam" aria-hidden="true"></span>
-        <span class="forge-x-tag forge-x-tag--in" aria-hidden="true">2D</span>
-        <span class="forge-x-tag forge-x-tag--out" aria-hidden="true">3D</span>
-      </div>
-    </div>
+        <div class="forge-layer forge-layer--mesh" aria-hidden="true">
+          <Pic
+            src={STAGES[1].img}
+            alt=""
+            sizes="(max-width: 760px) 92vw, 62vw"
+            width="1200"
+            height="896"
+            loading="lazy"
+            decoding="async"
+            onerror={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+        </div>
+        <div class="forge-layer forge-layer--model" aria-hidden="true">
+          <Pic
+            src={STAGES[2].img}
+            alt=""
+            sizes="(max-width: 760px) 92vw, 62vw"
+            width="1200"
+            height="896"
+            loading="lazy"
+            decoding="async"
+            onerror={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+        </div>
 
-    <p class="forge-lede" use:reveal={{ delay: 0.1 }}>
-      One picture of the thing — a chair, a bottle, a shoe, a part — and our
-      pipeline rebuilds it as real geometry you can spin, light and drop into
-      a website, a game or an AR view. About a minute per model.
-    </p>
+        <!-- The two edges. `--seam-2` is the quieter, lagging mesh → model
+             boundary and is drawn UNDER the handle's own seam; see forge.css
+             for why there are two of them at all. -->
+        <span class="forge-seam-2" aria-hidden="true"></span>
+        <span class="forge-seam" aria-hidden="true"></span>
+        <div
+          class="forge-handle"
+          role="slider"
+          tabindex="0"
+          aria-label="Drag to rebuild the photograph as a 3D model"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow={Math.round(t * 100)}
+          aria-valuetext={liveStage.label + ' — ' + liveStage.caption}
+          onkeydown={onScrubKey}
+        >
+          <span class="forge-handle-grip" aria-hidden="true"></span>
+        </div>
+
+        <!-- The two end labels name the band under them, and the pipeline runs
+             LEFT to right — so the untouched photograph is always on the
+             RIGHT, and the left corner names whatever the leftmost band has
+             become. Both fade with the band they label, so neither can sit
+             over a state that is no longer on screen. -->
+        <span class="forge-edge forge-edge--done" aria-hidden="true">{t < 0.35 ? 'Mesh' : 'Model'}</span>
+        <span class="forge-edge forge-edge--raw" aria-hidden="true">Photo</span>
+      </div>
+
+      <!-- ═══ the three stations, now a control ═══
+           Still an ordered list, still the same three captions — but each is a
+           button that drives the frame above, so the copy and the picture are
+           one object instead of a caption strip under a hero. `aria-current`
+           is the live one; the reveal delay is gone because these no longer
+           animate in one by one (they are controls, and a control that fades
+           in under the cursor is a control that gets mis-clicked). -->
+      <ol class="forge-flow">
+        {#each STAGES as s, i (s.id)}
+          <li class="forge-stage" class:is-live={liveIndex === i}>
+            <button
+              type="button"
+              class="forge-stage-btn"
+              aria-current={liveIndex === i ? 'step' : undefined}
+              onclick={() => setStage(i)}
+            >
+              <span class="forge-stage-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span class="forge-stage-k">{s.label}</span>
+            </button>
+            <p class="forge-stage-c">{s.caption}</p>
+            {#if s.chip}<p class="forge-stage-chip">{s.chip}</p>{/if}
+            {#if s.formats}
+              <ul class="forge-stage-fmt">
+                {#each FORMATS as f (f)}<li>{f}</li>{/each}
+              </ul>
+            {/if}
+          </li>
+        {/each}
+      </ol>
+    </div>
 
     <!-- The offer, given the size it deserves — and now given an EDGE. Same
          sentence, same words, same order; it is simply no longer a line of
          text drifting between a paragraph and a button. Price, promise and
-         the one action live on one plate, and that plate is the piece the
-         composition is built around. -->
+         the one action live on one plate, and that plate closes the band
+         under the pipeline it is the price of. -->
     <div class="forge-offer" use:reveal={{ delay: 0.16 }}>
       <p class="forge-price">
         <strong>{PRICE_JOD} JOD</strong> <span class="forge-price-unit">a model —</span>
@@ -458,7 +701,7 @@
         <div class="magnetic" use:magnetic={{ strength: 0.25 }}>
           <WoolButton label="Make one free" onclick={openPopup} />
         </div>
-        <span class="forge-formats">GLB · FBX · OBJ · USDZ</span>
+        <span class="forge-formats">{FORMATS.join(' · ')}</span>
       </div>
     </div>
   </div>

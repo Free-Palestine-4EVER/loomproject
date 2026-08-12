@@ -55,7 +55,16 @@ const DRY = process.argv.includes('--dry')
  *  component was silently inert. (A stray hand-cut set of `-640` files
  *  already existed on disk from before this directory was wired up; they are
  *  outside WIDTHS and this script neither reads nor deletes them.) */
-const SETS = ['img/cases', 'img/niches', 'img/needs', 'img/apps', 'img/suite', 'img/workshops', 'img/lab', 'img/mcp', 'img/manifesto', 'img/hero', 'img/tree', 'img/loom']
+/*  img/core and img/forge ADDED 12 Aug 2026, and both are the same trap the
+ *  img/loom note above describes: a component was rewritten to call <Pic>
+ *  with a `sizes` string, the directory was never listed here, so
+ *  responsive.json had no entry, Pic quietly fell back to a plain <img> at
+ *  the full original width, and the optimisation read as done while doing
+ *  nothing. img/core holds the four wool still lifes behind "Every client
+ *  gets these four" (rendered into a ~330px column); img/forge holds the
+ *  three pipeline stages on the 2D→3D band. ADDING A DIRECTORY OF <Pic>
+ *  SOURCES WITHOUT ADDING IT HERE IS ALWAYS THIS BUG. */
+const SETS = ['img/cases', 'img/niches', 'img/needs', 'img/apps', 'img/suite', 'img/workshops', 'img/lab', 'img/mcp', 'img/manifesto', 'img/hero', 'img/tree', 'img/loom', 'img/core', 'img/forge']
 
 const WIDTHS = [160, 320, 480, 768, 1024, 1600, 2048]
 const SRC_EXT = new Set(['.webp', '.png', '.jpg', '.jpeg'])

@@ -144,6 +144,92 @@
     radial-gradient(30% 12% at 34% 84%, color-mix(in oklab, var(--g1) 22%, transparent), transparent 70%);
   transition: background 0.8s var(--ease);
 }
+/* ═══════════════════════════════════════════════════════════════
+   THE CARD'S OWN PLACE — a photograph per product, and the theme flip
+   that has to come with it (12 Aug 2026)
+
+   THE CARD IS NOW DARK, AND THAT IS THE WHOLE COST OF THIS FEATURE. The
+   ground was `--bg-2` (#ffdfec, pale pink) with `--ink` copy over it. A
+   photograph dark enough to be a ground for three bright phone screenshots
+   cannot also be a ground for dark type, so every piece of copy on this card
+   is re-inked below. That sweep is not optional and it is not "polish": a
+   half-done version of it leaves the blurb at #4a3652 on a night photograph,
+   which is the exact failure mode that is easy to miss on a laptop in a lit
+   room and unreadable on a phone outdoors.
+
+   Everything is scoped under `.stg:has(.stg-bg)`, so a product without a `bg`
+   in suite.js keeps the original pale card untouched and nothing has to be
+   kept in sync by hand.
+
+   THE LAYERS, bottom to top: the photograph → `.stg-scrim` (a flat darkener
+   plus a heavier wash on the left, where the copy sits) → `.stg-aura` (the
+   product's own two colours, which now read as light thrown ONTO the scene
+   rather than as a tint of the card) → the content. The aura keeps its own
+   colour transition, so tabbing still cross-fades the card's light. */
+.stg-bg {
+  position: absolute; inset: 0; z-index: -3; pointer-events: none;
+  overflow: hidden; border-radius: inherit;
+}
+.stg-bg img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  /* the pictures are generated far out of focus already; this is the second
+     safety net, and it is cheap because the layer never animates */
+  filter: saturate(0.92) brightness(0.86);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stg-bg img { animation: stg-bg-in 0.7s var(--ease) both; }
+}
+@keyframes stg-bg-in {
+  from { opacity: 0; transform: scale(1.04); }
+  to { opacity: 1; transform: none; }
+}
+/* THE SCRIM. Two jobs in one element: a flat floor of darkness so no picture
+   can be brighter than the type anywhere, and a heavier gradient over the
+   left half — the copy column — because that is the only place a long line of
+   small text has to survive. The right side stays lighter on purpose: it
+   carries the phones, which are bright objects and want some scene behind
+   them to sit in. */
+.stg-scrim {
+  position: absolute; inset: 0; z-index: -2; pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, rgba(16, 6, 20, 0.86) 0%, rgba(16, 6, 20, 0.66) 42%, rgba(16, 6, 20, 0.4) 78%),
+    rgba(16, 6, 20, 0.34);
+}
+
+/* ——— the re-ink. Every readable thing on the card, swept in one place ——— */
+.stg:has(.stg-bg) {
+  background: #150820;
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f6eef6;
+}
+.stg:has(.stg-bg) .stg-info h3 { color: #fff; }
+.stg:has(.stg-bg) .stg-info .stg-tag { color: #ffb3dd; }
+.stg:has(.stg-bg) .stg-info .stg-blurb { color: rgba(246, 238, 246, 0.86); }
+.stg:has(.stg-bg) .stg-count { color: rgba(246, 238, 246, 0.62); border-top-color: rgba(255, 255, 255, 0.16); }
+.stg:has(.stg-bg) .stg-count b { color: #fff; }
+.stg:has(.stg-bg) .stg-open { color: #ffb3dd; }
+.stg:has(.stg-bg) .stg-open:hover { color: #fff; }
+/* The status chip's dark-on-light colours were tuned against the pale card
+   and go to mud here. Same four states, same colour-coding, lifted to their
+   bright ends — and the label itself goes pale rather than staying coloured,
+   which is the same trade the light version makes in the other direction. */
+.stg:has(.stg-bg) .pstore {
+  color: rgba(246, 238, 246, 0.9);
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(10, 4, 14, 0.35);
+}
+.stg:has(.stg-bg) .pstore[data-s='On the App Store'] { border-color: rgba(46, 230, 168, 0.8); }
+.stg:has(.stg-bg) .pstore[data-s='TestFlight'] { border-color: rgba(255, 199, 64, 0.8); }
+.stg:has(.stg-bg) .pstore[data-s='Submitted'] { border-color: rgba(89, 230, 255, 0.8); }
+.stg:has(.stg-bg) .pstore[data-s='Built — in review'] { border-color: rgba(89, 230, 255, 0.55); }
+.stg:has(.stg-bg) .pstore[data-s='Built — not submitted'] { border-color: rgba(255, 255, 255, 0.34); }
+/* the unselected rail icons need MORE presence on a dark card, not less —
+   0.5 opacity on a pale ground is a soft icon, on a night photograph it is a
+   smudge */
+.stg:has(.stg-bg) .stg-rail .pi { opacity: 0.62; }
+.stg:has(.stg-bg) .stg-rail button:hover .pi { opacity: 0.92; }
+
 /* a hairline the device stands on, so the pool reads as a floor and not a blur */
 .stg-aura::after {
   content: ''; position: absolute; left: 8%; width: 46%; bottom: 14%; height: 1px;
@@ -161,7 +247,17 @@
   justify-content: center; align-items: center;
   gap: clamp(20px, 3vw, 48px);
 }
-.stg-panel { min-width: 0; width: clamp(200px, 26vw, 300px); }
+/* THE PHONES ARE THE EVIDENCE, so they get most of the card (client: "make
+   the 3 phones bigger on all"). This used to be `clamp(200px, 26vw, 300px)`,
+   which put a three-phone fan through a ~300px aperture — each screenshot
+   rendered around 90px wide, unreadable, on captures that exist specifically
+   to be read. `.stg-info` caps itself at 46ch of copy and does not need a
+   competing width; widening THIS track and narrowing nothing else is what
+   lets the imagery dominate without the copy column collapsing into a
+   ragged single-word-per-line stack. appscreens.css's `--dv-h` still decides
+   the FAN's actual height — this only decides how much horizontal room the
+   fan is allowed to spread into before it has to shrink to fit. */
+.stg-panel { min-width: 0; width: clamp(320px, 40vw, 480px); }
 
 /* ——— the rail: a real tablist, vertical on desktop ——— */
 .stg-rail { display: flex; flex-direction: column; gap: 12px; }
@@ -232,8 +328,18 @@
   to { opacity: 1; transform: none; }
 }
 
-/* ——— the copy beside it ——— */
-.stg-info { min-width: 0; max-width: 46ch; }
+/* ——— the copy beside it ———
+   Flex column, not block: the phones just got much taller (see the imagery
+   rebalance above and the `--dv-h` bump in appscreens.css), which pinned the
+   card's own height to the fan rather than to the copy — a block-flow
+   `.stg-info` just floats near the top of that taller row and leaves open
+   air under `.stg-count`, which read as unfinished rather than composed.
+   `margin-top: auto` on `.stg-count` below is the fix: the status line and
+   count sink to the FLOOR of the column instead of trailing the blurb, so
+   the copy column's content spans its full height on every product — short
+   blurb or long — without stretching the blurb itself or adding blank
+   padding that would show up as a gap on the tall products instead. */
+.stg-info { min-width: 0; max-width: 46ch; display: flex; flex-direction: column; }
 .stg-id { display: flex; align-items: center; gap: 14px; }
 .stg-icon { width: clamp(46px, 3.8vw, 58px); aspect-ratio: 1; }
 .stg-info h3 {
@@ -257,7 +363,11 @@
   position: relative;
   font-family: var(--display); font-weight: 620;
   font-size: 0.72rem; letter-spacing: 0.2em; color: var(--ink-dim);
-  margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line);
+  /* `auto`, not `22px` — see `.stg-info` above. `min-margin` isn't a real
+     thing, so `padding-top` still carries the SMALL fixed gap between the
+     hairline and the blurb-or-meta above it when the column is genuinely
+     full; `margin-top: auto` is what claims whatever room is left over. */
+  margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line);
 }
 .stg-count b { color: var(--ink); font-weight: 620; }
 /* how far through the six the scroll has carried the stage */

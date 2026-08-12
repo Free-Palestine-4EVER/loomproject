@@ -1956,39 +1956,81 @@
 .sol-core-card:focus-within::after { opacity: 1; }
 .sol-core-card:hover, .sol-core-card:focus-within { transform: translateY(-4px); }
 
-/* THE INDEX — a selvedge mark, not a label.
-   The numeral is set oversized and OUTLINED so it can be big enough to index
-   the column at a glance without out-shouting the deliverable it numbers;
-   the fill is held back and spent as the hover state. It hangs off the warp
-   rule (negative top margin) so the number and the rule are visibly the same
-   object across all four columns. */
-.sol-core-idx {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: clamp(8px, 1vw, 14px);
+/* ——— THE PICTURE, AND THE NUMERAL ON IT ———————————————————————————
+   The still life is the first row of the subgrid, so all four pictures share
+   one top AND one bottom edge whatever the copy under them does. The frame
+   owns the ratio (4:3, the ratio the images were rendered at) rather than the
+   <img>, for the usual reason: `onerror` in the markup removes a failed decode
+   and without a declared ratio the column would collapse by 200px and drag the
+   shared baselines of the other three with it. The tinted plate underneath IS
+   the fallback, not decoration — it is what a reader with a dead image sees,
+   and it is the card's own yarn so even that degrades in the right colour.
+
+   The numeral sits ON the picture's bottom-left corner instead of in a row of
+   its own above the title. Two labels stacked over a heading is what made the
+   old column read as a form; one numeral welded to one picture reads as a
+   plate in a book. It is filled rather than outlined now — it is over its own
+   artwork, not floating on the section ground, so it needs the mass to hold —
+   and it keeps the same warp-tick idea as a rule growing out of its right
+   side into the card's yarn. */
+.sol-core-fig {
+  position: relative;
+  margin: 0 0 clamp(12px, 1.3vw, 18px);
+  aspect-ratio: 4 / 3;
+  border-radius: clamp(10px, 1vw, 14px);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(155deg,
+      color-mix(in srgb, var(--card-yarn) 24%, transparent),
+      color-mix(in srgb, var(--card-yarn) 6%, transparent) 70%),
+    var(--cream, #f7f1e8);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--card-yarn) 26%, transparent),
+    0 14px 30px -22px rgba(51, 36, 61, 0.5);
+}
+.sol-core-fig img {
+  display: block; width: 100%; height: 100%;
+  object-fit: cover;
+  transform: scale(1.001);
+  transition: transform 0.7s var(--ease);
+}
+.sol-core-card:hover .sol-core-fig img,
+.sol-core-card:focus-within .sol-core-fig img { transform: scale(1.045); }
+/* a wash of the column's own yarn over the bottom of the frame, so a numeral
+   in ink always has something to sit on no matter how pale that corner of the
+   artwork happens to be */
+.sol-core-fig::after {
+  content: ''; position: absolute; inset: auto 0 0 0; height: 52%;
+  background: linear-gradient(180deg, transparent,
+    color-mix(in srgb, var(--card-yarn) 42%, transparent));
+  pointer-events: none;
 }
 .sol-core-n {
+  position: absolute;
+  left: clamp(8px, 0.9vw, 12px);
+  bottom: clamp(2px, 0.4vw, 6px);
+  z-index: 1;
+  display: flex; align-items: center; gap: 9px;
   font-family: var(--bloom);
-  font-size: clamp(1.6rem, 2.3vw, 2.5rem);
-  line-height: 0.82;
+  font-size: clamp(1.5rem, 2.1vw, 2.2rem);
+  line-height: 0.9;
   letter-spacing: -0.02em;
-  color: transparent;
-  -webkit-text-stroke: 1.2px var(--magenta);
-  text-shadow: none;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(40, 12, 44, 0.55);
   transition: color 0.4s var(--ease);
 }
-.sol-core-card:hover .sol-core-n,
-.sol-core-card:focus-within .sol-core-n { color: var(--magenta); }
 /* the tick of yarn that ties the numeral back to its own warp segment —
-   it grows to meet the number on hover */
-.sol-core-idx::after {
+   it grows out of the number on hover */
+.sol-core-n::after {
   content: ''; flex: none;
   width: 14px; height: 2px; border-radius: 2px;
-  background: var(--card-yarn);
+  background: #fff;
   transform-origin: left center;
   transition: transform 0.45s var(--ease);
 }
-.sol-core-card:hover .sol-core-idx::after,
-.sol-core-card:focus-within .sol-core-idx::after { transform: scaleX(2.2); }
+.sol-core-card:hover .sol-core-n::after,
+.sol-core-card:focus-within .sol-core-n::after { transform: scaleX(2.2); }
 
 .sol-core-h {
   font-family: var(--display); font-weight: 650; line-height: 1.15;
@@ -2024,11 +2066,49 @@
    into the studio, so it gets the shape of an actual offer: a two-part
    ticket, body and stub, with the stub perforated off and carrying the
    figure at display size. The perforation is a repeating-linear-gradient,
-   not an image. */
+   not an image.
+
+   REDESIGN, 12 Aug 2026: that version still read as an empty banner because
+   nothing pushed back on the grid. `.sol-entry-body`'s content is a flex
+   column that shrinks to its own content width (the 62ch blurb cap did the
+   shrinking); the GRID CELL it sits in doesn't shrink with it, so everything
+   past the last line of text stayed lit-up ticket-pink with nothing on it —
+   the "vast empty rectangle" complaint, precisely.
+
+   SECOND PASS, same day: giving the middle column a 100-dot swatch did not
+   fix that — it MOVED it. `minmax(0, 1fr)` on the text column still meant
+   "grow to fill whatever the card's own width is," and the card's own width
+   was still `.sol-core`'s full ~1300px measure, so the swatch sat in a lane
+   built for a banner and read as a small grey patch adrift in it. The actual
+   bug was never which column was empty — it was that the CARD was sized to
+   a width nothing inside it earned. `width: max-content` fixes that at the
+   root: the ticket is now exactly as wide as its three columns' own content,
+   capped at 100% so it still folds correctly on a phone, so there is no
+   leftover track for anything to be empty IN. Everything downstream follows
+   from that one change: the text column drops `1fr` for a plain `auto` (it
+   was never supposed to be flexible, only present), the swatch gets to be a
+   real presence instead of a filler patch because its size is no longer
+   fighting a stretch it can't win, and the stub — which used to sit pinned
+   to the far right edge of a nearly-1300px banner, under where the page's
+   floating companion happens to fly — now sits directly against the swatch,
+   at the card's actual edge. */
 .sol-entry {
   margin-top: clamp(18px, 2.2vw, 32px);
+  /* content-sized, not container-sized — see the comment above. `max-width:
+     100%` is what keeps this safe at 390: without it, a card that wants to
+     be wider than the viewport (unlikely here, but not impossible with long
+     translated strings later) would simply overflow instead of folding. */
+  width: max-content;
+  max-width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /* three tracks, none of them flexible. A flexible track is exactly the
+     mechanism that grew a column past its own content in the first version
+     of this fix — `auto` sizes each to what it actually holds and nothing
+     more, and the min-content fallback built into `auto` tracks is what lets
+     the row still shrink gracefully instead of overflowing when 100% is
+     narrower than the sum of all three at max-content (see 760px below,
+     where the row gives up and stacks instead). */
+  grid-template-columns: auto auto auto;
   align-items: stretch;
   border: 1.5px solid var(--magenta);
   border-radius: 18px;
@@ -2040,7 +2120,7 @@
 }
 .sol-entry-body {
   display: flex; flex-direction: column; align-items: flex-start;
-  gap: 8px; min-width: 0;
+  gap: 10px; min-width: 0;
   padding: clamp(16px, 1.9vw, 26px) clamp(16px, 2vw, 30px);
 }
 .sol-entry-tag {
@@ -2052,17 +2132,136 @@
 .sol-entry-title {
   font-family: var(--bloom); text-transform: uppercase;
   font-size: clamp(1.3rem, 3vw, 2.3rem); line-height: 1.02;
-  color: var(--ink); min-width: 0; text-wrap: balance;
+  color: var(--ink); min-width: 0;
+  /* capped to roughly the same measure as `.sol-entry-case` below it, and
+     `text-wrap: balance` rather than left to run — uncapped, "100
+     ULTRA-QUALITY PHOTOS" set as one line at display size is the single
+     widest thing in the card, and with the column now sized to content
+     (see `.sol-entry`, `width: max-content`) an uncapped title would be the
+     one thing dictating how wide the whole ticket gets. Two balanced lines
+     keep the card the size the price and the swatch actually need. */
+  max-width: 15ch;
+  text-wrap: balance;
 }
-.sol-entry-blurb {
+/* the give/cost pair. Measure comes DOWN from 62ch to 44ch on purpose: 62ch
+   was the number that stretched to fill a cell nothing else was filling: now
+   that the swatch owns that space honestly, the text goes back to the
+   measure it actually reads best at instead of the one that happened to eat
+   the leftover width. */
+.sol-entry-case {
+  display: flex; flex-direction: column; gap: 8px;
+  max-width: 44ch;
+}
+.sol-entry-give, .sol-entry-cost {
+  margin: 0;
   font-size: clamp(0.85rem, 0.95vw, 0.93rem); line-height: 1.5;
-  color: var(--ink-dim); max-width: 62ch;
+}
+.sol-entry-give { color: var(--ink-dim); }
+/* the cost clause is the sell, so it gets full ink (not the dim body colour
+   every other paragraph in this section uses) and its own rule instead of
+   just trailing the sentence above it — the rule is what makes "opposed"
+   read as a deliberate two-part argument instead of a second paragraph that
+   happens to be there. */
+.sol-entry-cost {
+  position: relative;
+  padding-left: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.sol-entry-cost::before {
+  content: '';
+  position: absolute; left: 0; top: 0.3em; bottom: 0.3em; width: 2px;
+  border-radius: 1px;
+  background: var(--magenta);
+}
+/* THE HUNDRED SWATCH. First pass was a pale radial-gradient dot grid, one
+   colour, a few px wide — it read as a texture sample, not as "a hundred
+   photographs," because a faint mono-colour pattern the size of a coin
+   doesn't argue anything. Rebuilt as an actual small quilt: four
+   `conic-gradient` quadrants per cell cycle through all four yarn tokens (the
+   same stripe `.forge-offer::before` draws in one dimension, folded into
+   two), tiled small enough that the swatch reads as dozens of individual
+   little squares rather than one ornamental block, and coloured strongly
+   enough to hold its own next to the magenta border instead of disappearing
+   into the card's own pink wash. `align-self: stretch` (inherited from
+   `.sol-entry`'s `align-items: stretch`) makes it as tall as the body copy
+   beside it, and its width is real column width now, not a fixed icon size,
+   so it can actually stand for a hundred of something instead of gesturing
+   at it. Rejected again: an `{#each Array(100)}` loop — still true here that
+   it would draw the identical read for 100× the markup, and this file isn't
+   scoped to touch the `<script>` block that would need to build it. */
+/* ——— THE HUNDRED ———
+   "100 ultra-quality photos" states a quantity, and a quantity that is only
+   ever stated is a quantity nobody feels. This shows it.
+
+   IT IS EXACTLY ONE HUNDRED, and that is the point of the arithmetic below: a
+   10 × 10 grid, sized in percentages of the swatch, so the count is fixed at
+   every breakpoint and the tile size floats instead. A reader who bothers to
+   count gets a hundred; a reader who doesn't still reads "a lot of pictures".
+
+   THE TILES ARE PHOTO-SHAPED, NOT SQUARE. Two earlier passes at this failed
+   for the same reason — a square grid of flat colour is a texture, and this
+   one went through both of its failure modes: pale dots that read as graph
+   paper, then a four-colour conic checker that read as gingham. A landscape
+   3:2 tile with a rounded corner and a gap around it is unmistakably a
+   CONTACT SHEET, and a contact sheet is what a hundred finished images
+   actually look like. Three tonal steps across the field stop it flattening
+   into wallpaper.
+
+   HOW IT IS ONE ELEMENT. Two gradients cannot intersect as backgrounds —
+   layering them gives stripes over stripes, which is exactly the gingham the
+   pass before this produced. They intersect as a MASK: one repeating gradient
+   of columns, one of rows, composited with `intersect`, cutting a hundred
+   rectangles out of a single diagonal colour ramp. So the tiles vary in tone
+   across the sheet the way a real contact sheet does, and the whole thing is
+   still one div with no children. */
+.sol-entry-count {
+  --tile-x: repeating-linear-gradient(to right, #000 0 7.2%, transparent 7.2% 10%);
+  --tile-y: repeating-linear-gradient(to bottom, #000 0 6.4%, transparent 6.4% 10%);
+  width: clamp(132px, 16vw, 208px);
+  /* Inset from the ticket's own edges rather than bleeding into them: the
+     sheet is a thing sitting ON the ticket, and a grid that runs off the top
+     and bottom borders reads as a background texture the card was printed on.
+     The margin is asymmetric on purpose — larger on the right, so the swatch
+     clears the perforation instead of appearing to be torn by it. */
+  margin: clamp(14px, 1.6vw, 22px) clamp(16px, 1.9vw, 26px) clamp(14px, 1.6vw, 22px) 0;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background-image: linear-gradient(
+    152deg,
+    color-mix(in srgb, var(--yarn-pink) 62%, white),
+    color-mix(in srgb, var(--yarn-violet) 52%, white) 44%,
+    color-mix(in srgb, var(--yarn-blue) 46%, white) 72%,
+    color-mix(in srgb, var(--yarn-gold) 52%, white)
+  );
+  -webkit-mask-image: var(--tile-x), var(--tile-y);
+  mask-image: var(--tile-x), var(--tile-y);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+/* Without mask compositing the two masks would simply stack and the swatch
+   would go back to being a striped rectangle. A plain tint is the better
+   failure: it still reads as "a block of colour standing for the hundred",
+   which is honest, rather than as a pattern that means nothing. */
+@supports not (mask-composite: intersect) {
+  .sol-entry-count {
+    -webkit-mask-image: none;
+    mask-image: none;
+    opacity: 0.5;
+  }
 }
 .sol-entry-stub {
   position: relative;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   flex: none;
-  padding: clamp(16px, 1.9vw, 26px) clamp(18px, 2.4vw, 38px);
+  /* wider side padding than the body gets — the stub is one number, and a
+     number that isn't given room to breathe on both sides reads as cramped
+     no matter how large the digits are. This is also what used to leave it
+     pinned right at the card's outer edge; now that the card is no longer
+     stretched to the section's full width, the extra padding lands as
+     intentional air around the price instead of eating into space the body
+     copy needed. */
+  padding: clamp(20px, 2.4vw, 32px) clamp(28px, 3.4vw, 48px);
   background: rgba(255, 255, 255, 0.5);
 }
 /* the perforation */
@@ -2072,12 +2271,55 @@
     var(--magenta) 0 5px, transparent 5px 11px);
   opacity: 0.6;
 }
+/* the notches. A torn stub is scored before it's sold, and the score meets
+   the ticket's outer edge at two points — so two circles, punched the exact
+   colour of the page floor behind the card (`--bg`, the same `#ffe9f2` the
+   `<body>` sits on — this section never paints its own opaque ground, so
+   that's genuinely what's behind the card, not a guess), sit right on the
+   seam where the perforation meets the top and bottom border. A single
+   pseudo-element can't draw two circles at two independent, responsively-
+   moving points at once, which is the whole reason these are real elements
+   and not one more ::before. */
+.sol-entry-notch {
+  position: absolute; left: 0; width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--bg);
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+.sol-entry-notch--top { top: 0; }
+.sol-entry-notch--bottom { top: 100%; }
+/* the price. Was one span at one size, so "49 JOD" read as a caption under
+   an empty frame. Split into figure + unit and set like an actual price tag:
+   the number at display scale carrying the whole hero weight, the currency
+   riding its baseline the way "JOD" would sit next to a hand-written figure
+   — small, not a second headline. */
 .sol-entry-price {
-  font-family: var(--bloom);
-  font-size: clamp(2rem, 4.6vw, 3.6rem);
-  line-height: 0.88; letter-spacing: -0.015em;
-  color: var(--magenta);
+  display: flex; align-items: baseline; gap: 0.12em;
   white-space: nowrap;
+}
+.sol-entry-fig {
+  font-family: var(--bloom);
+  /* raised from the first pass's 4.6rem ceiling — a card that no longer has
+     to stretch to fill a banner-width cell can afford to let its one number
+     get bigger instead, and "the price IS the pitch" (see `.forge-offer`'s
+     own price, same idea) only holds if the price is actually the loudest
+     thing in the stub. */
+  font-size: clamp(2.8rem, 6.6vw, 5.2rem);
+  line-height: 0.86; letter-spacing: -0.02em;
+  color: var(--magenta);
+}
+.sol-entry-unit {
+  font-family: var(--bloom);
+  font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+  font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--magenta-deep);
+  /* optical, not literal, alignment: sat on the numeral's own text baseline
+     "JOD" reads as sinking below it, because a capital-height mark next to a
+     numeral's full body always looks low. Lifting it a touch is the same
+     correction the perforation and everything else at display scale in this
+     file already needs and gets. */
+  transform: translateY(-0.08em);
 }
 
 /* Bolded head of each of the three offers — see AnswerCard's split. */
@@ -2104,33 +2346,64 @@
   .sol-core-card:nth-child(even) .sol-core-warp { left: calc(var(--core-gap) / -2); right: 0; }
 }
 @media (max-width: 640px) {
-  /* one column: the hairline that separated neighbours becomes the warp rule
-     over each card, and the numeral drops a size so it does not out-weigh a
-     title it now sits directly above at full measure */
+  /* ONE COLUMN, BUT THE PICTURE TURNS SIDEWAYS RATHER THAN GOING FULL-BLEED.
+     Four 4:3 pictures at the full width of a 390px phone is ~1000px of artwork
+     to scroll past to read four short paragraphs — the pictures would stop
+     supporting the copy and start burying it. Each card becomes a row instead:
+     a narrow portrait crop of the same file on the left, title and promise
+     beside it, and the three proofs across the full measure underneath, where
+     "Posted at the hours your buyers are awake" still has the width to sit on
+     one line. The hairline that separated neighbouring columns becomes the
+     warp rule over each card. */
   .sol-core-grid {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
     row-gap: 0;
   }
   .sol-core-card {
     grid-row: auto;
-    display: block;
+    display: grid;
+    grid-template-rows: auto auto auto;
+    grid-template-columns: clamp(96px, 29vw, 132px) minmax(0, 1fr);
+    column-gap: clamp(12px, 3.4vw, 16px);
+    align-content: start;
     padding: clamp(16px, 4.5vw, 22px) 0 clamp(16px, 4.5vw, 22px);
   }
+  .sol-core-fig {
+    grid-column: 1; grid-row: 1 / span 2;
+    align-self: start;
+    aspect-ratio: 3 / 4;
+    margin-bottom: 0;
+  }
+  .sol-core-h { grid-column: 2; grid-row: 1; padding-bottom: 6px; }
+  .sol-core-b { grid-column: 2; grid-row: 2; padding-bottom: clamp(12px, 3.4vw, 16px); }
+  .sol-core-pts { grid-column: 1 / -1; grid-row: 3; }
   .sol-core-card::before,
   .sol-core-card:nth-child(even)::before { display: none; }
   .sol-core-card .sol-core-warp,
   .sol-core-card:nth-child(odd) .sol-core-warp,
   .sol-core-card:nth-child(even) .sol-core-warp { left: 0; right: 0; }
   .sol-core-card::after { inset: 0; }
-  .sol-core-n { font-size: 1.45rem; }
+  .sol-core-n { font-size: 1.25rem; gap: 6px; }
+  .sol-core-n::after { width: 10px; }
 }
 /* the head and the ticket keep their own, older fold at 760 — they were never
    tied to how many columns the four deliverables run in */
 @media (max-width: 760px) {
   .sol-core-head { grid-template-columns: minmax(0, 1fr); }
   .sol-core-sub { max-width: none; }
-  /* the ticket unfolds: stub under body, perforation across instead of down */
-  .sol-entry { grid-template-columns: minmax(0, 1fr); }
+  /* the ticket unfolds: stub under body, perforation across instead of down.
+     `width` goes back to a normal 100% here too — `max-content` sizing is a
+     desktop-only convenience for keeping the row from stretching; a single
+     stacked column should use the full measure the phone actually has. */
+  .sol-entry { grid-template-columns: minmax(0, 1fr); width: 100%; }
+  .sol-entry-title { max-width: none; }
+  /* the swatch was the middle column's filler for the width a wide ticket
+     has to spare; a single-column ticket has no such width to spare — the
+     body already runs edge to edge — so the swatch would just be a third
+     stacked block adding height for no argument. It stands down here rather
+     than getting squeezed into a layout it was never solving a problem for. */
+  .sol-entry-count { display: none; }
   .sol-entry-stub {
     align-items: flex-start;
     padding: clamp(14px, 4vw, 20px) clamp(16px, 5vw, 30px);
@@ -2140,6 +2413,12 @@
     background: repeating-linear-gradient(90deg,
       var(--magenta) 0 5px, transparent 5px 11px);
   }
+  /* the notches follow the perforation onto its new axis: it now runs
+     left-right along the top of the stub instead of top-bottom along its
+     left edge, so the two punched points move from (0, top)/(0, bottom) to
+     (left, 0)/(right, 0). */
+  .sol-entry-notch--top { left: 10px; top: 0; }
+  .sol-entry-notch--bottom { left: auto; right: 10px; top: 0; transform: translate(50%, -50%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2147,13 +2426,17 @@
   .sol-core-card::after,
   .sol-core-n,
   .sol-core-warp::after,
-  .sol-core-idx::after { transition-duration: 0.01ms !important; }
+  .sol-core-fig img,
+  .sol-core-n::after { transition-duration: 0.01ms !important; }
   /* the lift is the one thing that must not merely go instant — a 4px jump
      under the cursor is exactly the motion a reduced-motion reader asked not
-     to get. The wash and the warp still light, so the hover is not lost. */
+     to get, and the same goes for the picture growing inside its frame. The
+     wash and the warp still light, so the hover is not lost. */
   .sol-core-card:hover, .sol-core-card:focus-within { transform: none; }
-  .sol-core-card:hover .sol-core-idx::after,
-  .sol-core-card:focus-within .sol-core-idx::after { transform: none; }
+  .sol-core-card:hover .sol-core-fig img,
+  .sol-core-card:focus-within .sol-core-fig img { transform: none; }
+  .sol-core-card:hover .sol-core-n::after,
+  .sol-core-card:focus-within .sol-core-n::after { transform: none; }
 }
 
 /* The strip lives OUTSIDE `.sol-pin` in the JSX, not inside it hidden by a

@@ -68,9 +68,18 @@
   .fg-side-tab { transition: none; }
   .fg-side-tab:hover, .fg-side-tab:focus-visible, .fg-side-tab:active { transform: translateY(-50%); }
 }
-
 /* ——————————————————————————————————————————————————————————
    the section
+
+   REBUILT Aug 2026. What was here was a two-column composition — copy left,
+   one picture right, the offer plate riding over the picture's left edge —
+   built around a single frame that was supposed to show a photograph turning
+   into geometry. It could not: both halves of that frame were the same
+   illustration, so the seam swept and nothing changed. The band is now the
+   pipeline itself, three stations wide, and the plate closes it underneath
+   rather than overlapping anything.
+
+   Everything below the popup divider is untouched.
    —————————————————————————————————————————————————————————— */
 
 .forge {
@@ -79,36 +88,17 @@
 }
 
 /* ——— the composition ———
-   Named areas rather than source order, because the two viewports want
-   genuinely different reading orders (see the comment in Forge.svelte). On
-   desktop the media is one tall block held against three stacked pieces of
-   copy; the rows are sized `auto auto auto` and the media centres itself
-   across all three, which is what stops the copy trailing off below it. */
+   One column, three bands: head, pipeline, offer. The old named-area grid is
+   gone with the two-column layout it existed for — there is no longer a tall
+   picture to hold beside three stacked pieces of copy, because the picture
+   became the middle band and spans the full measure. */
 .forge-inner {
   max-width: 1240px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
-  grid-template-areas:
-    'head  media'
-    'lede  media'
-    'offer media';
-  column-gap: clamp(26px, 4.4vw, 62px);
-  row-gap: clamp(16px, 1.8vw, 24px);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: clamp(26px, 3.4vw, 46px);
 }
-.forge-head { grid-area: head; }
-.forge-lede { grid-area: lede; }
-.forge-offer { grid-area: offer; }
-/* Top-aligned, NOT centred. The copy column is roughly 200px taller than the
-   picture, so centring the picture left it floating with dead air above and
-   below it and nothing lining up. Pinned to the headline's line instead, which
-   leaves exactly the gap at bottom-right that the offer plate then rides into
-   — the overlap below is what turns two columns into one composition.
-   Stretching the frame to match the column was the other option and is wrong:
-   the artwork is 1.79:1 and object-fit: cover would have cropped one of the
-   two mascots straight out of the picture the band is about. */
-.forge-media { grid-area: media; align-self: start; }
 
 .forge-kicker {
   font-size: 0.78rem;
@@ -121,7 +111,7 @@
 
 .forge-h2 {
   font-family: var(--display);
-  font-size: clamp(2rem, 3.8vw, 3.1rem);
+  font-size: clamp(2rem, 4.4vw, 3.4rem);
   line-height: 0.98;
   letter-spacing: -0.01em;
   color: var(--ink);
@@ -129,27 +119,462 @@
   /* the headline is two sentences; let the browser hold them together rather
      than orphaning "back." on a line of its own at awkward widths */
   text-wrap: balance;
+  max-width: 18ch;
+}
+/* ——————————————————————————————————————————————————————————
+   THE SCRUBBER — one frame, three states, dragged by the reader
+
+   WHAT THIS REPLACED, AND WHY. The band's first rebuild put the three stages
+   side by side as three pictures with captions under them. It was clear — a
+   reader could finally tell what goes in and what comes out, which the pass
+   before it could not manage — and it was still just three photographs in a
+   row. The client's verdict was that it read as an afterthought on the only
+   self-serve product on the page. It was right: this band sells a thing you
+   DO, and it was illustrated with a thing you look at.
+
+   So the three frames became one, and the reader drives it. `--t` runs 0 → 1
+   (photo → mesh → finished model) and everything below is a function of it.
+
+   WHY A WIPE AND NOT A CROSSFADE. Dissolving two photographs of the same sofa
+   into each other produces a blurred sofa and reads as a rendering glitch. A
+   hard vertical edge with the photograph on one side and the geometry on the
+   other reads as one object BECOMING another, and it lets both states be true
+   at once, which is the entire claim of the band.
+
+   WHY TWO WIPES AND NOT THREE LAYERS FADING. The mesh is revealed across the
+   first half of the travel and the finished model across the second, both
+   with `clip-path: inset()` off the same `--t`. Clip is composited, costs no
+   paint, and — unlike opacity — never shows two sofas ghosted over each other
+   at the halfway point.
+   —————————————————————————————————————————————————————————— */
+
+/* `--t` has to be a REGISTERED number or every clip-path below is a string to
+   the style engine: unregistered custom properties do not interpolate and, more
+   importantly here, cannot be used in the arithmetic that turns one 0-1 value
+   into two different percentages. */
+@property --t {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.5;
 }
 
-/* The lede is the third thing read, not the second — it explains a claim the
-   headline has already made and the picture has already shown, so it is set
-   quieter and narrower than it was. */
-.forge-lede {
-  color: var(--ink-dim);
-  max-width: 42ch;
-  font-size: clamp(0.96rem, 1.15vw, 1.04rem);
-  line-height: 1.62;
+.forge-scrub {
+  display: grid;
+  row-gap: clamp(18px, 2.2vw, 30px);
+}
+
+.forge-stage-wrap {
+  --t: 0.5;
+  /* The two edges, as percentages, named once so the clips, the seams and the
+     handle can never drift apart by a rounding error. `--seam` is the
+     photo → mesh edge and carries the handle; `--seam-2` is the lagging
+     mesh → model edge. */
+  --seam: calc(var(--t) * 100%);
+  --seam-2: max(0%, calc((var(--t) - 0.35) * 153.85%));
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: clamp(14px, 1.6vw, 22px);
+  overflow: hidden;
+  isolation: isolate;
+  /* The plate under everything, and the fallback: Forge.svelte's `onerror`
+     removes a failed decode, and a dark ground is what the artwork is, so a
+     miss degrades to a lit panel rather than a hole in a pale page. */
+  background: linear-gradient(150deg, #2a1430 0%, #3a1a44 55%, #241028 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 26px 60px -32px rgba(40, 8, 40, 0.55),
+    0 18px 50px -30px color-mix(in srgb, var(--magenta) 30%, transparent);
+  /* `ew-resize` over the whole frame, not just the handle — the entire picture
+     is the control, and a cursor that only changes on a 40px grip tells the
+     reader the opposite. `touch-action: none` is load-bearing: without it a
+     horizontal drag on a phone scrolls the page instead of moving the seam. */
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.forge-layer { position: absolute; inset: 0; }
+.forge-layer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* ——— THE THREE BANDS ———
+   FIRST ATTEMPT, AND WHY IT WAS WRONG. The mesh was revealed across the first
+   half of the travel and the model across the second, handing over at the
+   midpoint. The arithmetic was right and the picture was useless: at the
+   midpoint — which is where the control parks — the mesh covered the entire
+   frame, so a visitor landed on a uniform wireframe sofa with a seam drawn
+   down the middle of it separating nothing from nothing. A comparison slider
+   whose default state has nothing on either side to compare is a failed
+   comparison slider.
+
+   WHAT IT DOES NOW. Two edges, not one, both moving left to right, the second
+   lagging the first: the mesh eats the photograph from the left, and once the
+   drag is a third of the way along the finished model starts eating the MESH
+   from the left. So up to three bands are on screen at once — finished model,
+   then raw geometry, then the original photograph — and the frame reads as a
+   pipeline actually running across the object rather than as two pictures
+   swapped. At the default position all three are visible, which is exactly
+   the state that explains the band without anyone touching it.
+
+   The handle sits on the FIRST edge (photo → mesh), so its position stays a
+   plain linear function of the drag. Tying it to whichever edge happened to
+   be active would make it jump back to the left at the handover, which is the
+   one thing a drag control may never do. */
+.forge-layer--mesh {
+  clip-path: inset(0 calc(100% - var(--seam)) 0 0);
+}
+.forge-layer--model {
+  /* the lagging edge: nothing until the drag passes 0.35, then 0 → 100% across
+     the remaining 0.65 of the travel (1 / 0.65 = 153.85) */
+  clip-path: inset(0 calc(100% - var(--seam-2)) 0 0);
+}
+
+/* THE SEAM. A lit edge, not a hairline — it is the thing the eye tracks while
+   dragging, and it has to stay findable over both a pale shop floor and a
+   near-black viewport, which is why it is white with a cyan bloom rather than
+   any single brand colour. */
+.forge-seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--seam);
+  width: 2px;
+  margin-left: -1px;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, #fff 10%, #fff 90%, transparent);
+  box-shadow: 0 0 24px 5px color-mix(in srgb, var(--cyan) 55%, transparent);
+  z-index: 3;
+}
+
+/* THE HANDLE. Big — 44px of hit area at minimum, because this is the primary
+   control of the band and on a phone it is operated with a thumb. It is
+   `position: absolute` on the seam rather than a child of it so the seam can
+   stay `pointer-events: none` and never eat the drag it exists to show. */
+.forge-handle {
+  position: absolute;
+  top: 50%;
+  left: var(--seam);
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  width: clamp(46px, 4.4vw, 58px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: ew-resize;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 2px 10px rgba(20, 4, 24, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.6),
+    0 0 26px 6px color-mix(in srgb, var(--cyan) 30%, transparent);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.forge-stage-wrap:hover .forge-handle { transform: translate(-50%, -50%) scale(1.06); }
+.forge-handle:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 4px;
+}
+.forge-handle:active { transform: translate(-50%, -50%) scale(0.97); }
+/* THE GRIP — two chevrons pointing outwards, ‹ ›, so the handle says "drag me
+   SIDEWAYS" and not "open me".
+
+   Built from four bars rather than two gradients. The gradient version drew a
+   single downward V — two 45° gradients side by side share a baseline and read
+   as one chevron, which is exactly the "expand this panel" affordance this
+   control must not suggest. Four rotated bars cannot be misread: each chevron
+   is two short strokes meeting at a point, and the two points face away from
+   each other. */
+.forge-handle-grip {
+  position: relative;
+  width: 22px;
+  height: 12px;
+  opacity: 0.8;
+}
+.forge-handle-grip::before,
+.forge-handle-grip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border: 2px solid var(--ink);
+  border-right: 0;
+  border-bottom: 0;
+}
+/* ‹ on the left */
+.forge-handle-grip::before {
+  left: 0;
+  transform: translateY(-50%) rotate(-45deg);
+}
+/* › on the right — the same corner, spun to face the other way */
+.forge-handle-grip::after {
+  right: 0;
+  transform: translateY(-50%) rotate(135deg);
+}
+
+/* THE SECOND SEAM — the mesh → model edge. Deliberately quieter than the
+   first: it is a boundary the reader watches rather than one they hold, and
+   two equally bright lines in one frame would read as two handles. Magenta
+   rather than the first seam's white-and-cyan, so the two edges are legible
+   as different events. `pointer-events: none` for the same reason the first
+   seam has it — neither line may eat the drag. */
+.forge-seam-2 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--seam-2);
+  width: 2px;
+  margin-left: -1px;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--magenta) 90%, #fff) 12%, color-mix(in srgb, var(--magenta) 90%, #fff) 88%, transparent);
+  box-shadow: 0 0 18px 3px color-mix(in srgb, var(--magenta) 45%, transparent);
+  /* hidden until it has actually left the left edge, so t=0 shows one clean
+     photograph rather than a stray line pinned to the frame's border */
+  opacity: clamp(0, calc((var(--t) - 0.35) * 12), 1);
+}
+
+/* THE END LABELS. They name the band under them, which is why the left-hand
+   one's WORD changes in the markup once the model edge appears — a fixed "3D"
+   chip would be lying for the first third of the drag. The pipeline runs left
+   to right, so the untouched photograph is always the RIGHT-hand label. */
+.forge-edge {
+  position: absolute;
+  top: clamp(10px, 1.4vw, 16px);
+  z-index: 2;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-family: var(--display);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #fff8fc;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(26, 10, 30, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+/* the processed end — absent at t=0, since there is nothing processed yet */
+.forge-edge--done {
+  left: clamp(10px, 1.4vw, 16px);
+  border-color: rgba(89, 230, 255, 0.5);
+  background: rgba(12, 60, 78, 0.6);
+  opacity: clamp(0, calc(var(--t) * 6), 1);
+}
+/* the untouched end — fades out as the photograph is eaten from the left; a
+   label for a band that no longer exists is just clutter */
+.forge-edge--raw {
+  right: clamp(10px, 1.4vw, 16px);
+  opacity: clamp(0, calc((1 - var(--t)) * 6), 1);
+}
+
+/* A visitor who has not realised the frame is draggable has to be told once.
+   It sits under the handle, fades the moment the seam leaves its starting
+   position, and is `pointer-events: none` so it can never intercept the very
+   drag it is asking for. */
+.forge-stage-wrap::after {
+  content: 'Drag';
+  position: absolute;
+  left: var(--seam);
+  top: calc(50% + clamp(34px, 3.4vw, 44px));
+  transform: translateX(-50%);
+  z-index: 4;
+  pointer-events: none;
+  font-family: var(--display);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(20, 4, 24, 0.8);
+  /* full only while the handle is parked at the midpoint it starts on */
+  opacity: calc(1 - min(abs(var(--t) - 0.5) * 8, 1));
+}
+@supports not (width: abs(1px)) {
+  /* `abs()` is recent; without it the hint simply never fades, which is a
+     cosmetic loss and not a functional one. */
+  .forge-stage-wrap::after { opacity: 0.9; }
+}
+
+/* ——————————————————————————————————————————————————————————
+   THE THREE STATIONS — captions, and the control they double as
+   —————————————————————————————————————————————————————————— */
+
+.forge-flow {
+  --flow-gap: clamp(16px, 2.4vw, 38px);
+  list-style: none;
   margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Three shared row tracks — button / caption / footnote — with each station
+     spanning all three as a subgrid, so the three captions sit on one baseline
+     and the chip and the format list end level however many lines the caption
+     above them took. No min-height anywhere, nothing to drift when the copy is
+     edited. */
+  grid-template-rows: auto auto auto;
+  column-gap: var(--flow-gap);
+}
+@supports not (grid-template-rows: subgrid) {
+  .forge-flow { grid-template-rows: auto; align-items: stretch; }
+  .forge-stage { display: flex; flex-direction: column; }
+}
+
+.forge-stage {
+  position: relative;
+  grid-row: span 3;
+  display: grid;
+  grid-template-rows: subgrid;
+  align-content: start;
+  min-width: 0;
+}
+
+/* THE RULE OVER EACH STATION is the same four-yarn thread as .kicker::after
+   and the offer plate's top edge, so the row belongs to the page's material
+   rather than being a generic tab strip. It is drawn UNLIT by default and
+   fills for the station the frame is actually showing — the row is a readout
+   of the scrubber as much as a control for it. */
+.forge-stage-btn {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: clamp(12px, 1.3vw, 16px) 0 8px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.forge-stage-btn::before,
+.forge-stage-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(var(--flow-gap) / -2);
+  right: calc(var(--flow-gap) / -2);
+  height: 2px;
+  pointer-events: none;
+}
+.forge-stage-btn::before { background: var(--line); }
+.forge-stage-btn::after {
+  right: auto;
+  width: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yarn-pink) 0 7px,
+    var(--yarn-violet) 7px 14px,
+    var(--yarn-blue) 14px 21px,
+    var(--yarn-gold) 21px 28px
+  );
+  transition: width 0.4s var(--ease);
+}
+/* the live station's thread is fully drawn; a hovered one shows a stub, so the
+   row answers "can I click this?" before it is clicked */
+.forge-stage.is-live .forge-stage-btn::after { width: calc(100% + var(--flow-gap)); }
+.forge-stage-btn:hover::after { width: 26px; }
+.forge-stage.is-live .forge-stage-btn:hover::after { width: calc(100% + var(--flow-gap)); }
+/* the run starts and ends flush with the band rather than hanging half a
+   gutter off each side of it */
+.forge-stage:first-child .forge-stage-btn::before,
+.forge-stage:first-child .forge-stage-btn::after { left: 0; }
+.forge-stage:last-child .forge-stage-btn::before { right: 0; }
+
+.forge-stage-btn:focus-visible {
+  outline: 2px solid var(--magenta);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.forge-stage-n {
+  font-family: var(--display);
+  font-size: clamp(1.3rem, 1.9vw, 1.9rem);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--magenta);
+  transition: color 0.35s var(--ease);
+}
+.forge-stage.is-live .forge-stage-n { color: var(--magenta); }
+
+.forge-stage-k {
+  font-family: var(--display);
+  font-size: clamp(0.68rem, 0.82vw, 0.76rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  transition: color 0.35s var(--ease);
+}
+.forge-stage.is-live .forge-stage-k { color: var(--magenta); }
+
+.forge-stage-c {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: clamp(0.92rem, 1.05vw, 1rem);
+  line-height: 1.5;
+  text-wrap: pretty;
+  padding-bottom: clamp(10px, 1.1vw, 14px);
+  transition: color 0.35s var(--ease);
+}
+.forge-stage.is-live .forge-stage-c { color: var(--ink); }
+
+/* The two footnotes share the third row, so whichever a station carries — the
+   minute, the file list, or nothing — the three stations still end level. */
+.forge-stage-chip {
+  margin: 0;
+  align-self: start;
+  justify-self: start;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--magenta-deep);
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 28, 140, 0.3);
+  background: rgba(242, 28, 140, 0.07);
+  white-space: nowrap;
+}
+.forge-stage-fmt {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.forge-stage-fmt li {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 9px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forge-handle,
+  .forge-stage-btn::after,
+  .forge-stage-n,
+  .forge-stage-k,
+  .forge-stage-c { transition-duration: 0.01ms !important; }
+  .forge-stage-wrap:hover .forge-handle { transform: translate(-50%, -50%); }
 }
 
 /* ——— the offer plate ———
-   The piece the whole band is built around. It is lifted off the ground on a
-   hairline and a soft cast so the price reads as a thing you can pick up, and
-   on desktop it rides over the media's left edge — which is what welds the
-   copy column and the picture into one composition instead of two rectangles
-   sitting next to each other. The four-yarn stripe along its top edge is the
-   same thread as .kicker::after, so the plate belongs to the page's material
-   rather than being a generic card. */
+   The piece the band closes on. It is lifted off the ground on a hairline and
+   a soft cast so the price reads as a thing you can pick up. The four-yarn
+   stripe along its top edge is the same thread that runs through the pipeline
+   above it — the plate is the price of that run, and the repeated stripe is
+   what says so. */
 .forge-offer {
   position: relative;
   z-index: 2;
@@ -159,6 +584,11 @@
   background: linear-gradient(168deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.38));
   box-shadow: 0 18px 40px -26px rgba(51, 36, 61, 0.45);
   overflow: hidden;
+  /* Not full measure. At 1240px a plate carrying one price and one button
+     across the whole band reads as a footer bar; held to two thirds it stays a
+     plate, and the empty third to its right is what makes the pipeline above
+     look composed rather than merely wide. */
+  max-width: 720px;
 }
 .forge-offer::before {
   content: '';
@@ -174,23 +604,14 @@
   );
   pointer-events: none;
 }
-/* the overlap only exists where there is room for it — below this the two
-   columns have already collapsed into one and a negative margin would just
-   push the plate off the side of the phone */
-@media (min-width: 1080px) {
-  /* clears the column gap first, then reaches ~40px under the picture's
-     bottom-left corner — enough to read as deliberate, not enough to cover
-     anything in the frame */
-  .forge-offer { margin-right: clamp(-118px, -7vw, -76px); }
-}
 
 /* ——— the offer ———
    Was one 1.28rem line that the eye walked straight past on its way to the
    button; it is the cheapest thing LOOM sells and the price IS the pitch. The
    sentence is untouched — "2 JOD a model — your first one is free." — it is
-   only set as a price now: the figure at display size on the baseline, the
-   unit small beside it, and the free-first claim as a bordered chip so it
-   reads as a badge rather than a trailing clause. */
+   only set as a price: the figure at display size on the baseline, the unit
+   small beside it, and the free-first claim as a bordered chip so it reads as
+   a badge rather than a trailing clause. */
 .forge-price {
   margin: 0;
   display: flex;
@@ -241,154 +662,36 @@
   white-space: nowrap;
 }
 
-.forge-media {
-  position: relative;
-  /* Held by the frame, not by the image: `onerror` can remove BOTH copies of
-     the photograph, and without a declared ratio the panel would collapse to
-     nothing instead of degrading to the tinted plate below. */
-  aspect-ratio: 1400 / 781;
-  border-radius: clamp(16px, 2vw, 24px);
-  overflow: hidden;
-  /* The gradient is the fallback, not decoration — Forge.svelte's onerror
-     hides a failed decode and this is what stays behind it. */
-  background: linear-gradient(150deg, #2a1430 0%, #3a1a44 55%, #241028 100%);
-  /* a hairline INSIDE the frame as well as the cast beneath it: the artwork is
-     a dark plate on a pale ground, and without the lit edge it reads as a hole
-     punched in the page rather than a screen sitting on it */
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
-    0 24px 56px -30px rgba(40, 8, 40, 0.55),
-    0 16px 48px -28px color-mix(in srgb, var(--magenta) 34%, transparent);
-}
-.forge-media img { display: block; width: 100%; height: auto; }
-
-/* ——— photo → model ———
-   `--forge-split` is where the seam sits: everything to its right is the
-   rebuilt half. Registered as a real percentage so it can be animated at all
-   — an unregistered custom property is a string to the animation engine and
-   would jump rather than sweep. */
-@property --forge-split {
-  syntax: '<percentage>';
-  inherits: true;
-  initial-value: 50%;
-}
-
-.forge-xform {
-  --forge-split: 50%;
-  position: relative;
-  height: 100%;
-  isolation: isolate;
-}
-
-/* the photograph that went in — flattened, drained, very slightly cooled.
-   Selector carries `.forge-media` only to out-specify the generic
-   `.forge-media img { height: auto }` above it. */
-.forge-media .forge-x-flat {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: saturate(0.34) contrast(0.95) brightness(1.02);
-}
-
-/* the geometry that came out — full strength, under a wire mesh */
-.forge-x-solid {
-  position: absolute;
-  inset: 0;
-  clip-path: inset(0 0 0 var(--forge-split));
-}
-.forge-x-solid img { width: 100%; height: 100%; object-fit: cover; }
-.forge-x-mesh {
-  position: absolute;
-  inset: 0;
-  mix-blend-mode: screen;
-  opacity: 0.5;
-  background-image:
-    repeating-linear-gradient(66deg, rgba(89, 230, 255, 0.5) 0 1px, transparent 1px 22px),
-    repeating-linear-gradient(-24deg, rgba(242, 28, 140, 0.42) 0 1px, transparent 1px 22px);
-}
-/* A warm bloom bleeding off the rebuilt side, so the two halves read as two
-   lighting states of one object rather than two crops. */
-.forge-x-solid::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--magenta) 34%, transparent), transparent 42%);
-  pointer-events: none;
-}
-
-.forge-x-seam {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: var(--forge-split);
-  width: 2px;
-  margin-left: -1px;
-  background: linear-gradient(180deg, transparent, #fff 12%, #fff 88%, transparent);
-  box-shadow: 0 0 22px 4px color-mix(in srgb, var(--cyan) 55%, transparent);
-  pointer-events: none;
-}
-
-/* Top corners, not bottom. The offer plate now rides over the frame's
-   bottom-left corner on desktop, and that is exactly where the "2D" chip used
-   to sit — the plate covered the label of the half it is describing. */
-.forge-x-tag {
-  position: absolute;
-  top: clamp(10px, 1.6vw, 16px);
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-family: var(--display);
-  font-size: 0.68rem;
-  letter-spacing: 0.2em;
-  line-height: 1;
-  color: #fff8fc;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(26, 10, 30, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-.forge-x-tag--in { left: clamp(10px, 1.6vw, 16px); }
-.forge-x-tag--out {
-  right: clamp(10px, 1.6vw, 16px);
-  border-color: rgba(242, 28, 140, 0.5);
-  background: rgba(179, 18, 106, 0.55);
-}
-
-/* The only thing that moves the seam is the page scrolling past. Off the main
-   thread, idle while the section is off screen, and gone entirely on a
-   browser without scroll-driven animations — which lands on the static 50%
-   split above, the same picture minus the build. */
-@keyframes forge-build {
-  from { --forge-split: 92%; }
-  to { --forge-split: 22%; }
-}
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .forge-xform {
-      animation: forge-build linear both;
-      animation-timeline: view();
-      animation-range: entry 42% cover 62%;
-    }
-  }
-}
-
 /* ——————————————————————————————————————————————————————————
-   the phone
-   Not the desktop layout stacked. The order changes — headline, then the
-   picture, then the sentence, then the offer — so the pitch is made in two
-   beats before any body copy, and the one thing to tap is the last thing on
-   screen instead of being buried mid-band under a five-line paragraph.
+   THE BAND REFOLDS
+
+   THE FRAME STAYS, AND IT GETS TALLER. A drag-to-compare control is MORE
+   useful on a phone than on a desktop, not less — it is the one thing on the
+   band a thumb can play with — so the scrubber is never replaced by a stack of
+   stills. It goes from 16:10 to 4:3 so the sofa is not a letterbox strip on a
+   390px screen, and the handle keeps its full 46px+ so it stays a thumb target.
+
+   THE THREE STATIONS stay three across rather than turning into a stack. They
+   are captions and tab controls now, not pictures — three short labels fit
+   across a phone, and stacking them would put 400px of copy between the frame
+   and the price for no gain. Only the caption drops out below the very
+   narrowest widths; see the 460 block under this one.
    —————————————————————————————————————————————————————————— */
-@media (max-width: 900px) {
+@media (max-width: 760px) {
   .forge { padding-inline: clamp(18px, 5vw, 40px); }
-  .forge-inner {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'head' 'media' 'lede' 'offer';
-    row-gap: clamp(18px, 4vw, 26px);
-  }
-  .forge-h2 { font-size: clamp(1.9rem, 8.4vw, 2.6rem); }
+  .forge-h2 { font-size: clamp(1.9rem, 8.4vw, 2.6rem); max-width: none; }
   .forge-kicker { margin-bottom: 14px; }
-  .forge-lede { max-width: none; }
-  .forge-media { align-self: stretch; }
+  .forge-inner { row-gap: clamp(22px, 5vw, 32px); }
+
+  .forge-stage-wrap { aspect-ratio: 4 / 3; }
+  .forge-flow { --flow-gap: clamp(10px, 3vw, 18px); }
+  .forge-stage-btn { gap: 7px; padding-top: 10px; }
+  .forge-stage-n { font-size: 1.15rem; }
+  .forge-stage-k { font-size: 0.6rem; letter-spacing: 0.14em; }
+  .forge-stage-c { font-size: 0.85rem; }
+  .forge-stage-chip { font-size: 0.68rem; padding: 4px 10px; white-space: normal; }
+  .forge-stage-fmt li { font-size: 0.6rem; letter-spacing: 0.1em; padding: 3px 6px; }
+  .forge-offer { max-width: none; }
   /* the plate spans the full column and the price gets its own line, so the
      figure is never competing for width with the promise beside it */
   .forge-price { gap: 4px 10px; }
@@ -398,12 +701,50 @@
 
 /* Under ~430px the button and the format list stop fitting on one line
    together, and letting them wrap left a lone 20-letter caption hanging under
-   a pill. Stacked deliberately instead, with the caption centred under the
-   button so the pair still reads as one object. */
+   a pill. Stacked deliberately instead, with the caption under the button so
+   the pair still reads as one object. */
 @media (max-width: 460px) {
   .forge-offer { padding-inline: 18px; }
   .forge-cta { flex-direction: column; align-items: flex-start; gap: 12px; }
   .forge-formats { font-size: 0.68rem; letter-spacing: 0.16em; }
+
+  /* Under ~460 a third of the measure is ~110px, which is not enough for a
+     numeral, a label AND a caption. The three stations stack into a list, and
+     only the LIVE one prints its caption and its footnote — which is the
+     correct thing to lose, because the scrubber directly above already says
+     which state you are in, so three captions at once are three answers to a
+     question the frame has already answered. Collapsing the other two also
+     keeps the whole band inside one phone screen, so the price stays in view
+     while the reader plays with the handle.
+
+     The subgrid is dropped with the columns: with one station per row there
+     are no siblings left to share a baseline with, which is the only thing
+     the subgrid was ever buying. */
+  .forge-flow {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    row-gap: 0;
+  }
+  .forge-stage {
+    grid-row: auto;
+    display: block;
+    padding-bottom: 4px;
+  }
+  .forge-stage-btn { padding: 10px 0 6px; }
+  /* stacked, every station's rule spans the full measure and none of them
+     needs to reach into a gutter that no longer exists */
+  .forge-stage-btn::before,
+  .forge-stage-btn::after { left: 0; right: 0; }
+  .forge-stage-btn::after { right: auto; }
+  .forge-stage.is-live .forge-stage-btn::after { width: 100%; }
+  .forge-stage.is-live .forge-stage-btn:hover::after { width: 100%; }
+
+  .forge-stage-c,
+  .forge-stage-chip,
+  .forge-stage-fmt { display: none; }
+  .forge-stage.is-live .forge-stage-c { display: block; padding-bottom: 10px; }
+  .forge-stage.is-live .forge-stage-chip { display: inline-block; margin-bottom: 10px; }
+  .forge-stage.is-live .forge-stage-fmt { display: flex; margin-bottom: 10px; }
 }
 
 /* ——————————————————————————————————————————————————————————
