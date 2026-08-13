@@ -35,6 +35,7 @@
   import { cubicOut } from 'svelte/easing'
   import { NICHES, NICHE_GROUPS, CORE_SERVICES, ENTRY_OFFER } from '$data/site.js'
   import { reducedMotion, reveal } from '$lib/motion.svelte.js'
+  import { registerReactiveUrls } from '$lib/imageWarm.js'
   import { wizard } from '$lib/wizard.svelte.js'
   import SplitWords from './SplitWords.svelte'
   /* The wool spool was the CTA here until 13 Aug 2026. It is a photograph
@@ -135,6 +136,37 @@
     )
   }
 
+  // ——— MOBILE CTA LABEL — the phone card's own "same length for all
+  // thirty" rule ———
+  // Every other row on the phone's stripped-down card is fixed length by
+  // construction (see solutions.css's mobile block: a two-line-clamped
+  // name, a one-line-clamped hook). The CTA was the one row that was NOT
+  // fixed length — its label carries the industry's own name ("Build my
+  // Med Spas & Aesthetics system" vs "Build my Law Firms system"), which
+  // is exactly the per-industry variance that already reopened this same
+  // tour's jiggle bug once (see the desktop CTA `min-height` reservations
+  // elsewhere in solutions.css, and `--sol-card-h` above). At the
+  // ~15%-of-stage budget the client set for the phone card there is no
+  // room left to reserve two lines for the longest label across thirty
+  // industries, so the label itself goes constant instead: "Get started"
+  // opens the exact same wizard, pre-filled with the exact same industry
+  // (`wizard.open({ niche: shown.name })` at the CTA call below is
+  // unchanged) — only the button's own caption stops carrying the name.
+  // A `matchMedia` flag, not CSS-only truncation: an ellipsis-clipped
+  // "Build my Med Spas & Aesthetics s…" is still the WIDEST possible label
+  // fighting for the smallest possible pill, and on a narrow enough phone
+  // it can wrap before it ever gets far enough to clip. A fixed string
+  // never can, and it costs nothing on desktop, which never reads this flag.
+  let mobileCta = $state(false)
+  $effect(() => {
+    if (!browser) return
+    const mq = window.matchMedia('(max-width: 939px)')
+    mobileCta = mq.matches
+    const onChange = (e) => { mobileCta = e.matches }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  })
+
   let query = $state('')
   let pinnedKey = $state(NICHES[0].key)
   let focused = $state(false)
@@ -221,6 +253,29 @@
   let pinEl = $state(null)
   const pinned = $derived(!reducedMotion.current)
   let tourIndex = $state(0)
+
+  /* ——— THE PIN MECHANISM STAYS NATIVE `position: sticky` (13 Aug 2026) ———
+     A same-session pass briefly replaced this with a JS-driven `position:
+     absolute` + `transform: translateY()`, written from a scroll handler, on
+     the theory that `position: sticky` recomputing its own offset against the
+     scroller every frame was the actual source of the client's Safari
+     "shake" (the two backdrop-filter-layer-promotion attempts before it had
+     already shipped and both failed — see the removed-blur comments on
+     `.sol-bar` and `.sol-panelcard` in solutions.css, which stay removed).
+     That replacement is REVERTED. The reason is iOS Safari specifically:
+     WebKit throttles `scroll` event dispatch during momentum scrolling, so a
+     pin whose position is written from a scroll handler cannot keep up with
+     a flick on the exact platform the client is complaining about — this
+     component's own instrumentation caught a 15-36px lag from adding a
+     single `requestAnimationFrame` hop between the scroll event and the
+     write, even writing synchronously in the handler; real iOS momentum
+     throttling is worse than that and is not something this environment can
+     measure. `position: sticky` is positioned by the compositor directly on
+     iOS, with no JS round trip at all, which is precisely why it is the
+     right primitive here — trading its subtle paint artifact for a gross,
+     visible positional lag is a worse bug, not a fix. So: native sticky,
+     for every visitor, unconditionally — see `.sol-pin.is-pinned
+     .sol-pin-inner` in solutions.css. */
 
   // Same rAF-throttled, passive-listener contract as Products.svelte's
   // stage — a scroll-linked progress read, not a spring simulation on the
@@ -345,13 +400,79 @@
      of AVIF. One decode probe, once per session, settles which extension to
      warm. */
   let avifOk = $state(null)
+  // Resolved once, by the SAME probe below — every other reader (the
+  // registerReactiveUrls callback further down, the lookahead effect)
+  // awaits this instead of reading `avifOk` synchronously, which is what
+  // used to race: `warmReactiveUrls()` in imageWarm.js calls the registered
+  // function once, at whatever instant its own pass reaches it, with no
+  // guarantee the probe below has settled by then.
+  //
+  // THE OLD PROBE WAS ALSO WRONG, independent of timing. It used a
+  // hand-built 1×1 AVIF (the classic Modernizr/caniuse test payload) as a
+  // `data:` URI. Instrumented against production's own WebKit: that exact
+  // byte string fails to decode in WebKit's data-URI image loader — `onerror`
+  // fires in ~3ms, every time, not a slow resolve — even though the SAME
+  // engine decodes a real `.avif` file fetched from the network without any
+  // trouble (verified against /img/niches/wedding-9x16.avif: loads fine).
+  // So on WebKit this never raced to the wrong answer, it computed the wrong
+  // answer instantly and confidently: `avifOk` landed on `false`, the
+  // registry warmed `.webp` for every niche, and the real `<picture>` element
+  // — whose format choice is native browser codec negotiation, not this JS
+  // probe — picked `.avif` anyway. Every niches image was double-fetched in
+  // WebKit; the three seen "late" in production were just the ones the
+  // jump-scroll test actually mounted a `<picture>` for.
+  //
+  // The fix is a probe WebKit can actually decode: a real (ffmpeg-encoded,
+  // not hand-assembled) 2×2 AVIF, confirmed here to decode correctly as a
+  // `data:` URI in the same engine that rejected the old one.
+  let avifOkPromise = null
+  function probeAvif() {
+    if (avifOkPromise) return avifOkPromise
+    avifOkPromise = new Promise((resolve) => {
+      if (!browser) return resolve(false)
+      const probe = new Image()
+      probe.onload = () => { const ok = probe.width > 0; avifOk = ok; resolve(ok) }
+      probe.onerror = () => { avifOk = false; resolve(false) }
+      // Real (ffmpeg libaom-av1) 2×2 AVIF — see the comment above for why
+      // this replaced the old hand-built 1×1 test payload.
+      probe.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAWAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAAACAAAAAgAAABBwaXhpAAAAAAMICAgAAAAMYXYxQ4EADAAAAAATY29scm5jbHgAAgACAAIAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAebWRhdAoFGAA2wCAyDRgAAABQAAAAALASmcg='
+    })
+    return avifOkPromise
+  }
   $effect(() => {
-    if (!browser || avifOk !== null) return
-    const probe = new Image()
-    probe.onload = () => { avifOk = probe.width === 1 }
-    probe.onerror = () => { avifOk = false }
-    // 1×1 AVIF, the standard support probe.
-    probe.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAABQaWluZgAAAAAAAQAAABJpbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQAMAAAAABNjb2xybmNseAACAAIABoAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgABogQEDQgMgkQAAAAB8dSLfI='
+    if (!browser) return
+    probeAvif()
+  })
+
+  /* ——— PREWARM ALL THIRTY, NOT JUST THE LOOKAHEAD WINDOW ———
+     The lookahead effect below (and `stageNear`, further down) both exist to
+     keep the CURRENT scrub smooth — a handful of industries ahead of
+     wherever the reader actually is. Neither one helps a jump-scroll straight
+     to the bottom of the page: that lands on an industry that was never
+     "ahead" of anything, so nothing pre-fetched it and nothing pre-mounted
+     its <img>. imageWarm.js's reactive-URL pass is the fix — it runs once,
+     late (after the page's own DOM/background warm-up has drained), and
+     covers every industry regardless of scroll position.
+
+     Registered as a lazily-evaluated function, not a static list, so it
+     reads the SAME live decisions the lookahead effect above makes right
+     before imageWarm.js actually calls it: the portrait breakpoint (mirrored
+     exactly from the <picture> media query at `(max-width: 719px)` below)
+     and the AVIF probe. The function is ASYNC — it awaits `probeAvif()`
+     rather than reading `avifOk` synchronously — because imageWarm.js's
+     `warmReactiveUrls()` calls this exactly once, at whatever instant its
+     own batched pass reaches it, with no guarantee the probe has settled by
+     then. `warmReactiveUrls()` awaits whatever this returns, so there is no
+     "falls back to webp because the probe hasn't resolved yet" case left:
+     it either already has, or this suspends until it does. Warming the
+     wrong one would be wasted bytes on top of leaving the real candidate
+     cold — see the brief's point 4. */
+  onMount(() => {
+    return registerReactiveUrls(async () => {
+      const portrait = window.matchMedia('(max-width: 719px)').matches
+      const ext = (await probeAvif()) ? 'avif' : 'webp'
+      return NICHES.map((n) => (portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`))
+    })
   })
 
   $effect(() => {
@@ -360,16 +481,23 @@
     const portrait = window.matchMedia('(max-width: 719px)').matches
     const from = NICHES.findIndex((n) => n.key === key)
     if (from < 0) return
-    const ext = avifOk ? 'avif' : 'webp'
-    const ahead = pinned ? 6 : 3
+    let cancelled = false
     const imgs = []
-    for (let k = 1; k <= ahead; k++) {
-      const n = NICHES[(from + k) % NICHES.length]
-      const img = new Image()
-      img.src = portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`
-      imgs.push(img)
-    }
-    return () => imgs.forEach((im) => { im.src = '' })
+    // Same reasoning as the registry callback above: await the probe rather
+    // than reading `avifOk` synchronously, so a lookahead that fires before
+    // the probe settles can't warm the wrong extension either.
+    probeAvif().then((ok) => {
+      if (cancelled) return
+      const ext = ok ? 'avif' : 'webp'
+      const ahead = pinned ? 6 : 3
+      for (let k = 1; k <= ahead; k++) {
+        const n = NICHES[(from + k) % NICHES.length]
+        const img = new Image()
+        img.src = portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`
+        imgs.push(img)
+      }
+    })
+    return () => { cancelled = true; imgs.forEach((im) => { im.src = '' }) }
   })
 
   /* While the pinned tour owns the screen, the site's global bottom pill
@@ -458,111 +586,25 @@
     return cut < 0 ? { title: d, rest: '' } : { title: d.slice(0, cut), rest: d.slice(cut + 3) }
   }
 
-  /* ——— THE CARD'S HEIGHT, RESERVED FROM THE REAL DATA — the fix for the
-     client-reported "jiggle" ———
-     The card is bottom-anchored (`.sol-answer-slot { position: absolute;
-     bottom: … }`, see solutions.css) so it can sit straddling the seam of
-     the photograph. That means its HEIGHT is its TOP edge: whatever grows
-     or shrinks the card pushes the top up or drags it down, and the tour
-     changes card thirty times as it scrolls.
-
-     A round of per-element `min-height`s (the deliverable rows, the CTA)
-     already reserves the two most obviously variable rows — see the
-     comments lower in solutions.css — but measuring the live section still
-     showed the card swinging ~100px at 1440 (450px → 552px) because two more
-     things were never pinned down: the one-line hook ("A full room on a
-     Tuesday.") vs the two-line one ("Own the order before the aggregator
-     takes its cut.") is a 17px difference nothing was reserving, and the
-     per-row reservations only cover EACH row in isolation, not the sum.
-
-     Rather than add yet another hand-measured magic number (the ones in the
-     CSS already required three separate corrections as edge cases were
-     found), this reserves the card's height directly from the real copy:
-     clone the card that's actually on screen, drop the clone off-screen at
-     the SAME width, swap in every industry's name/hook/deliverables/CTA
-     label in turn, and take the tallest result. That number becomes
-     `--sol-card-h`, which `.sol-panelcard` reserves as a `min-height` (never
-     `height` — a row that somehow runs longer than every industry measured
-     here still grows instead of clipping). Recomputed on resize because the
-     wrap points move with the card's width at every breakpoint (measured
-     stable at 390/820/1440). */
-  function measureCardHeight() {
-    if (!browser || !pinEl) return
-    const liveSlot = pinEl.querySelector('.sol-answer-slot')
-    const liveCard = liveSlot?.querySelector('.sol-panelcard.has-photo')
-    if (!liveSlot || !liveCard) return
-
-    const ghostSlot = liveSlot.cloneNode(true)
-    ghostSlot.removeAttribute('id')
-    ghostSlot.setAttribute('aria-hidden', 'true')
-    ghostSlot.style.visibility = 'hidden'
-    ghostSlot.style.pointerEvents = 'none'
-    const ghostCard = ghostSlot.querySelector('.sol-panelcard')
-    // clear any previously-set reservation so this measures NATURAL height
-    ghostCard.style.minHeight = '0'
-    liveSlot.parentElement.appendChild(ghostSlot)
-
-    const nameEl = ghostCard.querySelector('.sol-answer-name')
-    const hookEl = ghostCard.querySelector('.sol-answer-hook')
-    const kickerEl = ghostCard.querySelector('.sol-answer-head .sol-answer-kicker')
-    const items = ghostCard.querySelectorAll('.sol-deliverables li > span')
-    const ctaText = ghostCard.querySelector('.sol-cta .gbtn-label, .sol-cta .wool-btn-text, .sol-cta .wool-btn-label')
-    /* The two blocks restored to the card are per-industry copy of VERY
-       different lengths (the agent paragraph runs 90-190 characters across the
-       thirty), so they have to be swapped in the ghost too. Miss them and the
-       reservation is measured against whichever industry happened to be
-       showing at mount, the card's real height varies underneath a
-       bottom-anchored slot, and the tour gets its top-edge step back — the
-       exact failure `--sol-card-h` exists to prevent. */
-    const moonEl = ghostCard.querySelector('.sol-answer-moon')
-    const agentEl = ghostCard.querySelector('.sol-agent-copy')
-
-    let max = 0
-    for (const n of NICHES) {
-      if (nameEl) nameEl.textContent = n.name
-      if (hookEl) hookEl.textContent = n.hook
-      if (moonEl) moonEl.textContent = n.moon
-      if (agentEl) agentEl.textContent = n.agent
-      if (kickerEl) kickerEl.textContent = GROUP_LABEL[n.group]
-      n.deliverables.forEach((d, i) => {
-        const span = items[i]
-        if (!span) return
-        const parts = deliverableParts(d)
-        span.textContent = ''
-        const b = document.createElement('b')
-        b.className = 'sol-deliv-t'
-        b.textContent = parts.title
-        span.appendChild(b)
-        if (parts.rest) span.appendChild(document.createTextNode(' — ' + parts.rest))
-      })
-      if (ctaText) ctaText.textContent = `Build my ${n.name} system`
-      max = Math.max(max, ghostCard.getBoundingClientRect().height)
-    }
-
-    ghostSlot.remove()
-    if (max > 0) pinEl.style.setProperty('--sol-card-h', `${Math.ceil(max)}px`)
-    // the reservation just changed the track's layout, so the scroll loop's
-    // cached geometry is stale by exactly one write. Refresh it here rather
-    // than let the rAF read it back every frame.
-    measurePin()
-  }
-
-  // Runs once the real card exists, and again whenever the width it wraps
-  // at changes — a resize handler, debounced with the same rAF-coalescing
-  // idiom the tour's own scroll listener uses just above, so a drag-resize
-  // does not re-measure thirty industries on every intermediate pixel.
-  $effect(() => {
-    if (!browser || !pinEl) return
-    let raf = 0
-    const run = () => { raf = 0; measureCardHeight() }
-    const schedule = () => { if (!raf) raf = requestAnimationFrame(run) }
-    schedule()
-    window.addEventListener('resize', schedule)
-    return () => {
-      if (raf) cancelAnimationFrame(raf)
-      window.removeEventListener('resize', schedule)
-    }
-  })
+  /* ——— THE GHOST MEASURER IS GONE (13 Aug 2026) ———
+     This used to be `measureCardHeight()`: on mount and on every resize, it
+     cloned the on-screen card off-screen, swapped every one of the thirty
+     industries' name/hook/deliverables/CTA label through it in turn, and
+     wrote the tallest result to `--sol-card-h` — a `min-height` reservation
+     on `.sol-panelcard` — because the card used to be BOTTOM-anchored
+     (`.sol-answer-slot { bottom: … }`), which meant its height was its own
+     top edge, and the tour changes card thirty times a scrub.
+     Both premises are gone. "THE ANSWER LOSES ITS CARD" and the mobile "15%
+     budget" pass (see solutions.css) removed the card's plate entirely and
+     re-anchored the block from the TOP (desktop: `top: clamp(…)`) or flush
+     to the stage's own edges (mobile: `left/right/bottom: 0`) — a fixed
+     anchor a taller card can only grow AWAY from, never move. And every row
+     that actually varies by industry (name, hook, the arc, each deliverable,
+     the agent note) now carries its OWN `min-height` + `line-clamp` reserved
+     in that row's own line-height, verified against all thirty by
+     `qa/sol-align.mjs`. Nothing above this comment writes to `--sol-card-h`
+     any more and nothing below reads it — nothing left to clone, swap and
+     measure thirty times on every resize. */
 </script>
 
 {#snippet groupIcon(group, cls = '')}
@@ -781,7 +823,7 @@
                        `.sol-console .sol-answer-kicker` in solutions.css),
                        which is where a per-category signal belongs. -->
                   <GradientButton
-                    label={`Build my ${shown.name} system`}
+                    label={mobileCta ? 'Get started' : `Build my ${shown.name} system`}
                     class="sol-cta"
                     onclick={() => wizard.open({ niche: shown.name })}
                   />

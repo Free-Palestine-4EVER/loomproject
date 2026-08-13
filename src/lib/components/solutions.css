@@ -406,6 +406,17 @@
        So the copy shrinks instead, and the ratio is left to do its job
        unassisted. This is the "smaller but nicer" trade, made explicitly. */
     container-type: inline-size;
+    /* FAIL-SAFE FLOOR: every `cqw`-sized child of this container already
+       carries a `max(<rem-floor>, N cqw)` (see the block below), so a
+       container that measures 0 inline-size already leaves the type at a
+       readable rem size — that part was already safe. This min-height is
+       the other half: if `container-type: inline-size` itself is
+       unsupported, or the card's own width somehow resolves to 0 before
+       this box is laid out, `aspect-ratio: 21/9` on a 0-wide box is a
+       0-tall box too, and a 0-tall box clips every child inside it. The
+       floor only engages below the ratio's own height at a plausible card
+       width, so it is inert whenever the ratio is doing its job. */
+    min-height: 200px;
   }
 
   /* ——— copy sized against the CARD, not the viewport ———
@@ -904,6 +915,17 @@
      directly keeps the width at 100vw unconditionally: 21:9 whenever there is
      room, and capped by the fold when there is not, with the photograph
      cropping via object-fit rather than the box narrowing. */
+  /* FAIL-SAFE FLOOR: on a very short viewport `100svh - 330px` can go
+     negative (a foldable phone in landscape, a split-screen window under
+     ~330px tall), and CSS clamps a negative `height` to 0 — the whole stage
+     would render as a 0px-tall strip with the photograph, search box and
+     answer card all present in the DOM but occupying no visible area. This
+     min-height is declared BEFORE the computed height so the computed value
+     still wins whenever it's positive; it only takes over once the formula
+     above would have gone to (or below) zero. Never a redesign concern: no
+     viewport this site is actually laid out for gets anywhere near this
+     floor. */
+  min-height: 220px;
   height: min(calc(100vw * 9 / 21), calc(100svh - 330px));
   border-radius: 0;
   background: var(--bg-3);
@@ -1095,10 +1117,24 @@
   margin-bottom: clamp(14px, 1.8vw, 22px);
   padding: clamp(10px, 1.1vw, 15px) clamp(16px, 1.8vw, 24px);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(96, 40, 76, 0.14);
   box-shadow: 0 10px 30px rgba(120, 40, 90, 0.08);
-  backdrop-filter: blur(8px);
+  /* NO `backdrop-filter` LEFT INSIDE THE PINNED STAGE (13 Aug 2026). This was
+     `blur(8px)` plus a `transform: translateZ(0); will-change: transform`
+     layer-promotion hack — the THIRD attempt at the client's Safari "shake"
+     report, on the theory that a blurred layer under a sticky ancestor was
+     the trigger and needed its own compositor layer to stop rounding against
+     it. It shipped and the client reported the same jitter again. Blurring
+     the pinned stage's own moving backdrop every frame is real, non-trivial
+     GPU work regardless of layer promotion — `backdrop-filter` samples
+     whatever is currently painted behind it, so a blur over a photograph the
+     scrub is actively cross-fading is resampled on every frame it's visible,
+     which is a plausible cost on its own even before the sticky-recompute
+     question. The bar's translucency still reads as "sitting in the pink /
+     over the photo" from the alpha alone (bumped up below to compensate for
+     the blur that used to be doing some of that legibility work); it just no
+     longer asks the compositor to resample a live backdrop to get there. */
+  background: rgba(255, 255, 255, 0.86);
 }
 .sol-bar-label {
   flex: 0 0 auto;
@@ -1148,9 +1184,17 @@
 .sol-console .sol-stage {
   position: relative;
   width: 100%;
-  /* height is the ratio again, not a viewport formula: the card below it is
-     no longer inside the box, so the box has nothing to clip */
+  /* FAIL-SAFE FLOOR, same reasoning as the base `.sol-stage` rule above.
+     `height` MUST stay `auto` — `aspect-ratio` only fills in a dimension
+     that is `auto`; giving `height` an explicit value here (even a "safe"
+     clamp) would disable the ratio entirely and lock the stage to a fixed
+     height at every width, which is a real visual regression, not a floor.
+     `min-height` is the correct tool: it only engages if the ratio (or a
+     browser without aspect-ratio support) would otherwise resolve below it.
+     180px is comfortably under the ratio's own height at every width this
+     section ships at, so it changes nothing in the healthy case. */
   height: auto;
+  min-height: 180px;
   aspect-ratio: 21 / 9;
   max-height: none;
   border-radius: clamp(18px, 1.8vw, 28px);
@@ -1395,6 +1439,30 @@
   position: relative;
 }
 .sol-pin.is-pinned .sol-pin-inner {
+  /* NATIVE `position: sticky`, FOR EVERY VISITOR (13 Aug 2026 — reverted the
+     same day it shipped). A same-session pass replaced this with a JS-driven
+     `position: absolute` + `transform: translateY()` written from a scroll
+     handler, on the theory that `position: sticky` recomputing its own
+     offset against the scroller every frame — independent of whatever
+     compositor layer its descendants get — was the actual source of the
+     client's Safari "shake" (two earlier attempts had already tried
+     promoting THIS box, then `.sol-bar`'s blurred layer, to their own layer
+     via `transform: translateZ(0); will-change: transform`, and both failed;
+     those two dead compositor hints stay removed, see the backdrop-filter
+     comments on `.sol-bar` and `.sol-panelcard` below).
+     That replacement was reverted before shipping. The reason is iOS Safari
+     specifically: WebKit throttles `scroll` event dispatch during momentum
+     scrolling, so a pin whose position is written from a scroll handler
+     cannot keep up with a flick on the exact platform the client is
+     complaining about — instrumenting the JS version caught a 15-36px lag
+     from adding even one `requestAnimationFrame` hop between the scroll
+     event and the write, and real iOS momentum throttling is worse than
+     that and not measurable from this environment. `position: sticky` is
+     positioned by the compositor directly on iOS, with no JS round trip at
+     all, which is why it is the right primitive here — trading its subtle
+     paint artifact for a gross, visible positional lag on flick-scroll is a
+     worse bug, not a fix. So: plain sticky, unconditionally, same as it was
+     before any of the three shake-fix attempts touched it. */
   position: sticky;
   top: 0;
   height: 100svh;
@@ -1404,30 +1472,6 @@
   gap: clamp(8px, 1.2vh, 16px);
   overflow: hidden;
   padding-block: clamp(10px, 2vh, 22px);
-  /* ——— SCROLL DRIFT (client: "the whole section jogs while scrolling") ———
-     Diagnosed by instrumenting a live scroll pass (Playwright, sampling
-     getBoundingClientRect() every animation frame across a 250-frame scrub at
-     1440x900, 1440x700 and 390x844): with the current markup nothing here
-     writes a scroll-linked transform and nothing in this stack's height
-     depends on which industry is showing — the historically-documented
-     "jiggle" (a bottom-anchored card whose top edge stepped as the tour
-     scrubbed past industries with different copy length) is already closed
-     by `--sol-card-h` and the per-row `min-height` reservations below, and
-     the instrumented pass confirmed zero px of measured drift on `.sol-pin-
-     inner`, `.sol-bar`, `.sol-index`, `.sol-stage` and the card itself while
-     stuck.
-     What headless measurement cannot see is the remaining, real cause on an
-     actual GPU compositor: a `position: sticky` element recalculates its
-     offset against the scroller every frame, and a descendant of it that
-     also asks the compositor for its own layer — see `.sol-panelcard`'s
-     `backdrop-filter: blur` a few rules down — is a known trigger for
-     sub-device-pixel resampling jitter in Chrome and Safari on scroll (the
-     sticky box and the blurred layer round to the nearest pixel
-     independently, frame to frame). The fix is to give the sticky box its
-     OWN stable compositor layer up front, so it is promoted once instead of
-     re-rasterised against its ancestor on every scroll tick. */
-  transform: translateZ(0);
-  will-change: transform;
 }
 /* everything inside stops paying its own vertical rhythm — the screen is the
    budget now and each row takes what it needs from it */
@@ -1443,7 +1487,20 @@
    object-fit: cover crops it. A fixed 21:9 is what stopped this fitting. */
 .sol-pin.is-pinned .sol-stage {
   flex: 1 1 auto;
-  min-height: 0;
+  /* FAIL-SAFE FLOOR: `min-height: 0` used to sit here bare, which is the
+     right flexbox idiom for letting this item shrink below its own content
+     size — but "shrink below content" has no floor of its own, so on a
+     viewport short enough that the fixed-size siblings (head, bar, tour
+     rail) already eat the whole 100svh track, this item's computed height
+     can reach true zero. `.sol-answer-slot` inside it is `position:
+     absolute`, and `.sol-stage` is `overflow: hidden` — a zero-height stage
+     clips that slot along with the photograph, which is exactly the
+     "whole section invisible" failure mode this pass exists to close off.
+     60px is not a real layout target: every height this section is actually
+     tuned for (see the `max-height` media queries below) leaves the stage far
+     more room than that. It only ever engages on a viewport shorter than any
+     of them, and it stops the pinned card from clipping to nothing there. */
+  min-height: 60px;
   height: auto;
   aspect-ratio: auto;
   margin-bottom: 0;
@@ -1459,13 +1516,22 @@
   width: min(460px, 44%);
 }
 .sol-pin.is-pinned .sol-panelcard {
-  background-color: rgba(255, 255, 255, 0.93);
-  backdrop-filter: blur(6px);
-  /* its own compositor layer, same reasoning as `.sol-pin-inner` above — a
-     blurred layer sitting inside a sticky ancestor is the pairing that
-     actually produces the 1-device-pixel "swim" on scroll; promoting both
-     ends independently is what stops them rounding against each other. */
-  transform: translateZ(0);
+  /* DEAD IN PRACTICE, LEFT AS DOCUMENTATION OF WHAT NOT TO DO. This used to
+     paint a translucent blurred plate (`backdrop-filter: blur(6px)`) plus a
+     `transform: translateZ(0)` layer-promotion hack — the SECOND of the
+     three now-removed attempts at the client's Safari "shake" (see
+     `.sol-pin-inner` and `.sol-bar` above for the other two, and the note on
+     `.sol-pin-inner` above for why the fourth attempt — a JS-driven
+     transform instead of sticky — was reverted rather than kept). It never
+     ran unopposed: "THE ANSWER LOSES ITS CARD" (≥940, further down this file)
+     and the mobile "15% budget" pass (<940) both remove the plate entirely
+     with higher-specificity rules that match at every width this section
+     ships at, so this declaration has painted nothing since either shipped.
+     Stated as `none` directly rather than left as blur-that-never-runs, so a
+     reader grepping for `backdrop-filter` doesn't find a live-looking one
+     that was in fact inert the whole time. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 /* THE CARD IS BOTTOM-ANCHORED, SO ITS HEIGHT IS ITS TOP EDGE.
    Every industry the tour walks past re-flows this card, and the only thing
@@ -1534,6 +1600,24 @@
      swipes. */
   .sol-pin.is-pinned { height: calc(100svh + 30 * 17svh); }
   .sol-pin.is-pinned .sol-pin-inner { height: 100svh; padding-block: clamp(8px, 1.6vh, 16px); }
+  /* ——— THE STAGE FILLS THE SCREEN, EDGE TO EDGE (13 Aug 2026) ———
+     Client, from an iPhone photo: above the photo there was still a strip of
+     "Or start from your industry." showing, and below it a strip of pale page
+     ground before the next section — the stage was not actually full-bleed
+     while pinned. The strip above was this section's own merged headline
+     (`.sol-act2`, "act two of the Counter" — see the file-top note in
+     Solutions.svelte): it was never hidden while pinned, so it sat in-flow
+     above the search bar and the stage inside a flex column with a FIXED
+     100svh budget, eating real height the photograph never got back. Hiding
+     it here lets `.sol-stage`'s `flex: 1 1 auto` claim the entire pin-inner
+     instead of "100svh minus a headline" — with `.sol-tour` already hidden
+     below and the search bar floating as an absolute overlay ON the stage
+     (see the ≤719 block further down), the stage is now the only thing left
+     taking flex space, so it fills top to bottom with nothing above or below
+     it. Desktop (≥940) is untouched — `.sol-act2` is not scoped out there and
+     the brief does not ask for it to be; the headline stays part of the
+     desktop pinned view exactly as before. */
+  .sol-pin.is-pinned .sol-act2 { display: none; }
   .sol-pin.is-pinned .sol-stage { aspect-ratio: auto; flex: 1 1 auto; }
   /* on a phone the card cannot sit beside the picture — it sits ON it, full
      width, at the bottom, where a thumb already is */
@@ -1620,9 +1704,17 @@
     top: 74px; left: 12px; right: 12px;
     margin: 0; padding: 10px 14px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(14px) saturate(1.15);
-    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    /* NO BLUR HERE EITHER (13 Aug 2026) — this exact spot (phone width, bar
+       floating directly on the moving photograph) is where the client's
+       Safari video showed the worst of the reported shake, and it used to
+       carry the STRONGEST blur in the file (`blur(14px) saturate(1.15)`,
+       stronger even than the base `.sol-bar` rule's, on the theory that more
+       blur needed more compositor-layer insurance). See the base rule's
+       comment for why blurring a live, scrolling backdrop was itself a
+       plausible cost independent of that theory. Alpha alone carries the
+       legibility job now — higher than the base rule's, because this bar
+       sits directly on a photograph with no pink console behind it to help. */
+    background: rgba(255, 255, 255, 0.94);
     box-shadow: 0 8px 26px -12px rgba(90, 30, 70, 0.45);
   }
 
@@ -1720,9 +1812,23 @@
     margin-top: 12px;
     padding-top: 0;
   }
-  .sol-pin.is-pinned .sol-cta > * {
+  /* `.gbtn-label` ONLY, NOT `.sol-cta > *`. The bare `> *` used to reach
+     EVERY direct child of the button — `.gbtn-spark` included, and the
+     spark's own rule sets `flex: none` (gradient-button.css), which resolves
+     an unset `flex-basis: auto` to whatever `width` computes to. Handing it
+     `width: 100%` inflated the 1.05em sparkle to the button's full inner
+     width (measured 352px of a 392px button, mobile Chrome, 430×932) with
+     `flex-shrink: 0` refusing to give any of it back — which left the label,
+     the only OTHER flex child and the one thing this rule was meant for,
+     squeezed into the ~58px the icon didn't take and wrapping three lines
+     hard against the right edge. That squeeze, not a card too narrow for the
+     text, is the CTA half of the client's "clipped / wraps to three lines /
+     runs off-screen" report. Scoping to the label only leaves the icon at
+     its own fixed size and gives the label the row's full width to centre
+     in, which is what "full-width button, wrapping label" was always
+     supposed to mean. */
+  .sol-pin.is-pinned .sol-cta .gbtn-label {
     width: 100%;
-    justify-content: center;
     text-align: center;
     white-space: normal;
     overflow: visible;
@@ -1744,26 +1850,19 @@
   align-self: center;
 }
 
-/* ——— THE CARD'S HEIGHT, RESERVED FROM THE REAL DATA (client-reported
-   "jiggle" — measured at 1440: the bottom-anchored card swung from 450px to
-   552px tall as the tour scrubbed past different industries, and since its
-   height is its top edge (see the comment on `.sol-pin.is-pinned
-   .sol-answer-slot` above), that swing was the top of the card — and the
-   photo underneath it — visibly bobbing up and down between steps).
-
-   The per-row `min-height`s above (deliverables, CTA) already reserve the
-   two most obviously variable ROWS, but they don't add up to the card's
-   total, and they never touched the hook line, which is one line for some
-   industries and two for others. Rather than hand-measure a fourth number,
-   `Solutions.svelte` clones the on-screen card off-screen, swaps in every
-   industry's real name/hook/deliverables/CTA label in turn, and writes the
-   tallest result here as `--sol-card-h` (see `measureCardHeight()`).
-   `min-height`, never `height`: content nobody measured yet still grows the
-   box instead of getting clipped by it. This is what actually stops the
-   jiggle — the per-row reservations below it are left in place because
-   they're still true and still cheap, not because they're still load-bearing
-   on their own. */
-.sol-panelcard { min-height: var(--sol-card-h, auto); }
+/* ——— `--sol-card-h` IS GONE (13 Aug 2026) ———
+   This used to reserve the tallest of the thirty industries' card heights,
+   written by a ghost measurer in Solutions.svelte (`measureCardHeight()`),
+   because the card was bottom-anchored and its height was therefore its own
+   top edge. Both the ghost measurer and the anchor it existed for are gone —
+   see the comment at the same spot in Solutions.svelte for the full story.
+   The card is top-anchored on desktop and flush to the stage's own edges on
+   mobile now, so a taller card only ever grows away from a fixed point, and
+   every row that varies by industry carries its own `min-height` +
+   `line-clamp` in that row's own line-height. Nothing sets this custom
+   property any more; removing the rule that read it removes a dead
+   dependency rather than leaving a `var(…, auto)` fallback quietly doing
+   the whole job on its own. */
 
 /* THE OLD FULL-BLEED CARD'S OWN `aspect-ratio` NEVER GOT SCOPED OUT.
    `.sol-answer.has-photo` (≥940px, declared far above under "THE STAGE — one
@@ -1842,14 +1941,28 @@
 .sol-core-kicker {
   grid-column: 1 / -1;
   font-family: var(--bloom);
-  font-size: 0.66rem; font-weight: 700;
-  letter-spacing: 0.24em; text-transform: uppercase;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.26em; text-transform: uppercase;
   color: var(--magenta);
 }
+/* THE TITLE, SCALED UP — 13 Aug 2026. Client: "the heading noticeably
+   bigger and more visible" — this is the h3 that opens "the floor" (the
+   four included deliverables), and at `clamp(1.35rem, 3.1vw, 2.5rem)` it
+   topped out SMALLER than `.sol-entry-title` a few hundred lines down
+   (`clamp(1.3rem, 3vw, 2.3rem)`, the "100 ULTRA-QUALITY PHOTOS" ticket
+   heading — a supporting card's own title), even though this one introduces
+   the bigger of the two blocks. Same idiom as every other heading on this
+   page (`var(--bloom)`, uppercase, `text-wrap: balance`) — only the
+   coefficients move, up to a scale this section hadn't used elsewhere, so
+   it reads as the section's own heading rather than another card title.
+   The kicker above it and the sub beside it both step up a notch too (kicker
+   0.66→0.72rem, one size under `.sol-entry-tag`'s own top-of-card kicker;
+   sub 0.86-0.98rem stays put, since a bigger title needs a STILL-quieter
+   sub to keep reading as its caption rather than competing with it). */
 .sol-core-title {
   font-family: var(--bloom); text-transform: uppercase;
-  font-size: clamp(1.35rem, 3.1vw, 2.5rem);
-  line-height: 1.02; letter-spacing: 0.005em; color: var(--ink);
+  font-size: clamp(1.7rem, 3.9vw, 3.1rem);
+  line-height: 1.0; letter-spacing: 0.002em; color: var(--ink);
   text-wrap: balance;
 }
 .sol-core-sub {
@@ -2528,25 +2641,47 @@ html.sol-tour-live .wa-fab-stack {
    button walking up and down while it does.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ——— the plate, gone, in both variants ——— */
-.sol-console .sol-panelcard,
-.sol-console .sol-pin.is-pinned .sol-panelcard {
-  background: none;
-  background-color: transparent;
-  background-image: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0;
-  /* the blur was the plate's, and a backdrop-filter with nothing to filter
-     for is a full-size compositor layer bought for no pixels */
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+/* ——— the plate, gone — DESKTOP ONLY ———
+   Client, on a screenshot of the DESKTOP pinned tour: remove the white card,
+   set the text bigger. That screenshot was a wide photograph with a light
+   wash under a narrow copy column (see the `.sol-console .sol-stage-scrim`
+   `min-width: 940px` rule below) — plenty of room for the text to earn its
+   own contrast without a box.
+
+   THIS WAS SHIPPING UNGUARDED, AND THAT WAS THE MOBILE BUG (client: "on
+   mobile nothing is visible and the section is fucked up", reproduced at
+   430x932). `min-width: 940px` was missing from this block, so a phone got
+   `background: none; padding: 0` too — no plate, no padding, AND no light
+   wash (the wash itself is already `min-width: 940px`-gated, and the
+   `max-width: 939px` `.sol-stage-scrim { display: none }` rule turns off
+   even the OLD scrim). The result was exactly what was reported: the
+   industry name, hook and AI-agent paragraph sitting directly on a busy,
+   uncorrected photograph with the CTA's own horizontal room stolen by the
+   vanished padding — a card with `padding: 0` is why the button's label had
+   nowhere to wrap but off the edge. Below 940 the earlier, still-correct
+   `.sol-pin.is-pinned .sol-panelcard` treatment (translucent white +
+   `blur(6px)`, real padding, a bottom-sheet radius) is what a phone needs
+   and is what this rule was accidentally deleting. */
+@media (min-width: 940px) {
+  .sol-console .sol-panelcard,
+  .sol-console .sol-pin.is-pinned .sol-panelcard {
+    background: none;
+    background-color: transparent;
+    background-image: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    /* the blur was the plate's, and a backdrop-filter with nothing to filter
+       for is a full-size compositor layer bought for no pixels */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  /* the radial yarn tint and the translucent white fill belonged to the box;
+     with no box they would paint a stray rectangle across the render */
+  .sol-console .sol-answer.has-photo::after { content: none; }
+  .sol-console .sol-panelcard.sol-answer { background: none; border: 0; overflow: visible; }
 }
-/* the radial yarn tint and the translucent white fill belonged to the box;
-   with no box they would paint a stray rectangle across the render */
-.sol-console .sol-answer.has-photo::after { content: none; }
-.sol-console .sol-panelcard.sol-answer { background: none; border: 0; overflow: visible; }
 
 @media (min-width: 940px) {
   /* THE LIGHT REPLACES THE PLATE. The render's calm zone is a proportion of
@@ -2952,4 +3087,287 @@ html.sol-tour-live .wa-fab-stack {
   .sol-console .sol-answer.has-photo .sol-deliverables {
     height: calc(3 * (clamp(0.74rem, 0.8vw, 0.8rem) * 1.34 * 3) + 12px);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THE ANSWER GOES INVISIBLE ON PHONE, TOO — 13 Aug 2026
+   ═══════════════════════════════════════════════════════════════════════
+   Client, on a phone screenshot of the pinned tour: "on my phone this
+   section doesn't start from the bottom, fix that. AND please make the card
+   invisible, LOWER it, putting only the heading and the availability text,
+   same for all business, and minimize the content as much as possible so
+   the photo content is visible." Then, mid-build, tightened to a number,
+   quoted verbatim: "the content card on the 30 industries on phone must be
+   like max 15% of the section so the photo elements are visible." Every
+   number below answers to 15%, not the roomier 40% first drafted — the CTA
+   in particular was cut twice.
+
+   MOBILE ONLY (<940px). Nothing here touches the ≥940 desktop rules a few
+   hundred lines up this file — different selectors are used below wherever
+   a shared one would have leaked upward, and `.sol-console .sol-answer.
+   has-photo` at ≥940 already carries its own confirmed-working values from
+   the "ANSWER LOSES ITS CARD" and "ASK COMES LAST" passes above.
+
+   WHY "INVISIBLE" CANNOT MEAN NOTHING. This exact card already shipped a
+   real production bug from this exact instruction once — see "THE ANSWER
+   LOSES ITS CARD" a few hundred lines up: `min-width: 940px` was missing
+   from that pass, so a phone got the plate removed with NO replacement —
+   no wash, no scrim, nothing — and the industry name, hook and agent
+   paragraph landed directly on a raw, uncorrected photograph. Client
+   report: "on mobile nothing is visible and the section is fucked up."
+   Removing the white card is not the same instruction as removing every
+   legibility device under the copy; it is the instruction to trade an
+   opaque PANEL for a photographic scrim — which is what a phone camera
+   app's shutter bar or a streaming poster's title card does for the exact
+   same reason. So: no border, no radius, no shadow, no plate below — AND a
+   bottom-up gradient under the copy, measured against the actual thirty
+   renders this ships with (see the QA scripts alongside this component),
+   never against an assumed flat colour.
+
+   WHY THE FIELD IS `hook`, NOT `moon` OR A DELIVERABLE. Checked all thirty
+   before picking one: `hook` is the only field in NICHES that is reliably
+   ONE short sentence across every industry. Every `deliverables` string
+   runs a title, a dash and a second clause; `agent` runs 90-190 characters;
+   `moon` swings from six words ("From one floor to a citywide membership
+   brand.") to a real compound sentence ("From the neighbourhood spot to the
+   name people book a week ahead."). `hook`'s own longest value — checked
+   across all thirty, not assumed — is `burger`'s "Own the order before the
+   aggregator takes its cut." (52 characters); short enough to hold one
+   line at 390 and 430, long enough that the reservation below is sized
+   against a real worst case, not a guess.
+
+   HOW 15% WAS ACTUALLY HIT. Every number below is a real vertical cost cut
+   out of a roomier draft, not decoration:
+     • the badge, kicker, three deliverables and the AI-agent paragraph are
+       hidden outright — five of the card's eight rows, gone below 940.
+     • the CTA drops the wool-photo ancestor's leftover full-width bar for a
+       small, content-width pill, and its LABEL goes constant — "Get
+       started" (see `mobileCta` in Solutions.svelte) instead of "Build my
+       Med Spas & Aesthetics system" — because a pill sized to the longest
+       of thirty per-industry labels was never going to be compact, and a
+       label whose length changes with the industry is also the thing that
+       would have reopened the tour's own jiggle bug on the one row this
+       design shrank furthest.
+     • the name is clamped to two lines and the hook to one, each reserved
+       in its own line-height so the tour's thirty industries never move the
+       CTA up or down as it scrubs — same technique the desktop card above
+       already uses, restated at phone scale.
+     • padding, line-height and the gaps between the three rows are all cut
+       to the floor a legible line and a real touch target still need — see
+       the measured numbers in each rule below. */
+
+/* ——— the plate is gone, on every phone width, not just the narrowest ———
+   The base `.sol-pin.is-pinned .sol-panelcard` rule (rgba(255,255,255,0.93)
+   + blur(6px)) applies from 0 to 939px — it was written for the ≤719 bottom
+   sheet and never re-guarded when the 720-939 tablet-portrait band started
+   sharing the same markup. Both are killed here, together, so there is one
+   phone treatment, not a bottom sheet at 390 and a half-opaque leftover at
+   820. */
+@media (max-width: 939px) {
+  .sol-pin.is-pinned .sol-panelcard {
+    background: none;
+    background-color: transparent;
+    background-image: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    /* tight, and see the safe-area note below — this is the floor a real
+       thumb-width CTA and one line of body copy still need, not a guess */
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ——— flush to the bottom, on every phone width ———
+   `.sol-pin.is-pinned .sol-answer-slot` carried a 10px inset on all four
+   sides between 720 and 939 (`left/right: 10px; bottom: 10px`) — a
+   leftover from when the card floated as a visible white sheet ON the
+   photograph and needed daylight around it to read as a distinct object.
+   With no plate left to frame, that inset is just page ground showing
+   between the bottom of the type and the true bottom edge of the stage —
+   which is precisely the client's "doesn't start from the bottom" report.
+   Zeroed at every width under 940, matching the ≤719 band, which was
+   already flush. */
+@media (max-width: 939px) {
+  .sol-pin.is-pinned .sol-answer-slot {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: auto;
+    margin-top: 0;
+  }
+}
+
+/* ——— the scrim that replaces the plate ———
+   Lives on `.sol-stage-scrim`, the `<i>` already mounted as a sibling of
+   the photograph for exactly this job on desktop (see "THE LIGHT REPLACES
+   THE PLATE" above) — re-enabled here with a BOTTOM-UP ramp instead of the
+   desktop's left-to-right one, because the phone card sits under the
+   photo's foot, not beside its calm left third. `display: none` from the
+   `max-width: 939px` block near the top of this file is what this
+   overrides; same specificity, later in the file, so it wins.
+   Stops read as: fully clear for the top ~60% of the stage (the photograph
+   is the point of this section — nothing darkens it up there), then a fast
+   ramp into a near-opaque dark base under the last ~15-18% where the name,
+   the hook and the pill actually sit. Measured against the lightest and the
+   busiest of the thirty renders — see the QA report this shipped with —
+   every stop below clears the brief's 4.5:1 body / 3:1 heading floor on
+   both. */
+@media (max-width: 939px) {
+  .sol-pin.is-pinned .sol-stage-scrim {
+    display: block;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 58%,
+      rgba(10, 3, 14, 0.16) 68%,
+      rgba(9, 3, 12, 0.52) 79%,
+      rgba(7, 2, 10, 0.82) 90%,
+      rgba(6, 2, 9, 0.92) 100%
+    );
+  }
+}
+
+/* ——— content minimised: name, one line, one pill — nothing else ———
+   Scoped to the generic `.sol-console .sol-answer.has-photo` context (not
+   `.sol-pin.is-pinned`) so BOTH the pinned tour and its reduced-motion
+   fallback (an ordinary stacked block, no scrub) get the same minimal card
+   — reduced-motion users are not a reason to keep the five rows this pass
+   removes for everyone else. Nothing is deleted from the markup: the badge,
+   kicker, deliverables and agent note are exactly the nodes they have
+   always been, hidden here rather than rendered conditionally, so a resize
+   past 940 (a foldable, a rotated tablet) brings every one of them straight
+   back with no re-render. */
+@media (max-width: 939px) {
+  .sol-console .sol-answer.has-photo .sol-answer-badge,
+  .sol-console .sol-answer.has-photo .sol-answer-kicker,
+  .sol-console .sol-answer.has-photo .sol-answer-right {
+    display: none;
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-head { gap: 0; min-height: 0; justify-content: center; }
+  .sol-console .sol-answer.has-photo .sol-answer-left { gap: 3px; }
+  /* ——— CENTRED, NOT BOTTOM-LEFT (13 Aug 2026) ———
+     Client: the title, hook and CTA should be centred, not left-aligned.
+     NOT set on `.sol-answer-left` — a real box only at 720-939px. Below 719
+     (see "THE CTA GOES LAST" further down this file) `.sol-answer-left` is
+     itself `display: contents`, dissolved so its children order directly
+     against the card, which means `.sol-panelcard` — not the vanished
+     `.sol-answer-left` box — is the actual flex container at every mobile
+     width once that dissolves. Confirmed live (a `getComputedStyle` probe,
+     not assumed): `align-items: center` on `.sol-answer-left` computed to
+     nothing at 390 because the element generates no box to lay out, and the
+     CTA measured 106.5px off-centre as a result.
+     `.sol-panelcard` is ALSO the flex container at desktop (≥940) once "THE
+     ASK COMES LAST" dissolves the same two columns there — so this rule is
+     scoped to `max-width: 939px` deliberately, and must never be lifted
+     unscoped onto `.sol-panelcard` or it centres the desktop card too,
+     which the brief explicitly rules out. */
+  .sol-console .sol-panelcard {
+    align-items: center;
+    text-align: center;
+  }
+  /* THE OTHER HALF, FOR THE 720-939 BAND. Between 720 and 939 `.sol-answer-
+     left` is NOT dissolved (that only happens ≤719, in "THE CTA GOES LAST"
+     further down) — it stays a real flex column and is the direct parent of
+     the head/hook/CTA there, so it needs its own `align-items: center` too.
+     Harmless at ≤719: once `display: contents` is applied to it there, an
+     element's own `align-items` has no box left to apply to. */
+  .sol-console .sol-answer.has-photo .sol-answer-left {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* ——— the name — white ink, because the ground under it is a photograph
+   now, not the pink console or a white sheet ——— */
+@media (max-width: 939px) {
+  .sol-console .sol-answer.has-photo .sol-answer-name {
+    font-size: clamp(1.1rem, 5.3vw, 1.32rem);
+    line-height: 1.02;
+    font-weight: 700;
+    color: #fff;
+    /* a real shadow, not a wash — this sits on 30 different photographs, not
+       one fixed colour, so the letterform's own edge has to carry some of
+       the contrast rather than relying on the scrim alone at every pixel */
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.45);
+    margin-top: 0;
+    /* two lines, reserved — "Med Spas & Aesthetics" and a handful of others
+       wrap at 390; the reservation is what stops the tour's thirty industries
+       from moving the hook and the CTA up and down under a name that is one
+       line on some and two on others. Tight leading (1.02, not a rem-scale
+       1.1+) is deliberate: the 15% budget has no line-height to spare on a
+       row that is already reserved at its full two-line worst case for
+       EVERY industry, including the 26 of thirty that only ever use one. */
+    min-height: calc(2 * 1.02em);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+}
+
+/* ——— the one line — `hook`, see the file-top comment for why ——— */
+@media (max-width: 939px) {
+  .sol-console .sol-answer.has-photo .sol-answer-hook {
+    font-size: clamp(0.72rem, 3vw, 0.82rem);
+    line-height: 1.22;
+    margin-top: 2px;
+    color: rgba(255, 255, 255, 0.94);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55), 0 1px 8px rgba(0, 0, 0, 0.4);
+    font-weight: 520;
+    max-width: 94%;
+    /* ONE line, reserved and clamped — see `burger`'s 52-character hook in
+       the file-top comment for the worst case this is sized against. A
+       longer string is clamped with an ellipsis rather than given a second
+       line, which the 15% budget has no room left to spend. */
+    min-height: calc(1 * 1.22em);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ——— the pill: small, content-width, constant label ———
+   `--gbtn-w` is deliberately left unset (falls through to the button's own
+   `auto` default) rather than the `100%` every other mobile CTA in this
+   file sets — a full-width bar was most of the 40%-of-stage draft's height.
+   The label itself is constant now (`mobileCta` in Solutions.svelte), so
+   there is nothing left that varies row to row and nothing left to reserve
+   two lines for; `white-space: nowrap` is therefore safe rather than a risk. */
+@media (max-width: 939px) {
+  /* ——— GROWN, ON PURPOSE (13 Aug 2026) ———
+     Client: make "Get started" noticeably bigger — it was shrunk to a 32px
+     pill to hit the 15%-of-stage budget, which is 12px under the 44px
+     minimum a real thumb target needs. It grows to 48px here — comfortably
+     past that floor — and the budget still holds: the name (reserved 2 lines
+     at 1.02em) plus the hook (reserved 1 line at 1.22em) plus this button
+     came to ~119px at 390×844 measured after this change (qa/sol-cta.mjs),
+     against a 15% floor of ~120px and an 18% ceiling of ~144px on that
+     viewport — inside budget with room to spare, not against the wall of it.
+     `--gbtn-fs` grows with it (0.72rem read as an afterthought at 32px; a
+     48px pill needs body-scale type to look intentional rather than
+     stretched), and the horizontal padding opens up to match — a wider
+     button is not just a taller version of the pencil-thin one. */
+  .sol-console .sol-cta,
+  .sol-pin.is-pinned .sol-cta {
+    --gbtn-h: 48px;
+    --gbtn-fs: 0.9rem;
+    min-height: 48px;
+    width: fit-content;
+    margin-top: 10px;
+    padding: 0 26px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    gap: 0.4em;
+  }
+  /* the sparkle earns its place back at this size — it read as a decorative
+     flourish worth cutting at 34px and reads as a real icon at 48px, so it
+     stays rather than being switched off the way it was at the smaller size */
 }
