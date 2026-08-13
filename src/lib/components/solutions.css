@@ -1598,8 +1598,30 @@
      neither. Slightly shorter per industry than desktop because a phone's
      100svh is taller relative to a thumb's travel, so the same svh costs more
      swipes. */
-  .sol-pin.is-pinned { height: calc(100svh + 30 * 17svh); }
-  .sol-pin.is-pinned .sol-pin-inner { height: 100svh; padding-block: clamp(8px, 1.6vh, 16px); }
+  /* FULL-BLEED TO THE BOTTOM (14 Aug 2026, real-iPhone screenshot: the stage
+     ended and a strip of pale page ground showed above Safari's URL bar —
+     the top edge was already correct, only the bottom was short).
+     `100svh` is the SMALLEST viewport (Safari's chrome fully expanded) — the
+     bar's px value is frozen to that small number even after the visitor
+     scrolls and iOS collapses its toolbar, so the live viewport grows past
+     the frozen `svh` figure and a gap opens at the bottom. `100dvh` tracks
+     the live viewport instead, but it is a LIVE value: as the toolbar
+     animates open/closed mid-scroll it would resize this `position: sticky`
+     box on the very platform this file has already spent three dead
+     compositor-hint attempts chasing a scroll-linked "shake" report on (see
+     `.sol-pin-inner`'s big comment above and `.sol-bar`'s removed-blur
+     note) — introducing a live resize of the pinned box mid-scroll is
+     exactly the shape of bug this file keeps having to revert. `100lvh` is
+     the LARGEST viewport (chrome fully collapsed): like `svh` it is a frozen
+     number, so it never triggers a mid-scroll resize, and because it's the
+     large end it always covers the real viewport — the only cost is that
+     when the chrome IS showing, the box's lowest sliver sits behind the
+     browser's own (opaque) toolbar instead of behind visible page ground,
+     which is invisible rather than a visible gap. Frozen + full-bleed beats
+     live + jump-risk here. Retune together with the 719px block below if
+     retuned at all — same decision, two widths. */
+  .sol-pin.is-pinned { height: calc(100lvh + 30 * 17svh); }
+  .sol-pin.is-pinned .sol-pin-inner { height: 100lvh; padding-block: clamp(8px, 1.6vh, 16px); }
   /* ——— THE STAGE FILLS THE SCREEN, EDGE TO EDGE (13 Aug 2026) ———
      Client, from an iPhone photo: above the photo there was still a strip of
      "Or start from your industry." showing, and below it a strip of pale page
@@ -1697,11 +1719,31 @@
      above it — the row is what was stealing the height the portrait needed */
   .sol-pin.is-pinned .sol-console { position: relative; }
   .sol-pin.is-pinned .sol-bar {
-    /* 74px, not 12: the nav is sticky and paints OVER this stage now that the
-       stage runs to the top of the viewport. At 12px the field sat underneath
-       the bar and the section's only control was invisible. */
+    /* 128px, not 74 (14 Aug 2026, client: the field sits jammed against the
+       top edge, right over the photo — pull it down so it reads as sitting
+       BELOW the section's own opening). `.sol-act2` (the "Or start from your
+       industry." headline) is the section's actual opening line and it stays
+       `display: none` here on purpose — see the block above this one: with
+       the stage full-bleed there is no vertical budget left to reinstate a
+       whole heading. So the fix is not to bring the heading back, it's to
+       stop the bar from reading as pinned to the viewport's own top edge:
+       74px was tuned only to clear the auto-hiding nav bar (~58px) plus a
+       sliver, which left the field sitting flush against the frame the
+       instant the nav auto-hides on scroll (see Nav.svelte's `hidden` state
+       — it hides past 120px of downward scroll, which is already true by
+       the time a visitor reaches this pinned section). 128px adds real air
+       above the field — legible as "below the top", not "pinned to it" —
+       while staying clear of the nav on the rare frame it is still visible,
+       and it costs nothing at the bottom: this element is `position:
+       absolute` and independent of `.sol-answer-slot`'s own bottom-anchored
+       ~15% budget (verified — see `qa/` for the run that confirms the CTA
+       block height is unaffected by this offset). Bound to `.sol-console`,
+       which fills the sticky pinned box exactly (`.sol-act2` is hidden, so
+       `.sol-console` starts flush with the box's own top) — so this can
+       never rise above the section's own top edge at any scroll position;
+       it is not `position: fixed` and has no route out of its own ancestor. */
     position: absolute; z-index: 4;
-    top: 74px; left: 12px; right: 12px;
+    top: 128px; left: 12px; right: 12px;
     margin: 0; padding: 10px 14px;
     border-radius: 999px;
     /* NO BLUR HERE EITHER (13 Aug 2026) — this exact spot (phone width, bar
