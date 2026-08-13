@@ -366,6 +366,57 @@ export function imageBudget({ force = false } = {}) {
     if (src) img.setAttribute('src', src)
   }
 
+  /* MEASURED BUG, the client's own report: "images load, but when I scroll
+     ... all the way down and come back they load again". `restore()` above
+     writes the real `src`/`srcset` straight onto the visible element. Even
+     when the bytes are sitting in the HTTP cache with zero network time, the
+     element still has to go through Blink/WebKit's normal resource pipeline —
+     fetch-from-cache, then decode — before it can paint, and THAT step is
+     what reads as "loading" a second time: a blank frame (or the previous
+     paint) held for however long the decode takes, then the photo pops in.
+     A decode from cache is fast, but "fast" is not zero, and a scroller who
+     is actively looking at the element sees exactly one dropped frame's
+     worth of it — which is the whole bug.
+
+     So the swap has to happen only once the bitmap is ALREADY decoded. A
+     detached clone of the element (a `<picture>` clone if it lives in one, so
+     `sizes`/media-conditioned `<source>`s resolve to the same candidate the
+     real element will pick) is given the pending src/srcset and asked to
+     `decode()` — off-screen, at whatever pace the network/decoder actually
+     runs at — and only once that promise resolves do we touch the visible
+     element at all. At that point the browser already has the fully decoded
+     bitmap cached against that exact URL, so the real write below paints in
+     the same frame it happens on. */
+  const decodeAhead = async (img) => {
+    const picture = img.parentElement && img.parentElement.tagName === 'PICTURE' ? img.parentElement : null
+    const host = picture ? picture.cloneNode(true) : img.cloneNode(false)
+    const clone = picture ? host.querySelector('img') : host
+    if (!clone) return
+    clone.removeAttribute('src')
+    clone.removeAttribute('srcset')
+    if (picture) {
+      const realSources = sourcesOf(img)
+      const cloneSources = host.querySelectorAll('source')
+      realSources.forEach((s, i) => {
+        const ss = s.dataset.budgetSrcset
+        if (ss != null && cloneSources[i]) cloneSources[i].setAttribute('srcset', ss)
+      })
+    }
+    const srcset = img.dataset.budgetSrcset
+    if (srcset) clone.setAttribute('srcset', srcset)
+    const src = img.dataset.budgetSrc
+    if (src) clone.setAttribute('src', src)
+    // Attached (not display:none) so `sizes`/media-conditioned <source>s
+    // resolve exactly as the real element's would, but pushed off the
+    // rendered page and out of layout/paint — the whole point is that
+    // nothing here is ever seen.
+    host.style.cssText = 'position:fixed;left:-99999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none'
+    host.setAttribute('aria-hidden', 'true')
+    document.body.appendChild(host)
+    try { await clone.decode() } catch { /* a decode failure is still "done" — restore() below will surface the real error */ }
+    host.remove()
+  }
+
   /* ——————————————————— 2b · DOWNSCALE ———————————————————
      MEASURED BUG, and the one the tab was actually dying of.
 
@@ -655,49 +706,65 @@ export function imageBudget({ force = false } = {}) {
   let draining = false
   const drain = () => {
     draining = true
-    for (let n = 0; n < 4 && restoreQueue.length; n++) restore(restoreQueue.shift())
-    if (restoreQueue.length) requestAnimationFrame(drain)
-    else draining = false
+    const batch = restoreQueue.splice(0, 4)
+    // decodeAhead() first, THEN write — see the comment above it. Awaiting
+    // the whole batch (rather than decoding one at a time) is what keeps
+    // this at "4 images per frame-ish" instead of turning into 4 sequential
+    // round trips; the decode promises all run concurrently.
+    Promise.all(batch.map((img) => decodeAhead(img))).then(() => {
+      for (const img of batch) restore(img)
+      if (restoreQueue.length) requestAnimationFrame(drain)
+      else draining = false
+    })
   }
   const queueRestore = (img) => {
     if (!restoreQueue.includes(img)) restoreQueue.push(img)
     if (!draining) drain()
   }
 
-  // TWO boundaries, not one. The old pass restored and evicted at the same
-  // 200% line, which has two problems: an image sitting exactly on the line
-  // thrashes (evict, restore, evict) as the page settles, and — the expensive
-  // one — a single boundary means the RESIDENT band is as wide as the RESTORE
-  // lead needs to be. It does not have to be. Restoring early is cheap;
-  // holding a bitmap is not.
+  // ONE boundary now, not two — and it only ever RESTORES.
   //
-  //   RESTORE_MARGIN  how far ahead a bitmap is put back. 75% of 844px is
-  //                   ~630px of runway; the queue drains 4 images per frame,
-  //                   so even a hard flick has ~10 frames to decode before the
-  //                   image could be seen.
-  //   EVICT_MARGIN    where the bitmap is dropped. The gap between the two is
-  //                   the hysteresis: nothing can evict and restore on the
-  //                   same scroll tick.
+  // This used to be a matched evict/restore pair of IntersectionObservers:
+  // anything past EVICT_MARGIN (110% of a viewport) lost its src the instant
+  // it left that band, on every scroll, at any distance. That is what the
+  // client actually reported ("scroll down and back, and they load again"):
+  // a normal scroll-to-bottom-and-back re-evicts and re-restores the ENTIRE
+  // page roughly every 1-2 viewports, because 110% away is nothing — it is
+  // crossed within a second of ordinary scrolling.
   //
-  // Resident band is viewport + 2 x EVICT: 844 + 2 x 928 = ~2.7k px, down from
-  // ~4.2k at the old shared 200%. Measured effect on the peak is in the
-  // report; the pop-in cost was measured too (zero blank <img> at the top of
-  // the viewport through a full-speed flick).
-  const RESTORE_MARGIN = '75% 0px'
-  const EVICT_MARGIN = '110% 0px'
+  // MEASURED, decoded-bitmap footprint per route (naturalWidth x
+  // naturalHeight x 4, summed over every <img>, no eviction applied):
+  //
+  //   route        390x844    1440x900
+  //   /              113 MB     127 MB
+  //   /work         11.5 MB    19.5 MB
+  //   /machine      11.1 MB    22.6 MB
+  //   /solutions     8.1 MB    14.1 MB
+  //   /apps          348 MB     354 MB
+  //
+  // Home is not "a few tens of MB" — distance eviction earns its keep there,
+  // and /apps shows a route can be far worse. So eviction stays, but the
+  // DISTANCE half of it is now gone entirely: the only thing left that can
+  // evict an image is the budget sweep below, which only fires once total
+  // resident bitmaps are actually OVER BUDGET, and even then only picks the
+  // single furthest image from the viewport, one at a time, and never an
+  // image within one full viewport of the reader (`gap <= vh` in the sweep,
+  // unchanged). That is already "many viewports away, not one or two" by
+  // construction — it does not need its own separate, more aggressive rule
+  // sitting in front of it doing the same job worse.
+  //
+  // RESTORE_MARGIN still exists and is now the ONLY margin: it decides how
+  // far ahead of the reader a bitmap the budget sweep evicted gets its lead
+  // time to decode back in, via decodeAhead() above. Raised from 75% to
+  // 200% of a viewport (from ~630px to ~1.9k px of runway at 932px) because
+  // decodeAhead() is now doing real work — an off-DOM clone, a decode()
+  // await, THEN the write — and that needs to finish before the image is on
+  // screen, not just before it is legible.
+  const RESTORE_MARGIN = '200% 0px'
 
   const restoreIO = new IntersectionObserver((entries) => {
     for (const e of entries) if (e.isIntersecting) queueRestore(e.target)
   }, { rootMargin: RESTORE_MARGIN })
-
-  const evictIO = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (e.isIntersecting) continue
-      const i = restoreQueue.indexOf(e.target)
-      if (i !== -1) restoreQueue.splice(i, 1)
-      evict(e.target)
-    }
-  }, { rootMargin: EVICT_MARGIN })
 
   // THE ACTUAL BUDGET.
   //
@@ -717,11 +784,35 @@ export function imageBudget({ force = false } = {}) {
   // intersection change to bring it back, and would sit blank until the reader
   // scrolled it away and back.
   //
-  // 52 MB against an iOS Safari per-tab ceiling that starts biting somewhere
-  // north of ~200 MB for the whole tab: the bitmaps are the largest single
-  // line, but the JS heap, the WebGL context, the compositor's own layer
-  // backing and the decoded fonts all sit next to them.
-  const BUDGET_BYTES = 52 * 1024 * 1024
+  // Raised from 52 MB to 160 MB, 13 Aug 2026, alongside dropping the
+  // distance-only evictIO above. MEASURED, raw decoded footprint of the home
+  // page at REST — the route this budget spends the most time watching — is
+  // 113 MB at 390x844 and 127 MB at 1440x900 (see the table above evictIO's
+  // old declaration). That is a snapshot, not the real peak: #apps
+  // (AppsShowcase.svelte, "THE STAGE") mounts a brand-new <img> per product
+  // as the reader scrolls past its rail — a deliberate scroll-scrubbed
+  // design, not a bug — and every product mounted so far stays in the
+  // document, so the resident total keeps climbing through that section.
+  // MEASURED end to end, a full scroll-to-bottom-and-back with this budget
+  // effectively disabled to observe the real number (qa/scroll-reload.mjs):
+  // peak resident bitmaps reached 121 MB at 430x932 and 141 MB at 1440x900.
+  // 52 MB was nowhere near that; 90 MB and then 140 MB were each tried and
+  // still too tight — 140 MB left zero margin against the measured 141 MB
+  // peak, and any touch-capable device at that viewport (an iPad in
+  // landscape, not just phones — `pointer: coarse` is what gates this whole
+  // pass, not screen size) would have started firing the sweep again on
+  // perfectly ordinary scrolling, which is exactly the extra eviction that,
+  // combined with the old distance rule, produced the client's reload
+  // report. 160 MB sits comfortably above the measured 141 MB peak, while
+  // staying well under the iOS Safari per-tab ceiling this budget exists for
+  // (starts biting somewhere north of ~200 MB for the whole tab: JS heap,
+  // the WebGL context, the compositor's own layer backing and the decoded
+  // fonts all sit next to the bitmaps, not on top of a separate ceiling).
+  // Genuinely heavy routes (measured: /apps at 348-354 MB AT REST, before
+  // its own showcase mounts anything extra) still hit this ceiling and still
+  // get the furthest-first eviction below — this number is a real cap, not a
+  // formality.
+  const BUDGET_BYTES = 160 * 1024 * 1024
 
   let sweepQueued = false
   const sweep = () => {
@@ -793,7 +884,6 @@ export function imageBudget({ force = false } = {}) {
       if (seen.has(img)) continue
       seen.add(img)
       restoreIO.observe(img)
-      evictIO.observe(img)
       // a newly decoded bitmap is the only thing that can put us over
       img.addEventListener('load', onImgLoad)
       // …and one that is ALREADY decoded when we get here (the hero, anything
@@ -818,7 +908,6 @@ export function imageBudget({ force = false } = {}) {
   return () => {
     mo.disconnect()
     restoreIO.disconnect()
-    evictIO.disconnect()
     window.removeEventListener('scroll', scheduleSweep)
     window.removeEventListener('resize', onResize)
     window.removeEventListener('orientationchange', onResize)
