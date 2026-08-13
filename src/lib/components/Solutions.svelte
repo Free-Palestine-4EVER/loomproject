@@ -254,6 +254,29 @@
   const pinned = $derived(!reducedMotion.current)
   let tourIndex = $state(0)
 
+  /* ——— THE PIN MECHANISM STAYS NATIVE `position: sticky` (13 Aug 2026) ———
+     A same-session pass briefly replaced this with a JS-driven `position:
+     absolute` + `transform: translateY()`, written from a scroll handler, on
+     the theory that `position: sticky` recomputing its own offset against the
+     scroller every frame was the actual source of the client's Safari
+     "shake" (the two backdrop-filter-layer-promotion attempts before it had
+     already shipped and both failed — see the removed-blur comments on
+     `.sol-bar` and `.sol-panelcard` in solutions.css, which stay removed).
+     That replacement is REVERTED. The reason is iOS Safari specifically:
+     WebKit throttles `scroll` event dispatch during momentum scrolling, so a
+     pin whose position is written from a scroll handler cannot keep up with
+     a flick on the exact platform the client is complaining about — this
+     component's own instrumentation caught a 15-36px lag from adding a
+     single `requestAnimationFrame` hop between the scroll event and the
+     write, even writing synchronously in the handler; real iOS momentum
+     throttling is worse than that and is not something this environment can
+     measure. `position: sticky` is positioned by the compositor directly on
+     iOS, with no JS round trip at all, which is precisely why it is the
+     right primitive here — trading its subtle paint artifact for a gross,
+     visible positional lag is a worse bug, not a fix. So: native sticky,
+     for every visitor, unconditionally — see `.sol-pin.is-pinned
+     .sol-pin-inner` in solutions.css. */
+
   // Same rAF-throttled, passive-listener contract as Products.svelte's
   // stage — a scroll-linked progress read, not a spring simulation on the
   // main thread (see PORTING.md rule 2).
@@ -563,116 +586,25 @@
     return cut < 0 ? { title: d, rest: '' } : { title: d.slice(0, cut), rest: d.slice(cut + 3) }
   }
 
-  /* ——— THE CARD'S HEIGHT, RESERVED FROM THE REAL DATA — the fix for the
-     client-reported "jiggle" ———
-     The card is bottom-anchored (`.sol-answer-slot { position: absolute;
-     bottom: … }`, see solutions.css) so it can sit straddling the seam of
-     the photograph. That means its HEIGHT is its TOP edge: whatever grows
-     or shrinks the card pushes the top up or drags it down, and the tour
-     changes card thirty times as it scrolls.
-
-     A round of per-element `min-height`s (the deliverable rows, the CTA)
-     already reserves the two most obviously variable rows — see the
-     comments lower in solutions.css — but measuring the live section still
-     showed the card swinging ~100px at 1440 (450px → 552px) because two more
-     things were never pinned down: the one-line hook ("A full room on a
-     Tuesday.") vs the two-line one ("Own the order before the aggregator
-     takes its cut.") is a 17px difference nothing was reserving, and the
-     per-row reservations only cover EACH row in isolation, not the sum.
-
-     Rather than add yet another hand-measured magic number (the ones in the
-     CSS already required three separate corrections as edge cases were
-     found), this reserves the card's height directly from the real copy:
-     clone the card that's actually on screen, drop the clone off-screen at
-     the SAME width, swap in every industry's name/hook/deliverables/CTA
-     label in turn, and take the tallest result. That number becomes
-     `--sol-card-h`, which `.sol-panelcard` reserves as a `min-height` (never
-     `height` — a row that somehow runs longer than every industry measured
-     here still grows instead of clipping). Recomputed on resize because the
-     wrap points move with the card's width at every breakpoint (measured
-     stable at 390/820/1440). */
-  function measureCardHeight() {
-    if (!browser || !pinEl) return
-    const liveSlot = pinEl.querySelector('.sol-answer-slot')
-    const liveCard = liveSlot?.querySelector('.sol-panelcard.has-photo')
-    if (!liveSlot || !liveCard) return
-
-    const ghostSlot = liveSlot.cloneNode(true)
-    ghostSlot.removeAttribute('id')
-    ghostSlot.setAttribute('aria-hidden', 'true')
-    ghostSlot.style.visibility = 'hidden'
-    ghostSlot.style.pointerEvents = 'none'
-    const ghostCard = ghostSlot.querySelector('.sol-panelcard')
-    // clear any previously-set reservation so this measures NATURAL height
-    ghostCard.style.minHeight = '0'
-    liveSlot.parentElement.appendChild(ghostSlot)
-
-    const nameEl = ghostCard.querySelector('.sol-answer-name')
-    const hookEl = ghostCard.querySelector('.sol-answer-hook')
-    const kickerEl = ghostCard.querySelector('.sol-answer-head .sol-answer-kicker')
-    const items = ghostCard.querySelectorAll('.sol-deliverables li > span')
-    const ctaText = ghostCard.querySelector('.sol-cta .gbtn-label, .sol-cta .wool-btn-text, .sol-cta .wool-btn-label')
-    /* The two blocks restored to the card are per-industry copy of VERY
-       different lengths (the agent paragraph runs 90-190 characters across the
-       thirty), so they have to be swapped in the ghost too. Miss them and the
-       reservation is measured against whichever industry happened to be
-       showing at mount, the card's real height varies underneath a
-       bottom-anchored slot, and the tour gets its top-edge step back — the
-       exact failure `--sol-card-h` exists to prevent. */
-    const moonEl = ghostCard.querySelector('.sol-answer-moon')
-    const agentEl = ghostCard.querySelector('.sol-agent-copy')
-
-    let max = 0
-    for (const n of NICHES) {
-      if (nameEl) nameEl.textContent = n.name
-      if (hookEl) hookEl.textContent = n.hook
-      if (moonEl) moonEl.textContent = n.moon
-      if (agentEl) agentEl.textContent = n.agent
-      if (kickerEl) kickerEl.textContent = GROUP_LABEL[n.group]
-      n.deliverables.forEach((d, i) => {
-        const span = items[i]
-        if (!span) return
-        const parts = deliverableParts(d)
-        span.textContent = ''
-        const b = document.createElement('b')
-        b.className = 'sol-deliv-t'
-        b.textContent = parts.title
-        span.appendChild(b)
-        if (parts.rest) span.appendChild(document.createTextNode(' — ' + parts.rest))
-      })
-      // Match the LIVE label exactly (see `mobileCta` above) — measuring the
-      // ghost against the full "Build my <name> system" string while the
-      // phone is actually showing the constant "Get started" would reserve
-      // height nothing on screen ever uses, eating into the 15% budget for
-      // no visual reason.
-      if (ctaText) ctaText.textContent = mobileCta ? 'Get started' : `Build my ${n.name} system`
-      max = Math.max(max, ghostCard.getBoundingClientRect().height)
-    }
-
-    ghostSlot.remove()
-    if (max > 0) pinEl.style.setProperty('--sol-card-h', `${Math.ceil(max)}px`)
-    // the reservation just changed the track's layout, so the scroll loop's
-    // cached geometry is stale by exactly one write. Refresh it here rather
-    // than let the rAF read it back every frame.
-    measurePin()
-  }
-
-  // Runs once the real card exists, and again whenever the width it wraps
-  // at changes — a resize handler, debounced with the same rAF-coalescing
-  // idiom the tour's own scroll listener uses just above, so a drag-resize
-  // does not re-measure thirty industries on every intermediate pixel.
-  $effect(() => {
-    if (!browser || !pinEl) return
-    let raf = 0
-    const run = () => { raf = 0; measureCardHeight() }
-    const schedule = () => { if (!raf) raf = requestAnimationFrame(run) }
-    schedule()
-    window.addEventListener('resize', schedule)
-    return () => {
-      if (raf) cancelAnimationFrame(raf)
-      window.removeEventListener('resize', schedule)
-    }
-  })
+  /* ——— THE GHOST MEASURER IS GONE (13 Aug 2026) ———
+     This used to be `measureCardHeight()`: on mount and on every resize, it
+     cloned the on-screen card off-screen, swapped every one of the thirty
+     industries' name/hook/deliverables/CTA label through it in turn, and
+     wrote the tallest result to `--sol-card-h` — a `min-height` reservation
+     on `.sol-panelcard` — because the card used to be BOTTOM-anchored
+     (`.sol-answer-slot { bottom: … }`), which meant its height was its own
+     top edge, and the tour changes card thirty times a scrub.
+     Both premises are gone. "THE ANSWER LOSES ITS CARD" and the mobile "15%
+     budget" pass (see solutions.css) removed the card's plate entirely and
+     re-anchored the block from the TOP (desktop: `top: clamp(…)`) or flush
+     to the stage's own edges (mobile: `left/right/bottom: 0`) — a fixed
+     anchor a taller card can only grow AWAY from, never move. And every row
+     that actually varies by industry (name, hook, the arc, each deliverable,
+     the agent note) now carries its OWN `min-height` + `line-clamp` reserved
+     in that row's own line-height, verified against all thirty by
+     `qa/sol-align.mjs`. Nothing above this comment writes to `--sol-card-h`
+     any more and nothing below reads it — nothing left to clone, swap and
+     measure thirty times on every resize. */
 </script>
 
 {#snippet groupIcon(group, cls = '')}
