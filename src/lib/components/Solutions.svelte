@@ -136,6 +136,37 @@
     )
   }
 
+  // ——— MOBILE CTA LABEL — the phone card's own "same length for all
+  // thirty" rule ———
+  // Every other row on the phone's stripped-down card is fixed length by
+  // construction (see solutions.css's mobile block: a two-line-clamped
+  // name, a one-line-clamped hook). The CTA was the one row that was NOT
+  // fixed length — its label carries the industry's own name ("Build my
+  // Med Spas & Aesthetics system" vs "Build my Law Firms system"), which
+  // is exactly the per-industry variance that already reopened this same
+  // tour's jiggle bug once (see the desktop CTA `min-height` reservations
+  // elsewhere in solutions.css, and `--sol-card-h` above). At the
+  // ~15%-of-stage budget the client set for the phone card there is no
+  // room left to reserve two lines for the longest label across thirty
+  // industries, so the label itself goes constant instead: "Get started"
+  // opens the exact same wizard, pre-filled with the exact same industry
+  // (`wizard.open({ niche: shown.name })` at the CTA call below is
+  // unchanged) — only the button's own caption stops carrying the name.
+  // A `matchMedia` flag, not CSS-only truncation: an ellipsis-clipped
+  // "Build my Med Spas & Aesthetics s…" is still the WIDEST possible label
+  // fighting for the smallest possible pill, and on a narrow enough phone
+  // it can wrap before it ever gets far enough to clip. A fixed string
+  // never can, and it costs nothing on desktop, which never reads this flag.
+  let mobileCta = $state(false)
+  $effect(() => {
+    if (!browser) return
+    const mq = window.matchMedia('(max-width: 939px)')
+    mobileCta = mq.matches
+    const onChange = (e) => { mobileCta = e.matches }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  })
+
   let query = $state('')
   let pinnedKey = $state(NICHES[0].key)
   let focused = $state(false)
@@ -609,7 +640,12 @@
         span.appendChild(b)
         if (parts.rest) span.appendChild(document.createTextNode(' — ' + parts.rest))
       })
-      if (ctaText) ctaText.textContent = `Build my ${n.name} system`
+      // Match the LIVE label exactly (see `mobileCta` above) — measuring the
+      // ghost against the full "Build my <name> system" string while the
+      // phone is actually showing the constant "Get started" would reserve
+      // height nothing on screen ever uses, eating into the 15% budget for
+      // no visual reason.
+      if (ctaText) ctaText.textContent = mobileCta ? 'Get started' : `Build my ${n.name} system`
       max = Math.max(max, ghostCard.getBoundingClientRect().height)
     }
 
@@ -855,7 +891,7 @@
                        `.sol-console .sol-answer-kicker` in solutions.css),
                        which is where a per-category signal belongs. -->
                   <GradientButton
-                    label={`Build my ${shown.name} system`}
+                    label={mobileCta ? 'Get started' : `Build my ${shown.name} system`}
                     class="sol-cta"
                     onclick={() => wizard.open({ niche: shown.name })}
                   />
