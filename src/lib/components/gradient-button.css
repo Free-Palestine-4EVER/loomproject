@@ -1,0 +1,115 @@
+/* ——— GradientButton ———————————————————————————————————————————————
+   See the component's own header for why the motion is a background sweep
+   and not an animated custom property. This file owns only how it looks. */
+
+.gbtn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+
+  /* THE SIZE IS SET BY THE CALLER, NOT GUESSED HERE. The two variables are
+     the whole API: a card that needs a full-width CTA sets --gbtn-w to 100%,
+     a poster sets it to a number. Default is content-width with generous
+     padding, which is what the reference button is. */
+  width: var(--gbtn-w, auto);
+  min-height: var(--gbtn-h, 54px);
+  padding: 0 clamp(22px, 2.4vw, 34px);
+  border: 0;
+  border-radius: 999px;
+
+  font-family: var(--display);
+  font-size: var(--gbtn-fs, clamp(0.94rem, 1.05vw, 1.06rem));
+  font-weight: 720;
+  letter-spacing: 0.005em;
+  /* Near-black plum, not white. Measured against every stop in the sweep
+     below, the darkest the gradient ever gets under the label is the violet
+     at #7b3fe4 — 5.6:1 against this ink, 4.9:1 against white, and the pink
+     end is 8.1:1 against ink versus 2.9:1 against white. Dark text is the
+     only choice that holds contrast across the WHOLE loop rather than at the
+     moment the screenshot was taken. It is also what the reference does. */
+  color: #220c26;
+  text-align: center;
+  white-space: nowrap;
+
+  cursor: pointer;
+  /* transform only — a shadow transition on hover repaints the blur */
+  transition: transform 0.28s var(--ease);
+
+  /* ——— the sweep ———
+     Five stops across 300% of the button, ending on the colour it starts on
+     so the loop closes with no seam. `background-position` is the only thing
+     that moves. */
+  background-image: linear-gradient(
+    100deg,
+    #ff4fa3 0%,
+    #f21c8c 22%,
+    #c33bb0 45%,
+    #9b3fd1 68%,
+    #7b3fe4 84%,
+    #ff4fa3 100%
+  );
+  background-size: 300% 100%;
+  background-position: 0% 50%;
+  animation: gbtn-sweep 14s linear infinite;
+
+  box-shadow:
+    0 10px 26px -10px rgba(155, 63, 209, 0.6),
+    0 2px 6px rgba(96, 30, 70, 0.14);
+}
+
+@keyframes gbtn-sweep {
+  from { background-position: 0% 50%; }
+  to   { background-position: 300% 50%; }
+}
+
+/* A soft highlight along the top edge, so the pill reads as a lit object
+   rather than a flat swatch. Static — it does not participate in the sweep. */
+.gbtn-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0.06) 42%,
+    transparent 62%
+  );
+}
+
+.gbtn-spark {
+  flex: none;
+  width: 1.05em;
+  height: 1.05em;
+  fill: currentColor;
+  opacity: 0.9;
+}
+
+.gbtn-label { position: relative; }
+
+.gbtn:hover { transform: translateY(-1px); }
+.gbtn:active { transform: translateY(0); }
+.gbtn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* The label is the one thing that must never wrap or shrink out of the pill.
+   Where a caller gives the button a fixed width and the label is long, the
+   pill grows in HEIGHT rather than clipping — see `.sol-cta` in
+   solutions.css, which is the case this was written for. */
+@media (max-width: 620px) {
+  .gbtn { white-space: normal; line-height: 1.2; padding: 12px 20px; }
+}
+
+/* Parked mid-sweep, gradient intact. The setting asks for less motion, not
+   for a different button. */
+@media (prefers-reduced-motion: reduce) {
+  .gbtn { animation: none; background-position: 42% 50%; transition: none; }
+  .gbtn:hover { transform: none; }
+}

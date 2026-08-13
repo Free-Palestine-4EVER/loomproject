@@ -37,7 +37,11 @@
   import { reducedMotion, reveal } from '$lib/motion.svelte.js'
   import { wizard } from '$lib/wizard.svelte.js'
   import SplitWords from './SplitWords.svelte'
-  import WoolButton from './WoolButton.svelte'
+  /* The wool spool was the CTA here until 13 Aug 2026. It is a photograph
+     with the label burned into it, which is right for a poster and wrong
+     inside a dense card — see GradientButton.svelte's header. The knitted
+     buttons are untouched everywhere else on the site. */
+  import GradientButton from './GradientButton.svelte'
   import Pic from './Pic.svelte'
   import './solutions.css'
 
@@ -502,7 +506,7 @@
     const hookEl = ghostCard.querySelector('.sol-answer-hook')
     const kickerEl = ghostCard.querySelector('.sol-answer-head .sol-answer-kicker')
     const items = ghostCard.querySelectorAll('.sol-deliverables li > span')
-    const ctaText = ghostCard.querySelector('.sol-cta .wool-btn-text, .sol-cta .wool-btn-label')
+    const ctaText = ghostCard.querySelector('.sol-cta .gbtn-label, .sol-cta .wool-btn-text, .sol-cta .wool-btn-label')
     /* The two blocks restored to the card are per-industry copy of VERY
        different lengths (the agent paragraph runs 90-190 characters across the
        thirty), so they have to be swapped in the ghost too. Miss them and the
@@ -720,9 +724,8 @@
                     Tell us what you actually do and the loom sets itself up for it — same agents,
                     same content engine, tuned to your trade instead of these thirty.
                   </p>
-                  <WoolButton
+                  <GradientButton
                     label={`Ask about "${query}"`}
-                    yarn="magenta"
                     class="sol-cta"
                     onclick={() => wizard.open({ niche: query })}
                   />
@@ -777,9 +780,8 @@
                        the kicker's ink and the accent rule beside it (see
                        `.sol-console .sol-answer-kicker` in solutions.css),
                        which is where a per-category signal belongs. -->
-                  <WoolButton
+                  <GradientButton
                     label={`Build my ${shown.name} system`}
-                    yarn="magenta"
                     class="sol-cta"
                     onclick={() => wizard.open({ niche: shown.name })}
                   />

@@ -85,9 +85,9 @@
      10 Aug 2026 "normal lightweight font sitewide" request does not reach in
      here: --display/--body/--bloom are scoped back to what they were before
      that change, so nothing in this section moved. The cycling word and the
-     drifting bands never read these tokens anyway (TypeShowcase.jsx sets
+     ghost field never read these tokens anyway (TypeShowcaseAct.svelte sets
      literal family names inline) — this override is for .ts-h2 and the
-     .ts-band fallback, the two spots in this file that do. */
+     .ts-ghost-row__seg fallback, the two spots in this file that do. */
   --display: 'Clash Display', 'Avenir Next', sans-serif;
   --body: 'Satoshi', 'Helvetica Neue', sans-serif;
   --bloom: var(--bloom-stack);
@@ -105,25 +105,86 @@
 
 .ts-petals { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
 
-/* drifting alphabet bands */
-.ts-bands {
+/* ——————————————————————————————— the ghost field
+   13 Aug 2026 — eight marquee rows stacked down the FULL height of the
+   section (it used to be two, both parked at the top and bottom third; see
+   TypeShowcaseAct's GHOST_ROWS comment for why the old scroll-tied version
+   could not just be duplicated six times as-is). Structure per row:
+
+     .ts-ghost-row            — one lane, `overflow: hidden` so a track that
+                                 is 2x its own width never shows past the lane
+     .ts-ghost-row__track     — the thing that actually moves; TWO identical
+                                 .ts-ghost-row__seg children laid out in a row
+                                 by `display: flex`, so the track is exactly
+                                 twice as wide as one copy of the text
+     .ts-ghost-row__seg       — one copy of the row's text, `flex: none` so
+                                 flex never tries to shrink it to fit
+
+   THE LOOP: a left-drifting track animates translate3d(0,…) →
+   translate3d(-50%,…). At -50% the SECOND copy is sitting exactly where the
+   first one started, so the frame the animation restarts on is pixel-
+   identical to the frame it started on — the "seam" is invisible because
+   there is no seam, not because it is hidden well. A right-drifting track
+   just runs the same keyframe backwards (start at -50%, end at 0), which is
+   why there are two @keyframes below rather than one played in reverse with
+   `animation-direction: reverse` — reverse would also reverse the EASING,
+   and `linear` reversed is still `linear`, but writing two explicit
+   keyframes keeps that fact from ever needing to be reasoned about again.
+
+   `translate3d`, never `translateX`: the 3d form is what puts the layer on
+   its own compositor layer in every engine that matters here, so eight of
+   these animating at once cost a GPU blend and not eight live layout/paint
+   passes on the main thread — the same reason the rest of this file scrubs
+   `p` into `transform`/`opacity` and nothing else.
+
+   OPACITY, NOT z-index alone, is what keeps this a background: `tone--fill`
+   rows are near-white ink at 4–5%, `tone--outline` rows are the brand
+   magenta at 6–8% — the same two colours the specimen word itself uses at
+   full strength (`--ink` / `--magenta-deep`), just diluted, so the field
+   reads as an echo of the word rather than a second, competing text. */
+.ts-ghost-field {
   position: absolute; inset: 0; z-index: -1;
-  display: flex; flex-direction: column; justify-content: space-between;
-  padding: 14vh 0; pointer-events: none;
+  display: flex; flex-direction: column; justify-content: space-evenly;
+  padding: 4vh 0; pointer-events: none;
 }
-.ts-band {
-  /* NOT a 'LOOM …' family here. The bands always render text, so a pattern
-     face named in this rule would be fetched the moment the section paints —
-     which is exactly what TypeShowcaseAct's `near`/`onScreen` gates exist to
-     prevent. The gated family arrives as an inline style; this is only the
-     fallback the band is set in until it does. */
-  font-family: var(--display), sans-serif;
-  font-size: clamp(60px, 9vw, 150px);
-  line-height: 1; white-space: nowrap;
-  color: rgba(242, 240, 247, 0.045);
+.ts-ghost-row { overflow: hidden; width: 100%; }
+.ts-ghost-row__track {
+  display: flex; width: max-content; white-space: nowrap;
   will-change: transform;
+  /* `--ghost-dur` arrives as an inline custom property per row (see
+     TypeShowcaseAct.svelte) — each of the eight rows runs a different,
+     mutually-irregular period so they drift in and out of phase with each
+     other instead of eight lanes ever snapping into a single visible wall of
+     type on the same beat. The animation-name switches per direction below;
+     duration and iteration count stay here so both directions share them. */
+  animation: ghost-drift-left var(--ghost-dur, 50s) linear infinite;
 }
-.ts-band--low { color: rgba(242, 28, 140, 0.07); }
+.ts-ghost-row--right .ts-ghost-row__track { animation-name: ghost-drift-right; }
+@keyframes ghost-drift-left {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes ghost-drift-right {
+  from { transform: translate3d(-50%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+.ts-ghost-row__seg {
+  /* NOT a 'LOOM …' family here — same reasoning as the old .ts-band fallback
+     it replaces: a pattern face named directly in this rule would be
+     fetched the instant the section paints, ahead of the `near`/`onScreen`
+     gates TypeShowcaseAct exists to enforce. The gated family lands as an
+     inline style on `.ts-ghost-row__track`'s sibling text nodes once armed;
+     until then every row reads in the body display font, which is why the
+     unarmed state does not look broken, only plain. */
+  flex: none;
+  font-family: var(--display), sans-serif;
+  line-height: 1;
+  padding-right: 0.5em;
+}
+.ts-ghost-row--lg .ts-ghost-row__seg { font-size: clamp(56px, 8.2vw, 138px); }
+.ts-ghost-row--sm .ts-ghost-row__seg { font-size: clamp(36px, 5.2vw, 90px); }
+.ts-ghost-row--fill .ts-ghost-row__seg { color: rgba(242, 240, 247, 0.045); }
+.ts-ghost-row--outline .ts-ghost-row__seg { color: rgba(242, 28, 140, 0.07); }
 
 .ts-kicker {
   /* The kicker is lit from p = 0 now (it used to fade in over the first 5% of
@@ -331,7 +392,7 @@
    cut names plus their pips it still is not, so the kicker drops to its own
    line UNDER the ticker instead of sitting beside it. */
 .ts--b .ts-kicker { top: clamp(104px, 13vh, 150px); left: var(--pad); }
-.ts--b .ts-bands { padding: 10vh 0 26vh; }
+.ts--b .ts-ghost-field { padding: 10vh 0 26vh; }
 
 /* ═══════════════════════════════ layout c — SPECIMEN
    The word blurs back into a wash and a solid specimen card lands over it.
@@ -401,10 +462,14 @@
   .ts-word-anchor { top: 40%; }
   .ts-face-label { font-size: 10px; letter-spacing: 0.16em; }
 
-  /* The two drifting bands were tuned for a wide viewport; at phone width they
-     crop to a couple of letters and read as debris rather than as type. */
-  .ts-band { font-size: clamp(46px, 17vw, 90px); }
-  .ts-bands { padding: 17vh 0; }
+  /* The ghost field's row sizes were tuned for a wide viewport; at phone
+     width the large rows crop to a couple of letters and read as debris
+     rather than as type, so both tiers come down together and the lanes sit
+     a little closer — eight rows still have to fit a much shorter section
+     (480vh vs 560vh, see .ts height above) without any two overlapping. */
+  .ts-ghost-row--lg .ts-ghost-row__seg { font-size: clamp(40px, 15vw, 78px); }
+  .ts-ghost-row--sm .ts-ghost-row__seg { font-size: clamp(28px, 10vw, 54px); }
+  .ts-ghost-field { padding: 2vh 0; }
 
   /* The copy block has to clear a phone viewport in ONE screen — it is never
      scrolled past on its own, the whole section is pinned. Everything below
@@ -522,7 +587,17 @@
   .ts-word-shift, .ts-word { transform: none !important; }
   .ts-word-shift { opacity: 1 !important; filter: none !important; }
   .ts-copy { transform: none !important; opacity: 1 !important; }
-  .ts-bands { display: none; }
+  /* NOT `display: none`. The old two-row `.ts-bands` was hidden outright
+     here, because it was driven by the same scroll-linked `interp()` as
+     everything else on this list — with the pin gone there was no `p` left
+     to drive it, so a live band would have frozen at whatever inline
+     `translateX` it last painted, which is indistinguishable from a bug.
+     The ghost field's eight rows are CSS `animation: … infinite` now, wholly
+     independent of `p` (see the ghost field comment above `.ts-ghost-field`
+     in this file) — reduced motion has to stop the ANIMATION, not remove the
+     texture, so this section keeps its background instead of losing it. The
+     brief is explicit that these rows stay visible, only parked. */
+  .ts-ghost-row__track { animation-play-state: paused; }
   /* THE KICKER AND THE RAIL JOIN THE FLOW TOO. Both are absolutely placed
      against a full viewport (`top: 12.5vh`, `bottom: 4vh`) — which is right
      while the section is a 100vh pin and nonsense once it is an auto-height

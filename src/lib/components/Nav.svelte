@@ -26,6 +26,7 @@
 
   let open = $state(false)
   let scrolled = $state(false)
+  let hidden = $state(false)
   let burgerEl = $state(null)
   let menuEl = $state(null)
 
@@ -48,21 +49,56 @@
   // ── the header's scrolled state ──────────────────────────────────────────
   // Hysteresis, not a single threshold: a bar that toggles at exactly one
   // scrollY flickers when a reader rests the page near it.
-  /* ── THE BAR NO LONGER RETRACTS (13 Aug 2026) ──
-     It used to hide on the way down and come back on the way up. On a 36,000px
-     page that means the one control that can get you out of a section is
-     absent for most of the time you spend scrolling through it, and it
-     reappears with a 260ms slide every time a trackpad emits an upward delta —
-     which, with inertia and rubber-banding, is constantly. The header is
-     simply fixed now: always there, always the same height, two paint states
-     (transparent over the hero, frosted once scrolled) and nothing that moves.
-     One passive listener writing one boolean, with the hysteresis kept — it
-     guards against the frosted state flickering when a reader rests the page
-     near the threshold, which is a different bug and still real. */
+  /* ── and, on mobile only, whether it is hidden (reinstated 13 Aug 2026) ──
+     This existed once (`git show b93029f`), was deleted a few hours later
+     because a permanently-fixed desktop bar is simpler and the client had not
+     yet asked for retraction back, and is now reinstated for the phone width
+     only — the client wants the bar gone on the way down and back the instant
+     they scroll up, but the desktop "always fixed, always visible" decision
+     from earlier today stands and must not regress. See the long comment on
+     `.nav--hidden` in styles.css for why the mobile/desktop split lives in a
+     CSS media query rather than an `if (desktop)` around the class name here:
+     short version, CSS is authoritative on what actually paints, so a stale
+     `hidden` value surviving a resize can never re-show the retract behaviour
+     on a desktop viewport by accident.
+
+     `isMobile()` is read fresh every tick rather than cached, because caching
+     it would need its own resize listener to stay correct across an orientation
+     flip or a dev-tools resize — `matchMedia(...).matches` is one boolean read
+     with no allocation, cheaper than the subscription that would replace it.
+     On desktop this is the ONLY work the function does before returning, which
+     is the "don't run the delta math needlessly on desktop" half of the ask:
+     the guard below still executes every scroll tick (removing the listener
+     entirely on desktop would need the same resize plumbing this paragraph
+     just talked itself out of), it just does nothing past one comparison.
+
+     Three guards on the delta math itself, same as the original and kept for
+     the same reasons:
+       · a ~6px dead zone — trackpad inertia and rubber-banding emit tiny
+         alternating deltas, and a bar that answers those just flickers;
+       · never hidden above 120px of scroll, so the top of the page always
+         shows its header rather than it vanishing on the first nudge;
+       · never hidden while `html.menu-open` or `html.overlay-open` is set —
+         retracting the bar out from under an open drawer or case overlay
+         leaves that surface's own header (the drawer renders its own close
+         affordance, but the burger that reopens it lives in `.nav`) attached
+         to nothing the reader can see or tap. */
   onMount(() => {
+    let last = window.scrollY
+    const isMobile = () => window.matchMedia('(max-width: 939px)').matches
     const fn = () => {
       const y = window.scrollY
       scrolled = y > 56 ? true : y < 32 ? false : scrolled
+
+      if (!isMobile()) { hidden = false; last = y; return }
+
+      const dy = y - last
+      if (Math.abs(dy) > 6) {
+        const locked = document.documentElement.classList.contains('menu-open') ||
+          document.documentElement.classList.contains('overlay-open')
+        hidden = dy > 0 && y > 120 && !locked
+        last = y
+      }
     }
     fn()
     window.addEventListener('scroll', fn, { passive: true })
@@ -335,7 +371,7 @@
   })
 </script>
 
-<header class="nav {scrolled ? 'nav--scrolled' : ''}">
+<header class="nav {scrolled ? 'nav--scrolled' : ''} {hidden ? 'nav--hidden' : ''}">
   <a class="nav-logo" href="#top" onclick={(e) => go(e, '#top')} aria-label="LOOM — home">
     <img class="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" width="480" height="162" />
   </a>

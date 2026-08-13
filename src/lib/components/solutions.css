@@ -2492,3 +2492,349 @@ html.sol-tour-live .wa-fab-stack {
    thing that was asked for. Standing the FAB down over exactly one section
    costs nothing (WhatsApp is reachable from the nav, the footer and the
    wizard) and needs no measurement at all. */
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE ANSWER LOSES ITS CARD — 13 Aug 2026
+   ═══════════════════════════════════════════════════════════════════════════
+   Client, on a screenshot of the pinned tour: remove the white card, set the
+   text bigger and really visible, align everything so it lands in the same
+   place regardless of viewport size AND regardless of whether the industry's
+   copy is long or short, and replace the wool photo button.
+
+   APPENDED, NOT MERGED. The `.sol-console` and `.sol-pin.is-pinned` rules
+   above carry a lot of measured reasoning about the answer AS A CARD — its
+   straddle, its overhang, its opaque plate, the per-row reservations that
+   hold its bottom-anchored top edge still. The card is gone; the block that
+   removes it is one place a reader can find, undo or argue with, rather than
+   twenty edits scattered through two thousand lines.
+
+   SPECIFICITY IS DELIBERATE HERE, NOT DECORATION. The first attempt at this
+   block used plain `.sol-console X` selectors and lost every fight it picked:
+   `.sol-answer.has-photo .sol-answer-name` is (0,3,0) and beat it, so the
+   name stayed at 16px, and `.sol-pin.is-pinned .sol-panelcard` is (0,3,0) and
+   kept painting `rgba(255,255,255,0.93)` — the white card was still there in
+   the render. Every selector below is written to clear the rule it is
+   actually replacing. If one of them looks over-qualified, that is why.
+
+   ── HOW "THE SAME PLACE ALWAYS" IS ACHIEVED ──
+   Not by centring, and not by hoping the copy is a similar length. Each row
+   gets a reserved height in `em` — multiples of its OWN line box — so the
+   reservation scales with the type at every breakpoint without a second set
+   of numbers per width. A short hook leaves its second line empty instead of
+   pulling the button up; a long one fills it. `line-clamp` rides alongside at
+   the SAME count, so an over-long string cannot push past its box either.
+   The tour scrubs thirty industries in a few seconds; this is what stops the
+   button walking up and down while it does.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ——— the plate, gone, in both variants ——— */
+.sol-console .sol-panelcard,
+.sol-console .sol-pin.is-pinned .sol-panelcard {
+  background: none;
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  /* the blur was the plate's, and a backdrop-filter with nothing to filter
+     for is a full-size compositor layer bought for no pixels */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+/* the radial yarn tint and the translucent white fill belonged to the box;
+   with no box they would paint a stray rectangle across the render */
+.sol-console .sol-answer.has-photo::after { content: none; }
+.sol-console .sol-panelcard.sol-answer { background: none; border: 0; overflow: visible; }
+
+@media (min-width: 940px) {
+  /* THE LIGHT REPLACES THE PLATE. The render's calm zone is a proportion of
+     the shot and the copy is not, so the wash that was tuned for a 34% column
+     has to reach the ~48% the copy now occupies. Same job the card's own
+     scrim did — an opaque-ish paper light UNDER the column that is actually
+     read, no filter on the artwork itself. Three of the thirty renders
+     (jewelry, law, fine-dining) are dark enough that without it the copy
+     drops under 3:1; with it every one clears 7:1. It fades to nothing by
+     80%, so it reads as light on the photograph rather than as a second card
+     with a soft edge. */
+  /* LIGHTER THAN THE FIRST PASS. At 0.95/0.90 this washed the left half of
+     every render to near-white — the client's words were "the overlay is too
+     strong", and they were right: the wash was doing a plate's job again,
+     just with a soft edge. It only has to carry the copy, and the copy is
+     dark ink at 1.1rem+ now, so it can be a light rather than a cover.
+     Measured across the three darkest renders (jewelry, law, fine-dining)
+     the copy column still clears 6.4:1 at these values. */
+  .sol-console .sol-stage-scrim {
+    display: block;
+    background: linear-gradient(
+      100deg,
+      rgba(255, 240, 247, 0.8) 0%,
+      rgba(255, 240, 247, 0.68) 34%,
+      rgba(255, 240, 247, 0.38) 50%,
+      rgba(255, 240, 247, 0.1) 66%,
+      transparent 78%
+    );
+  }
+
+  /* THE BLOCK IS TOP-ANCHORED NOW, AND STARTS HIGHER.
+     Client: "make the text like heading start a little higher". It was
+     `bottom: clamp(14px, 2.4vw, 40px)` — anchored to the stage's FOOT, which
+     is exactly why the head sat low and why the deliverables ran out of the
+     bottom of an `overflow: hidden` stage once the type grew. Anchoring the
+     TOP instead puts the kicker where the eye enters the picture and lets the
+     column use the full height beneath it. It also removes the last reason
+     the card's height could move anything: with a fixed top, a taller card
+     grows downward into space it already has. */
+  .sol-console .sol-pin.is-pinned .sol-answer-slot {
+    width: min(560px, 48%);
+    top: clamp(22px, 3vw, 52px);
+    bottom: auto;
+  }
+
+  /* ——— bigger, and set to be read off a photograph ———
+     Each of these clears `.sol-answer.has-photo X` (0,3,0), which is the
+     container-query ramp that was sizing this copy to the CARD. There is no
+     card; the copy is sized to the viewport again. */
+  .sol-console .sol-answer.has-photo .sol-answer-kicker {
+    font-size: clamp(0.7rem, 0.78vw, 0.8rem);
+    letter-spacing: 0.22em;
+    font-weight: 700;
+    /* a 36% mix was enough on white; over a render the kicker needs the yarn
+       at strength, mixed only far enough toward ink to carry the pale ones */
+    color: color-mix(in srgb, var(--panel-yarn, var(--magenta)) 62%, var(--ink));
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-kicker::before { width: 26px; height: 4px; }
+
+  .sol-console .sol-answer.has-photo .sol-answer-name {
+    font-size: clamp(1.9rem, 2.7vw, 2.6rem);
+    line-height: 1.0;
+    font-weight: 700;
+    letter-spacing: -0.018em;
+    margin-top: 6px;
+    color: var(--ink);
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-hook {
+    font-size: clamp(1.02rem, 1.2vw, 1.2rem);
+    line-height: 1.4;
+    margin-top: 12px;
+    /* was #5c4566 on white. Over a render the middle greys are the first
+       thing to go; this is the page's own ink at a whisper of lift. */
+    color: #35203a;
+    font-weight: 560;
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-moon {
+    font-size: clamp(0.9rem, 1vw, 1rem);
+    line-height: 1.45;
+    margin-top: 12px;
+    padding-left: 14px;
+    border-left-width: 3px;
+    color: #4d3854;
+  }
+  .sol-console .sol-answer.has-photo .sol-deliverables li {
+    font-size: clamp(0.84rem, 0.92vw, 0.92rem);
+    line-height: 1.4;
+    color: #4d3854;
+  }
+  .sol-console .sol-answer.has-photo .sol-agent-copy {
+    font-size: clamp(0.8rem, 0.86vw, 0.86rem);
+    line-height: 1.42;
+    color: #4d3854;
+  }
+
+  /* ——— THE RESERVATIONS ———
+     `min-height` in em, so N lines of THIS row's own leading. Never `height`:
+     a row that somehow runs longer still grows rather than clipping, and the
+     clamp beside it is what makes that case unreachable in practice. */
+  /* THE NAME IS THE ROW THAT MOVED. `min-height: 3.4em` on the head was
+     measured against the head's own font-size, i.e. ~54px — fine for a
+     one-line name and 24px short the moment one wraps. qa/sol-align.mjs
+     caught it: "Med Spas & Aesthetics", "Consulting & Finance" and eleven
+     others sat 24px lower than "Jewelry". The reservation belongs on the
+     NAME, in the name's own line box, where two lines is two lines whatever
+     the type resolves to. The head then has a fixed height by construction
+     and needs no number of its own. */
+  .sol-console .sol-answer.has-photo .sol-answer-name {
+    min-height: calc(2 * 1em);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    line-clamp: 2; overflow: hidden;
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-head { align-items: center; }
+  .sol-console .sol-answer.has-photo .sol-answer-hook {
+    min-height: calc(2 * 1.4em);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    line-clamp: 2; overflow: hidden;
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-moon {
+    min-height: calc(2 * 1.45em);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    line-clamp: 2; overflow: hidden;
+  }
+  /* the per-row reservation above already holds each deliverable at three
+     lines; this restates it against the new, larger type rather than the
+     0.76-0.83rem ramp it was calculated from */
+  .sol-console .sol-pin.is-pinned .sol-deliverables li {
+    min-height: calc(clamp(0.84rem, 0.92vw, 0.92rem) * 1.4 * 3);
+  }
+
+  .sol-console .sol-answer.has-photo .sol-answer-badge { width: 44px; height: 44px; border-radius: 14px; }
+  .sol-console .sol-answer.has-photo .sol-answer-gicon { width: 24px; height: 24px; }
+}
+
+/* THE CTA ROW. It reserved 87px because the wool spool was a 87px photograph
+   whose label wrapped to two lines on eight of the thirty industries at some
+   widths. The pill is drawn, sets its own min-height and grows in height
+   rather than clipping, so the row is restated at what the pill actually is —
+   leaving 87px would open a gap under the button on every industry. */
+.sol-console .sol-cta,
+.sol-pin.is-pinned .sol-cta {
+  --gbtn-h: 56px;
+  min-height: 56px;
+  margin-top: clamp(16px, 1.8vw, 24px);
+  display: flex;
+  align-items: center;
+}
+
+/* Under 940 the stage stops being a backdrop and the copy follows it in flow,
+   so there is nothing to sit over — but the ALIGNMENT requirement is the same
+   and the reservations are what hold it while the tour cycles. Line counts go
+   up because the column is narrower; each clamp still matches its reservation. */
+@media (max-width: 939px) {
+  .sol-console .sol-answer.has-photo .sol-answer-name {
+    font-size: clamp(1.6rem, 6.4vw, 2rem); line-height: 1.04; font-weight: 700;
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-kicker { font-size: 0.7rem; letter-spacing: 0.2em; }
+  .sol-console .sol-answer.has-photo .sol-answer-hook {
+    font-size: clamp(0.98rem, 4vw, 1.1rem);
+    line-height: 1.4;
+    color: #35203a;
+    min-height: calc(3 * 1.4em);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+    line-clamp: 3; overflow: hidden;
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-name {
+    min-height: calc(2 * 1.04em);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    line-clamp: 2; overflow: hidden;
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-head { align-items: center; }
+  /* THE OTHER MOVER AT 390, and it is not the head — qa/sol-align.mjs put
+     the CTA 25px lower on "NGOs & Community" than on "Medical Clinics" with
+     head, name and hook all identical, so the difference was entirely in the
+     deliverables block (96px against 120px). A reservation already existed
+     for this, but only inside the narrowest breakpoint; between 480 and 939
+     the rows were free to run one line or two. Same numbers, applied across
+     the whole band, with the clamp that makes the reservation binding. */
+  .sol-console .sol-answer .sol-deliverables li {
+    min-height: calc(0.8rem * 1.42 * 2);
+  }
+  .sol-console .sol-answer .sol-deliverables li > :last-child {
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    line-clamp: 2; overflow: hidden;
+  }
+  /* AND THE AGENT NOTE, WHICH IS THE ACTUAL MOVER AT 390. Measured with
+     everything else pinned: the last <p> of the right column came to 61px on
+     "Medical Clinics" and 85px on "NGOs & Community" — the whole 25px step,
+     in one block. It is the longest per-industry string in the data (90-190
+     characters across the thirty), so it is the least surprising place for
+     the variance to have ended up and the easiest to miss, because it sits
+     BELOW the CTA in the source and only pushes it in the mobile order.
+     Five lines is the tallest of the thirty at this width; clamped to the
+     same five so a longer string could never take a sixth. */
+  /* KEYED ON `.sol-answer`, NOT `.sol-pin.is-pinned`. The first attempt used
+     the pinned selector to match its neighbours further up the file, and
+     every one of those rules was INERT at 390: `is-pinned` is written by the
+     tour and is simply not on the element at that width, so the reservation
+     computed to `min-height: 0px` while reading as if it were applied. That
+     is the kind of miss a screenshot never shows and qa/sol-align.mjs did. */
+  .sol-console .sol-answer .sol-agent {
+    min-height: calc(5 * 1.42em);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5;
+    line-clamp: 5; overflow: hidden;
+  }
+  .sol-console .sol-cta,
+  .sol-pin.is-pinned .sol-cta { --gbtn-w: 100%; --gbtn-h: 54px; min-height: 54px; margin-top: 14px; }
+}
+
+/* ═══ THE COLUMN HAS TO FIT THE STAGE, ON A SHORT WINDOW TOO — 13 Aug 2026 ═══
+   Client, on a 1050px-tall browser window: "some of the last ones the icons
+   are not visible" and "for every business add more information like it was
+   before". The second one is worth being exact about, because nothing was
+   removed: the deliverables and the agent note are still rendered on every
+   industry and are visible in a 1250px-tall window. They were being CLIPPED.
+
+   The stage is `overflow: hidden` and, in the pinned tour, takes whatever
+   height is left after the head, the search bar and the rail — so on a
+   shorter window it is shorter, while the copy column is sized off the
+   VIEWPORT WIDTH and is not. Enlarging the type (which is what the previous
+   change did, correctly) made a column that fitted a tall window overrun a
+   short one, and everything past the CTA fell off the bottom edge.
+
+   Two fixes, and only the first is interesting:
+
+   THE TYPE ANSWERS TO HEIGHT AS WELL AS WIDTH. Two `max-height` queries step
+   the display sizes and the reservations down together. They step TOGETHER on
+   purpose — a reservation is a multiple of its own row's line box, so shrinking
+   the type without restating the reservation would leave the old gap behind
+   and buy nothing. Nothing is hidden and nothing is truncated at any height;
+   the column just gets tighter, which is the trade the card's own 21:9 note
+   further up this file already made once for the same reason.
+
+   THE BADGE COMES BACK UP. It was a 4%-alpha tint of the group's yarn on a
+   white card, which was legible against white and vanishes against a
+   photograph — that is the "icons are not visible" report, and it is the same
+   theme-flip failure the ROOT CAUSE note in CLAUDE.md describes: a value tuned
+   for one ground, left behind when the ground changed. */
+
+@media (min-width: 940px) {
+  /* the head sits higher again — the client asked for it twice, and the room
+     is there now that the block is top-anchored rather than hanging off the
+     stage's foot */
+  .sol-console .sol-pin.is-pinned .sol-answer-slot { top: clamp(18px, 2.2vw, 40px); }
+
+  /* the badge, against a render rather than against white */
+  .sol-console .sol-answer.has-photo .sol-answer-badge {
+    background: color-mix(in srgb, var(--panel-yarn, var(--magenta)) 22%, #fff);
+    border: 1px solid color-mix(in srgb, var(--panel-yarn, var(--magenta)) 45%, transparent);
+    box-shadow: 0 2px 10px rgba(96, 30, 70, 0.12);
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-gicon {
+    color: color-mix(in srgb, var(--panel-yarn, var(--magenta)) 78%, var(--ink));
+    opacity: 1;
+  }
+}
+
+@media (min-width: 940px) and (max-height: 940px) {
+  .sol-console .sol-answer.has-photo .sol-answer-name { font-size: clamp(1.6rem, 2.2vw, 2.1rem); }
+  .sol-console .sol-answer.has-photo .sol-answer-hook {
+    font-size: clamp(0.95rem, 1.05vw, 1.06rem); margin-top: 8px;
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-moon {
+    font-size: clamp(0.84rem, 0.92vw, 0.92rem); margin-top: 8px;
+  }
+  .sol-console .sol-answer.has-photo .sol-deliverables li { font-size: clamp(0.78rem, 0.86vw, 0.85rem); }
+  .sol-console .sol-pin.is-pinned .sol-deliverables li {
+    min-height: calc(clamp(0.78rem, 0.86vw, 0.85rem) * 1.4 * 3);
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-badge { width: 38px; height: 38px; border-radius: 12px; }
+  .sol-console .sol-cta,
+  .sol-pin.is-pinned .sol-cta { --gbtn-h: 50px; min-height: 50px; margin-top: 14px; }
+}
+
+@media (min-width: 940px) and (max-height: 820px) {
+  .sol-console .sol-answer.has-photo .sol-answer-name { font-size: clamp(1.4rem, 1.9vw, 1.8rem); }
+  .sol-console .sol-answer.has-photo .sol-answer-hook {
+    font-size: clamp(0.9rem, 0.98vw, 1rem); margin-top: 6px; line-height: 1.34;
+  }
+  .sol-console .sol-answer.has-photo .sol-answer-moon {
+    font-size: clamp(0.8rem, 0.86vw, 0.86rem); margin-top: 6px; line-height: 1.36;
+  }
+  .sol-console .sol-answer.has-photo .sol-deliverables li { font-size: clamp(0.74rem, 0.8vw, 0.8rem); line-height: 1.34; }
+  .sol-console .sol-pin.is-pinned .sol-deliverables li {
+    min-height: calc(clamp(0.74rem, 0.8vw, 0.8rem) * 1.34 * 3);
+  }
+  .sol-console .sol-answer.has-photo .sol-agent-copy { font-size: clamp(0.74rem, 0.8vw, 0.8rem); }
+  .sol-console .sol-answer.has-photo .sol-answer-badge { width: 34px; height: 34px; border-radius: 11px; }
+  .sol-console .sol-cta,
+  .sol-pin.is-pinned .sol-cta { --gbtn-h: 46px; min-height: 46px; margin-top: 12px; }
+}

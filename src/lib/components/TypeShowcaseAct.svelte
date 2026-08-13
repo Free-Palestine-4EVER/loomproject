@@ -29,8 +29,9 @@
   Linear, Retro and Flora point at BLOOM-only subsets built by
   scripts/subset-patterns-specimen.mjs — the same drawings at the same metrics,
   7.6/6.5, 12.8/11.7 and 23.2/18.7 KB, 80.4 KB for six faces instead of 832.
-  Organic is deliberately NOT subset: the drifting bands set the whole alphabet
-  and the cut names in it and the canvas field draws ornaments from it, so the
+  Organic is deliberately NOT subset: the ghost field's two Organic rows set
+  the whole alphabet and the cut names in it and the canvas field draws
+  ornaments from it, so the
   full face is fetched by this section regardless.
 
   And none of it is fetched up front. Every layer claims its family only once
@@ -234,29 +235,97 @@
   const copyO = $derived(interp(p, [b0 + 0.06, b1 - 0.04], [0, 1]))
   const copyY = $derived(interp(p, [b0 + 0.06, b1], [M.copyFrom.y, 0]))
   const copyX = $derived(interp(p, [b0 + 0.06, b1], [M.copyFrom.x, 0]))
-  const bandX = $derived(interp(p, [0, 1], ['4%', '-22%']))
-  const band2X = $derived(interp(p, [0, 1], ['-18%', '8%']))
-
   const wordShiftStyle = $derived(
     `transform: translate(${wordX}, ${wordY}); opacity: ${wordO};` + (wordFilter ? ` filter: ${wordFilter};` : '')
   )
 
-  // Svelte will not let a `style:` directive share an element with a plain
-  // `style` attribute, and several of these bands/layers need a conditional
-  // font-family alongside a computed transform — so each gets ONE assembled
-  // style string instead, the same shape as `wordShiftStyle` above.
-  // Both bands are set in ORGANIC (the pair `near` is allowed to claim); the
-  // alphabet band takes the fill, the cut-name band the outline, so the
-  // background of the section is already making the pair argument before the
-  // word does.
-  const bandStyle = $derived(
-    `transform: translateX(${reducedMotion.current ? '0px' : bandX});` +
-      (near ? ` font-family: 'LOOM Organic';` : '')
-  )
-  const band2Style = $derived(
-    `transform: translateX(${reducedMotion.current ? '0px' : band2X});` +
-      (onScreen ? ` font-family: 'LOOM Organic Outline';` : '')
-  )
+  // ── the ghost field — eight marquee rows, one per face ───────────────────
+  // 13 Aug 2026 — the section used to carry exactly two of these (an alphabet
+  // band drifting one way, a row of cut names drifting the other), both tied
+  // to the scroll progress `p` via `interp()` like everything else in this
+  // file, and both set in Organic only. The client asked for the same ghost
+  // treatment down the WHOLE section, in EVERY cut, which is a different
+  // animation, not more of the old one:
+  //
+  // - Scroll-tied drift (`translateX(interp(p, ...))`) covers exactly the
+  //   pin's own travel — 0 to 1 of `p` — so a row only ever crosses its lane
+  //   ONCE per visit, however far `p` is scrubbed. A texture that is meant to
+  //   read as a field of type has to keep moving independently of the pin,
+  //   which means it cannot be driven by `p` at all: it needs its own clock.
+  //   CSS `animation: … infinite` is that clock, and it is also the only one
+  //   of the two that keeps running on the main thread doing nothing (no
+  //   scroll listener, no rAF, no reactive write) — eight of these do not
+  //   cost what two scroll-linked `interp()` reads did.
+  // - A single long string sliding under `translateX` was never seamless in
+  //   the first place — it runs out and snaps. It read as fine at two rows
+  //   because both strings were long enough that the snap sat off-screen for
+  //   the ~600vh of scroll a reader actually covers. Eight rows down the full
+  //   height, moving on their own clock instead of a bounded scroll range,
+  //   will run long enough that the snap becomes visible — so each row's
+  //   track is TWO adjacent copies of the same text, animated from 0 to -50%
+  //   (or the reverse), which is exactly one copy's width: the frame the loop
+  //   restarts on is pixel-identical to the frame before it.
+  //
+  // GLYPH BUDGET: Linear, Retro and Flora are fetched here as the SAME
+  // BLOOM-only subsets the specimen layers use (see the file header and
+  // typeshowcase.css) — B, L, O, M and nothing else. A row set in one of
+  // those three families is therefore built out of "BLOOM" and cannot say
+  // anything else: the alphabet and the cut-name text stay on Organic, the
+  // one face fetched whole. Reusing the subsets rather than widening them (or
+  // shipping a ninth font file) is the only reason six of these eight rows
+  // are free — see GHOST_TEXT_BLOOM below.
+  //
+  // GATING: the organic rows ride on `near` like the rest of the cheap face;
+  // the other six ride on `onScreen` only, NOT the beats' `armed[]` schedule.
+  // `armed[]` exists to spread ~913 KB of full faces across ~600vh of scroll
+  // so a reader who stops halfway never fetches the back half of the family.
+  // Subset to BLOOM the six of them together are 80 KB — the trade that
+  // justifies staggering a beat by beat does not exist at that size, so the
+  // simpler gate (arrive with the section, not with a particular scroll
+  // position inside it) is the honest one.
+  const GHOST_TEXT_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789   '.repeat(4)
+  const GHOST_TEXT_NAMES = 'ORGANIC ✿ RETRO ❀ LINEAR ❦ FLORA ✿ '.repeat(4)
+  // Every letter here is a glyph the BLOOM subsets actually contain — B, L,
+  // O, M — so this is the only string that may be set in Linear, Retro or
+  // Flora. Do not add another word to it without rerunning
+  // scripts/subset-patterns-specimen.mjs first (see that script's header).
+  const GHOST_TEXT_BLOOM = 'BLOOM   '.repeat(10)
+
+  // Eight rows, one per face, alternating direction so no two neighbours
+  // drift the same way — `dir` also picks the keyframe in CSS (`ghost-drift-
+  // left` / `ghost-drift-right`). `size` alternates lg/sm on top of that so
+  // the field reads as layered depth rather than a stack of identical rules.
+  // `dur` is deliberately irregular (none of the eight share a period with
+  // another) so the rows drift in and out of phase with each other instead
+  // of ever lining up into a single visible wall of type.
+  const GHOST_ROWS = [
+    { dir: 'left', size: 'lg', tone: 'fill', gate: 'near', family: "'LOOM Organic'", text: GHOST_TEXT_ALPHA, dur: 46 },
+    { dir: 'right', size: 'sm', tone: 'fill', gate: 'onScreen', family: "'LOOM Linear Specimen'", text: GHOST_TEXT_BLOOM, dur: 58 },
+    { dir: 'left', size: 'lg', tone: 'fill', gate: 'onScreen', family: "'LOOM Retro Specimen'", text: GHOST_TEXT_BLOOM, dur: 39 },
+    { dir: 'right', size: 'sm', tone: 'fill', gate: 'onScreen', family: "'LOOM Flora Specimen'", text: GHOST_TEXT_BLOOM, dur: 63 },
+    { dir: 'left', size: 'lg', tone: 'outline', gate: 'onScreen', family: "'LOOM Organic Outline'", text: GHOST_TEXT_NAMES, dur: 51 },
+    { dir: 'right', size: 'sm', tone: 'outline', gate: 'onScreen', family: "'LOOM Linear Outline Specimen'", text: GHOST_TEXT_BLOOM, dur: 55 },
+    { dir: 'left', size: 'lg', tone: 'outline', gate: 'onScreen', family: "'LOOM Retro Outline Specimen'", text: GHOST_TEXT_BLOOM, dur: 44 },
+    { dir: 'right', size: 'sm', tone: 'outline', gate: 'onScreen', family: "'LOOM Flora Outline Specimen'", text: GHOST_TEXT_BLOOM, dur: 67 },
+  ]
+  // Two separate style strings per row, because the two things they set live
+  // on two different elements: `trackStyle` carries `--ghost-dur` for the
+  // TRACK's own `animation-duration: var(--ghost-dur, …)`, and `segStyle`
+  // carries the gated `font-family` for the two text SPANS inside it. They
+  // cannot be merged onto one element — `.ts-ghost-row__seg` below declares
+  // its own `font-family` fallback directly on the span (it has to, that is
+  // where the text actually sits), and a plain CSS declaration on an element
+  // always wins over one it merely inherited from an ancestor's inline
+  // style, however specific that ancestor's rule looks. Setting the family
+  // on `.ts-ghost-row__track` here first and learning that the inherited
+  // value never actually reached the span — every row kept rendering in the
+  // Clash Display fallback no matter how long the gate had been open — is
+  // why this is two strings and not one.
+  const ghostRows = $derived(GHOST_ROWS.map((r) => ({
+    ...r,
+    trackStyle: `--ghost-dur: ${r.dur}s;`,
+    segStyle: (r.gate === 'near' ? near : onScreen) ? `font-family: ${r.family};` : '',
+  })))
 
   // ── which beat is on top right now ───────────────────────────────────────
   // Drives the rail's lit pip and the face label under the word, so it has to
@@ -426,11 +495,23 @@
   <div class="ts-sticky">
     <canvas bind:this={canvasEl} class="ts-petals" aria-hidden="true"></canvas>
 
-    <!-- two bands of the family drifting opposite ways — fill above, outline
-         below, both Organic. Caps and ornaments only. -->
-    <div class="ts-bands" aria-hidden="true">
-      <div class="ts-band" style={bandStyle}>ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789</div>
-      <div class="ts-band ts-band--low" style={band2Style}>ORGANIC ✿ RETRO ❀ LINEAR ❦ FLORA ✿ ORGANIC</div>
+    <!-- the ghost field — eight marquee rows stacked down the full height of
+         the section, alternating direction, one per face of the family. See
+         the GHOST_ROWS comment in the script block for why this is a CSS
+         clock and not a scroll-tied transform, and for the BLOOM-only text
+         budget on the three subset cuts. Each row's track is its text TWICE,
+         back to back — the loop point is where copy 2 replaces copy 1 with
+         an identical frame, which is what makes it seamless without JS
+         measuring anything. -->
+    <div class="ts-ghost-field" aria-hidden="true">
+      {#each ghostRows as row, i (i)}
+        <div class="ts-ghost-row ts-ghost-row--{row.dir} ts-ghost-row--{row.size} ts-ghost-row--{row.tone}">
+          <div class="ts-ghost-row__track" style={row.trackStyle}>
+            <span class="ts-ghost-row__seg" style={row.segStyle}>{row.text}</span>
+            <span class="ts-ghost-row__seg" style={row.segStyle}>{row.text}</span>
+          </div>
+        </div>
+      {/each}
     </div>
 
     <p class="ts-kicker" style:opacity={kickerO}>

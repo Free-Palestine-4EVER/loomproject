@@ -51,7 +51,6 @@
   import AnswerEngine from '$lib/components/AnswerEngine.svelte'
   import WorkshopsPromo from '$lib/components/WorkshopsPromo.svelte'
   import AppsShowcase from '$lib/components/AppsShowcase.svelte'
-  import SoftwareShowcase from '$lib/components/SoftwareShowcase.svelte'
   import LoomMcp from '$lib/components/LoomMcp.svelte'
   import TypeShowcase from '$lib/components/TypeShowcase.svelte'
   import Studios from '$lib/components/Studios.svelte'
@@ -263,19 +262,14 @@
      mockups. #lab no longer resolves and its nav tab is gone. -->
 <AppsShowcase />
 
-<!-- SOFTWARE (#software) — restored 12 Aug 2026, directly under the app stage,
-     at the client's instruction ("below the mobile apps section put softwares
-     section, the old one with the MacBook mockups").
-
-     It is the desktop half of the same claim: the stage above is eight products
-     on phones, this is the two that are not phone products at all, on the
-     MacBook mockup they always used. Those two (2D3D and KUN) were cut from
-     SUITE on 12 Aug when the stage became "the apps we have real captures for",
-     and the component's software branch went with them — the .dv-mac CSS never
-     left appscreens.css, so this restores the original mockup rather than
-     drawing a new one. They live in their own SOFTWARE list, not back in SUITE,
-     because SUITE.length is read as the APP count in three places. -->
-<SoftwareShowcase />
+<!-- SOFTWARE IS GONE FROM THE PAGE — 13 Aug 2026, client: "forget the mac and
+     softwares, remove it totally". It had been restored on 12 Aug at their own
+     instruction; that instruction is superseded. `#software` no longer
+     resolves. The component and its MacBook-mockup CSS are left on disk
+     untouched — this is the second time this band has been taken down and put
+     back, so deleting the files would only mean redrawing them next time. If
+     it is still gone in a month, delete SoftwareShowcase.svelte and the .dv-mac
+     rules in appscreens.css together. -->
 
 <!-- OwnApps ("We build our own products too") was REMOVED FROM THE PAGE on
      10 Aug 2026 at the client's request; not ported. #own-apps no longer

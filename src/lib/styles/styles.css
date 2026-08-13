@@ -489,7 +489,19 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 80;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px var(--pad);
+  /* ——— THE BAR REACHES THE VERY TOP ON iOS (13 Aug 2026) ———
+     `viewport-fit=cover` in app.html means the page is painted edge to edge,
+     under the status bar as well. A `position: fixed; top: 0` bar therefore
+     starts at the physical top of the SCREEN, not below the clock — so with
+     a flat 16px of padding the wordmark sat under the status bar and the
+     header's own plate stopped short of the top edge, leaving a strip of raw
+     page background behind the clock. Client screenshot, iOS Safari.
+     The inset is added to the padding rather than to the bar's `top`: adding
+     it to `top` would push the whole bar down and leave the same strip
+     unpainted. This way the PLATE runs to y=0 and the CONTENT starts below
+     the notch, which is what the inset is for. Zero on every other device,
+     so there is nothing to branch on. */
+  padding: calc(16px + env(safe-area-inset-top, 0px)) var(--pad) 16px;
   /* ONE HEADER, NOT THREE — 11 Aug 2026.
 
      The bar used to paint three different ways and the client saw all three:
@@ -2600,7 +2612,13 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
 .contact-ig a:hover { color: var(--magenta); border-color: var(--magenta); }
 
 /* ——— footer ——— */
-.footer { border-top: 1px solid var(--line); padding: clamp(50px, 8vh, 90px) var(--pad) 30px; position: relative; overflow: hidden; }
+/* The bottom inset is the other half of `viewport-fit=cover` (see `.nav`).
+   iOS Safari's URL bar and the home indicator float OVER the page, so a
+   footer that ends at 30px ends 30px above the physical bottom and the last
+   thing the reader sees is a band of bare ground under the copy — which is
+   what the client photographed. Adding the inset lets the footer's own
+   ground run all the way under the browser chrome. Zero everywhere else. */
+.footer { border-top: 1px solid var(--line); padding: clamp(50px, 8vh, 90px) var(--pad) calc(30px + env(safe-area-inset-bottom, 0px)); position: relative; overflow: hidden; }
 /* DEAD RULE as of this pass — Chrome.jsx:233 replaced the type watermark with
    `.footer-word-img` (the woven logo), so nothing matches this any more. Moved
    to Bloom anyway so it is not a Clash landmine if the type version comes back;
@@ -3422,21 +3440,69 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   h1, h2, h3, p, .h2, .lede { overflow-wrap: break-word; }
 }
 
-/* ——— the header does not retract ———
-   This block used to slide the bar out of view on the way down and back on
-   the way up (`.nav--hidden { translateY(-102%) }`, driven by a scroll
-   listener in Nav.svelte). Both halves are gone. The bar is plainly fixed:
-   the only thing that changes on scroll is how it PAINTS — transparent over
-   the hero, frosted rose once past it — and those are composited properties,
-   so the transition below costs no layout and the bar never moves or resizes.
-   `will-change: transform` went with the transform it was reserving a layer
-   for; `.nav` already carries `translateZ(0)` for the backdrop-filter. */
+/* ——— the header retracts again, but MOBILE ONLY (13 Aug 2026) ———
+   Earlier today this was deleted outright ("the header does not retract" —
+   see `git show b93029f` for the removed code, and the commit after it for
+   why it went): on a 36,000px page the one control that gets a reader out of
+   a section was gone for most of the scroll, and it kept reappearing on
+   every stray upward trackpad delta. That reasoning was sound for DESKTOP,
+   where the bar sits in a wide top strip the reader barely notices. It does
+   not hold on a phone: the 940px cutoff below is where the drawer becomes the
+   only way to navigate at all (see the burger swap earlier in this file), and
+   on that viewport the fixed bar's ~76-95px is a much larger fraction of a
+   much shorter screen, permanently, whether the reader is reading or not. The
+   client asked for it back on mobile specifically, and the desktop
+   fixed-and-visible behaviour from this morning is unchanged — that decision
+   stands, this is additive to it.
+
+   WHY THIS IS A MEDIA QUERY AND NOT A BRANCH IN Nav.svelte: the alternative
+   is computing `hidden` in JS on desktop too and simply never adding the
+   class, or adding/removing the scroll listener on resize — both are more
+   code than wrapping the one rule that paints the effect in
+   `@media (max-width: 939px)`. CSS is also the thing that is actually
+   authoritative here: if the boolean in Nav.svelte ever got out of sync
+   (a resize mid-scroll, a stale value survives a hydration edge case) the
+   worst case is a class sitting unused on the element, not a header
+   vanishing on a desktop the client explicitly asked to keep fixed. The
+   scroll handler still skips its own delta math above 940px (see the
+   `matchMedia` guard in Nav.svelte) so the "don't run needlessly on desktop"
+   half of the ask is satisfied without a second listener to manage — that is
+   a single cheap boolean read per scroll tick, not a resize subscription.
+
+   `translateY(-102%)`, not `top` or `display`: transform is the only one of
+   the three the compositor can animate without laying out a page that is
+   scrolling underneath a `position: fixed` bar. The extra 2% clears the
+   bar's own shadow, which stays visible as a rim at exactly -100%.
+   `visibility` rides the same transition (with a delay on the way OUT only,
+   so hiding waits for the slide to finish but showing is instant) so the
+   links leave the tab order while the bar is off screen — otherwise a
+   keyboard user tabs into a header they cannot see.
+
+   THE BAR'S HEIGHT DOES NOT CHANGE BETWEEN STATES. See the long comment on
+   `.nav` above (search "THE BORDER IS RESERVED") explaining why the 2px
+   bottom border is declared transparent up front rather than added on
+   scroll — that reservation is what makes `transform` the only thing this
+   rule is allowed to touch. Do not animate padding, height or the border
+   here; a layout property on a fixed bar re-triggers exactly the scroll-time
+   glitch that comment was written to kill. */
 .nav {
   transition:
+    transform 0.42s var(--ease),
+    visibility 0s linear 0s,
     background 0.4s var(--ease),
     backdrop-filter 0.4s var(--ease),
     border-color 0.4s var(--ease);
+  will-change: transform;
 }
+@media (max-width: 939px) {
+  .nav--hidden {
+    transform: translateY(-102%);
+    visibility: hidden;
+    transition-delay: 0s, 0.42s, 0s, 0s, 0s;
+  }
+}
+/* A reader who has asked for less motion still gets the space back — the bar
+   just cuts rather than sliding. */
 @media (prefers-reduced-motion: reduce) {
   .nav { transition: none; }
 }

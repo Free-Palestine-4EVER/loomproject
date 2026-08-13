@@ -99,3 +99,41 @@
   .hero-h1 { letter-spacing: -0.01em; }
   .hero-sub { line-height: 1.55; }
 }
+
+/* ——— THE PHONE HEADER: SMALLER, AND ONE BABY PINK ALL THE WAY UP ———————
+   Client, with an apple.com screenshot: make the header smaller, and make the
+   iOS status bar (the strip with the clock and the battery) the same baby
+   pink as the bar under it.
+
+   THE STATUS BAR IS NOT PAGE PAINT. Its colour comes from `theme-color` in
+   app.html — already `#ffe9f2`, the baby pink — but Safari only honours that
+   once the page has scrolled; at the top it tints the strip from whatever the
+   page itself is painting up there, which was the header's TRANSPARENT resting
+   state over the hero, i.e. nothing. So the strip read white while the bar
+   under it read pink. The fix is on this end: on a phone the bar carries the
+   plate in BOTH states rather than only when scrolled, so the colour the
+   status bar samples and the colour `theme-color` declares are the same pink
+   at every scroll position. Desktop keeps the two-state header — over the
+   1440 hero the transparent bar is the design, and there is no status bar
+   there to match.
+
+   SMALLER: the padding comes down and the wordmark with it. The safe-area
+   inset stays ADDED to the top padding (see `.nav` in styles.css) — that is
+   what keeps the plate running to y=0 under the clock while the content sits
+   below the notch. Shrinking the bar must not shrink that. */
+@media (max-width: 939px) {
+  .nav {
+    padding: calc(9px + env(safe-area-inset-top, 0px)) var(--pad) 9px;
+    background: #ffe9f2;
+    border-bottom-color: rgba(96, 40, 76, 0.08);
+  }
+  .nav--scrolled {
+    background: #ffe9f2;
+    border-bottom-color: var(--line);
+  }
+  .nav-logo .logo-woven { height: 30px; }
+  .nav-logo { min-height: 38px; }
+  /* the drawer's top padding is measured off the bar; a shorter bar needs
+     less of it, or the first link floats in a gap the header no longer fills */
+  .menu-content { padding-top: calc(env(safe-area-inset-top, 0px) + 66px); }
+}
