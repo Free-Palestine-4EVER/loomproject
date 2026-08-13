@@ -55,6 +55,40 @@ import { browser } from '$app/environment'
 // visitor is doing right now (a click, a video starting, a route change).
 const BATCH_SIZE = 7
 
+// Measured against production (see the incident this constant fixes):
+// `requestIdleCallback(cb, { timeout: 1200 })` DOES always fire — browsers
+// guarantee that — so the original bug was never a true infinite hang. It was
+// a crawl disguised as one. This site runs a permanent CSS backdrop
+// (loom-bg.css) plus a butterfly riding the whole page (Flyer.svelte), and
+// under that sustained compositor/main-thread work a real idle period almost
+// never arrives before the timeout does — so nearly every batch pays the
+// full 1200ms gap rather than the 0-50ms a quiet page would see. Instrumented
+// on https://www.loomstudio-jo.com/ with a wrapped requestIdleCallback: 26 of
+// 30 call→fire gaps landed at 1200-1600ms, back to back. At BATCH_SIZE 7 for
+// ~130 images that is ~19 batches * up to ~1.5s = 25-45s to fully drain —
+// long after a real visitor has already scrolled, which is exactly the
+// "stalls partway, a jump-scroll pulls fresh requests" symptom that was
+// measured. Cutting the ceiling here is what actually fixes the wall-clock
+// drain time; nothing about correctness depended on 1200ms specifically.
+const IDLE_TIMEOUT = 220
+
+// Hard ceiling on how long this file will ever wait on a single <img>'s
+// `load`/`error`. Nothing observed this deadlocking on the running site (zero
+// `loading="eager"` images were ever caught incomplete across two
+// instrumented runs), but the brief is explicit that no single image may be
+// allowed to wedge the whole queue — a cached-but-not-decoding image, an
+// AVIF that errors silently without firing `error`, anything — so it is
+// bounded unconditionally rather than trusted to always fire.
+const SETTLE_TIMEOUT = 4000
+
+// How often the self-heal sweep below re-checks the document for anything
+// left behind. This is the backstop for every other pathway in this file
+// failing at once (a missed MutationObserver mutation, a batch that threw,
+// a tab that was backgrounded through the whole first pass) — cheap because
+// the selector only ever matches un-warmed images, so it is a no-op read on
+// every tick once the page is fully warm.
+const SELF_HEAL_INTERVAL = 2500
+
 // `true` while a warm pass is in flight. Guards against overlapping runs —
 // the initial `load`-triggered pass and a same-tick `afterNavigate` rescan,
 // say — so this file only ever has one walk of the document going at once.
@@ -64,25 +98,36 @@ function saveData() {
   return !!(browser && navigator.connection && navigator.connection.saveData)
 }
 
+// Advances the batch queue. Always resolves within `IDLE_TIMEOUT` — via a
+// genuine idle period if one shows up sooner, via requestIdleCallback's own
+// timeout if not, or via the setTimeout fallback on engines (WebKit) that
+// have no requestIdleCallback at all. No engine can make this pend forever:
+// that guarantee is what turns "stalls" back into "takes a bit longer."
 function idle(cb) {
-  // requestIdleCallback yields to anything more urgent (input, layout,
-  // paint) before it fires, which is exactly the "connection is idle"
-  // condition the brief asks for between batches. Safari has no
-  // requestIdleCallback at all, so it falls back to a macrotask — still
-  // yields a full turn of the event loop, just without the "only when truly
-  // idle" guarantee Blink gets.
-  if (typeof requestIdleCallback === 'function') return requestIdleCallback(cb, { timeout: 1200 })
-  return setTimeout(cb, 1)
+  if (typeof requestIdleCallback === 'function') return requestIdleCallback(cb, { timeout: IDLE_TIMEOUT })
+  return setTimeout(cb, IDLE_TIMEOUT)
 }
 
-// Resolves once an <img> is done — loaded OR failed — so a single 404 can
-// never wedge a whole batch waiting on a `load` that will never fire.
+// Resolves once an <img> is done — loaded OR failed OR timed out OR removed
+// from the document — so nothing can wedge a batch waiting on an event that
+// will never fire. Checking `isConnected` up front (and never attaching
+// listeners to a detached element) covers the "element removed from the DOM
+// mid-flight" case the brief calls out by name: an unmounted route, an
+// accordion that closed, anything — that image is no longer this pass's
+// problem, so it resolves immediately instead of being awaited.
 function settle(img) {
-  if (img.complete) return Promise.resolve()
+  if (!img.isConnected || img.complete) return Promise.resolve()
   return new Promise((resolve) => {
-    const done = () => resolve()
-    img.addEventListener('load', done, { once: true })
-    img.addEventListener('error', done, { once: true })
+    let done = false
+    const finish = () => {
+      if (done) return
+      done = true
+      clearTimeout(timer)
+      resolve()
+    }
+    img.addEventListener('load', finish, { once: true })
+    img.addEventListener('error', finish, { once: true })
+    const timer = setTimeout(finish, SETTLE_TIMEOUT)
   })
 }
 
@@ -99,14 +144,17 @@ async function warmImgBatches() {
   // flight, and the MutationObserver below schedules its own follow-up pass
   // for anything new that shows up.
   const targets = Array.from(document.querySelectorAll('img[loading="lazy"]')).filter(
-    (img) => !img.complete || img.naturalWidth === 0
+    (img) => img.isConnected && (!img.complete || img.naturalWidth === 0)
   )
 
   for (let i = 0; i < targets.length; i += BATCH_SIZE) {
     // A Save-Data toggle mid-run (or a route change that wants the floor —
     // see rewarm()) aborts the rest of the queue rather than finishing it.
     if (saveData()) return
-    const batch = targets.slice(i, i + BATCH_SIZE)
+    // Re-check connectedness right before promoting: a batch can sit queued
+    // across an `idle()` yield long enough for an earlier route change to
+    // have already torn its elements out from under it.
+    const batch = targets.slice(i, i + BATCH_SIZE).filter((img) => img.isConnected)
     for (const img of batch) img.loading = 'eager'
     await Promise.all(batch.map(settle))
     // Hand the thread back between batches instead of firing all N/BATCH_SIZE
@@ -198,6 +246,7 @@ export function mountImageWarm() {
 
   let cancelled = false
   let mo
+  let healTimer
 
   const kick = () => idle(() => { if (!cancelled) runImageWarm() })
 
@@ -217,10 +266,25 @@ export function mountImageWarm() {
   mo = new MutationObserver(() => { if (!cancelled) kick() })
   mo.observe(document.body, { childList: true, subtree: true })
 
+  // SELF-HEAL. Everything above is best-effort by design — `load` fires
+  // once, the MutationObserver only reacts to nodes being added/removed (not
+  // to a `loading` attribute reverting), and a batch can be starved for a
+  // while by the page's own animation load (see IDLE_TIMEOUT above). None of
+  // those paths can leave a permanent hole any more on their own, but this
+  // is the independent backstop that makes that a guarantee rather than a
+  // hope: every SELF_HEAL_INTERVAL, check the document for anything still
+  // `loading="lazy"` and, if the normal pass is not already running, kick it.
+  // A stall becomes a delay, never a dead end — exactly the brief's bar.
+  healTimer = setInterval(() => {
+    if (cancelled || running || saveData()) return
+    if (document.querySelector('img[loading="lazy"]')) runImageWarm()
+  }, SELF_HEAL_INTERVAL)
+
   return () => {
     cancelled = true
     window.removeEventListener('load', kick)
     mo?.disconnect()
+    clearInterval(healTimer)
   }
 }
 

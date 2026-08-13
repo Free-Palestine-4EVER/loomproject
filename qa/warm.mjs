@@ -144,6 +144,23 @@ async function run(engineName, launcher) {
       // 2. LCP after (warm-up on) + warm-set bytes + top offenders
       const ctxAfter = await browser.newContext({ viewport: { width: vp.width, height: vp.height } })
       const pageAfter = await ctxAfter.newPage()
+      // Drain-time instrumentation: record performance.now() at `load` and
+      // again the instant no <img> is left carrying an un-loaded
+      // loading="lazy" — the same completion signal imageWarm.js itself
+      // uses. Installed before navigation so it can never miss the moment.
+      await pageAfter.addInitScript(() => {
+        window.__loadAt = null
+        window.__drainAt = null
+        window.addEventListener('load', () => { window.__loadAt = performance.now() })
+        const check = () => {
+          const remaining = Array.from(document.querySelectorAll('img[loading="lazy"]')).filter(
+            (img) => !img.complete || img.naturalWidth === 0
+          )
+          if (remaining.length === 0 && window.__drainAt === null) window.__drainAt = performance.now()
+        }
+        const iv = setInterval(check, 100)
+        window.addEventListener('load', () => setTimeout(() => clearInterval(iv), 30000))
+      })
       const lcpAfter = await measureLCP(pageAfter, url, { blockWarm: false })
       await waitForWarmDone(pageAfter)
       const warmBytes = await warmSetBytes(pageAfter)
@@ -154,17 +171,24 @@ async function run(engineName, launcher) {
             (img) => !img.complete || img.naturalWidth === 0
           ).length
       )
+      const everyImgComplete = await pageAfter.evaluate(
+        () => Array.from(document.querySelectorAll('img')).every((img) => img.complete === true)
+      )
+      const { loadAt, drainAt } = await pageAfter.evaluate(() => ({ loadAt: window.__loadAt, drainAt: window.__drainAt }))
+      const drainSeconds = loadAt != null && drainAt != null ? (drainAt - loadAt) / 1000 : null
 
       // 3. no-new-requests-on-scroll
       const before = await pageAfter.evaluate(
-        () => performance.getEntriesByType('resource').filter((r) => r.initiatorType === 'img').length
+        () => performance.getEntriesByType('resource').filter((r) => r.initiatorType === 'img').map((r) => r.name)
       )
       await pageAfter.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-      await pageAfter.waitForTimeout(1000)
+      await pageAfter.waitForTimeout(4000)
       const after = await pageAfter.evaluate(
-        () => performance.getEntriesByType('resource').filter((r) => r.initiatorType === 'img').length
+        () => performance.getEntriesByType('resource').filter((r) => r.initiatorType === 'img').map((r) => r.name)
       )
-      const noNewRequests = after === before
+      const beforeSet = new Set(before)
+      const newUrls = after.filter((u) => !beforeSet.has(u))
+      const noNewRequests = newUrls.length === 0
 
       // 4. screenshot at the bottom
       const shotPath = `${SHOT_DIR}/warm-${engineName}-${route === '/' ? 'home' : route.slice(1)}-${vp.name}.png`
@@ -172,7 +196,10 @@ async function run(engineName, launcher) {
 
       await ctxAfter.close()
 
-      results.push({ label, lcpBefore, lcpAfter, warmBytes, offenders, stillLazy, before, after, noNewRequests, shotPath })
+      results.push({
+        label, lcpBefore, lcpAfter, warmBytes, offenders, stillLazy, everyImgComplete, drainSeconds,
+        before: before.length, after: after.length, newUrls, noNewRequests, shotPath,
+      })
     }
   }
 
@@ -189,8 +216,13 @@ for (const [name, launcher] of Object.entries(ENGINES)) {
     console.log(`\n${r.label}`)
     console.log(`  LCP before: ${ms(r.lcpBefore)}   LCP after: ${ms(r.lcpAfter)}`)
     console.log(`  warm-set image bytes: ${mb(r.warmBytes)} (${warmSetCountNote(r)})`)
-    console.log(`  still-lazy/un-loaded <img> after warm: ${r.stillLazy}`)
-    console.log(`  img resource entries: before scroll ${r.before}, after jump-to-bottom ${r.after} -> ${r.noNewRequests ? 'PASS (no new entries)' : 'FAIL (new requests fired on scroll)'}`)
+    console.log(`  still-lazy/un-loaded <img> after warm: ${r.stillLazy}   every <img>.complete: ${r.everyImgComplete}`)
+    console.log(`  drain time (load -> zero lazy <img> left): ${r.drainSeconds != null ? r.drainSeconds.toFixed(2) + 's' : 'n/a (already drained before instrumentation could capture load)'}`)
+    console.log(`  img resource entries: before scroll ${r.before}, after jump-to-bottom+4s ${r.after} -> ${r.noNewRequests ? 'PASS (no new entries)' : 'FAIL (new requests fired on scroll)'}`)
+    if (!r.noNewRequests) {
+      console.log(`    new URLs pulled by the scroll:`)
+      for (const u of r.newUrls) console.log(`      ${u.replace(BASE, '')}`)
+    }
     console.log(`  top offenders:`)
     for (const o of r.offenders) console.log(`    ${kb(o.bytes).padStart(9)}  ${o.url}`)
     console.log(`  screenshot: ${r.shotPath}`)
