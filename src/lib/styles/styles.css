@@ -328,6 +328,41 @@
 html { scroll-behavior: auto; position: relative; }
 html.menu-open, html.overlay-open { overflow: hidden; }
 
+/* THE NOTCH STRIP IS BABY PINK TOO — 13 Aug 2026.
+
+   The client photographed a pale band above the header on a real iPhone,
+   the exact shade of `--bg` (#ffe9f2), with the baby-pink bar starting
+   below it. `<meta name="theme-color">` in app.html is already `#ffc9d9`
+   and nothing in the app ever rewrites it, so the tag is not the problem
+   and re-setting it would fix nothing.
+
+   What this covers is the other way that band can get its colour. With
+   `viewport-fit=cover`, iOS Safari extends the page's own paint up under
+   the status bar, and what it takes that colour from is the ROOT canvas —
+   `body`'s `background: var(--bg)` — not whatever happens to be painted on
+   top of it. `.nav` does pad itself by `env(safe-area-inset-top)` so its
+   plate genuinely runs to y=0, but it is a fixed, `translateZ(0)`-promoted
+   compositor layer, which is exactly the kind of overlay that sampling
+   steps over. The pale rose underneath is then what shows through.
+
+   So paint the strip on the root itself, at the root's own paint level.
+   Fixed, `env(safe-area-inset-top)` tall, so it is EXACTLY the notch band
+   and nothing more — height collapses to 0 on every device without an
+   inset, which makes this inert on desktop rather than something to branch
+   on. z-index is below `.nav` (80) and below the drawer, so it can never
+   cover chrome; it only ever fills the one strip the bar was already
+   covering, with the same colour the bar already is. If the header hex is
+   ever retuned this moves with it — grep `#ffc9d9`. */
+html::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: #ffc9d9;
+  z-index: 79;
+  pointer-events: none;
+}
+
 body {
   background: var(--bg);
   color: var(--ink);
