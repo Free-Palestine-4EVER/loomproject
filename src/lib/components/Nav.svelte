@@ -19,6 +19,7 @@
   import { magnetic, reducedMotion } from '$lib/motion.svelte.js'
   import { navigate } from '$lib/scroll.svelte.js'
   import { wizard } from '$lib/wizard.svelte.js'
+  import { registerReactiveUrls } from '$lib/imageWarm.js'
   import { LINKS } from './nav-links.js'
 
   import WoolButton from './WoolButton.svelte'
@@ -83,6 +84,20 @@
          leaves that surface's own header (the drawer renders its own close
          affordance, but the burger that reopens it lives in `.nav`) attached
          to nothing the reader can see or tap. */
+  // ——— textile.css's `.nav--scrolled` / `.menu` denim texture ———
+  // Both classes carry `background-image: url('/img/tex/denim-tile.webp')`,
+  // but neither is present on the element at PAGE LOAD — `.nav--scrolled`
+  // only gets added once `scrolled` flips true below (`window.scrollY > 56`)
+  // and `.menu` only exists while the mobile drawer is open. imageWarm.js's
+  // own `warmBackgrounds()` walks `getComputedStyle` right after `load`,
+  // which is exactly the moment neither class is applied yet, so it never
+  // sees this URL — found by the acceptance test actually jump-scrolling and
+  // catching the fetch that fires mid-scroll (denim-tile.webp arrived late,
+  // 45 KB, on /work at 390×844). Registered here rather than patched into
+  // imageWarm.js because this is the one component that knows the class
+  // exists and why it's conditional; imageWarm.js stays a generic collector.
+  onMount(() => registerReactiveUrls(() => ['/img/tex/denim-tile.webp']))
+
   onMount(() => {
     let last = window.scrollY
     const isMobile = () => window.matchMedia('(max-width: 939px)').matches

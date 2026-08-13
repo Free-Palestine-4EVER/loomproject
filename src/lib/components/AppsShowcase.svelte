@@ -46,6 +46,7 @@
   import { browser } from '$app/environment'
   import { SUITE } from '$data/suite.js'
   import { reducedMotion, reveal } from '$lib/motion.svelte.js'
+  import { registerReactiveUrls } from '$lib/imageWarm.js'
   import SplitWords from './SplitWords.svelte'
   import LiveBadge from './LiveBadge.svelte'
   import './products-stage.css' // .stg-* — the stage design
@@ -143,6 +144,28 @@
       window.removeEventListener('resize', onScroll)
       mq.removeEventListener('change', onScroll)
     }
+  })
+
+  // ——— WARM EVERY PRODUCT'S IMAGERY, NOT JUST THE SELECTED ONE'S ———
+  // `stg-bg` and the three `shots` below are keyed on `item.key`, so only the
+  // SELECTED product's <img>s are ever in the DOM (see the header comment on
+  // why: never more than one product decoding at a time). That is right for
+  // paint cost, but it means scrolling to a product that has never been the
+  // selection before mounts brand-new <img loading="lazy"> nodes at the
+  // exact moment the scroll reveals them — a fetch that starts AT scroll
+  // time, which is the one thing imageWarm.js's brief forbids. None of these
+  // URLs carry a srcset/responsive candidate (see the screen/card/laptop
+  // snippets above — plain `src={shot.src}`, no `<picture>`), so there is no
+  // viewport decision to mirror here: registering the literal path from
+  // suite.js IS the URL the browser will actually request, for every
+  // viewport. Registered once for the component's lifetime (not per
+  // selection change) since the list is the whole SUITE, not the current
+  // item — imageWarm.js's own batching is what keeps this from flooding the
+  // connection pool.
+  onMount(() => {
+    return registerReactiveUrls(() =>
+      SUITE.flatMap((it) => [it.bg, ...(it.shots || []).filter(Boolean).map((s) => s.src)]).filter(Boolean)
+    )
   })
 
   const item = $derived(SUITE[i])

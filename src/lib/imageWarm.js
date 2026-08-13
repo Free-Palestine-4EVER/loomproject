@@ -202,6 +202,86 @@ function warmBackgrounds() {
   }
 }
 
+// ————— REACTIVE URLS — the third source, alongside <img> and CSS backgrounds —
+//
+// AppsShowcase's stage and Solutions' niches gallery both assign image URLs
+// from JS as the visitor scrolls, and neither one exists as a DOM node (or a
+// computed style) until the scroll event that reveals it fires:
+//
+//   - AppsShowcase keys its whole imagery column on the SELECTED product
+//     (`{#key item.key}`) — only the current product's <img>s are ever
+//     mounted, so scrolling to a product that has never been the selection
+//     before mounts brand-new <img loading="lazy"> nodes at that exact
+//     moment. The DOM/MutationObserver passes above are watching for that,
+//     but "watching for it" is still a fetch that starts AT scroll time —
+//     too late for the brief ("nothing may arrive while scrolling").
+//   - Solutions' niches stage already runs its own short lookahead (3-6
+//     industries ahead of the current one, gated on proximity to the
+//     section) for exactly this reason, but a jump-scroll can land past that
+//     window in one frame, same problem.
+//
+// Neither is fixable by scanning the rendered document — the URL is not
+// there yet — so each component instead REGISTERS a zero-arg function that
+// returns its full candidate URL list, evaluated lazily at warm time (not at
+// registration time) so it can read the live viewport/format decision the
+// component would actually make. This file only collects and fetches; it
+// never hardcodes a path, so a ninth SUITE product or a 31st niche is warmed
+// automatically the day it's added to that component's own data.
+const reactiveSources = new Set()
+
+// Called from a component's `onMount` (with the returned function stored and
+// invoked on unmount) — never at module scope, so a component that mounts on
+// one route and not another cannot leak a stale entry into a page it never
+// appears on.
+export function registerReactiveUrls(fn) {
+  reactiveSources.add(fn)
+  return () => reactiveSources.delete(fn)
+}
+
+function collectReactiveUrls() {
+  const urls = new Set()
+  for (const fn of reactiveSources) {
+    let list
+    try {
+      list = fn()
+    } catch {
+      // A registered producer throwing (component torn down mid-call, a
+      // ref not yet set) costs that one component's URLs this pass, never
+      // the whole warm-up — the self-heal interval and the next navigation
+      // both give it another chance.
+      list = null
+    }
+    if (!list) continue
+    for (const url of list) {
+      if (url && !url.startsWith('data:')) urls.add(url)
+    }
+  }
+  return urls
+}
+
+// Same batching contract as warmImgBatches — BATCH_SIZE at a time, yielding
+// to idle() between batches — so a component with dozens of reactive URLs
+// (the 30-industry niches gallery) cannot flood the connection pool any more
+// than the DOM pass can. Runs LAST, after the <img>/background/poster passes
+// have fully drained, so it never competes with anything actually on screen
+// for bandwidth — these are all, by definition, off-screen right now.
+async function warmReactiveUrls() {
+  const urls = Array.from(collectReactiveUrls())
+  for (let i = 0; i < urls.length; i += BATCH_SIZE) {
+    if (saveData()) return
+    const batch = urls.slice(i, i + BATCH_SIZE)
+    for (const url of batch) {
+      const img = new Image()
+      img.src = url
+    }
+    // No `settle()` wait here on purpose: these images have no DOM element
+    // to hold a batch open, and a warmed-but-still-decoding image costs
+    // nothing to hand the thread back on — the HTTP cache entry lands
+    // whenever it lands, and that is all this pass promises.
+    await new Promise((resolve) => idle(resolve))
+  }
+}
+
 // The <video poster> half. A poster is a plain image URL on an attribute the
 // browser does not treat as lazy at all — but a poster that is only wired up
 // by JS after some interaction (a lightbox opening a case-study reel) can
@@ -232,6 +312,12 @@ export async function runImageWarm() {
     // batched themselves.
     warmBackgrounds()
     warmPosters()
+    // Reactive URLs run LAST and awaited (unlike backgrounds/posters): there
+    // can be dozens of these (every SUITE product's bg+3 shots, all 30
+    // niches), so they get the same batched/idle treatment as the <img>
+    // pass rather than firing all at once the way the rare background case
+    // does.
+    await warmReactiveUrls()
   } finally {
     running = false
   }

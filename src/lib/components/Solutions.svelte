@@ -35,6 +35,7 @@
   import { cubicOut } from 'svelte/easing'
   import { NICHES, NICHE_GROUPS, CORE_SERVICES, ENTRY_OFFER } from '$data/site.js'
   import { reducedMotion, reveal } from '$lib/motion.svelte.js'
+  import { registerReactiveUrls } from '$lib/imageWarm.js'
   import { wizard } from '$lib/wizard.svelte.js'
   import SplitWords from './SplitWords.svelte'
   /* The wool spool was the CTA here until 13 Aug 2026. It is a photograph
@@ -352,6 +353,33 @@
     probe.onerror = () => { avifOk = false }
     // 1×1 AVIF, the standard support probe.
     probe.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAABQaWluZgAAAAAAAQAAABJpbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQAMAAAAABNjb2xybmNseAACAAIABoAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgABogQEDQgMgkQAAAAB8dSLfI='
+  })
+
+  /* ——— PREWARM ALL THIRTY, NOT JUST THE LOOKAHEAD WINDOW ———
+     The lookahead effect below (and `stageNear`, further down) both exist to
+     keep the CURRENT scrub smooth — a handful of industries ahead of
+     wherever the reader actually is. Neither one helps a jump-scroll straight
+     to the bottom of the page: that lands on an industry that was never
+     "ahead" of anything, so nothing pre-fetched it and nothing pre-mounted
+     its <img>. imageWarm.js's reactive-URL pass is the fix — it runs once,
+     late (after the page's own DOM/background warm-up has drained), and
+     covers every industry regardless of scroll position.
+
+     Registered as a lazily-evaluated function, not a static list, so it
+     reads the SAME live decisions the lookahead effect above makes right
+     before imageWarm.js actually calls it: `avifOk` (may still be null if
+     the probe above hasn't resolved yet — falls back to webp, which is
+     always a correct request since it's also the <img> tag's own fallback
+     `src`) and the portrait breakpoint, mirrored exactly from the <picture>
+     media query at `(max-width: 719px)` below. Warming the wrong one would
+     be wasted bytes on top of leaving the real candidate cold — see the
+     brief's point 4. */
+  onMount(() => {
+    return registerReactiveUrls(() => {
+      const portrait = window.matchMedia('(max-width: 719px)').matches
+      const ext = avifOk ? 'avif' : 'webp'
+      return NICHES.map((n) => (portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`))
+    })
   })
 
   $effect(() => {
