@@ -406,6 +406,17 @@
        So the copy shrinks instead, and the ratio is left to do its job
        unassisted. This is the "smaller but nicer" trade, made explicitly. */
     container-type: inline-size;
+    /* FAIL-SAFE FLOOR: every `cqw`-sized child of this container already
+       carries a `max(<rem-floor>, N cqw)` (see the block below), so a
+       container that measures 0 inline-size already leaves the type at a
+       readable rem size — that part was already safe. This min-height is
+       the other half: if `container-type: inline-size` itself is
+       unsupported, or the card's own width somehow resolves to 0 before
+       this box is laid out, `aspect-ratio: 21/9` on a 0-wide box is a
+       0-tall box too, and a 0-tall box clips every child inside it. The
+       floor only engages below the ratio's own height at a plausible card
+       width, so it is inert whenever the ratio is doing its job. */
+    min-height: 200px;
   }
 
   /* ——— copy sized against the CARD, not the viewport ———
@@ -904,6 +915,17 @@
      directly keeps the width at 100vw unconditionally: 21:9 whenever there is
      room, and capped by the fold when there is not, with the photograph
      cropping via object-fit rather than the box narrowing. */
+  /* FAIL-SAFE FLOOR: on a very short viewport `100svh - 330px` can go
+     negative (a foldable phone in landscape, a split-screen window under
+     ~330px tall), and CSS clamps a negative `height` to 0 — the whole stage
+     would render as a 0px-tall strip with the photograph, search box and
+     answer card all present in the DOM but occupying no visible area. This
+     min-height is declared BEFORE the computed height so the computed value
+     still wins whenever it's positive; it only takes over once the formula
+     above would have gone to (or below) zero. Never a redesign concern: no
+     viewport this site is actually laid out for gets anywhere near this
+     floor. */
+  min-height: 220px;
   height: min(calc(100vw * 9 / 21), calc(100svh - 330px));
   border-radius: 0;
   background: var(--bg-3);
@@ -1165,9 +1187,17 @@
 .sol-console .sol-stage {
   position: relative;
   width: 100%;
-  /* height is the ratio again, not a viewport formula: the card below it is
-     no longer inside the box, so the box has nothing to clip */
+  /* FAIL-SAFE FLOOR, same reasoning as the base `.sol-stage` rule above.
+     `height` MUST stay `auto` — `aspect-ratio` only fills in a dimension
+     that is `auto`; giving `height` an explicit value here (even a "safe"
+     clamp) would disable the ratio entirely and lock the stage to a fixed
+     height at every width, which is a real visual regression, not a floor.
+     `min-height` is the correct tool: it only engages if the ratio (or a
+     browser without aspect-ratio support) would otherwise resolve below it.
+     180px is comfortably under the ratio's own height at every width this
+     section ships at, so it changes nothing in the healthy case. */
   height: auto;
+  min-height: 180px;
   aspect-ratio: 21 / 9;
   max-height: none;
   border-radius: clamp(18px, 1.8vw, 28px);
@@ -1460,7 +1490,20 @@
    object-fit: cover crops it. A fixed 21:9 is what stopped this fitting. */
 .sol-pin.is-pinned .sol-stage {
   flex: 1 1 auto;
-  min-height: 0;
+  /* FAIL-SAFE FLOOR: `min-height: 0` used to sit here bare, which is the
+     right flexbox idiom for letting this item shrink below its own content
+     size — but "shrink below content" has no floor of its own, so on a
+     viewport short enough that the fixed-size siblings (head, bar, tour
+     rail) already eat the whole 100svh track, this item's computed height
+     can reach true zero. `.sol-answer-slot` inside it is `position:
+     absolute`, and `.sol-stage` is `overflow: hidden` — a zero-height stage
+     clips that slot along with the photograph, which is exactly the
+     "whole section invisible" failure mode this pass exists to close off.
+     60px is not a real layout target: every height this section is actually
+     tuned for (see the `max-height` media queries below) leaves the stage far
+     more room than that. It only ever engages on a viewport shorter than any
+     of them, and it stops the pinned card from clipping to nothing there. */
+  min-height: 60px;
   height: auto;
   aspect-ratio: auto;
   margin-bottom: 0;
