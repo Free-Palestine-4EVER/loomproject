@@ -551,17 +551,22 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
      scroll-spy) saw a moving target mid-transition.
 
      Padding is a single value now and is NOT transitioned. The scrolled state
-     changes only background, backdrop-filter and the border — all composited,
-     none of them touching layout, so the state flip costs nothing and moves
-     nothing. The bar still visibly changes on scroll (transparent gradient ->
-     frosted pink plate); it just no longer resizes to do it.
+     changes only the border — background is the same flat `#ffc9d9` in both
+     states since the 13 Aug baby-pink change, and the blur is gone with it —
+     which is composited and does not touch layout, so the state flip costs
+     nothing and moves nothing. What the bar visibly does on scroll is grow
+     its bottom rule; it no longer changes colour, and it never resized.
 
      The hysteresis in Nav.svelte (turn on above 56px, off below 32px) is
      unrelated and stays — that guards against the state flickering when a
      reader rests the page near the threshold, which is a different bug. */
   transition: background 0.45s, border-color 0.45s;
-  /* one stable compositor layer, so flipping backdrop-filter on and off does
-     not make WebKit tear the layer down and rebuild it mid-scroll */
+  /* One stable compositor layer. This was here because the scrolled state
+     flipped backdrop-filter on and off and WebKit tore the layer down and
+     rebuilt it mid-scroll; there is no backdrop-filter on this bar any
+     more, but a fixed element that translates itself out of view on scroll
+     wants its own layer regardless, and the same promotion is what fixes
+     the sticky-blur shake over in solutions.css. Keeping it. */
   transform: translateZ(0);
   /* THE BORDER IS RESERVED, NOT ADDED (11 Aug 2026). The scrolled state grows
      a bottom border — 1px here, overridden to `2px dashed` in wool.css:430 —
@@ -575,17 +580,28 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   border-bottom: 2px solid transparent;
 }
 .nav--scrolled {
-  /* Same baby pink as `.nav`'s resting state above (`#ffc9d9`), just as a
-     translucent frosted plate with blur behind it instead of the flat
-     colour — height is NOT part of this state either, the 2px border is
+  /* SOLID `#ffc9d9`, not a translucent plate (13 Aug 2026, second pass).
+     This state shipped as `rgba(255, 201, 217, 0.86)` with a blur behind
+     it, which measured on production as exactly that: 86% opacity at
+     every width in both engines. It looks fine over the page's own pale
+     rose ground and wrong over anything else, and — the reason it had to
+     change — `theme-color` in app.html is a FLAT colour. iOS paints the
+     status-bar band solid `#ffc9d9` and cannot be made translucent, so an
+     86% header sitting under it re-created the seam this whole change
+     exists to remove: a solid band above a slightly-different tinted one,
+     shifting shade against whatever scrolled underneath. The header and
+     the phone chrome have to be the same flat colour or they read as two
+     bands. Height is still not part of this state — the 2px border is
      reserved transparently on `.nav` above, so appearing here costs no
-     layout and the bar never resizes. rgba() of the SAME hex as the resting
-     state, not `--bg`'s rgba (255, 233, 242) — that would have reintroduced
-     the seam this whole change exists to remove: the bar going pink-at-top
-     and a DIFFERENT, paler pink once scrolled. */
-  background: rgba(255, 201, 217, 0.86);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+     layout and the bar never resizes.
+
+     The blur goes with it. A backdrop-filter under a fully opaque
+     background is pure cost: it composites a blurred copy of everything
+     behind a plate nobody can see through. It is also the exact property
+     whose interaction with `position: sticky` caused the client-reported
+     Safari shake in solutions.css — worth not running one on a fixed bar
+     that no longer needs it. */
+  background: #ffc9d9;
   border-bottom: 2px solid var(--line);
 }
 .nav-logo {

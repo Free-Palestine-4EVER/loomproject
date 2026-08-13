@@ -79,20 +79,19 @@
 
   /* Reduced transparency — translucent surfaces go near-solid, no blur */
   @media (prefers-reduced-transparency: reduce) {
-    .nav--scrolled,
     .wmodal-panel,
     .menu {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
     }
-    /* `.nav`, not `.nav--scrolled` (11 Aug 2026) — the solid fallback has to
-       cover BOTH states, or reduced-transparency users get an opaque bar that
-       turns translucent again the moment they scroll back to the top.
-       `.nav`/`.nav--scrolled` are already solid `#ffc9d9` at every scroll
-       position (13 Aug 2026 baby-pink header change), so removing the blur
-       here is enough on their own — no background override needed, unlike
-       `.wmodal-panel`/`.menu` which stay on `--bg-2` because THEY are still
-       genuinely translucent-by-default surfaces. */
+    /* The nav is not in that list any more (13 Aug 2026, second pass).
+       `.nav--scrolled` used to be a translucent frosted plate and needed
+       both the blur removed here and, before 11 Aug, a solid background
+       pushed under it. It is now a flat `#ffc9d9` with no backdrop-filter
+       at all in either state (styles.css), so there is nothing left for
+       this query to reduce — listing it would only be a rule that resets a
+       property nobody sets. `.wmodal-panel`/`.menu` stay because THEY are
+       still genuinely translucent-by-default surfaces. */
     .wmodal-panel { background: var(--bg-2); }
     .menu { background: var(--bg-2); }
   }
