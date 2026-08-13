@@ -502,34 +502,41 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
      the notch, which is what the inset is for. Zero on every other device,
      so there is nothing to branch on. */
   padding: calc(16px + env(safe-area-inset-top, 0px)) var(--pad) 16px;
-  /* ONE HEADER, NOT THREE — 11 Aug 2026.
+  /* THE HEADER IS BABY PINK IN BOTH STATES — 13 Aug 2026.
 
-     The bar used to paint three different ways and the client saw all three:
-       1. unscrolled — `linear-gradient(rgba(9,4,16,0.4) -> transparent)`
-       2. scrolled   — frosted pink + denim texture + blur
-       3. reduced-transparency — a solid #ffdfec plate
-     so scrolling the page swapped the header between a dark bar, a pink one
-     and a white one.
+     History: this used to paint three different ways (a dark scrim left over
+     from the old violet ground, a frosted rose plate once scrolled, and a
+     solid `#ffdfec` reduced-transparency fallback), which got collapsed on
+     11 Aug to exactly two states — transparent over the hero, frosted rose
+     plate once scrolled — because a transparent resting state was legible
+     (dark `--ink-dim` links over the pale rose hero art) and the client's ask
+     at the time was just "stop swapping between three headers".
 
-     State 1 was a straight theme-flip bug, not a style: that dark scrim was
-     written when the site sat on a dark violet ground. After the flip to the
-     rose ground the links became `--ink-dim` — DARK text — so the unscrolled
-     header was painting a near-black plate behind dark type. The old comment
-     here still claimed the gradient was "just enough to hold contrast", which
-     stopped being true the moment the ground changed underneath it.
+     THE CLIENT NOW WANTS THE BAR ITSELF TO READ AS ITS OWN BABY-PINK BAND,
+     not just "no longer dark", and wants that true at the very top of the
+     page too, not only after scrolling — a transparent resting state can
+     never satisfy that, because "transparent" is not a colour. So the
+     transparent state is gone: the bar now carries a solid baby pink
+     (`--nav-bg`, see the token above `.nav-links` /  the definition just
+     below) at every scroll position. `.nav--scrolled` still exists and still
+     changes on scroll — it adds the frosted blur and the border — but the
+     BASE COLOUR no longer flips between "nothing" and "pink"; it is pink
+     throughout, matching the iOS status-bar tint (`theme-color` in
+     app.html) and the mobile chrome band (mobilechrome.css), which both
+     already had to do this trick for the phone header and are now just the
+     general rule instead of a mobile-only exception.
 
-     There are TWO states now and only two, exactly as the client asked for:
-     over the hero the header paints NOTHING AT ALL — no plate, no blur, no
-     texture, no border — and once scrolled it is the frosted rose plate.
-     An intermediate translucent-plate resting state was tried first and read
-     as a third header (a grey-mauve bar over the hero), so it is gone.
-
-     The nav links are `--ink-dim` (dark) and the hero art behind them is the
-     pale rose cloud render, so dark type on no plate is the correct contrast
-     direction here. If the hero art is ever swapped for something dark, this
-     resting state has to be revisited — a transparent header is only safe
-     over a light hero. */
-  background: transparent;
+     `#ffc9d9` — NOT `--bg` (`#ffe9f2`). The client's ask was for the bar to
+     read as its OWN baby-pink band, distinct from the page ground behind it,
+     not a continuation of it; `--bg` is a pale rose, `#ffc9d9` is a
+     noticeably more saturated, more obviously "baby pink" tone from the same
+     family. `--ink-dim` (the nav link colour) on `#ffc9d9` is 7.5:1 — well
+     past the 4.5:1 floor. This is a HEADER-ONLY colour, deliberately not a
+     token in the `:root` block above: it must never be confused with `--bg`
+     or retuned by a future ground change the way the hardcoded `--bg` copies
+     are. If it is ever revisited, grep `#ffc9d9` — every occurrence styles
+     this header/status-bar band and nothing else. */
+  background: #ffc9d9;
   /* the blur radius is NOT interpolated — ramping 0->14px across a 1440px bar
      every frame for 450ms was the expensive half of this transition */
 
@@ -568,10 +575,15 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   border-bottom: 2px solid transparent;
 }
 .nav--scrolled {
-  /* the one and only painted state. Height is NOT part of it — the 2px border
-     is reserved transparently on `.nav` above, so appearing here costs no
-     layout and the bar never resizes. */
-  background: rgba(255, 233, 242, 0.86);
+  /* Same baby pink as `.nav`'s resting state above (`#ffc9d9`), just as a
+     translucent frosted plate with blur behind it instead of the flat
+     colour — height is NOT part of this state either, the 2px border is
+     reserved transparently on `.nav` above, so appearing here costs no
+     layout and the bar never resizes. rgba() of the SAME hex as the resting
+     state, not `--bg`'s rgba (255, 233, 242) — that would have reintroduced
+     the seam this whole change exists to remove: the bar going pink-at-top
+     and a DIFFERENT, paler pink once scrolled. */
+  background: rgba(255, 201, 217, 0.86);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 2px solid var(--line);

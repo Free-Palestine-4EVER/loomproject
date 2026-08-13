@@ -18,14 +18,26 @@
          started an inch down the screen and the layout looked boxed in.
          Nothing about the layout ever changed; the frame around it did.
 
-         It matches `--bg` exactly, so the chrome now continues the page
-         instead of framing it. If `--bg` is ever retuned, this literal moves
-         with it — it is one of the hardcoded copies the styles.css note
-         warns about.
+         UPDATED AGAIN, 13 Aug 2026 — `#ffc9d9`, NOT `--bg`. It no longer
+         matches `--bg` (`#ffe9f2`, the page ground) — that stopped being the
+         goal. The client asked for the HEADER specifically to read as its
+         own, more saturated baby pink, distinct from the paler rose ground
+         behind it (`.nav`'s `background`, styles.css, right above
+         `.nav-logo`), and for the header band to run baby pink at the very
+         top of the page too, not only once scrolled — so `.nav` is now a
+         solid `#ffc9d9` in both its resting and scrolled states, on every
+         width. This literal is the iOS continuation of THAT band, not of the
+         page: it has to equal the header's colour, `#ffc9d9`, or the status
+         bar reads as a seam again — just a differently-coloured one than the
+         11 Aug bug. If the header's colour is ever retuned, this moves with
+         it, together with the two hardcoded `#ffc9d9` copies in
+         `mobilechrome.css` (the phone header's own background, which used to
+         be the thing keeping the status bar honest before the desktop header
+         adopted the same solid-pink treatment) — grep `#ffc9d9`.
 
          `viewport-fit=cover` above is intact and correct, and is what lets
          `env(safe-area-inset-*)` report real values; it was never the cause. -->
-    <meta name="theme-color" content="#ffe9f2" />
+    <meta name="theme-color" content="#ffc9d9" />
     <!-- The site has exactly one, light, ground. Declaring it stops iOS/macOS
          from force-darkening form controls, scrollbars and the rubber-band
          overscroll gutter for a reader in system dark mode — which is the

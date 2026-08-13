@@ -87,8 +87,12 @@
     }
     /* `.nav`, not `.nav--scrolled` (11 Aug 2026) — the solid fallback has to
        cover BOTH states, or reduced-transparency users get an opaque bar that
-       turns translucent again the moment they scroll back to the top. */
-    .nav--scrolled { background: var(--bg-2); }
+       turns translucent again the moment they scroll back to the top.
+       `.nav`/`.nav--scrolled` are already solid `#ffc9d9` at every scroll
+       position (13 Aug 2026 baby-pink header change), so removing the blur
+       here is enough on their own — no background override needed, unlike
+       `.wmodal-panel`/`.menu` which stay on `--bg-2` because THEY are still
+       genuinely translucent-by-default surfaces. */
     .wmodal-panel { background: var(--bg-2); }
     .menu { background: var(--bg-2); }
   }
@@ -106,16 +110,24 @@
    pink as the bar under it.
 
    THE STATUS BAR IS NOT PAGE PAINT. Its colour comes from `theme-color` in
-   app.html — already `#ffe9f2`, the baby pink — but Safari only honours that
-   once the page has scrolled; at the top it tints the strip from whatever the
-   page itself is painting up there, which was the header's TRANSPARENT resting
-   state over the hero, i.e. nothing. So the strip read white while the bar
-   under it read pink. The fix is on this end: on a phone the bar carries the
-   plate in BOTH states rather than only when scrolled, so the colour the
-   status bar samples and the colour `theme-color` declares are the same pink
-   at every scroll position. Desktop keeps the two-state header — over the
-   1440 hero the transparent bar is the design, and there is no status bar
-   there to match.
+   app.html — now `#ffc9d9`, the baby pink (13 Aug 2026 — was `#ffe9f2`, see
+   the long comment above that meta tag for the full history) — but Safari
+   only honours that once the page has scrolled; at the top it tints the
+   strip from whatever the page itself is painting up there. Originally that
+   was the header's TRANSPARENT resting state over the hero, i.e. nothing, so
+   the strip read white while the bar under it read pink; the fix on THIS end
+   was to make the phone header carry a solid plate in BOTH states rather
+   than only when scrolled, so the colour the status bar samples and the
+   colour `theme-color` declares are always the same pink.
+
+   `.nav`/`.nav--scrolled` in styles.css are now ALSO solid `#ffc9d9` in both
+   states on every width (13 Aug 2026 — the client wants the bar to read as
+   its own baby-pink band everywhere, desktop included, not only on the
+   phone), so the two background declarations below are technically
+   redundant with the base rule and exist now only because this query is
+   also where the bar's SIZE changes for phone width — kept explicit here
+   too so this block stays correct on its own if the base rule is ever
+   touched without this one being re-checked.
 
    SMALLER: the padding comes down and the wordmark with it. The safe-area
    inset stays ADDED to the top padding (see `.nav` in styles.css) — that is
@@ -124,11 +136,11 @@
 @media (max-width: 939px) {
   .nav {
     padding: calc(9px + env(safe-area-inset-top, 0px)) var(--pad) 9px;
-    background: #ffe9f2;
+    background: #ffc9d9;
     border-bottom-color: rgba(96, 40, 76, 0.08);
   }
   .nav--scrolled {
-    background: #ffe9f2;
+    background: #ffc9d9;
     border-bottom-color: var(--line);
   }
   .nav-logo .logo-woven { height: 30px; }
