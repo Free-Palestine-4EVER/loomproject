@@ -16,14 +16,26 @@
   import { page } from '$app/state'
 
   import { BRAND, NICHES, NICHE_GROUPS } from '$data/site.js'
+  import { NAV_LABELS, NAV_UI, FOOTER_UI } from '$data/chrome.js'
   import { magnetic, reducedMotion } from '$lib/motion.svelte.js'
   import { navigate } from '$lib/scroll.svelte.js'
   import { wizard } from '$lib/wizard.svelte.js'
   import { registerReactiveUrls } from '$lib/imageWarm.js'
+  import { i18n, t, localeHref } from '$lib/i18n.svelte.js'
   import { LINKS } from './nav-links.js'
 
   import WoolButton from './WoolButton.svelte'
   import Chevron from './Chevron.svelte'
+  import LangSwitch from './LangSwitch.svelte'
+
+  // Locale-aware label + href for every LINKS entry, read fresh off `i18n`
+  // (a getter, not a store — see i18n.svelte.js) so this recomputes
+  // correctly on the server for whichever locale is being rendered, with no
+  // risk of one request's language bleeding into another's. Hash targets
+  // ('#top') pass through localeHref() unchanged; route paths ('/work', …)
+  // get the '/ar' prefix added or removed to match.
+  const label = (l) => t(NAV_LABELS[l.href] ?? { en: l.label, ar: l.label })
+  const href = (l) => localeHref(l.href)
 
   let open = $state(false)
   let scrolled = $state(false)
@@ -246,7 +258,7 @@
   async function pickNiche(n) {
     open = false
     dropOpen = false
-    await navigate('/solutions')
+    await navigate(localeHref('/solutions'))
     requestAnimationFrame(() =>
       requestAnimationFrame(() =>
         window.dispatchEvent(new CustomEvent('loom:select-niche', { detail: { key: n.key } }))
@@ -316,7 +328,13 @@
   let currentHref = $state(null)
   $effect(() => {
     if (!browser || !open) return
-    const path = page.url.pathname
+    // Strip a leading '/ar' before comparing: LINKS itself only ever holds
+    // the unprefixed English href (nav-links.js is not locale-aware), so
+    // 'which tab am I on' has to compare against the bare path in both
+    // locales. See i18n.svelte.js's localeHref() for the same stripping
+    // logic used elsewhere.
+    const raw = page.url.pathname
+    const path = raw === '/ar' ? '/' : raw.startsWith('/ar/') ? raw.slice(3) : raw
     const route = LINKS.find((l) => !l.href.startsWith('#') && l.href === path)
     if (route) { currentHref = route.href; return }
     if (path !== '/') { currentHref = null; return }
@@ -358,8 +376,13 @@
 
      '#top' — Home, the only hash left in LINKS — lights on the long page and
      nowhere else, which is exactly what it means. */
-  const isCurrent = (href) =>
-    href.startsWith('#') ? page.url.pathname === '/' : page.url.pathname === href
+  // Compares against the LOCALIZED href (href(l), not l.href) since
+  // page.url.pathname carries the '/ar' prefix in Arabic — see label()/href()
+  // above and localeHref() in i18n.svelte.js.
+  const isCurrent = (l) =>
+    l.href.startsWith('#')
+      ? page.url.pathname === (i18n.isAr ? '/ar' : '/')
+      : page.url.pathname === href(l)
 
   /* THE ACCOUNT UI IS GONE (13 Aug 2026). Sign in, the avatar, its menu and
      the outside-click/Escape effect that served it all existed for ONE thing:
@@ -391,21 +414,21 @@
     <img class="logo-woven" src="/img/logo/loom-woven-sm.webp" alt="LOOM" width="480" height="162" />
   </a>
 
-  <nav class="nav-links" aria-label="Primary">
+  <nav class="nav-links" aria-label={t(NAV_UI.primaryNav)}>
     {#each LINKS as l (l.href)}
       {#if l.href === '/solutions'}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="nav-drop" onmouseenter={openNow} onmouseleave={closeSoon}>
           <a
-            href={l.href}
-            class="nav-drop-trigger{l.extra ? ' is-extra' : ''}{isCurrent(l.href) ? ' is-current' : ''}"
-            aria-current={isCurrent(l.href) ? 'page' : undefined}
+            href={href(l)}
+            class="nav-drop-trigger{l.extra ? ' is-extra' : ''}{isCurrent(l) ? ' is-current' : ''}"
+            aria-current={isCurrent(l) ? 'page' : undefined}
             onclick={(e) => { dropOpen = false; go(e, l.href) }}
             onfocus={openNow}
             aria-haspopup="true"
             aria-expanded={dropOpen}
           >
-            <span data-text={l.label}>{l.label}</span>
+            <span data-text={label(l)}>{label(l)}</span>
             <Chevron class="nav-drop-chev{dropOpen ? ' is-open' : ''}" />
           </a>
 
@@ -414,12 +437,12 @@
             <div
               class="nav-drop-panel"
               role="menu"
-              aria-label="Browse by industry"
+              aria-label={t(NAV_UI.browseByIndustry)}
               transition:fly={{ y: -8, duration: 200, easing: cubicOut }}
               onmouseenter={openNow}
               onmouseleave={closeSoon}
             >
-              <p class="nav-drop-lede">Thirty industries — the loom already knows yours.</p>
+              <p class="nav-drop-lede">{t(NAV_UI.dropLede)}</p>
               <div class="nav-drop-grid">
                 {#each NAV_GROUPS as g (g.id)}
                   <div class="nav-drop-col" style="--grp-yarn:{NAV_GROUP_YARN[g.id]}">
@@ -439,26 +462,28 @@
         </div>
       {:else}
         <a
-          href={l.href}
-          class="{l.extra ? 'is-extra' : ''}{isCurrent(l.href) ? ' is-current' : ''}"
-          aria-current={isCurrent(l.href) ? 'page' : undefined}
+          href={href(l)}
+          class="{l.extra ? 'is-extra' : ''}{isCurrent(l) ? ' is-current' : ''}"
+          aria-current={isCurrent(l) ? 'page' : undefined}
           onclick={(e) => go(e, l.href)}
         >
-          <span data-text={l.label}>{l.label}</span>
+          <span data-text={label(l)}>{label(l)}</span>
         </a>
       {/if}
     {/each}
   </nav>
 
   <div class="nav-cta">
+    <LangSwitch variant="nav" />
+
     <div class="magnetic" use:magnetic={{ strength: 0.25 }}>
-      <WoolButton label="Get started" size="small" onclick={() => { open = false; wizard.open({}) }} />
+      <WoolButton label={t(NAV_UI.getStarted)} size="small" onclick={() => { open = false; wizard.open({}) }} />
     </div>
 
     <button
       bind:this={burgerEl}
       class="burger {open ? 'is-open' : ''}"
-      aria-label={open ? 'Close menu' : 'Open menu'}
+      aria-label={t(open ? NAV_UI.closeMenu : NAV_UI.openMenu)}
       aria-expanded={open}
       onclick={() => (open = !open)}
     ><span></span><span></span></button>
@@ -471,7 +496,7 @@
     bind:this={menuEl}
     role="dialog"
     aria-modal="true"
-    aria-label="Main menu"
+    aria-label={t(NAV_UI.mainMenu)}
     transition:slide={{ duration: 480, easing: cubicOut }}
   >
     <!-- Three layers: a soft gradient ground, two woven hatch passes at a
@@ -514,27 +539,35 @@
     -->
     <div class="menu-content">
       <p class="menu-kicker" style="--i:0">
-        <span>Menu</span>
+        <span>{t(NAV_UI.menuKicker)}</span>
         <i class="menu-kicker-thread" aria-hidden="true"></i>
-        <span>Amman, Jordan</span>
+        <span>{t(NAV_UI.ammanJordan)}</span>
       </p>
+
+      <!-- THE SWITCHER'S DRAWER HOME — its own row, right under the kicker,
+           before a single nav link. It is the one control on this page a
+           reader in the wrong language needs before anything else is
+           useful to them, so it does not wait for tier one or two. -->
+      <div class="menu-lang" style="--i:0">
+        <LangSwitch variant="drawer" onnavigate={() => (open = false)} />
+      </div>
 
       <!-- TIER ONE — the four things a stranger can buy or check, plus Home.
            Set in the studio's own LOOM Organic at 40px+ (the face is caps-only
            and stops reading below roughly 40, so the floor is a `max()`, not a
            hope), with the index numerals carrying the rhythm and a yarn thread
            that draws itself under the row you are actually on. -->
-      <nav class="menu-primary" aria-label="Main">
+      <nav class="menu-primary" aria-label={t(NAV_UI.mainNav)}>
         {#each PRIMARY as l, i (l.href)}
           <a
-            href={l.href}
+            href={href(l)}
             class="menu-p{currentHref === l.href ? ' is-current' : ''}"
             aria-current={currentHref === l.href ? 'page' : undefined}
             style="--i:{i + 1}"
             onclick={(e) => go(e, l.href)}
           >
             <span class="menu-p-idx" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-            <span class="menu-p-word">{l.label}</span>
+            <span class="menu-p-word">{label(l)}</span>
             <span class="menu-p-thread" aria-hidden="true"></span>
           </a>
         {/each}
@@ -542,16 +575,16 @@
 
       <!-- TIER TWO — capability and proof. Every label and destination is
            unchanged from LINKS; only the weight it is given is. -->
-      <nav class="menu-secondary" aria-label="More" style="--i:{PRIMARY.length + 1}">
-        <p class="menu-s-label">Also here</p>
+      <nav class="menu-secondary" aria-label={t(NAV_UI.moreNav)} style="--i:{PRIMARY.length + 1}">
+        <p class="menu-s-label">{t(NAV_UI.more)}</p>
         <div class="menu-s-grid">
           {#each SECONDARY as l (l.href)}
             <a
-              href={l.href}
+              href={href(l)}
               class="menu-s{currentHref === l.href ? ' is-current' : ''}"
               aria-current={currentHref === l.href ? 'page' : undefined}
               onclick={(e) => go(e, l.href)}
-            >{l.label}</a>
+            >{label(l)}</a>
           {/each}
         </div>
       </nav>
@@ -566,7 +599,7 @@
             aria-expanded={indOpen}
             onclick={() => (indOpen = !indOpen)}
           >
-            <span>Browse by industry</span>
+            <span>{t(NAV_UI.browseByIndustry)}</span>
             <Chevron class="menu-ind-chev{indOpen ? ' is-open' : ''}" />
           </button>
 
@@ -590,8 +623,8 @@
       </div>
 
       <div class="menu-meta" style="--i:{PRIMARY.length + 3}">
-        <WoolButton label="Start weaving" size="big" onclick={() => { open = false; wizard.open({}) }} />
-        <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">WhatsApp {BRAND.phoneJO}</a>
+        <WoolButton label={t(NAV_UI.startWeaving)} size="big" onclick={() => { open = false; wizard.open({}) }} />
+        <a href={BRAND.whatsapp} target="_blank" rel="noreferrer">{t(FOOTER_UI.whatsapp)} {BRAND.phoneJO}</a>
         <a href="mailto:{BRAND.email}">{BRAND.email}</a>
         <!-- The Sign in / Dashboard / Sign out block that used to sit here was
              left behind when Forge and the `auth` singleton were deleted: it
@@ -602,3 +635,12 @@
     </div>
   </div>
 {/if}
+
+<style>
+  /* One new rule: room around the switcher's drawer row. Everything else it
+     needs (touch target, pill styling) lives in LangSwitch.svelte's own
+     <style>, scoped there since it is the only place that markup exists. */
+  .menu-lang {
+    margin: 4px 0 10px;
+  }
+</style>

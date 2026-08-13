@@ -22,6 +22,49 @@
   font-style: italic;
   font-display: swap;
 }
+
+/* IBM PLEX SANS ARABIC — added 13 Aug 2026 with the Arabic switcher. Self-
+   hosted (SIL OFL), Arabic-block-only subset straight off Google's own
+   per-script split (no Latin glyphs in these files — Latin already comes
+   from Satoshi/the system stack, so a second copy of it would be pure
+   waste). Three static weights, 101 KB total (400: 32.7 KB, 600: 35.0 KB,
+   700: 32.8 KB) — Regular for body chrome, SemiBold for buttons/nav labels,
+   Bold for the one place a LOOM display face would have gone (the hero
+   headline; see .hero-h1--ar below and the plan's §1c/§3).
+   `unicode-range` is what keeps an ENGLISH visitor from ever paying for
+   this: the rule only downloads when the browser needs to paint a
+   character inside this range, and nothing in the English-locale render
+   tree ever contains one. Nothing here is gated by JS or by a `[lang]`
+   selector for that reason — the browser's own unicode-range check already
+   does the job, for free, before any CSS specificity question is even
+   asked. `--font-ar` (in :root, below) is the one custom property that
+   names this stack; it is never folded into --body/--display/--bloom,
+   which is what keeps it out of the English render path structurally too,
+   not just by the size of the CSS. */
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: url('/fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF,
+    U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: url('/fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF,
+    U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: url('/fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF,
+    U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
 /* LOOM Bloom — the studio's own display family: one plain cut and four planted
    ones, each carrying a different flower. Drawn in `type/`, built to
    public/fonts/loom-bloom/, given away on /type. Caps-only by design. The
@@ -297,6 +340,20 @@
   --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --display: var(--font-system);
   --body: var(--font-system);
+  /* Arabic display/body face — 'SF Arabic' first (native on Apple devices,
+     zero bytes there, same reasoning as --font-system's own Latin-first
+     entries), then the self-hosted IBM Plex Sans Arabic (see the @font-face
+     block above and the plan's §3 for why this face specifically — a
+     "neutral, engineered" companion to Satoshi/Clash Display rather than a
+     calligraphic revival), then the same system Arabic fallback chain
+     machine-offer.css already established for `.mo-arabic` ('Geeza Pro',
+     'Noto Sans Arabic', 'Segoe UI', Tahoma) so a reader on an uncommon
+     platform still gets a real Arabic-drawn face instead of tofu. Used ONLY
+     by Arabic-scoped selectors (.hero-h1--ar, [lang="ar"] body chrome,
+     .lang-switch-opt[lang="ar"], …) — never folded into --display/--body/
+     --bloom, which is what keeps an English page from ever resolving to
+     it. */
+  --font-ar: 'SF Arabic', 'IBM Plex Sans Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
   /* Was 'LOOM Bloom', 'Clash Display', 'Avenir Next', sans-serif — the drawn
      face is now scoped to the three places that still show it off (see the
      note above); everywhere else var(--bloom) is a plain heading, so it
@@ -320,6 +377,29 @@
   --pad: clamp(20px, 5vw, 96px);
   --radius: 18px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* SITE-WIDE ARABIC TYPE SWAP — 13 Aug 2026. Every heading/body element that
+   reads its family off --display/--body/--bloom (which is most of the site
+   — see the comment on those tokens above) gets IBM Plex Sans Arabic for
+   free the moment `<html lang="ar">` is on the page, with NO per-component
+   edit: redefining a custom property at a wider scope cascades to every
+   narrower use of var(--display)/var(--body)/var(--bloom) that does not
+   already redeclare it more specifically for itself.
+   `html[lang="ar"]` and `:root` are equal-specificity selectors on the SAME
+   element (both (0,1,0)-class weight), but this one carries an extra type
+   selector (`html`), so (0,1,1) beats :root's (0,1,0) regardless of source
+   order — it does not need to come after :root in the file, but it is kept
+   here, right beside it, so the two are read together.
+   THIS DOES NOT TOUCH .hero-h1 (see .hero-h1--ar above), TypeShowcase's
+   `.ts`, or /type's `.tf` — all three hardcode a literal font-family rather
+   than reading these tokens, by design (planted display faces, and /type is
+   English-only per the plan's §1c), so they are correctly untouched by this
+   rule and stay exactly as their own scoped overrides already declare. */
+html[lang="ar"] {
+  --display: var(--font-ar);
+  --body: var(--font-ar);
+  --bloom: var(--font-ar);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1676,6 +1756,32 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
    "OF CREATIVITY", which is also where it stops adding a third line box to a
    three-line headline. */
 .hero-h1 .dot { display: inline; color: var(--magenta); -webkit-text-stroke: 0; }
+/* THE ARABIC HERO HEADLINE DOES NOT USE LOOM LINEAR — it cannot: the pattern
+   face is Latin-caps-only, drawn art with zero Arabic glyphs (plan §1c), so
+   an Arabic string routed through .hero-h1's stack would silently fall back
+   to whatever generic sans the browser has, which is exactly the "reads as
+   defaulted, not deliberate" failure the brief calls out by name. This is
+   the one heading on the whole site where the Arabic locale intentionally
+   does NOT inherit the English visual identity and instead gets the
+   heaviest cut of the Arabic companion face — Bold IBM Plex Sans Arabic,
+   set large, uppercase transform OFF (Arabic has no case) and the stray
+   Latin '.' dropped (Hero.svelte only renders it for the English string).
+   Applied via a SECOND class alongside .hero-h1, not a replacement for it,
+   so every layout rule .hero-h1 carries (size clamp, line-height, the
+   line-by-line block stagger) still applies — only the family, case
+   transform and weight change. */
+.hero-h1--ar,
+.hero-h1--ar .hero-line--accent {
+  font-family: var(--font-ar);
+  text-transform: none;
+  font-weight: 700;
+}
+.hero-h1--ar .hero-line--accent {
+  /* No outline cut exists in the Arabic face — keep the accent readable as
+     solid magenta instead of the Latin line's hollow/outline treatment. */
+  -webkit-text-stroke: 0;
+  color: var(--magenta);
+}
 .hero-sub { margin-top: 30px; max-width: 54ch; color: var(--ink-dim); font-size: clamp(1rem, 1.4vw, 1.18rem); }
 .hero-ctas { margin-top: 38px; display: flex; gap: 16px; flex-wrap: wrap; }
 .hero-scrollhint {

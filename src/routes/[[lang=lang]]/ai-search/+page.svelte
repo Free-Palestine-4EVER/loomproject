@@ -54,7 +54,7 @@
      is actually served at /llms.txt — if somebody edits the file, this page
      changes with it, and if somebody deletes it the build fails here rather
      than shipping a page that points at a 404. */
-  import LLMS_TXT from '../../../static/llms.txt?raw'
+  import LLMS_TXT from '../../../../static/llms.txt?raw'
   import '../route-page.css'
   import './ai-search-page.css'
 

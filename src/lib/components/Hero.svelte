@@ -22,6 +22,8 @@
   import { reducedMotion, coarsePointer, magnetic } from '$lib/motion.svelte.js'
   import { hasWebGL } from '$three/webglSupport.js'
   import { wizard } from '$lib/wizard.svelte.js'
+  import { i18n, t } from '$lib/i18n.svelte.js'
+  import { HERO_UI } from '$data/chrome.js'
   import WoolButton from './WoolButton.svelte'
   import './sections-stage.css'
   import './hero-fallback.css'
@@ -216,32 +218,44 @@
 
   <div class="hero-type" bind:this={typeEl}>
     <p class="hero-eyebrow">
-      {BRAND.positioning} — Amman<span class="x">,</span> Jordan
+      {#if i18n.isAr}
+        {t(HERO_UI.eyebrow)}
+      {:else}
+        {BRAND.positioning} — Amman<span class="x">,</span> Jordan
+      {/if}
     </p>
-    <h1 class="hero-h1">
-      <span class="hero-line">We weave brands</span>
-      <span class="hero-line hero-line--accent">on the edge</span>
-      <span class="hero-line">of creativity<span class="dot">.</span></span>
+    <!-- Arabic renders through the SAME hero-line markup, not a different
+         template: the three-line stagger, the accent span and the trailing
+         dot are all layout/animation, not language-specific. Only the text
+         nodes swap — see HERO_UI in $lib/data/chrome.js for why these are
+         three short entries rather than one string. LOOM Linear (the drawn
+         face .hero-h1 sets in) has zero Arabic glyphs (see the plan's §1c),
+         so this headline is the one place on the page where the Arabic
+         version deliberately does NOT inherit the English one's typeface —
+         see hero-fallback.css / styles.css's --font-ar token wiring. -->
+    <h1 class="hero-h1{i18n.isAr ? ' hero-h1--ar' : ''}">
+      <span class="hero-line">{t(HERO_UI.h1Line1)}</span>
+      <span class="hero-line hero-line--accent">{t(HERO_UI.h1Line2Accent)}</span>
+      <span class="hero-line">{t(HERO_UI.h1Line3)}{#if !i18n.isAr}<span class="dot">.</span>{/if}</span>
     </h1>
     <p class="hero-sub">
-      One studio for the whole build: the brand, the website, the campaign that sells it,
-      and the AI that keeps it running while you sleep.
+      {t(HERO_UI.sub)}
     </p>
     <div class="hero-ctas">
       <!-- "Start weaving" is one of the 21 photographed spools — and it is the
            headline's own verb, so the hero CTA is real wool, not a CSS pill -->
       <div class="magnetic" use:magnetic={{ strength: 0.35 }}>
-        <WoolButton label="Start weaving" class="wool-btn--hero" onclick={() => wizard.open({})} eager />
+        <WoolButton label={t(HERO_UI.ctaStart)} class="wool-btn--hero" onclick={() => wizard.open({})} eager />
       </div>
       <div class="magnetic" use:magnetic={{ strength: 0.35 }}>
-        <WoolButton label="See the work" href="#work" data-scroll eager />
+        <WoolButton label={t(HERO_UI.ctaWork)} href="#work" data-scroll eager />
       </div>
     </div>
   </div>
 
   <div class="hero-scrollhint" bind:this={hintEl} aria-hidden="true">
     <span class="hero-scrollhint-in">
-      <span>Scroll</span><i></i>
+      <span>{t(HERO_UI.scroll)}</span><i></i>
     </span>
   </div>
 </section>

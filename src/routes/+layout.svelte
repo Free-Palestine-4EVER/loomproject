@@ -14,9 +14,21 @@
   import { onMount } from 'svelte'
   import { browser } from '$app/environment'
   import { afterNavigate } from '$app/navigation'
+  import { page } from '$app/state'
   import { reducedMotion, coarsePointer } from '$lib/motion.svelte.js'
   import { mountAnchorLinks } from '$lib/scroll.svelte.js'
   import { mountImageWarm, rewarmAfterNavigation } from '$lib/imageWarm.js'
+  import { i18n, localeHref } from '$lib/i18n.svelte.js'
+
+  // hreflang alternates — every route on the site, both locales, computed
+  // from the CURRENT page's own path (not hardcoded per route) so a Wave B
+  // route added later gets correct alternates automatically. 'x-default'
+  // points at the English URL: the brief's own rule is "/ stays English
+  // with no prefix", i.e. English is the unprefixed default for a reader
+  // whose Accept-Language the crawler cannot resolve to either locale.
+  const SITE = 'https://www.loomstudio-jo.com'
+  const altEn = $derived(SITE + localeHref(page.url.pathname, 'en'))
+  const altAr = $derived(SITE + localeHref(page.url.pathname, 'ar'))
 
   import Loader from '$lib/components/Loader.svelte'
   import ScrollProgress from '$lib/components/ScrollProgress.svelte'
@@ -47,6 +59,47 @@
   import '$lib/styles/button-scale.css'
 
   let { children } = $props()
+
+  /* KEEP `<html lang>` CORRECT ACROSS CLIENT-SIDE NAVIGATION. hooks.server.js
+     writes the right `lang` into the BYTES on the wire — but that hook only
+     ever runs for a real HTTP request (a full page load or a hard refresh).
+     Clicking the switcher, or any in-app link between an English and an
+     Arabic route, is a SvelteKit CLIENT-SIDE transition: the router fetches
+     the new route's data and patches the existing DOM, and it never asks the
+     server to re-render `app.html` — so without this, `<html lang>` would
+     stay stuck at whatever it was on the tab's very first load, silently
+     wrong for every navigation after the first. This effect is the
+     client-side half of the same promise hooks.server.js makes for the
+     first one: read the now-current locale (i18n.locale — a getter over
+     page.data/page.url, safe to read reactively, see i18n.svelte.js) and
+     write it straight to the one DOM node that matters. Deliberately not
+     `dir` — see hooks.server.js's own note on why this project never sets
+     that at the document level. */
+  $effect(() => {
+    if (!browser) return
+    document.documentElement.lang = i18n.locale
+  })
+
+  /* ...AND WRITE THE PREFERENCE COOKIE FROM THE CLIENT, for the same reason
+     one layer down. hooks.server.js sets `loom_locale`, and the blocking
+     script in app.html reads it to send a returning Arabic visitor from `/`
+     to `/ar` before first paint. But every route on this site is
+     `prerender = true`, so in production Vercel serves flat HTML off the CDN
+     and that hook NEVER RUNS for a real visitor — only in dev and preview,
+     where nobody needed it. The cookie would never exist, the redirect would
+     never fire, and "remember my language" would be a comment describing
+     something that does not happen.
+
+     So the client writes it, on whichever locale is actually being read —
+     which also covers the case the switcher's own click handler would miss:
+     someone who arrives on an `/ar` link from outside and never touches the
+     control at all. SameSite=Lax because the only thing that reads it is a
+     top-level navigation to this same site; a year, because a language
+     preference does not expire in a session. */
+  $effect(() => {
+    if (!browser) return
+    document.cookie = `loom_locale=${i18n.locale}; path=/; max-age=31536000; samesite=lax`
+  })
 
   // Live media queries. Started here rather than per-component so there is one
   // matchMedia listener per query for the whole app instead of one per
@@ -124,6 +177,16 @@
     }
   })
 </script>
+
+<!-- Every route's own <svelte:head> (each +page.svelte already sets its own
+     title/description/OG) merges with this one rather than replacing it —
+     that is how SvelteKit's <svelte:head> works across nested layouts — so
+     this is the one place the hreflang pair needs writing, not fourteen. -->
+<svelte:head>
+  <link rel="alternate" hreflang="en" href={altEn} />
+  <link rel="alternate" hreflang="ar" href={altAr} />
+  <link rel="alternate" hreflang="x-default" href={altEn} />
+</svelte:head>
 
 <!-- The loom never stops running — a fixed, compositor-only backdrop behind
      every section (see loom-bg.css). Pure CSS, so it is in the server HTML and

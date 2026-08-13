@@ -7,8 +7,13 @@
   import { fly } from 'svelte/transition'
   import { reducedMotion } from '$lib/motion.svelte.js'
   import { BRAND } from '$data/site.js'
+  import { t } from '$lib/i18n.svelte.js'
+  import { CTA_UI, WHATSAPP_PROMPTS } from '$data/chrome.js'
   import './whatsapp-fab.css'
 
+  // The prefilled greeting itself stays English-only this wave (it is a
+  // message BODY, not chrome) — same scope line as everywhere else in this
+  // pass. See $lib/data/chrome.js's header.
   const HELLO = encodeURIComponent('Hi LOOM — I came from loomstudio-jo.com and I’d like to start a project.')
 
   // THE DUCK IS GONE (11 Aug 2026, client request). This button used to
@@ -27,7 +32,7 @@
   // a sentence. Rotates so a reader who lingers doesn't see the same line on
   // every cycle. LIVE — this loop is a different, unrelated thing from the
   // deleted duck above; do not confuse the two or delete this one.
-  const PROMPTS = ['Message us', 'Any questions?', 'We reply fast', 'Say hi 👋']
+  const PROMPTS = $derived(WHATSAPP_PROMPTS.map((p) => t(p)))
   const SHOW_MS = 5000
   const HIDE_MS = 10000
 
@@ -100,7 +105,7 @@
     href="{BRAND.whatsapp}?text={HELLO}"
     target="_blank"
     rel="noopener noreferrer"
-    aria-label="Chat with LOOM on WhatsApp"
+    aria-label={t(CTA_UI.chatWhatsapp)}
     style={fabStyle}
     aria-hidden={!visible}
     tabindex={visible ? 0 : -1}
@@ -123,6 +128,6 @@
       decoding="async"
       fetchpriority="low"
     />
-    <span class="wa-fab__label">WhatsApp us</span>
+    <span class="wa-fab__label">{t(CTA_UI.whatsappUs)}</span>
   </a>
 </div>

@@ -7,12 +7,17 @@
   import { cubicOut } from 'svelte/easing'
   import { BRAND, WIZARD } from '$data/site.js'
   import { EASE, magnetic } from '$lib/motion.svelte.js'
+  import { t } from '$lib/i18n.svelte.js'
+  import { WIZARD_UI } from '$data/chrome.js'
   import WoolButton from './WoolButton.svelte'
   import WoolIcon from './WoolIcon.svelte'
 
   let { seed = null, onState = null } = $props()
 
-  const STEPS = ['Start', 'Needs', 'Details', 'Send']
+  // Step-rail labels only — the form FIELD labels/placeholders inside each
+  // pane (name, company, budget, timeline, message) are still English-only
+  // this wave; see $lib/data/chrome.js's header for the scope line.
+  const STEPS = $derived(WIZARD_UI.steps.map((s) => t(s)))
   // Which beat of the machine's script each step corresponds to. Kept here
   // rather than in the machine so the wizard stays the single source of truth
   // for where you are.
@@ -85,8 +90,8 @@
   <!-- A progress rail, not a tablist — the steps own no tabpanels and only
        the already-completed ones are reachable. aria-current marks where you
        are; the disabled state already says where you cannot go yet. -->
-  <div class="wizard-steps" role="group" aria-label="Inquiry steps">
-    {#each STEPS as s, i (s)}
+  <div class="wizard-steps" role="group" aria-label={t(WIZARD_UI.stepsAriaLabel)}>
+    {#each STEPS as s, i (i)}
       <button
         type="button"
         aria-current={step === i ? 'step' : undefined}
@@ -105,7 +110,7 @@
       {#if step === 0}
         <div class="wpane" in:paneIn={{ x: dir * 60, opacity: 0, duration: 450, easing: cubicOut }}
              out:fly={{ x: dir * -60, opacity: 0, duration: 450, easing: cubicOut }}>
-          <h3 class="wq">What brings you to the loom?</h3>
+          <h3 class="wq">{t(WIZARD_UI.q0)}</h3>
           <div class="wintents">
             {#each WIZARD.intents as it (it.id)}
               <button
@@ -125,8 +130,8 @@
       {:else if step === 1}
         <div class="wpane" in:paneIn={{ x: dir * 60, opacity: 0, duration: 450, easing: cubicOut }}
              out:fly={{ x: dir * -60, opacity: 0, duration: 450, easing: cubicOut }}>
-          <h3 class="wq">What do you need exactly?</h3>
-          <p class="wsub">Pick everything that applies — we’ll shape it with you.</p>
+          <h3 class="wq">{t(WIZARD_UI.q1)}</h3>
+          <p class="wsub">{t(WIZARD_UI.q1sub)}</p>
           <div class="wchips">
             {#each WIZARD.needs as n (n)}
               <button
@@ -139,9 +144,9 @@
           </div>
           <!-- generic wizard chrome — the photographed Back / Next knits are the right cut here -->
           <div class="wnav">
-            <WoolButton label="Back" size="small" onclick={() => go(0)} />
+            <WoolButton label={t(WIZARD_UI.back)} size="small" onclick={() => go(0)} />
             <WoolButton
-              label="Next"
+              label={t(WIZARD_UI.next)}
               size="small"
               disabled={!needs.length}
               style={needs.length ? undefined : 'opacity: 0.4; pointer-events: none;'}
@@ -152,7 +157,7 @@
       {:else if step === 2}
         <div class="wpane" in:paneIn={{ x: dir * 60, opacity: 0, duration: 450, easing: cubicOut }}
              out:fly={{ x: dir * -60, opacity: 0, duration: 450, easing: cubicOut }}>
-          <h3 class="wq">Almost there — the essentials.</h3>
+          <h3 class="wq">{t(WIZARD_UI.q2)}</h3>
           <div class="wform">
             <label>
               <span>Your name *</span>
@@ -200,9 +205,9 @@
             </label>
           </div>
           <div class="wnav">
-            <button type="button" class="wback" onclick={() => go(1)}>← Back</button>
+            <button type="button" class="wback" onclick={() => go(1)}>{t(WIZARD_UI.backArrow)}</button>
             <WoolButton
-              label="Review"
+              label={t(WIZARD_UI.review)}
               size="small"
               disabled={!detailsValid}
               style={detailsValid ? undefined : 'opacity: 0.4; pointer-events: none;'}
@@ -213,24 +218,24 @@
       {:else if step === 3}
         <div class="wpane" in:paneIn={{ x: dir * 60, opacity: 0, duration: 450, easing: cubicOut }}
              out:fly={{ x: dir * -60, opacity: 0, duration: 450, easing: cubicOut }}>
-          <h3 class="wq">Your brief, woven. Send it your way.</h3>
-          <pre class="wbrief" aria-label="Your inquiry summary">{brief}</pre>
+          <h3 class="wq">{t(WIZARD_UI.q3)}</h3>
+          <pre class="wbrief" aria-label={t(WIZARD_UI.briefAriaLabel)}>{brief}</pre>
           <div class="wsend">
             <!-- two yarns, so the choice reads as two threads rather than a
                  primary and a leftover. Both hand off to another app, so
                  'sent' is the honest word for what we know: the brief left
                  here. -->
             <div use:magnetic>
-              <WoolButton label="Send via WhatsApp" size="big" href={waHref} target="_blank" rel="noreferrer"
+              <WoolButton label={t(WIZARD_UI.sendWhatsapp)} size="big" href={waHref} target="_blank" rel="noreferrer"
                 onclick={() => onState?.('sent')} />
             </div>
             <div use:magnetic>
-              <WoolButton label="Send as email" size="big" yarn="blue" href={mailHref}
+              <WoolButton label={t(WIZARD_UI.sendEmail)} size="big" yarn="blue" href={mailHref}
                 onclick={() => onState?.('sent')} />
             </div>
           </div>
           <div class="wnav wnav--end">
-            <button type="button" class="wback" onclick={() => go(2)}>← Edit details</button>
+            <button type="button" class="wback" onclick={() => go(2)}>{t(WIZARD_UI.editDetailsArrow)}</button>
           </div>
         </div>
       {/if}
