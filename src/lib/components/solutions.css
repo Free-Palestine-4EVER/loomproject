@@ -1786,9 +1786,23 @@
     margin-top: 12px;
     padding-top: 0;
   }
-  .sol-pin.is-pinned .sol-cta > * {
+  /* `.gbtn-label` ONLY, NOT `.sol-cta > *`. The bare `> *` used to reach
+     EVERY direct child of the button — `.gbtn-spark` included, and the
+     spark's own rule sets `flex: none` (gradient-button.css), which resolves
+     an unset `flex-basis: auto` to whatever `width` computes to. Handing it
+     `width: 100%` inflated the 1.05em sparkle to the button's full inner
+     width (measured 352px of a 392px button, mobile Chrome, 430×932) with
+     `flex-shrink: 0` refusing to give any of it back — which left the label,
+     the only OTHER flex child and the one thing this rule was meant for,
+     squeezed into the ~58px the icon didn't take and wrapping three lines
+     hard against the right edge. That squeeze, not a card too narrow for the
+     text, is the CTA half of the client's "clipped / wraps to three lines /
+     runs off-screen" report. Scoping to the label only leaves the icon at
+     its own fixed size and gives the label the row's full width to centre
+     in, which is what "full-width button, wrapping label" was always
+     supposed to mean. */
+  .sol-pin.is-pinned .sol-cta .gbtn-label {
     width: 100%;
-    justify-content: center;
     text-align: center;
     white-space: normal;
     overflow: visible;
@@ -1908,14 +1922,28 @@
 .sol-core-kicker {
   grid-column: 1 / -1;
   font-family: var(--bloom);
-  font-size: 0.66rem; font-weight: 700;
-  letter-spacing: 0.24em; text-transform: uppercase;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.26em; text-transform: uppercase;
   color: var(--magenta);
 }
+/* THE TITLE, SCALED UP — 13 Aug 2026. Client: "the heading noticeably
+   bigger and more visible" — this is the h3 that opens "the floor" (the
+   four included deliverables), and at `clamp(1.35rem, 3.1vw, 2.5rem)` it
+   topped out SMALLER than `.sol-entry-title` a few hundred lines down
+   (`clamp(1.3rem, 3vw, 2.3rem)`, the "100 ULTRA-QUALITY PHOTOS" ticket
+   heading — a supporting card's own title), even though this one introduces
+   the bigger of the two blocks. Same idiom as every other heading on this
+   page (`var(--bloom)`, uppercase, `text-wrap: balance`) — only the
+   coefficients move, up to a scale this section hadn't used elsewhere, so
+   it reads as the section's own heading rather than another card title.
+   The kicker above it and the sub beside it both step up a notch too (kicker
+   0.66→0.72rem, one size under `.sol-entry-tag`'s own top-of-card kicker;
+   sub 0.86-0.98rem stays put, since a bigger title needs a STILL-quieter
+   sub to keep reading as its caption rather than competing with it). */
 .sol-core-title {
   font-family: var(--bloom); text-transform: uppercase;
-  font-size: clamp(1.35rem, 3.1vw, 2.5rem);
-  line-height: 1.02; letter-spacing: 0.005em; color: var(--ink);
+  font-size: clamp(1.7rem, 3.9vw, 3.1rem);
+  line-height: 1.0; letter-spacing: 0.002em; color: var(--ink);
   text-wrap: balance;
 }
 .sol-core-sub {
@@ -2594,25 +2622,47 @@ html.sol-tour-live .wa-fab-stack {
    button walking up and down while it does.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ——— the plate, gone, in both variants ——— */
-.sol-console .sol-panelcard,
-.sol-console .sol-pin.is-pinned .sol-panelcard {
-  background: none;
-  background-color: transparent;
-  background-image: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0;
-  /* the blur was the plate's, and a backdrop-filter with nothing to filter
-     for is a full-size compositor layer bought for no pixels */
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+/* ——— the plate, gone — DESKTOP ONLY ———
+   Client, on a screenshot of the DESKTOP pinned tour: remove the white card,
+   set the text bigger. That screenshot was a wide photograph with a light
+   wash under a narrow copy column (see the `.sol-console .sol-stage-scrim`
+   `min-width: 940px` rule below) — plenty of room for the text to earn its
+   own contrast without a box.
+
+   THIS WAS SHIPPING UNGUARDED, AND THAT WAS THE MOBILE BUG (client: "on
+   mobile nothing is visible and the section is fucked up", reproduced at
+   430x932). `min-width: 940px` was missing from this block, so a phone got
+   `background: none; padding: 0` too — no plate, no padding, AND no light
+   wash (the wash itself is already `min-width: 940px`-gated, and the
+   `max-width: 939px` `.sol-stage-scrim { display: none }` rule turns off
+   even the OLD scrim). The result was exactly what was reported: the
+   industry name, hook and AI-agent paragraph sitting directly on a busy,
+   uncorrected photograph with the CTA's own horizontal room stolen by the
+   vanished padding — a card with `padding: 0` is why the button's label had
+   nowhere to wrap but off the edge. Below 940 the earlier, still-correct
+   `.sol-pin.is-pinned .sol-panelcard` treatment (translucent white +
+   `blur(6px)`, real padding, a bottom-sheet radius) is what a phone needs
+   and is what this rule was accidentally deleting. */
+@media (min-width: 940px) {
+  .sol-console .sol-panelcard,
+  .sol-console .sol-pin.is-pinned .sol-panelcard {
+    background: none;
+    background-color: transparent;
+    background-image: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    /* the blur was the plate's, and a backdrop-filter with nothing to filter
+       for is a full-size compositor layer bought for no pixels */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  /* the radial yarn tint and the translucent white fill belonged to the box;
+     with no box they would paint a stray rectangle across the render */
+  .sol-console .sol-answer.has-photo::after { content: none; }
+  .sol-console .sol-panelcard.sol-answer { background: none; border: 0; overflow: visible; }
 }
-/* the radial yarn tint and the translucent white fill belonged to the box;
-   with no box they would paint a stray rectangle across the render */
-.sol-console .sol-answer.has-photo::after { content: none; }
-.sol-console .sol-panelcard.sol-answer { background: none; border: 0; overflow: visible; }
 
 @media (min-width: 940px) {
   /* THE LIGHT REPLACES THE PLATE. The render's calm zone is a proportion of
