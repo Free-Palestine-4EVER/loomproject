@@ -180,7 +180,15 @@
 <!-- Work came up from slot 7. It was behind the typeface, the manifesto and two
      "start here" modules — the visitor was asked to choose a service before
      being shown a single thing LOOM had finished. -->
-<Work />
+<!-- `interactive={false}` — 13 Aug 2026, client: "not clickable at the
+     moment because we need to upgrade the sections". TEMPORARY: the home
+     wall shows the same six cases inert (no navigation, no overlay, no
+     hover-as-clickable, not focusable/announced as a link) while the
+     section is reworked. /work's own archive grid is a different component
+     (WorkIndex.svelte) and is untouched — it stays fully clickable. Flip
+     this back to `true` (or remove the prop, `true` is the default) once
+     the upgrade ships. See the prop's own comment in Work.svelte. -->
+<Work interactive={false} />
 
 <!-- Voices (testimonials) used to sit here, brought up in the 10 Aug 2026
      reorganisation for the same reason Studios was: evidence belongs before the

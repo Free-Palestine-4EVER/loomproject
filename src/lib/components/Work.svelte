@@ -148,6 +148,14 @@
     return out
   }
 
+  // TEMPORARY — 13 Aug 2026, client: "not clickable at the moment because we
+  // need to upgrade the sections". `interactive` is the single switch: the
+  // home page (`+page.svelte`) passes `false`, /work's own archive
+  // (`WorkIndex.svelte`, a different component) is untouched and always
+  // clickable. Flip the home page's prop back to `true` (or delete it, since
+  // `true` is the default) to re-enable — nothing else needs to change.
+  let { interactive = true } = $props()
+
   // ── state ──────────────────────────────────────────────────────────────
   let filter = $state('all')
   let openSlug = $state(null)
@@ -175,23 +183,26 @@
     // any remainder (a block size with no map) still renders, smallest class
     for (; at < cards.length; at++) out.push({ c: cards[at], size: 'wm-s', lead: false })
 
-    /* THE HOME WALL IS A COMPLETE 3x3 — 12 Aug 2026, same call as /work.
-       The reference (doc.ba/our-work) reads as an archive because its grid has
-       no ragged edge. Six cases left a hole in the second row.
+    /* THE HOME WALL IS A COMPLETE GRID OF REAL CASES ONLY — 13 Aug 2026,
+       client: "no duplicates".
 
-       Every tile is forced to the small square class: the mosaic's size variety
-       WAS the ranking, and a 3x3 states the same six cases without claiming one
-       outranks another — which is exactly what the reference does. Duplicates
-       then fill to nine and are marked so they stay out of assistive tech and
-       are never counted. Self-removing: at nine real cases the padding stops. */
-    const uniform = out.map((o) => ({ ...o, size: 'wm-s', lead: false }))
-    if (!uniform.length) return uniform
-    const target = Math.max(9, Math.ceil(uniform.length / 3) * 3)
-    return Array.from({ length: target }, (_, i) => ({
-      ...uniform[i % uniform.length],
-      key: uniform[i % uniform.length].c.slug + '-' + i,
-      isDupe: i >= uniform.length,
-    }))
+       This used to pad the wall out to a hard floor of nine tiles by
+       repeating `uniform[i % uniform.length]` — with six real cases that
+       wrapped back to index 0, 1, 2, so the first three cases each rendered
+       TWICE, visibly, as full un-marked tiles (the `isDupe` flag only ever
+       drove `aria-hidden`/`tabindex`, there was no CSS for `.is-dupe`, so the
+       repeats were not hidden from sighted visitors — only from assistive
+       tech and the tab order). That was the whole bug: no entry in
+       `CASES` is duplicated, the render pass was manufacturing extra tiles.
+
+       Fixed by rendering exactly one tile per case, every time — still
+       forced to the small square class (the mosaic's size variety WAS the
+       ranking, and a uniform grid states the cases without claiming one
+       outranks another, matching /work and the doc.ba reference). Six cases
+       is already a complete rectangle in the 3-column grid below, so this
+       currently renders a clean 3x2 with no ragged edge and, not
+       coincidentally, no repeats. */
+    return out.map((o, i) => ({ ...o, size: 'wm-s', lead: false, key: `${o.c.slug}-${i}` }))
   })
 
   // ══════════════════════════════════════════════════════════════════════
@@ -394,19 +405,26 @@
     <div use:reveal={{ delay: 0.05, y: 28 }}>
       {#key filter}
         <div class="wmosaic">
-          {#each wall as { c, size, lead, isDupe, key }, i (key)}
+          {#each wall as { c, size, lead, key }, i (key)}
             <!-- A LINK, NOT A DIALOG TRIGGER — 12 Aug 2026.
                  Matches /work: every case now has a real prerendered page, so
                  a tile on the home page is an anchor and behaves like one
-                 (new tab, copy link, share, crawl). -->
+                 (new tab, copy link, share, crawl) — WHEN `interactive` is
+                 true. The markup stays a real `<a>` either way (never
+                 deleted); when `interactive` is false the `href` is simply
+                 not rendered. An `<a>` with no `href` has no link role and is
+                 not in the tab order per the HTML/ARIA spec, so this alone
+                 makes it unfocusable and unannounced as a link — no extra
+                 `role`/`tabindex` juggling needed. `.is-inert` in
+                 work-mosaic.css (search that name) turns off the hover
+                 affordance and the pointer cursor to match. See the
+                 TEMPORARY note by the `interactive` prop above. -->
             <a
-              class="wtile {size}" class:is-dupe={isDupe}
-              aria-hidden={isDupe ? 'true' : undefined}
-              tabindex={isDupe ? -1 : undefined}
-              href="/work/{c.slug}"
+              class="wtile {size}" class:is-inert={!interactive}
+              href={interactive ? `/work/${c.slug}` : undefined}
               data-slug={c.slug}
-              data-cursor
-              aria-label="{c.client} — {c.title}"
+              data-cursor={interactive ? true : undefined}
+              aria-label={interactive ? `${c.client} — ${c.title}` : undefined}
             >
               <span class="wm-ph"><span class="wm-par">
                 <!-- `sizes` describes the TILE, not the viewport — the mosaic
