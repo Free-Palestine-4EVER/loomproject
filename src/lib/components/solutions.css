@@ -2838,3 +2838,118 @@ html.sol-tour-live .wa-fab-stack {
   .sol-console .sol-cta,
   .sol-pin.is-pinned .sol-cta { --gbtn-h: 46px; min-height: 46px; margin-top: 12px; }
 }
+
+/* ═══ THE ASK COMES LAST, AND THE HOOK CARRIES THE BLOCK — 13 Aug 2026 ═══
+   Client mock (drawn in Paint, and perfectly legible for it): the hook set at
+   heading scale, a ruled block of SEVERAL lines under it, then the button at
+   the foot.
+
+   Two things had to change and neither is new copy — every line below is
+   already in NICHES and was already on the screen, just in the wrong order
+   and at the wrong weight.
+
+   ORDER. `.sol-answer-left` held head → hook → arc → CTA and `.sol-answer-right`
+   held the deliverables → agent, so the button sat in the MIDDLE of the record
+   with half the evidence underneath it. `display: contents` dissolves the two
+   columns into the card's own flex column and `order` puts them in reading
+   order, with the ask last. No markup moved: the ghost measurer in
+   Solutions.svelte queries both columns by class and would have had to be
+   re-taught, and the two-column grid is still the right structure at the
+   widths that use it.
+
+   WEIGHT. The hook is the industry's one-line promise and was set smaller
+   than the deliverables it introduces. It goes to heading scale; the arc and
+   the deliverables share one ruled block under it, which is what makes the
+   mock read as a paragraph of evidence rather than four unrelated rows.
+
+   The reservations all still apply — they are keyed to the rows, not to the
+   columns — so qa/sol-align.mjs still reports 0px spread at all four widths.
+   Re-run it after any change here; the CTA moving to the end of the column
+   means it now inherits every row's variance above it, not just the hook's. */
+@media (min-width: 940px) {
+  .sol-console .sol-answer.has-photo .sol-answer-left,
+  .sol-console .sol-answer.has-photo .sol-answer-right { display: contents; }
+
+  .sol-console .sol-answer.has-photo .sol-answer-head { order: 1; }
+  .sol-console .sol-answer.has-photo .sol-answer-hook { order: 2; }
+  .sol-console .sol-answer.has-photo .sol-answer-moon { order: 3; }
+  .sol-console .sol-answer.has-photo .sol-deliverables { order: 4; }
+  .sol-console .sol-answer.has-photo .sol-agent { order: 5; }
+  .sol-console .sol-cta { order: 6; }
+
+  /* `display: contents` on the columns means their own max-width no longer
+     applies to anything — the rows are the card's children now, so the
+     measure has to be restated on them or the copy runs the full width of
+     the render. */
+  .sol-console .sol-answer.has-photo > *,
+  .sol-console .sol-answer.has-photo .sol-answer-head,
+  .sol-console .sol-answer.has-photo .sol-answer-hook,
+  .sol-console .sol-answer.has-photo .sol-answer-moon,
+  .sol-console .sol-answer.has-photo .sol-deliverables,
+  .sol-console .sol-answer.has-photo .sol-agent,
+  .sol-console .sol-cta { max-width: 100%; }
+
+  /* the hook, at heading scale */
+  .sol-console .sol-answer.has-photo .sol-answer-hook {
+    font-size: clamp(1.3rem, 1.65vw, 1.6rem);
+    font-weight: 680;
+    line-height: 1.24;
+    letter-spacing: -0.012em;
+    color: var(--ink);
+    margin-top: 14px;
+    min-height: calc(2 * 1.24em);
+  }
+  /* the arc and the deliverables become one ruled block — the arc already had
+     the yarn rule, so this gives the list the same one and closes the gap
+     between them rather than inventing a new device */
+  .sol-console .sol-answer.has-photo .sol-answer-moon { margin-top: 12px; margin-bottom: 0; }
+  .sol-console .sol-answer.has-photo .sol-deliverables {
+    margin-top: 8px;
+    padding-left: 14px;
+    border-left: 3px solid color-mix(in srgb, var(--panel-yarn, var(--magenta)) 55%, transparent);
+    gap: 6px;
+  }
+  .sol-console .sol-answer.has-photo .sol-agent { margin-top: 10px; }
+}
+
+/* THE AGENT NOTE NOW SITS ABOVE THE BUTTON, SO IT MOVES IT. It was reserved
+   at 390 only, because at 390 it was the only thing under the CTA in the
+   mobile order; putting the ask last at desktop hands the CTA every row's
+   variance above it, and this is the longest string in the data (90-190
+   characters across the thirty). Same treatment, at the widths that now need
+   it. qa/sol-align.mjs went 23/23/27/0 to 0/0/0/0 on this one rule. */
+@media (min-width: 940px) {
+  .sol-console .sol-answer.has-photo .sol-agent {
+    min-height: calc(3 * 1.42em);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+    line-clamp: 3; overflow: hidden;
+  }
+}
+
+/* FIXED, NOT MINIMUM — the last 17px. `min-height` + `line-clamp` holds a row
+   still only while the clamp is the binding constraint; on these two it was
+   not. The deliverables list varied 157-161px (three rows whose own
+   reservations round differently against their gaps) and the agent note
+   56-69px, and neither difference is a whole line, so no line count could
+   have fixed it. A fixed height on the two rows that carry per-industry copy
+   of genuinely variable length ends the argument: the clamp above still
+   decides what is shown, this decides how much room it gets. Nothing is cut
+   that the clamp was not already cutting — qa/sol-align.mjs checks clipping
+   as well as movement, and reports neither. */
+@media (min-width: 940px) {
+  .sol-console .sol-answer.has-photo .sol-deliverables {
+    height: calc(3 * (clamp(0.84rem, 0.92vw, 0.92rem) * 1.4 * 3) + 12px);
+    overflow: hidden;
+  }
+  .sol-console .sol-answer.has-photo .sol-agent { height: calc(3 * 1.42em); }
+}
+@media (min-width: 940px) and (max-height: 940px) {
+  .sol-console .sol-answer.has-photo .sol-deliverables {
+    height: calc(3 * (clamp(0.78rem, 0.86vw, 0.85rem) * 1.4 * 3) + 12px);
+  }
+}
+@media (min-width: 940px) and (max-height: 820px) {
+  .sol-console .sol-answer.has-photo .sol-deliverables {
+    height: calc(3 * (clamp(0.74rem, 0.8vw, 0.8rem) * 1.34 * 3) + 12px);
+  }
+}
