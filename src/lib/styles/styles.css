@@ -359,7 +359,33 @@ html.menu-open, html.overlay-open { overflow: hidden; }
    for the construction. */
 
 body {
-  background: var(--bg);
+  /* `#ffc9d9`, NOT `--bg` — THIRD PASS on the status-bar bug, 13 Aug 2026.
+
+     `html` never declares a `background`, so per the CSS canvas-background
+     propagation rule this declaration is not just "the page's colour" — it
+     is promoted to paint the CANVAS (the root fill the UA draws behind
+     everything, including the area outside the document that iOS Safari's
+     dynamic status-bar/toolbar colouring samples). Measured on this build
+     with Playwright: `getComputedStyle(document.body).backgroundColor` was
+     already `rgb(255, 233, 242)` (`--bg`) before this change — matching
+     exactly what the client photographed as "rose pink" once scrolled. Every
+     earlier fix here (`html::before` sized off `env(safe-area-inset-top)`,
+     then `.nav::before`, a 200px plate hanging off the fixed nav) tried to
+     paint over that from a COMPOSITED layer, and both went inert: this is
+     consistent with iOS's sampling stepping over `position: fixed` overlays
+     entirely and reading the canvas straight through, which is also why the
+     band tracked SCROLL rather than the fixed header.
+
+     The fix is therefore on this property, not a new overlay: this is the
+     one declaration that actually becomes the sampled colour, so it is set
+     to the header's `#ffc9d9` directly. Nothing about the page's own look
+     changes — `.loom-bg` (loom-bg.css, `position: fixed; inset: 0`, painted
+     `var(--bg)`) already sits on top of body's own box for every pixel a
+     visitor can actually see, on every route, at every scroll position; body
+     itself was never the thing rendering the visible rose, only the canvas
+     beneath it. If `.loom-bg` is ever removed or made non-opaque, this stops
+     being true and the page will read as `#ffc9d9` everywhere. */
+  background: #ffc9d9;
   color: var(--ink);
   font-family: var(--body);
   font-weight: 420;
