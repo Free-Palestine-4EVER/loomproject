@@ -480,6 +480,17 @@
   .ts-stat-n { font-size: 30px; }
   .ts-cta { gap: 10px; }
   .ts-btn { padding: 11px 20px; font-size: 13px; }
+  /* The outline CTA's border is `rgba(242, 240, 247, 0.22)` — measured
+     effectively invisible against `--bg` (#ffe9f2), so "Commission your own"
+     reads as bare text with no pill around it at all. On desktop that is
+     recoverable: `:hover` swaps the border to `--magenta` and the pointer
+     already told the visitor it was a target before they got that close. A
+     mobile visitor gets neither cue — there is no hover, so the only signal
+     that this is a tappable control has to be visible at rest. Raising the
+     opacity (not changing the colour) keeps it reading as the same quiet
+     secondary action next to the filled primary one, just discoverable
+     without a cursor. */
+  .ts-btn:not(.ts-btn--fill) { border-color: rgba(51, 36, 61, 0.32); }
 
   /* a — the word lifts clear to the top, the copy takes the whole width
      underneath it. A 46% column on a phone is not a column. */

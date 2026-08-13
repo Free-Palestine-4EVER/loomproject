@@ -1099,6 +1099,23 @@
   border: 1px solid rgba(96, 40, 76, 0.14);
   box-shadow: 0 10px 30px rgba(120, 40, 90, 0.08);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* THE THIRD BLURRED LAYER — the client-reported Safari "vibrate/shake" was
+     chased twice before (see `.sol-pin.is-pinned .sol-pin-inner` and
+     `.sol-panelcard` a few hundred lines down): both got `transform:
+     translateZ(0); will-change: transform` to give them their OWN compositor
+     layer, because a `backdrop-filter: blur` descendant of a `position:
+     sticky` box that recomputes its offset every scroll frame is a documented
+     trigger for sub-device-pixel resampling jitter as the sticky box's layer
+     and the blurred layer round independently, frame to frame — worse in
+     Safari than Chrome because WebKit's tolerance for that mismatch is lower.
+     This bar was the one blurred layer that fix pass never reached: it sits
+     inside `.sol-console`, inside `.sol-pin-inner`, for the entire pinned
+     scrub, blurring the whole time, with no layer promotion of its own —
+     same shape as the two already-fixed elements, just missed. Promoting it
+     here closes the set. */
+  transform: translateZ(0);
+  will-change: transform;
 }
 .sol-bar-label {
   flex: 0 0 auto;
@@ -1621,6 +1638,12 @@
     margin: 0; padding: 10px 14px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.82);
+    /* Even stronger than the base rule's blur(8px) — this is the exact spot
+       (phone width, tour pinned) the client's Safari video showed the worst
+       of it. `transform: translateZ(0)` is NOT re-declared here on purpose:
+       this rule only overrides the properties that change at this breakpoint,
+       and the base `.sol-bar` rule above already promotes it to its own
+       compositor layer, which still applies — see that rule's comment. */
     backdrop-filter: blur(14px) saturate(1.15);
     -webkit-backdrop-filter: blur(14px) saturate(1.15);
     box-shadow: 0 8px 26px -12px rgba(90, 30, 70, 0.45);
