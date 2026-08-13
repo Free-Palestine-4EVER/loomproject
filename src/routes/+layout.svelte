@@ -13,8 +13,10 @@
 <script>
   import { onMount } from 'svelte'
   import { browser } from '$app/environment'
+  import { afterNavigate } from '$app/navigation'
   import { reducedMotion, coarsePointer } from '$lib/motion.svelte.js'
   import { mountAnchorLinks } from '$lib/scroll.svelte.js'
+  import { mountImageWarm, rewarmAfterNavigation } from '$lib/imageWarm.js'
 
   import Loader from '$lib/components/Loader.svelte'
   import ScrollProgress from '$lib/components/ScrollProgress.svelte'
@@ -66,10 +68,25 @@
       stopBudget = m.mountViewportBudget?.() || (() => {})
     })
 
+    // The client's "every photo must be downloaded before the user scrolls"
+    // requirement. Waits for `load`, then walks the document forcing every
+    // remaining `loading="lazy"` image (plus CSS backgrounds and video
+    // posters) to fetch, batched so the first screen is never starved. Also
+    // runs regardless of motion preference — bandwidth, not motion — and is
+    // gated only on `navigator.connection.saveData` inside the module
+    // itself. See src/lib/imageWarm.js for the full design.
+    const stopWarm = mountImageWarm()
+
     return () => {
-      stopRM(); stopCP(); stopAnchors(); stopBudget()
+      stopRM(); stopCP(); stopAnchors(); stopBudget(); stopWarm()
     }
   })
+
+  // A client-side route change (`/work` -> `/machine`, etc.) swaps in a new
+  // document's worth of lazy images without ever firing another `load`
+  // event, so the warm-up above would otherwise only ever run once, on the
+  // very first route. Re-kick it on every navigation instead.
+  afterNavigate(() => rewarmAfterNavigation())
 
   // The interaction pack and the FX pack are torn down and rebuilt when
   // reduced-motion flips, not merely skipped at mount — a user who turns it on
