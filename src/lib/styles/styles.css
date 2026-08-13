@@ -328,40 +328,35 @@
 html { scroll-behavior: auto; position: relative; }
 html.menu-open, html.overlay-open { overflow: hidden; }
 
-/* THE NOTCH STRIP IS BABY PINK TOO — 13 Aug 2026.
+/* THE NOTCH STRIP — SECOND PASS, 13 Aug 2026 (the `html::before` this used
+   to be is gone; read on for why).
 
-   The client photographed a pale band above the header on a real iPhone,
-   the exact shade of `--bg` (#ffe9f2), with the baby-pink bar starting
-   below it. `<meta name="theme-color">` in app.html is already `#ffc9d9`
-   and nothing in the app ever rewrites it, so the tag is not the problem
-   and re-setting it would fix nothing.
+   The client's photograph from a real iPhone (Safari, private tab, bottom
+   URL bar) showed the pink bar sitting in a band PARTWAY DOWN the screen,
+   with page content — the "START HERE" kicker, the headline — readable
+   above it, through the status-bar region, over the pale `--bg` rose
+   ground rather than any pink at all.
 
-   What this covers is the other way that band can get its colour. With
-   `viewport-fit=cover`, iOS Safari extends the page's own paint up under
-   the status bar, and what it takes that colour from is the ROOT canvas —
-   `body`'s `background: var(--bg)` — not whatever happens to be painted on
-   top of it. `.nav` does pad itself by `env(safe-area-inset-top)` so its
-   plate genuinely runs to y=0, but it is a fixed, `translateZ(0)`-promoted
-   compositor layer, which is exactly the kind of overlay that sampling
-   steps over. The pale rose underneath is then what shows through.
+   The `html::before` strip that used to live here could never have fixed
+   that, and was quietly doing nothing in exactly the browsing mode the
+   client hit. It was `height: env(safe-area-inset-top, 0px)` — sized FROM
+   the inset. The whole photographed bug is consistent with that inset
+   resolving to 0 in that mode (Safari drawing its own status bar as chrome
+   over the page rather than extending the page under it, which private
+   tabs and the bottom-toolbar layout are both known to affect): a
+   zero-height strip paints nothing, `.nav`'s matching padding compensation
+   also collapses to its flat 16px, and whatever is left of the band above
+   the bar is just unpainted page — `--bg` showing through, with ordinary
+   in-flow content visible in it. Whether that is the full mechanism or
+   only part of it, the fix below does not depend on settling it: it does
+   not read `env()` at all, so it cannot go inert the way this rule did.
 
-   So paint the strip on the root itself, at the root's own paint level.
-   Fixed, `env(safe-area-inset-top)` tall, so it is EXACTLY the notch band
-   and nothing more — height collapses to 0 on every device without an
-   inset, which makes this inert on desktop rather than something to branch
-   on. z-index is below `.nav` (80) and below the drawer, so it can never
-   cover chrome; it only ever fills the one strip the bar was already
-   covering, with the same colour the bar already is. If the header hex is
-   ever retuned this moves with it — grep `#ffc9d9`. */
-html::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: env(safe-area-inset-top, 0px);
-  background: #ffc9d9;
-  z-index: 79;
-  pointer-events: none;
-}
+   THE FIX NOW LIVES ON `.nav` ITSELF (`.nav::before`, below) — a plate
+   painted upward from the bar's own top edge rather than one sized from an
+   inset that might be lying. It travels with the bar (same box, same
+   transform) instead of needing to independently agree with `.nav` about
+   where y=0 is, which is the assumption that broke here. See `.nav::before`
+   for the construction. */
 
 body {
   background: var(--bg);
@@ -613,6 +608,43 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
      the border's COLOUR, which is free. Any future restyle of this border
      must keep the width at 2px in both states. */
   border-bottom: 2px solid transparent;
+}
+/* THE BAND ABOVE THE BAR — painted FROM the bar, not from an inset.
+   13 Aug 2026, replacing the old `html::before` (see the long comment
+   above `body` for why that one could not be trusted): that strip sized
+   itself off `env(safe-area-inset-top)`, and the client's photograph is
+   consistent with that value reporting 0 in the browsing mode she hit,
+   which made the strip zero-height and let the pale `--bg` ground — with
+   in-flow page content sitting in it — show above the bar instead.
+
+   This does not read `env()` at all, so it cannot go inert the same way.
+   `.nav` is already `position: fixed`, which makes it the containing
+   block for an absolutely-positioned pseudo-element; anchoring that
+   pseudo to `bottom: 100%` (the bar's own top edge, wherever the bar
+   actually ends up) and giving it real height means it only ever needs to
+   agree with `.nav` about where `.nav` is — never with a separate
+   safe-area calculation that can disagree with it. 200px comfortably
+   clears every current notch/Dynamic-Island inset (0–59px) with margin
+   for future hardware; in the ordinary case (nothing above the bar) it
+   sits off-screen and paints nothing anyone sees.
+   SAME COLOUR AS THE BAR, ON PURPOSE — `#ffc9d9`, not `--bg`: this is the
+   bar's own plate extended, not a second, independently-toned strip.
+   `pointer-events: none` because it exists only to be paint, never a
+   target. No `z-index` of its own: as a descendant of `.nav` (z-index 80,
+   its own stacking context) it already paints above every lower-stacked
+   thing on the page without needing one.
+   MOVES WITH THE BAR FOR FREE. `.nav--hidden` (below, mobile only) slides
+   the whole `.nav` box up with `transform: translateY(-102%)` — a
+   pseudo-element is part of that same box, so it retracts with the bar
+   and never gets left behind as a floating pink rectangle once the bar is
+   off-screen. */
+.nav::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 100%;
+  height: 200px;
+  background: #ffc9d9;
+  pointer-events: none;
 }
 .nav--scrolled {
   /* SOLID `#ffc9d9`, not a translucent plate (13 Aug 2026, second pass).
