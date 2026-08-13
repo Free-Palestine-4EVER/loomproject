@@ -15,28 +15,33 @@
 /* ============================================================
    1. NAV — denim chrome + stitched seams
    ============================================================ */
-/* SCROLLED ONLY — the header is fully invisible over the hero by client
-   instruction (11 Aug 2026), so the fabric surface and the stitched seams
-   belong to the painted state alone. Briefly applied to `.nav` unconditionally
-   while collapsing the old three-header mess; over the hero the denim tile
-   blended to a grey-mauve bar and read as yet another header, which is exactly
-   what that change was meant to remove. `background-color` is deliberately NOT
-   set here so the alpha declared in styles.css survives this overlay. */
-.nav--scrolled {
-  background-image: url('/img/tex/denim-tile.webp');
-  background-size: 336px 70px;
-  background-repeat: repeat;
-  background-blend-mode: overlay;
-}
-.nav--scrolled::before,
-.nav--scrolled::after {
-  content: '';
-  position: absolute; left: 0; right: 0; height: 1px;
-  background-image: repeating-linear-gradient(90deg, var(--thread) 0 6px, transparent 6px 11px);
-  pointer-events: none;
-}
-.nav--scrolled::before { top: 5px; }
-.nav--scrolled::after { bottom: 5px; }
+/* THE `.nav--scrolled` DENIM TEXTURE IS GONE (13 Aug 2026, header colour
+   lockdown). It used to read: "SCROLLED ONLY — the header is fully invisible
+   over the hero by client instruction (11 Aug 2026), so the fabric surface
+   and the stitched seams belong to the painted state alone." That premise no
+   longer holds — styles.css now paints `.nav` a flat `#ffc9d9` in BOTH
+   states, with no transparent resting state left for a texture to
+   distinguish from. Left in place, this rule was actively wrong: it set
+   `background-image: url(denim-tile.webp)` with `background-blend-mode:
+   overlay` on `.nav--scrolled` and nothing here ever set a competing
+   `background-color`, so per-longhand cascade let it survive untouched on
+   top of styles.css's flat pink — importing AFTER styles.css (and after
+   mobilechrome.css's own `.nav--scrolled { background: #ffc9d9 }`
+   redeclaration) means it always won the `background-image` property, at
+   every width, in every state. That is a second colour: a denim pattern
+   blended into the pink the instant the bar crossed the scroll threshold,
+   which is exactly the "header changes colour" the client flagged. The
+   client's instruction is now absolute — ONE flat colour, `#ffc9d9`, forever
+   — so this surface treatment cannot exist on `.nav`/`.nav--scrolled` in any
+   form, texture or stitched seam included, and has been deleted rather than
+   patched with a `background-color` reset (deleting the rule that varies the
+   colour beats stacking a fix on top of it). If a future material pass wants
+   denim or stitching on the header again, it will have to ask the client
+   first — this file is not the place to reintroduce it. The drawer's own
+   `.menu` texture below is untouched: `.menu` is a separate full-screen
+   surface rendered outside `<header class="nav">` (see Nav.svelte), never
+   the header band itself, and opening it does not add any class to `.nav`
+   — so it is out of scope for "the header never changes colour". */
 
 .menu {
   background-image: url('/img/tex/denim-tile.webp'), linear-gradient(160deg, var(--bg-2), var(--bg-3));
@@ -194,18 +199,29 @@
 
 /* ============================================================
    6. REDUCED-TRANSPARENCY GUARD
-   mobilechrome.css declares the solid fallback for nav--scrolled /
-   menu / wmodal-panel, but this stylesheet loads AFTER it in the
-   module graph (main.jsx imports App.jsx — and its mobilechrome.css
-   — before textile.css). Equal-specificity + later-in-cascade means
-   our unconditional texture rules above would otherwise win and
-   silently defeat that fallback. Re-declare it here, media-scoped,
-   so this file's own last word matches mobilechrome's intent instead
-   of fighting it.
-   ============================================================ */
+   mobilechrome.css declares the solid fallback for menu / wmodal-panel,
+   but this stylesheet loads AFTER it in the module graph (main.jsx
+   imports App.jsx — and its mobilechrome.css — before textile.css).
+   Equal-specificity + later-in-cascade means our unconditional texture
+   rules above would otherwise win and silently defeat that fallback.
+   Re-declare it here, media-scoped, so this file's own last word matches
+   mobilechrome's intent instead of fighting it.
+
+   `.nav--scrolled` REMOVED FROM THIS LIST (13 Aug 2026, header colour
+   lockdown). It used to fall back to `background-color: var(--bg-2)`
+   here — a SECOND colour, and a `prefers-reduced-transparency` OS setting
+   was all it took to trigger it, silently, with no scroll or route
+   involved. That fallback existed only to undo section 1's denim texture,
+   which no longer exists (see the comment above `.menu` in section 1):
+   `.nav`/`.nav--scrolled` have carried a flat, opaque `#ffc9d9` with no
+   `background-image` and no blend mode since styles.css's 13 Aug pass, so
+   there is nothing translucent or textured left on the header for this
+   query to "reduce" — a reduced-transparency reader and everyone else now
+   see the exact same header. Do not re-add `.nav--scrolled` here without
+   first re-adding a reason for it to differ from `#ffc9d9` in the first
+   place. */
 @media (max-width: 767px) {
   @media (prefers-reduced-transparency: reduce) {
-    .nav--scrolled,
     .menu {
       background-image: none;
       background-color: var(--bg-2);
