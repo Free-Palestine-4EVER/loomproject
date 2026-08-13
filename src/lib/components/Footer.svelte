@@ -24,11 +24,6 @@
   import FootIcon from './FootIcon.svelte'
   import LoomMark from './LoomMark.svelte'
   import { webpSrcset, variantsFor } from './Pic.svelte'
-  import { t, localeHref } from '$lib/i18n.svelte.js'
-  import { NAV_LABELS, FOOTER_UI, FOOT_COL_TITLES } from '$data/chrome.js'
-
-  const label = (l) => t(NAV_LABELS[l.href] ?? { en: l.label, ar: l.label })
-  const href = (l) => localeHref(l.href)
 
   // avif equivalent of webpSrcset (Pic.svelte only exports the webp helper —
   // this tree is the one caller on the page still hand-writing a two-format
@@ -47,10 +42,10 @@
      thing a visitor who liked the work actually wants. `url()` is read at click
      time, not at module scope, so a share from /type shares /type. */
   const SHARE = [
-    { id: 'whatsapp', label: FOOTER_UI.shareWhatsapp, to: (u, txt) => `https://wa.me/?text=${encodeURIComponent(`${txt} ${u}`)}` },
-    { id: 'linkedin', label: FOOTER_UI.shareLinkedin, to: (u) => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(u)}` },
-    { id: 'x', label: FOOTER_UI.shareX, to: (u, txt) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}&text=${encodeURIComponent(txt)}` },
-    { id: 'facebook', label: FOOTER_UI.shareFacebook, to: (u) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}` },
+    { id: 'whatsapp', label: 'Share on WhatsApp', to: (u, t) => `https://wa.me/?text=${encodeURIComponent(`${t} ${u}`)}` },
+    { id: 'linkedin', label: 'Share on LinkedIn', to: (u) => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(u)}` },
+    { id: 'x', label: 'Share on X', to: (u, t) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}` },
+    { id: 'facebook', label: 'Share on Facebook', to: (u) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}` },
   ]
 
   const title = `${BRAND.name} — ${BRAND.positioning}. ${BRAND.tagline}`
@@ -151,17 +146,17 @@
     <div class="foot-side foot-side--l">
       <div class="foot-brand">
         <LoomMark class="footer-mark" />
-        <p class="foot-tag">{t(FOOTER_UI.tagLine1)}<br />{t(FOOTER_UI.tagLine2)}</p>
-        <p class="foot-cities"><FootIcon name="pin" />{t(FOOTER_UI.cities)}</p>
+        <p class="foot-tag">The AI-native creative agency.<br />We weave brands on the edge of creativity.</p>
+        <p class="foot-cities"><FootIcon name="pin" />Amman × Sarajevo</p>
       </div>
 
       <div class="foot-cols">
         {#each FOOT_COLS as col (col.title)}
-          <nav class="foot-col" aria-label={t(FOOT_COL_TITLES[col.title] ?? { en: col.title, ar: col.title })}>
-            <h3 class="foot-col-t">{t(FOOT_COL_TITLES[col.title] ?? { en: col.title, ar: col.title })}</h3>
+          <nav class="foot-col" aria-label={col.title}>
+            <h3 class="foot-col-t">{col.title}</h3>
             <ul>
               {#each col.links as l (l.href)}
-                <li><a href={href(l)} onclick={(e) => footGo(e, l.href)}><span>{label(l)}</span></a></li>
+                <li><a href={l.href} onclick={(e) => footGo(e, l.href)}><span>{l.label}</span></a></li>
               {/each}
             </ul>
           </nav>
@@ -221,29 +216,29 @@
 
     <div class="foot-side foot-side--r">
       <div class="footer-contact">
-        <h3 class="foot-col-t">{t(FOOTER_UI.startProject)}</h3>
+        <h3 class="foot-col-t">Start a project</h3>
 
         <a class="foot-c-row is-lead" href={BRAND.whatsapp} target="_blank" rel="noreferrer">
           <span class="foot-c-ico"><FootIcon name="whatsapp" /></span>
-          <span class="foot-c-txt"><em>{t(FOOTER_UI.whatsapp)}</em><b>{BRAND.phoneJO}</b></span>
+          <span class="foot-c-txt"><em>WhatsApp</em><b>{BRAND.phoneJO}</b></span>
           <FootIcon name="arrowUpRight" class="foot-c-go" />
         </a>
 
         <a class="foot-c-row" href="mailto:{BRAND.email}">
           <span class="foot-c-ico"><FootIcon name="mail" /></span>
-          <span class="foot-c-txt"><em>{t(FOOTER_UI.email)}</em><b>{BRAND.email}</b></span>
+          <span class="foot-c-txt"><em>Email</em><b>{BRAND.email}</b></span>
           <FootIcon name="arrowUpRight" class="foot-c-go" />
         </a>
 
-        <p class="foot-hours"><FootIcon name="clock" />{t(FOOTER_UI.hours)}</p>
+        <p class="foot-hours"><FootIcon name="clock" />Amman · Sarajevo — GMT+3 / GMT+2</p>
 
         <button type="button" class="foot-cta" onclick={() => wizard.open({})}>
-          <FootIcon name="spark" />{t(FOOTER_UI.getStarted)}
+          <FootIcon name="spark" />Get started
         </button>
       </div>
 
       <div class="foot-share">
-        <h3 class="foot-col-t">{t(FOOTER_UI.shareStudio)}</h3>
+        <h3 class="foot-col-t">Share the studio</h3>
         <div class="foot-share-row">
           {#each SHARE as s (s.id)}
             <!-- the href carries the canonical url so the link is real with JS
@@ -252,8 +247,8 @@
             <a
               class="foot-sh"
               href={s.to('https://www.loomstudio-jo.com/', title)}
-              aria-label={t(s.label)}
-              title={t(s.label)}
+              aria-label={s.label}
+              title={s.label}
               target="_blank"
               rel="noreferrer"
               onclick={(e) => { e.currentTarget.href = s.to(url(), title) }}
@@ -266,11 +261,11 @@
             type="button"
             class="foot-sh foot-sh--copy {copied ? 'is-copied' : ''}"
             onclick={copy}
-            aria-label={t(copied ? FOOTER_UI.linkCopied : FOOTER_UI.copyLink)}
-            title={t(copied ? FOOTER_UI.linkCopied : FOOTER_UI.copyLink)}
+            aria-label={copied ? 'Link copied' : 'Copy link'}
+            title={copied ? 'Link copied' : 'Copy link'}
           >
             <FootIcon name={copied ? 'check' : 'link'} />
-            <span class="foot-sh-say" aria-live="polite">{copied ? t(FOOTER_UI.copiedSay) : ''}</span>
+            <span class="foot-sh-say" aria-live="polite">{copied ? 'Copied' : ''}</span>
           </button>
         </div>
       </div>
@@ -278,9 +273,9 @@
   </div>
 
   <div class="footer-base">
-    <span>© {year} LOOM. {t(FOOTER_UI.rights)}</span>
-    <span class="foot-edge">{t(FOOTER_UI.edgeIntentional)}</span>
-    <button type="button" class="foot-top" onclick={toTop} aria-label={t(FOOTER_UI.backToTop)}>
+    <span>© {year} LOOM. All rights reserved.</span>
+    <span class="foot-edge">The edge is intentional.</span>
+    <button type="button" class="foot-top" onclick={toTop} aria-label="Back to top">
       <FootIcon name="arrowUp" />
     </button>
   </div>

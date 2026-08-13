@@ -73,40 +73,6 @@
          cut. -->
     <link rel="preload" href="/fonts/loom-bloom/LOOMBloom-Regular.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- THE "REMEMBER MY LANGUAGE" REDIRECT — 13 Aug 2026, added with the
-         Arabic switcher. `/` is the only URL this ever touches: a returning
-         visitor whose `loom_locale` cookie says `ar` and who lands on the
-         bare, unprefixed home page gets sent to `/ar` before the first paint
-         — inline, synchronous, blocking, the same technique a dark-mode
-         "no flash" script uses, and for the same reason: doing this after
-         hydration would mean shipping a whole English first paint and then
-         visibly swapping it for Arabic.
-
-         Scoped to exactly '/' on purpose, not "any un-prefixed path". Every
-         other route (`/work`, `/pricing`, a case-study slug…) may not yet
-         have full Arabic content behind it in this wave — see the project
-         report — so redirecting a deep link would be guessing at a page that
-         might not carry the visitor's context. The home page is the one
-         place this site is confident in either language. An explicit
-         `/ar/...` or an explicit un-prefixed URL already in the address bar
-         is never overridden — this only ever fires from the bare root.
-
-         hooks.server.js sets the cookie server-side on every request it
-         actually runs for (dev/preview); this script is what makes the same
-         promise hold on the prerendered, statically-hosted production site,
-         where no server runs on a repeat visit at all — see the long
-         comment there for why that gap exists. -->
-    <script>
-      try {
-        if (
-          location.pathname === '/' &&
-          document.cookie.split('; ').some((c) => c === 'loom_locale=ar')
-        ) {
-          location.replace('/ar' + location.search + location.hash)
-        }
-      } catch (e) {}
-    </script>
-
     <!-- Per-page <title>, description and OG tags come from <svelte:head> in
          each route, not from here. The React SPA had exactly one <title> in
          its index.html and assigned document.title in an effect, which meant

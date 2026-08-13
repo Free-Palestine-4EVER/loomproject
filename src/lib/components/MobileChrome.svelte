@@ -8,8 +8,6 @@
   import { browser } from '$app/environment'
   import { reducedMotion } from '$lib/motion.svelte.js'
   import { wizard } from '$lib/wizard.svelte.js'
-  import { t } from '$lib/i18n.svelte.js'
-  import { CTA_UI } from '$data/chrome.js'
   import './mobilechrome.css'
 
   const MOBILE_QUERY = '(max-width: 767px)'
@@ -102,7 +100,7 @@
       onclick={() => wizard.open({})}
       tabindex={visible ? 0 : -1}
     >
-      {t(CTA_UI.startProject)}
+      Start a project
     </button>
   </div>
 {/if}

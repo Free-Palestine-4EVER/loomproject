@@ -25,8 +25,6 @@
   import { cubicOut } from 'svelte/easing'
   import { reducedMotion } from '$lib/motion.svelte.js'
   import { wizard } from '$lib/wizard.svelte.js'
-  import { t } from '$lib/i18n.svelte.js'
-  import { CTA_UI } from '$data/chrome.js'
   import './startproject.css'
 
   const DESKTOP_QUERY = '(min-width: 768px)'
@@ -108,7 +106,7 @@
   >
     <button type="button" class="sp-btn" onclick={() => wizard.open({})}>
       <span class="sp-dot" aria-hidden="true"></span>
-      {t(CTA_UI.startProject)}
+      Start a project
       <span class="sp-arrow" aria-hidden="true">→</span>
     </button>
   </div>
