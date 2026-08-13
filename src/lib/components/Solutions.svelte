@@ -346,13 +346,48 @@
      of AVIF. One decode probe, once per session, settles which extension to
      warm. */
   let avifOk = $state(null)
+  // Resolved once, by the SAME probe below — every other reader (the
+  // registerReactiveUrls callback further down, the lookahead effect)
+  // awaits this instead of reading `avifOk` synchronously, which is what
+  // used to race: `warmReactiveUrls()` in imageWarm.js calls the registered
+  // function once, at whatever instant its own pass reaches it, with no
+  // guarantee the probe below has settled by then.
+  //
+  // THE OLD PROBE WAS ALSO WRONG, independent of timing. It used a
+  // hand-built 1×1 AVIF (the classic Modernizr/caniuse test payload) as a
+  // `data:` URI. Instrumented against production's own WebKit: that exact
+  // byte string fails to decode in WebKit's data-URI image loader — `onerror`
+  // fires in ~3ms, every time, not a slow resolve — even though the SAME
+  // engine decodes a real `.avif` file fetched from the network without any
+  // trouble (verified against /img/niches/wedding-9x16.avif: loads fine).
+  // So on WebKit this never raced to the wrong answer, it computed the wrong
+  // answer instantly and confidently: `avifOk` landed on `false`, the
+  // registry warmed `.webp` for every niche, and the real `<picture>` element
+  // — whose format choice is native browser codec negotiation, not this JS
+  // probe — picked `.avif` anyway. Every niches image was double-fetched in
+  // WebKit; the three seen "late" in production were just the ones the
+  // jump-scroll test actually mounted a `<picture>` for.
+  //
+  // The fix is a probe WebKit can actually decode: a real (ffmpeg-encoded,
+  // not hand-assembled) 2×2 AVIF, confirmed here to decode correctly as a
+  // `data:` URI in the same engine that rejected the old one.
+  let avifOkPromise = null
+  function probeAvif() {
+    if (avifOkPromise) return avifOkPromise
+    avifOkPromise = new Promise((resolve) => {
+      if (!browser) return resolve(false)
+      const probe = new Image()
+      probe.onload = () => { const ok = probe.width > 0; avifOk = ok; resolve(ok) }
+      probe.onerror = () => { avifOk = false; resolve(false) }
+      // Real (ffmpeg libaom-av1) 2×2 AVIF — see the comment above for why
+      // this replaced the old hand-built 1×1 test payload.
+      probe.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAWAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAAACAAAAAgAAABBwaXhpAAAAAAMICAgAAAAMYXYxQ4EADAAAAAATY29scm5jbHgAAgACAAIAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAebWRhdAoFGAA2wCAyDRgAAABQAAAAALASmcg='
+    })
+    return avifOkPromise
+  }
   $effect(() => {
-    if (!browser || avifOk !== null) return
-    const probe = new Image()
-    probe.onload = () => { avifOk = probe.width === 1 }
-    probe.onerror = () => { avifOk = false }
-    // 1×1 AVIF, the standard support probe.
-    probe.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAABQaWluZgAAAAAAAQAAABJpbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQAMAAAAABNjb2xybmNseAACAAIABoAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgABogQEDQgMgkQAAAAB8dSLfI='
+    if (!browser) return
+    probeAvif()
   })
 
   /* ——— PREWARM ALL THIRTY, NOT JUST THE LOOKAHEAD WINDOW ———
@@ -367,17 +402,21 @@
 
      Registered as a lazily-evaluated function, not a static list, so it
      reads the SAME live decisions the lookahead effect above makes right
-     before imageWarm.js actually calls it: `avifOk` (may still be null if
-     the probe above hasn't resolved yet — falls back to webp, which is
-     always a correct request since it's also the <img> tag's own fallback
-     `src`) and the portrait breakpoint, mirrored exactly from the <picture>
-     media query at `(max-width: 719px)` below. Warming the wrong one would
-     be wasted bytes on top of leaving the real candidate cold — see the
-     brief's point 4. */
+     before imageWarm.js actually calls it: the portrait breakpoint (mirrored
+     exactly from the <picture> media query at `(max-width: 719px)` below)
+     and the AVIF probe. The function is ASYNC — it awaits `probeAvif()`
+     rather than reading `avifOk` synchronously — because imageWarm.js's
+     `warmReactiveUrls()` calls this exactly once, at whatever instant its
+     own batched pass reaches it, with no guarantee the probe has settled by
+     then. `warmReactiveUrls()` awaits whatever this returns, so there is no
+     "falls back to webp because the probe hasn't resolved yet" case left:
+     it either already has, or this suspends until it does. Warming the
+     wrong one would be wasted bytes on top of leaving the real candidate
+     cold — see the brief's point 4. */
   onMount(() => {
-    return registerReactiveUrls(() => {
+    return registerReactiveUrls(async () => {
       const portrait = window.matchMedia('(max-width: 719px)').matches
-      const ext = avifOk ? 'avif' : 'webp'
+      const ext = (await probeAvif()) ? 'avif' : 'webp'
       return NICHES.map((n) => (portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`))
     })
   })
@@ -388,16 +427,23 @@
     const portrait = window.matchMedia('(max-width: 719px)').matches
     const from = NICHES.findIndex((n) => n.key === key)
     if (from < 0) return
-    const ext = avifOk ? 'avif' : 'webp'
-    const ahead = pinned ? 6 : 3
+    let cancelled = false
     const imgs = []
-    for (let k = 1; k <= ahead; k++) {
-      const n = NICHES[(from + k) % NICHES.length]
-      const img = new Image()
-      img.src = portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`
-      imgs.push(img)
-    }
-    return () => imgs.forEach((im) => { im.src = '' })
+    // Same reasoning as the registry callback above: await the probe rather
+    // than reading `avifOk` synchronously, so a lookahead that fires before
+    // the probe settles can't warm the wrong extension either.
+    probeAvif().then((ok) => {
+      if (cancelled) return
+      const ext = ok ? 'avif' : 'webp'
+      const ahead = pinned ? 6 : 3
+      for (let k = 1; k <= ahead; k++) {
+        const n = NICHES[(from + k) % NICHES.length]
+        const img = new Image()
+        img.src = portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`
+        imgs.push(img)
+      }
+    })
+    return () => { cancelled = true; imgs.forEach((im) => { im.src = '' }) }
   })
 
   /* While the pinned tour owns the screen, the site's global bottom pill

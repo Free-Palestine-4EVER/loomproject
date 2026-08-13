@@ -233,17 +233,28 @@ const reactiveSources = new Set()
 // invoked on unmount) — never at module scope, so a component that mounts on
 // one route and not another cannot leak a stale entry into a page it never
 // appears on.
+//
+// `fn` may be sync (return the array directly) or async (return a Promise
+// that resolves to it) — `collectReactiveUrls` awaits either shape. This
+// matters whenever the URL list depends on something that resolves later
+// than the component's own render, e.g. Solutions.svelte's AVIF probe: the
+// registered function used to read that probe's result synchronously, which
+// raced this file's own call-time against the probe's resolve-time and, on
+// WebKit, always lost — see the comment above `probeAvif()` in
+// Solutions.svelte for the full incident. A producer that can `await` its
+// own async decisions before answering removes that race entirely instead
+// of this file having to guess when "later" is.
 export function registerReactiveUrls(fn) {
   reactiveSources.add(fn)
   return () => reactiveSources.delete(fn)
 }
 
-function collectReactiveUrls() {
+async function collectReactiveUrls() {
   const urls = new Set()
   for (const fn of reactiveSources) {
     let list
     try {
-      list = fn()
+      list = await fn()
     } catch {
       // A registered producer throwing (component torn down mid-call, a
       // ref not yet set) costs that one component's URLs this pass, never
@@ -266,7 +277,7 @@ function collectReactiveUrls() {
 // have fully drained, so it never competes with anything actually on screen
 // for bandwidth — these are all, by definition, off-screen right now.
 async function warmReactiveUrls() {
-  const urls = Array.from(collectReactiveUrls())
+  const urls = Array.from(await collectReactiveUrls())
   for (let i = 0; i < urls.length; i += BATCH_SIZE) {
     if (saveData()) return
     const batch = urls.slice(i, i + BATCH_SIZE)
