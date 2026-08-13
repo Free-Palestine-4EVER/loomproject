@@ -114,6 +114,53 @@
     refs[next]?.focus()
   }
 
+  // ——— CLEAR THE FIXED NAV (13 Aug 2026) ———
+  // `.stg-pin` (products-stage.css) sticks to the top of the viewport while
+  // this section scrubs, and `.nav` is `position: fixed; top: 0` — so a pin
+  // landing at the same `top: 0` sat BEHIND the bar. On the client's
+  // 430×932 screenshot the icon rail's top row was half-hidden under it.
+  //
+  // The bar is not one fixed height: it differs mobile vs desktop, and on a
+  // notched iPhone it grows again by `env(safe-area-inset-top)` (see the
+  // "BABY PINK" comment in styles.css) — so instead of guessing a pixel
+  // value, this reads `.nav`'s own rendered height, which already bakes in
+  // the safe-area padding, and publishes it as `--apps-nav-h` for
+  // products-stage.css's `.stg-pin` to offset by. Written onto `wrap`
+  // (`.stg-scroll`) as an inline style, which wins over that stylesheet's
+  // own fallback declaration by specificity — see the comment there.
+  function syncNavHeight() {
+    if (!wrap) return
+    const nav = document.querySelector('.nav')
+    if (!nav) return
+    // ceil, not round: an under-measured gap of a fraction of a pixel is
+    // the one failure mode worth avoiding here — a stray sub-pixel of
+    // overlap under the bar is the exact bug this exists to fix.
+    const h = Math.ceil(nav.getBoundingClientRect().height)
+    wrap.style.setProperty('--apps-nav-h', `${h}px`)
+  }
+  onMount(() => {
+    syncNavHeight()
+    // Width changes the bar's height (its own padding/type don't reflow
+    // between mobile and desktop, but the breakpoint that swaps the nav's
+    // layout does) — a ResizeObserver on `.nav` itself catches that AND any
+    // font-swap reflow, without polling. `.nav` sliding off-screen on
+    // scroll-down (`.nav--hidden`, a transform — see Nav.svelte) does not
+    // change its measured height, so no scroll listener is needed here: the
+    // reserved gap stays correct and just goes unused while the bar is
+    // hidden, and is immediately right again the moment it slides back in.
+    const nav = document.querySelector('.nav')
+    let ro
+    if (nav && 'ResizeObserver' in window) {
+      ro = new ResizeObserver(syncNavHeight)
+      ro.observe(nav)
+    }
+    window.addEventListener('resize', syncNavHeight)
+    return () => {
+      ro?.disconnect()
+      window.removeEventListener('resize', syncNavHeight)
+    }
+  })
+
   // ——— the scroll driver: one passive listener, rAF-throttled, torn down on
   // unmount and whenever reduced motion is on (the pin is removed in CSS at
   // the same time, so there is nothing left to read). ———

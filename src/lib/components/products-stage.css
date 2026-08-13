@@ -98,10 +98,42 @@
 .stg-scroll {
   height: calc(100vh + var(--steps) * 62vh);
   position: relative;
+  /* ——— CLEAR THE FIXED NAV (13 Aug 2026) ———
+     `.stg-pin` below sticks to the top of the viewport while the reader
+     scrubs through it, same trick `.sol-pin` in solutions.css uses. `.nav`
+     is `position: fixed; top: 0; z-index: 80` (styles.css), so a pin that
+     also lands at `top: 0` sits BEHIND the bar — on the client's 430×932
+     screenshot the icon rail's top row was half-hidden under the pink bar.
+     solutions.css patched its own version of this with a bare `top: 74px`;
+     that number is only right for the ONE nav height it was measured
+     against. This section's pin can be entered at four widths and the nav
+     is not one height: it is shorter on desktop, taller on a phone, and on
+     a notched iPhone it grows again by `env(safe-area-inset-top)` (see the
+     "BABY PINK" comment block in styles.css) — so a single hardcoded guess
+     would be wrong at at least one of those. `--apps-nav-h` is instead FED
+     BY AppsShowcase.svelte's `syncNavHeight()`, which reads `.nav`'s own
+     `getBoundingClientRect().height` — that already bakes in the safe-area
+     padding, so there is nothing to branch on here. The value below is only
+     the pre-hydration / no-JS fallback (a generous guess at the mobile
+     bar's height) so the very first paint still clears the bar rather than
+     flashing under it for one frame; JS overwrites it as an inline style on
+     `.stg-scroll` the instant it can measure, which wins over this rule by
+     specificity. */
+  --apps-nav-h: 78px;
 }
 .stg-pin {
-  position: sticky; top: 0;
-  min-height: 100vh;
+  position: sticky; top: var(--apps-nav-h);
+  /* 100vh minus the reserved strip, not a flat 100vh: the old rule sized the
+     sticky box to the FULL viewport and pinned it at the very top, so the
+     grid's `align-content: center` centred within a box the nav could never
+     see into. Pinning at `--apps-nav-h` instead of `0` but leaving the
+     height at 100vh would push the box's bottom edge that same amount below
+     the fold — harmless for the sticky mechanics (nothing scrolls inside
+     it) but it re-centres the card slightly low. Shrinking the height by the
+     same amount keeps the box exactly filling the space between the nav and
+     the bottom of the viewport, so the card centres in the room actually
+     available to it. */
+  min-height: calc(100vh - var(--apps-nav-h));
   display: grid; align-content: center;
 }
 .stg-scroll--flat { height: auto; }
@@ -117,7 +149,9 @@
    less travel than the five before it. */
 @media (max-width: 760px) and (min-height: 760px) {
   .stg-scroll { height: calc(100svh + var(--steps) * 55svh); }
-  .stg-pin { min-height: 100svh; }
+  /* same nav-clearance deduction as the base `.stg-pin` rule above, just
+     against `svh` instead of `vh` to match this breakpoint's track unit */
+  .stg-pin { min-height: calc(100svh - var(--apps-nav-h)); }
 }
 
 .stg {
