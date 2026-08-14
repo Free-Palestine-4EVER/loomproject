@@ -1,12 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   THE HOMEPAGE IS CENTRED — 14 Aug 2026, client: "all homepage buttons and
-   text center them please".
+   THE HOMEPAGE IS CENTRED ON PHONES ONLY — 14 Aug 2026, client: "all homepage
+   buttons and text center them please", then, later the same day, "on mobile
+   put it in the middle, on pc revert it to the left alignment".
 
-   SCOPE. Everything inside `.home-centered`, which wraps the home route's own
-   sections only (src/routes/+page.svelte). The nav and the footer live in
-   +layout.svelte and are deliberately outside it: they are shared with every
-   other route, and centring them here would silently re-align /work, /pricing
-   and the rest. Sub-pages keep their own alignment entirely.
+   SCOPE. Everything inside `.home-centered` — which wraps the home route's own
+   sections only (src/routes/+page.svelte) — AND only under 768px, because the
+   entire stylesheet below sits inside one `@media (max-width: 767px)` block.
+   The nav and the footer live in +layout.svelte and are deliberately outside
+   it: they are shared with every other route, and centring them here would
+   silently re-align /work, /pricing and the rest. Sub-pages keep their own
+   alignment entirely.
 
    HOW. One declaration centres the page, and then specific things are handed
    back. That is the right way round for this request — "all text" is the ask,
@@ -33,138 +36,152 @@
    If a section still looks wrong after this, fix it in that section's own
    stylesheet rather than widening the exception list here. */
 
-.home-centered {
-  text-align: center;
-}
+/* MOBILE ONLY — 14 Aug 2026, client: "on mobile put it in the middle, on pc
+   revert it to the left alignment".
 
-/* ——— buttons and CTA rows ———
-   `text-align: center` moves a button's LABEL but not the button, because a
-   CTA row is usually a flex container and flex ignores text-align. These are
-   the row patterns the home sections actually use; they get centred as boxes
-   so the pill itself lands in the middle of the column, not just its text. */
-.home-centered .hero-ctas,
-.home-centered .sol-cta,
-.home-centered .cnt-cta,
-.home-centered .offer-cta,
-.home-centered .mach-cta,
-.home-centered .aeo-cta,
-.home-centered .wkp-cta,
-.home-centered .apps-cta,
-.home-centered .bolt-cta,
-.home-centered .faq-cta,
-.home-centered .contact-cta,
-.home-centered .hiring-cta,
-.home-centered .section-cta,
-/* The rest of the CTA rows, found by querying the rendered page for flex rows
-   that hold a button and were still packing to flex-start, rather than by
-   guessing class names section by section. Re-run that query if a new section
-   lands with its own row: `display:flex`, row direction, justify-content at
-   the start, six children or fewer, contains a button or link. */
-.home-centered .ts-cta,
-.home-centered .cnt-foot,
-.home-centered .fk-foot,
-.home-centered .machine-actions,
-.home-centered .contact-direct,
-.home-centered .hire-strip-cta {
-  justify-content: center;
-}
+   The whole stylesheet is inside this one query, so above 767px the file
+   contributes NOTHING and the desktop homepage renders exactly as it did
+   before the centring change — no counter-rules to keep in sync, no left
+   alignment restated in a second place that can drift from the first.
 
-/* Stat rows read as a set and want the same treatment — the figures are a
-   group, not a column to scan. */
-.home-centered .ts-stats,
-.home-centered .stats,
-.home-centered .stat-row {
-  justify-content: center;
-}
+   767px is the site's own layout switch (see styles.css: the hero inverts,
+   the nav collapses and the planet art swaps at the same number), so the
+   alignment changes on the same line everything else does rather than
+   introducing a third breakpoint nobody else respects. */
+@media (max-width: 767px) {
+  .home-centered {
+    text-align: center;
+  }
 
-/* Selected Work's category chips. These ARE a control row, which is the reason
-   the machine section's filters were left alone above — but these sit directly
-   under a centred headline and lede with nothing to their left to align to, so
-   a left-packed row reads as a mistake rather than as a toolbar. Centred. */
-.home-centered .work-filters {
-  justify-content: center;
-}
+  /* ——— buttons and CTA rows ———
+     `text-align: center` moves a button's LABEL but not the button, because a
+     CTA row is usually a flex container and flex ignores text-align. These are
+     the row patterns the home sections actually use; they get centred as boxes
+     so the pill itself lands in the middle of the column, not just its text. */
+  .home-centered .hero-ctas,
+  .home-centered .sol-cta,
+  .home-centered .cnt-cta,
+  .home-centered .offer-cta,
+  .home-centered .mach-cta,
+  .home-centered .aeo-cta,
+  .home-centered .wkp-cta,
+  .home-centered .apps-cta,
+  .home-centered .bolt-cta,
+  .home-centered .faq-cta,
+  .home-centered .contact-cta,
+  .home-centered .hiring-cta,
+  .home-centered .section-cta,
+  /* The rest of the CTA rows, found by querying the rendered page for flex rows
+     that hold a button and were still packing to flex-start, rather than by
+     guessing class names section by section. Re-run that query if a new section
+     lands with its own row: `display:flex`, row direction, justify-content at
+     the start, six children or fewer, contains a button or link. */
+  .home-centered .ts-cta,
+  .home-centered .cnt-foot,
+  .home-centered .fk-foot,
+  .home-centered .machine-actions,
+  .home-centered .contact-direct,
+  .home-centered .hire-strip-cta {
+    justify-content: center;
+  }
 
-/* DELIBERATELY NOT CENTRED, though the same query surfaced them:
-   `.mo-right` and `.mo-filter` are the machine section's own toolbar and
-   filter chips, `.wizard-steps` is a progress indicator. All three are
-   controls whose left edge is their alignment with the panel they belong to;
-   centring a filter bar makes it read as content. */
+  /* Stat rows read as a set and want the same treatment — the figures are a
+     group, not a column to scan. */
+  .home-centered .ts-stats,
+  .home-centered .stats,
+  .home-centered .stat-row {
+    justify-content: center;
+  }
 
-/* a centred head block also needs its own measure centred, or a `max-width`
-   set in the component leaves the text centred inside a left-hugging box */
-.home-centered .section-head,
-.home-centered .lede,
-.home-centered .h2,
-.home-centered .kicker {
-  margin-inline: auto;
-}
-/* the kicker is a flex row (rule + word) in several sections — centre the row
-   itself, not only the characters inside it */
-.home-centered .kicker {
-  justify-content: center;
-}
+  /* Selected Work's category chips. These ARE a control row, which is the reason
+     the machine section's filters were left alone above — but these sit directly
+     under a centred headline and lede with nothing to their left to align to, so
+     a left-packed row reads as a mistake rather than as a toolbar. Centred. */
+  .home-centered .work-filters {
+    justify-content: center;
+  }
 
-/* ——— HANDED BACK TO THE LEFT ——— */
+  /* DELIBERATELY NOT CENTRED, though the same query surfaced them:
+     `.mo-right` and `.mo-filter` are the machine section's own toolbar and
+     filter chips, `.wizard-steps` is a progress indicator. All three are
+     controls whose left edge is their alignment with the panel they belong to;
+     centring a filter bar makes it read as content. */
 
-/* every list whose markers need a shared edge */
-.home-centered ul,
-.home-centered ol,
-.home-centered li,
-.home-centered dl,
-.home-centered table,
-.home-centered th,
-.home-centered td {
-  text-align: left;
-}
+  /* a centred head block also needs its own measure centred, or a `max-width`
+     set in the component leaves the text centred inside a left-hugging box */
+  .home-centered .section-head,
+  .home-centered .lede,
+  .home-centered .h2,
+  .home-centered .kicker {
+    margin-inline: auto;
+  }
+  /* the kicker is a flex row (rule + word) in several sections — centre the row
+     itself, not only the characters inside it */
+  .home-centered .kicker {
+    justify-content: center;
+  }
 
-/* the thirty-industry index: seven grouped columns, scanned not read */
-.home-centered .sol-index,
-.home-centered .sol-idx-grid,
-.home-centered .sol-idx-group,
-.home-centered .sol-idx-list,
-.home-centered .sol-idx-btn,
-.home-centered .sol-idx-label {
-  text-align: left;
-}
+  /* ——— HANDED BACK TO THE LEFT ——— */
 
-/* pricing: the figures have to line up down the page to be comparable */
-.home-centered .pricing-table,
-.home-centered .pr-row,
-.home-centered .pr-cell,
-.home-centered .pr-feat {
-  text-align: left;
-}
+  /* every list whose markers need a shared edge */
+  .home-centered ul,
+  .home-centered ol,
+  .home-centered li,
+  .home-centered dl,
+  .home-centered table,
+  .home-centered th,
+  .home-centered td {
+    text-align: left;
+  }
 
-/* forms: an input is a left-aligned object and its label shares its edge */
-.home-centered input,
-.home-centered textarea,
-.home-centered select,
-.home-centered label,
-.home-centered .field,
-.home-centered .sol-search,
-.home-centered .sol-bar {
-  text-align: left;
-}
+  /* the thirty-industry index: seven grouped columns, scanned not read */
+  .home-centered .sol-index,
+  .home-centered .sol-idx-grid,
+  .home-centered .sol-idx-group,
+  .home-centered .sol-idx-list,
+  .home-centered .sol-idx-btn,
+  .home-centered .sol-idx-label {
+    text-align: left;
+  }
 
-/* the FAQ is question-and-answer prose — long enough that centring it costs
-   real readability, and it is already a left-edged accordion */
-.home-centered .faq-q,
-.home-centered .faq-a,
-.home-centered .faq-item {
-  text-align: left;
-}
+  /* pricing: the figures have to line up down the page to be comparable */
+  .home-centered .pricing-table,
+  .home-centered .pr-row,
+  .home-centered .pr-cell,
+  .home-centered .pr-feat {
+    text-align: left;
+  }
 
-/* the industry tour's answer card: a dense record (name, hook, arc, three
-   deliverables, agent note) sitting over a photograph, and its deliverables
-   are a marked list — this is the one card on the page that reads as a
-   document rather than as a headline */
-.home-centered .sol-answer,
-.home-centered .sol-panelcard {
-  text-align: left;
-}
+  /* forms: an input is a left-aligned object and its label shares its edge */
+  .home-centered input,
+  .home-centered textarea,
+  .home-centered select,
+  .home-centered label,
+  .home-centered .field,
+  .home-centered .sol-search,
+  .home-centered .sol-bar {
+    text-align: left;
+  }
 
-/* already centred by its own design; nothing to add and nothing to fight */
-.home-centered .mcp {
-  text-align: center;
+  /* the FAQ is question-and-answer prose — long enough that centring it costs
+     real readability, and it is already a left-edged accordion */
+  .home-centered .faq-q,
+  .home-centered .faq-a,
+  .home-centered .faq-item {
+    text-align: left;
+  }
+
+  /* the industry tour's answer card: a dense record (name, hook, arc, three
+     deliverables, agent note) sitting over a photograph, and its deliverables
+     are a marked list — this is the one card on the page that reads as a
+     document rather than as a headline */
+  .home-centered .sol-answer,
+  .home-centered .sol-panelcard {
+    text-align: left;
+  }
+
+  /* already centred by its own design; nothing to add and nothing to fight */
+  .home-centered .mcp {
+    text-align: center;
+  }
 }
