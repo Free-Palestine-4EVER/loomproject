@@ -77,6 +77,14 @@
   justify-content: center;
 }
 
+/* Selected Work's category chips. These ARE a control row, which is the reason
+   the machine section's filters were left alone above — but these sit directly
+   under a centred headline and lede with nothing to their left to align to, so
+   a left-packed row reads as a mistake rather than as a toolbar. Centred. */
+.home-centered .work-filters {
+  justify-content: center;
+}
+
 /* DELIBERATELY NOT CENTRED, though the same query surfaced them:
    `.mo-right` and `.mo-filter` are the machine section's own toolbar and
    filter chips, `.wizard-steps` is a progress indicator. All three are

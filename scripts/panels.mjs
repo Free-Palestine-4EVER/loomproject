@@ -9,8 +9,18 @@
  * lit scene under a headline. Three things are on that card and each is made
  * by whatever is actually best at it:
  *
- *   the SCENE     — a Higgsfield plate, static/img/plates/<plate>.png.
+ *   the SCENE     — a Higgsfield plate, art-src/plates/<plate>.png.
  *                   Rooms, water, light. No device, no type; see mocks/plates.json.
+ *
+ *                   THE PLATES LIVE OUTSIDE static/ ON PURPOSE (14 Aug 2026).
+ *                   They are 108 MB of source art across 16 PNGs and no page
+ *                   has ever referenced one — they are input to this script and
+ *                   nothing else. Sitting in static/ meant SvelteKit copied
+ *                   every byte into the build and Vercel deployed them, so each
+ *                   deploy shipped 108 MB that no visitor could ever fetch (and
+ *                   that anyone could fetch, at a guessable URL). Moved to
+ *                   art-src/, which the build does not touch. If you add a new
+ *                   plate, it goes there, not in static/.
  *   the SCREEN    — a real render of mocks/<screen>.html, already sitting in
  *                   static/img/suite/<screen>.webp (scripts/mockshots.mjs).
  *   the TYPE      — set here, in the browser, in the site's own faces.
@@ -152,7 +162,7 @@ const page = await ctx.newPage()
 
 let missing = 0
 for (const p of wanted) {
-  const plate = `static/img/plates/${p.plate}.png`
+  const plate = `art-src/plates/${p.plate}.png`
   const screen = `static/img/suite/${p.screen}.webp`
 
   // A missing plate is the normal state while the Higgsfield run is still in

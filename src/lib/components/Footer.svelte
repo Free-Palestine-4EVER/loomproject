@@ -150,9 +150,9 @@
              studio's logo: the logo is a photographed knit, it is what the
              header carries, it is what every client recognises, and the footer
              is the one place on the page where signing off with the actual
-             mark matters most. LoomMark stays in the repo (it is still the
-             right size of thing for a favicon-scale slot) — it is just not
-             what goes here.
+             mark matters most. (LoomMark.svelte itself was deleted in the
+             14 Aug cleanup — this was its only caller, so nothing was left
+             importing it.)
 
              Same `-sm` pair the nav uses, at the same 480x162 intrinsic size,
              so this is a warm cache hit on every page rather than a new

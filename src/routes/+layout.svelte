@@ -23,7 +23,6 @@
   import Nav from '$lib/components/Nav.svelte'
   import Footer from '$lib/components/Footer.svelte'
   import Flyer from '$lib/components/Flyer.svelte'
-  import MobileChrome from '$lib/components/MobileChrome.svelte'
   import WhatsAppFab from '$lib/components/WhatsAppFab.svelte'
   import WizardModal from '$lib/components/WizardModal.svelte'
 
@@ -39,6 +38,10 @@
   import '$lib/styles/textile.css'
   import '$lib/styles/textile-details.css'
   import '$lib/styles/brand-skin.css'
+  // Phone nav/burger/menu/overlay sizing and safe-area padding. This used to be
+  // imported by MobileChrome.svelte; that component existed only to render the
+  // floating CTA pill, so it went with the pill and its stylesheet moved here.
+  import '$lib/components/mobilechrome.css'
   import '$lib/styles/sheet.css'
   import '$lib/styles/wool.css'
   // LAST of all: the button scale settles ties between the ten component
@@ -147,19 +150,6 @@
 <!-- the butterfly rides the whole page, above the copy and under the nav -->
 <Flyer />
 
-<MobileChrome />
-
-<!-- THE PERSISTENT "START A PROJECT" CTA IS NOT MOUNTED (14 Aug 2026, client:
-     "remove the start a project button on bottom of the screen").
-     It came in two halves — this desktop bottom-centre bar, and an identical
-     pill inside MobileChrome below 768px — so removing one would only have
-     cleared it from one kind of device. Both are gone; the mobile half is
-     commented out in MobileChrome.svelte.
-     The components and their stylesheets are left in the repo rather than
-     deleted: this is a CTA the client has asked for and asked to remove before,
-     and the whole apparatus is one import and one tag away from returning.
-     The WhatsApp FAB stays — it is a different offer, and the bottom-right
-     corner it owns is the one the client has never asked to clear. -->
 <WhatsAppFab />
 
 <WizardModal />
