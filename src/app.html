@@ -81,6 +81,40 @@
          read on a sub-page. Server-rendered heads make that class of bug
          impossible: the correct title is in the bytes. -->
     %sveltekit.head%
+
+    <!-- ═══ TEMPORARY: MOBILE-CRASH BISECT — DELETE ONCE ANSWERED ═══════════
+         iOS Safari is killing the tab on a long scroll. It is mobile-only, it
+         reproduces at any scroll position, and it started with the 14 Aug
+         pass. Measured and RULED OUT: decoded bitmaps, which went DOWN 44 MB
+         in that same pass (qa/memory.mjs — 129.4 MB before, 85.2 MB after),
+         so the cost is not image data.
+
+         That leaves one structural change from that pass: `.solutions` no
+         longer sets `overflow-x: clip`. Removing it fixed the Safari sticky
+         shake (it was the pin's nearest clip container — see the long note in
+         solutions.css) but it also removed a PAINT CONTAINMENT boundary from a
+         section that is seven screens tall and full-bleed, which is exactly
+         the kind of thing that changes how WebKit tiles and retains a large
+         scrolling area on a memory-constrained device.
+
+         So: ?clip=1 puts that one declaration back, and nothing else.
+
+           loomstudio-jo.com            <- as shipped (no clip, no shake)
+           loomstudio-jo.com/?clip=1    <- clip restored (shake returns)
+
+         Scroll both hard on the phone. If ?clip=1 survives and the plain URL
+         dies, the containment is the cost and the shake needs a fix that does
+         not sit on the sticky box's ancestor. If BOTH crash, this is not it
+         and the cause is elsewhere in the pass. Inert without the parameter. -->
+    <style id="crash-bisect">
+      html.clip-on .solutions { overflow-x: clip; }
+    </style>
+    <script>
+      (function () {
+        if (/[?&]clip=1/.test(location.search)) document.documentElement.classList.add('clip-on')
+      })()
+    </script>
+    <!-- ═══ END TEMPORARY BLOCK ═══ -->
   </head>
   <body data-sveltekit-preload-data="hover">
     <div style="display: contents">%sveltekit.body%</div>

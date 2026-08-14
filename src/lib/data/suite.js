@@ -165,22 +165,14 @@ export const SUITE = [
       { src: '/img/suite/lahza-3.webp', w: 1206, h: 2622 },
     ],
   },
-  {
-    key: 'glowbar',
-    name: 'Glowbar',
-    tag: 'iOS · Beauty studio',
-    status: 'Built — not submitted',
-    blurb: 'A face-pilates studio in an app — pick a ritual, book the slot, shop the shelf and watch the points add up. Built in French for a Swiss studio.',
-    icon: '/img/apps/glowbar-icon.webp',
-    kind: 'app',
-    grad: ['#ffc740', '#f21c8c'],
-    bg: '/img/suite/bg/glowbar.webp',
-    shots: [
-      { src: '/img/suite/glowbar.webp', w: 1320, h: 2868 },
-      { src: '/img/suite/glowbar-2.webp', w: 1320, h: 2868 },
-      { src: '/img/suite/glowbar-3.webp', w: 1320, h: 2868 },
-    ],
-  },
+  /* GLOWBAR REMOVED FROM THE SUITE — 14 Aug 2026, client's call.
+     The record is not deleted from history, only from this array: its assets
+     (/img/suite/glowbar*, /img/apps/glowbar-icon.webp) and its entry in
+     site.js's app list are untouched, so restoring it is pasting the object
+     back here. Nothing else keys off it — the stage, the rail and the icon
+     column all derive from SUITE, so it drops out of every one of them at
+     once, and the section's own "8 products" line counts SUITE.length rather
+     than a hardcoded number. */
   {
     key: 'myfairytrail',
     name: 'My Fairy Trail',
