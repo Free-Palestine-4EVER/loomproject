@@ -246,19 +246,26 @@
      accessible name is already the product's, above. -->
 {#snippet screen(shot, it, label)}
   {#if shot}
-    <!-- <Pic>, NOT a bare <img> (14 Aug 2026). These are 1320x2868 App Store
-         captures and the phone mock renders them 187px wide on desktop, 170 on
-         a tablet — measured 3.66x the pixels needed at DPR2, which is ~13x the
-         bytes. The variants have existed on disk the whole time (see
-         responsive.json); this <img> simply never carried a srcset, so the
-         browser had exactly one candidate and took it.
-         `sizes` is stated in px because the mock IS a fixed px object — it is a
-         drawn phone with a fixed bezel, not a fluid column — so a vw expression
-         here would be a worse description of the box, not a more flexible one.
-         Read the numbers off the rendered mock if the device CSS changes. -->
-    <Pic
+    <!-- ——— A PLAIN <img>, AND IT HAS TO STAY ONE ———
+         14 Aug 2026: this was briefly a <Pic> with `sizes="… 190px"`, to stop a
+         1320x2868 App Store capture being served whole into a 187px mock. The
+         intent was right and the result was badly wrong — REVERTED.
+
+         `responsive.json`'s `w` descriptors do not match these files' real
+         widths. The variant named `-480` is 190px wide, not 480, so a browser
+         asked for ~380 device pixels picked it believing it was getting 480 and
+         rendered a 190px source into a 374px box: measured 0.51x, i.e. half the
+         resolution the screen can show, on the one part of this page whose whole
+         job is to display fine UI detail and small type. Baseline was 3.66x.
+
+         The descriptors are presumably wrong for every PORTRAIT asset in that
+         manifest (these are 1320x2868); it went unnoticed because this <img> was
+         the first caller ever to put a srcset on one. Fixing the generator is
+         the real repair — until then, do not add `sizes`/`srcset` here. The
+         oversized fetch is the lesser bug: soft screenshots are visible to
+         everyone, wasted bytes are not. -->
+    <img
       src={shot.src}
-      sizes="(max-width: 1199px) 170px, 190px"
       width={shot.w}
       height={shot.h}
       loading="lazy"
@@ -288,11 +295,11 @@
 {#snippet card(shot, it, label)}
   <div class="dv-card">
     {#if shot}
-      <!-- same fix and the same reasoning as `screen` above: the panel is a
-           composited App-Store card rendered at the phone mock's own width. -->
-      <Pic
+      <!-- plain <img>, same reversal and the same reason as `screen` above:
+           the manifest's width descriptors lie about these portrait captures,
+           so a srcset here serves a 190px source into a 374px box. -->
+      <img
         src={shot.src}
-        sizes="(max-width: 1199px) 170px, 190px"
         width={shot.w}
         height={shot.h}
         loading="lazy"
