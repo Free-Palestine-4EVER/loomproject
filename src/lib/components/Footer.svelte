@@ -22,7 +22,6 @@
   import { wizard } from '$lib/wizard.svelte.js'
   import { FOOT_COLS } from './nav-links.js'
   import FootIcon from './FootIcon.svelte'
-  import LoomMark from './LoomMark.svelte'
   import { webpSrcset, variantsFor } from './Pic.svelte'
 
   // avif equivalent of webpSrcset (Pic.svelte only exports the webp helper —
@@ -145,7 +144,34 @@
   <div class="footer-grid">
     <div class="foot-side foot-side--l">
       <div class="foot-brand">
-        <LoomMark class="footer-mark" />
+        <!-- THE REAL WORDMARK, NOT THE GLYPH (14 Aug 2026). This was
+             `<LoomMark class="footer-mark" />` — a 40x40 inline SVG of two
+             strokes and a dot, drawn as a generic loom pictogram. It is not the
+             studio's logo: the logo is a photographed knit, it is what the
+             header carries, it is what every client recognises, and the footer
+             is the one place on the page where signing off with the actual
+             mark matters most. LoomMark stays in the repo (it is still the
+             right size of thing for a favicon-scale slot) — it is just not
+             what goes here.
+
+             Same `-sm` pair the nav uses, at the same 480x162 intrinsic size,
+             so this is a warm cache hit on every page rather than a new
+             download: the header has already fetched it before a reader ever
+             reaches the footer. AVIF first (20 KB against WebP's 28), and
+             `loading="lazy"` because it is, by definition, the bottom of the
+             page. -->
+        <picture>
+          <source type="image/avif" srcset="/img/logo/loom-woven-sm.avif" />
+          <img
+            class="logo-woven footer-logo"
+            src="/img/logo/loom-woven-sm.webp"
+            alt="LOOM"
+            width="480"
+            height="162"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
         <p class="foot-tag">The AI-native creative agency.<br />We weave brands on the edge of creativity.</p>
         <p class="foot-cities"><FootIcon name="pin" />Amman × Sarajevo</p>
       </div>

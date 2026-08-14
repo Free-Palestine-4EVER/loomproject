@@ -49,6 +49,7 @@
   import { registerReactiveUrls } from '$lib/imageWarm.js'
   import SplitWords from './SplitWords.svelte'
   import LiveBadge from './LiveBadge.svelte'
+  import Pic from './Pic.svelte'
   import './products-stage.css' // .stg-* — the stage design
   import './appscreens.css'     // .dv-*  — the CSS device frames (loaded 2nd on purpose)
   import './heads-v7.css'       // .apps-status
@@ -245,8 +246,19 @@
      accessible name is already the product's, above. -->
 {#snippet screen(shot, it, label)}
   {#if shot}
-    <img
+    <!-- <Pic>, NOT a bare <img> (14 Aug 2026). These are 1320x2868 App Store
+         captures and the phone mock renders them 187px wide on desktop, 170 on
+         a tablet — measured 3.66x the pixels needed at DPR2, which is ~13x the
+         bytes. The variants have existed on disk the whole time (see
+         responsive.json); this <img> simply never carried a srcset, so the
+         browser had exactly one candidate and took it.
+         `sizes` is stated in px because the mock IS a fixed px object — it is a
+         drawn phone with a fixed bezel, not a fluid column — so a vw expression
+         here would be a worse description of the box, not a more flexible one.
+         Read the numbers off the rendered mock if the device CSS changes. -->
+    <Pic
       src={shot.src}
+      sizes="(max-width: 1199px) 170px, 190px"
       width={shot.w}
       height={shot.h}
       loading="lazy"
@@ -276,8 +288,11 @@
 {#snippet card(shot, it, label)}
   <div class="dv-card">
     {#if shot}
-      <img
+      <!-- same fix and the same reasoning as `screen` above: the panel is a
+           composited App-Store card rendered at the phone mock's own width. -->
+      <Pic
         src={shot.src}
+        sizes="(max-width: 1199px) 170px, 190px"
         width={shot.w}
         height={shot.h}
         loading="lazy"

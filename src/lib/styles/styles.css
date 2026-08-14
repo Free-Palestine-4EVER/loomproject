@@ -477,8 +477,13 @@ section { position: relative; }
    scrollIntoView), and anyone who types or shares a /#work style URL. Lenis
    measures the real header height at click time — this is the static mirror of
    that, sized for the taller unscrolled bar so it can only ever be generous. */
-section[id], [id].section-anchor { scroll-margin-top: 114px; }
-@media (max-width: 900px) { section[id], [id].section-anchor { scroll-margin-top: 92px; } }
+/* These clear the fixed header, so they move WITH it: 114/92 were sized
+   against a 98px/84px bar, and the 14 Aug pass took it to ~66px on both. 82/72
+   keeps the same ~16px of air under the bar that the old pair did. If the
+   header's height changes again, these two are the other half of that change —
+   an anchor landing under the header is the symptom of forgetting them. */
+section[id], [id].section-anchor { scroll-margin-top: 82px; }
+@media (max-width: 900px) { section[id], [id].section-anchor { scroll-margin-top: 72px; } }
 .section-head { padding: clamp(70px, 10vh, 130px) var(--pad) clamp(30px, 5vh, 60px); }
 
 /* ——— buttons ——— */
@@ -557,7 +562,14 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
      unpainted. This way the PLATE runs to y=0 and the CONTENT starts below
      the notch, which is what the inset is for. Zero on every other device,
      so there is nothing to branch on. */
-  padding: calc(16px + env(safe-area-inset-top, 0px)) var(--pad) 16px;
+  /* 10px, down from 16 (14 Aug 2026, client: "make the header even smaller in
+     height"). Padding on its own could only ever take the bar from 98px to
+     86 — the height was set by its TALLEST CHILD, the wool "Get started" pill
+     at 57px, so that came down with it (see `.nav-cta .wool-btn--photo` in
+     wool.css) and so did the wordmark. All three together: 98px → ~70px.
+     The safe-area inset is still ADDED rather than replacing the padding, for
+     the reason below — do not collapse it into a single value. */
+  padding: calc(10px + env(safe-area-inset-top, 0px)) var(--pad) 10px;
   /* THE HEADER IS BABY PINK IN BOTH STATES — 13 Aug 2026.
 
      History: this used to paint three different ways (a dark scrim left over
@@ -800,6 +812,17 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
 }
 .nav-links a:hover span { transform: translateY(-100%); }
 .nav-cta { display: flex; align-items: center; gap: 14px; flex: none; }
+/* 8px OF NOTHING, REMOVED (14 Aug 2026). `.magnetic` is the wrapper the
+   pointer-follow action attaches to; it was a plain block, so its inline
+   formatting context added a line box's worth of descender space under the
+   button inside it — the wrapper measured 55px around a 47px pill. Invisible
+   as whitespace, but it was the tallest child of `.nav-cta` and therefore the
+   thing setting the header's height, which is why shrinking the pill alone
+   only got the bar from 98px to 77. Making the wrapper a flex box removes the
+   line box entirely and hands the floor back to `.nav-logo`'s 44px tap
+   target. Scoped to the nav: `.magnetic` is used elsewhere at sizes where 8px
+   of leading is doing no harm and may be load-bearing for spacing. */
+.nav-cta .magnetic { display: flex; align-items: center; }
 .burger {
   display: none; flex-direction: column; gap: 5px; padding: 8px;
   min-width: 44px; min-height: 44px; align-items: center; justify-content: center;
@@ -1439,9 +1462,14 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
 }
 /* Desktop gets more than 100svh so the planet has room to be a subject rather
    than a thing peeking in at the edge — on a 900px-tall laptop the hero was
-   exactly viewport-height and the composition had nowhere to breathe. */
+   exactly viewport-height and the composition had nowhere to breathe.
+   102svh, down from 112 (14 Aug 2026, client: "make the hero smaller"). The
+   reason for going past 100 is the planet, and 2svh of overhang still gives it
+   the same job — a subject that continues below the fold rather than one that
+   stops at it. What 112 was additionally buying was empty air above the copy,
+   which is the part being given back. */
 @media (min-width: 768px) {
-  .hero { min-height: 112svh; }
+  .hero { min-height: 102svh; }
 }
 
 /* Phones invert the whole hero: copy FIRST, planet under it, both fully in
@@ -1454,13 +1482,19 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
    otherwise crush the second row. */
 @media (max-width: 767px) {
   .hero {
-    min-height: 118svh;
+    /* 106svh, down from 118 (14 Aug 2026, client: "make the hero smaller").
+       The 118 was sized around a 38px headline running three lines; at the
+       33.6px this now sets (see the base `.hero-h1` rule and why the phone
+       size has to live there) the copy row gives back roughly the height that
+       comes off here, so the planet's own 72% row is not squeezed — which is
+       the thing this number exists to protect. Verified at 390x844. */
+    min-height: 106svh;
     /* the desktop hero is align-items:end — bottom-anchored copy over a
        full-bleed photo. On a phone that drops the headline into the planet's
        middle, so the copy goes to the TOP and the planet takes the space
        underneath (see .hero-mobile-planet's 72%). */
     align-items: start;
-    padding-top: 96px;
+    padding-top: 84px;
   }
   /* smaller: at 8.2vw the headline ran three lines and pushed the planet off
      the fold entirely, which is the thing being fixed.
@@ -1728,7 +1762,23 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
      Redo this arithmetic if the headline copy changes — it is pinned to the
      longest line's em width, the same string scripts/subset-patterns-home.mjs
      is pinned to. */
-  font-size: min(clamp(2.7rem, 8.2vw, 7rem), calc(10.8vw - 4px));
+  /* SIZED DOWN 14 Aug 2026 (client: "make the hero smaller on mobile and pc").
+     Was `min(clamp(2.7rem, 8.2vw, 7rem), calc(10.8vw - 4px))` — 112px at 1440
+     and 38px at 390. All three clamp terms come down together so the curve
+     keeps its shape instead of flattening in the middle: 5.75rem caps desktop
+     at 92px, 6.9vw carries the taper, and the 2.1rem floor is what the phone
+     actually renders.
+     THE PHONE SIZE HAS TO BE SET HERE, not in the `max-width: 767px` block
+     above — that block's `.hero-h1` is declared at equal specificity ~230
+     lines EARLIER and has never applied (its own comment records this). The
+     floor is the phone's real size: at 390, 6.9vw is 26.9px, below the floor,
+     so the clamp returns 2.1rem = 33.6px and the wrap guard (38.1px there)
+     no longer binds.
+     The guard itself is unchanged and still correct: it caps the longest line,
+     "WE WEAVE BRANDS" at 9.072em, to fit inside (100vw - 40px). Making the
+     type smaller can only give that line MORE room, never less, so the
+     arithmetic behind it does not move. Redo it only if the copy changes. */
+  font-size: min(clamp(2.1rem, 6.9vw, 5.75rem), calc(10.8vw - 4px));
   line-height: 1.005; letter-spacing: 0;
 }
 .hero-line { display: block; overflow: hidden; }
@@ -3048,7 +3098,21 @@ section[id], [id].section-anchor { scroll-margin-top: 114px; }
   gap: clamp(14px, 2vw, 34px);
 }
 .footer--bloom .foot-brand { max-width: 34ch; }
+/* `.footer-mark` was the 38px LoomMark glyph that used to sit here; the footer
+   signs off with the real woven wordmark now (see Footer.svelte). A wordmark is
+   a wide object, not a square one, so it is sized by HEIGHT with the width left
+   to the 480x162 aspect — 44px reads at the same optical weight the 38px glyph
+   did without the brand block growing. The rule is kept for the glyph in case
+   it is ever wanted back somewhere in this footer. */
 .footer--bloom .footer-mark { color: #33243d; width: 38px; height: 38px; }
+.footer--bloom .footer-logo {
+  height: 44px;
+  width: auto;
+  margin-bottom: 16px;
+}
+@media (max-width: 767px) {
+  .footer--bloom .footer-logo { height: 38px; }
+}
 .footer--bloom .footer-grid p { color: var(--ink-dim); }
 .footer--bloom .foot-tag { line-height: 1.55; }
 .footer--bloom .foot-cities {

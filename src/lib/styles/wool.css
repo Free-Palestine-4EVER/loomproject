@@ -184,10 +184,22 @@
 }
 .wool-btn--photo.is-big { --wool-btn-h: clamp(86px, 7vw, 104px); }
 .wool-btn--photo.is-small { --wool-btn-h: 62px; }
-/* the nav sits inside a fixed bar — it gets its own, tighter box */
-.nav-cta .wool-btn--photo { --wool-btn-w: 120px; }
+/* The nav sits inside a fixed bar — it gets its own, tighter box.
+   THESE WIDTHS SET THE HEADER'S HEIGHT. Every other wool button is sized by
+   `--wool-btn-h` and lets the photograph decide its width (see the block
+   above); the nav pair are the exception that pins a WIDTH, so their height
+   falls out of it as `width / --wool-btn-ar` (~2.1) — 120px was a 57px pill,
+   and 57px was the tallest thing in the bar and therefore the bar's height.
+   100/96, down from 120/104 with the 14 Aug header pass: a ~48px pill, which
+   puts the floor back on `.nav-logo`'s 44px tap target where it belongs.
+   The phone value stops at 96 rather than following desktop down, because at
+   this aspect ratio anything under ~93px renders the pill below 44px tall and
+   the CTA stops being a full tap target — the same floor the 384px block
+   further down in styles.css already sized itself against. Verified by
+   measurement, not arithmetic: qa/_nav.mjs reports the rendered height. */
+.nav-cta .wool-btn--photo { --wool-btn-w: 100px; }
 @media (max-width: 900px) {
-  .nav-cta .wool-btn--photo { --wool-btn-w: 104px; }
+  .nav-cta .wool-btn--photo { --wool-btn-w: 96px; }
 }
 /* the nav is a thin bar — the CTA must not out-shout the wordmark, so its
    resting shadow is tight and its glow is dialled back */

@@ -8,9 +8,20 @@
   display: block;
   height: 30px;
   width: auto;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+  /* NO DROP-SHADOW (14 Aug 2026). This carried
+     `drop-shadow(0 2px 8px rgba(0,0,0,0.45))`, which was written when the
+     header sat on the old dark-violet ground and a black shadow read as
+     depth. The header has been solid `#ffc9d9` since 13 Aug: black at 45%
+     under a woven mark on baby pink does not read as lift, it reads as dirt
+     under the letters — and the wordmark is a photographed knit whose own
+     stitches already give it every bit of relief it needs.
+     The loader keeps a shadow of its own below, because it sits on a
+     different ground and its shadow is pink, not black. */
 }
-.nav-logo .logo-woven { height: clamp(34px, 3.4vw, 46px); }
+/* down from clamp(34px, 3.4vw, 46px) with the 14 Aug header-height pass — the
+   bar is ~70px now, and a 46px wordmark in it left almost no air above or
+   below the mark. */
+.nav-logo .logo-woven { height: clamp(28px, 2.7vw, 36px); }
 .loader .logo-woven {
   height: clamp(64px, 12vw, 120px);
   filter: drop-shadow(0 8px 30px rgba(242, 28, 140, 0.35));
@@ -25,5 +36,8 @@
   pointer-events: none; user-select: none;
 }
 @media (max-width: 640px) {
-  .nav-logo .logo-woven { height: 38px; }
+  /* 32, down from 38, with the 14 Aug header pass — the phone bar is ~66px
+     now. `.nav-logo` keeps its own 44px `min-height` either way, so the tap
+     target does not shrink with the mark. */
+  .nav-logo .logo-woven { height: 32px; }
 }

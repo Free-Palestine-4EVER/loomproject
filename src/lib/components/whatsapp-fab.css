@@ -84,7 +84,12 @@
   height: 86px;
   display: block;
   flex: none;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+  /* NO DROP-SHADOW (14 Aug 2026), same call as the wordmark's in
+     brand-skin.css. `drop-shadow(0 4px 10px rgba(0,0,0,0.45))` was written
+     for the dark ground; on the rose page it puts a grey smudge around a
+     woven mark that deliberately has no plate, no border and no backdrop
+     behind it (see the button's own rule above). A cutout floating on pink
+     wants nothing under it. */
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 

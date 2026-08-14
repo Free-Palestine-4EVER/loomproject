@@ -51,6 +51,16 @@
 <script>
   import { reveal, magnetic } from '$lib/motion.svelte.js'
   import { MODULES, MIN_MODULES, MAX_MODULES } from '$data/workshops.js'
+  import Pic, { webpSrcset, variantsFor } from './Pic.svelte'
+
+  /* AVIF twin of `webpSrcset`. Pic.svelte only exports the webp helper, and
+     the wide/tall pair above needs a hand-written <picture> because it carries
+     `media` art-direction sources that <Pic> has no prop for — the same reason
+     Footer.svelte hand-rolls this for the bloom tree. */
+  const avifSrcset = (src) => {
+    const set = variantsFor(src)
+    return set ? set.variants.map((v) => `${v.avif} ${v.w}w`).join(', ') : undefined
+  }
 
   import './workshops.css'
 
@@ -127,8 +137,36 @@
         <!-- Art direction, same contract as the /ai-workshops hero and
              Banners' need tiles: the portrait scene is the better frame on a
              phone, the boardroom panorama on anything wider. -->
+        <!-- SIZED VARIANTS ADDED 14 Aug 2026. The art direction below was
+             already right; what was missing is that neither branch carried a
+             `srcset`, so the 2000px panorama went into a 515px box on desktop
+             (1.94x at DPR2) and the 1100px portrait into a 348px one on a
+             phone. Both `-160…-1024` sets already exist in responsive.json.
+             The phone <source> keeps the SAME media query as before — the
+             portrait crop is an art-direction decision and is not up for
+             renegotiation by the browser's size picker; only which WIDTH of
+             that crop it fetches is. -->
         <picture style="display: contents">
-          <source media="(max-width: 719px)" srcset="/img/workshops/training-tall.webp" />
+          <source
+            media="(max-width: 719px)"
+            type="image/avif"
+            srcset={avifSrcset('/img/workshops/training-tall.webp')}
+            sizes="92vw"
+          />
+          <source
+            media="(max-width: 719px)"
+            srcset={webpSrcset('/img/workshops/training-tall.webp')}
+            sizes="92vw"
+          />
+          <source
+            type="image/avif"
+            srcset={avifSrcset('/img/workshops/training-wide.webp')}
+            sizes="(max-width: 1199px) 86vw, 530px"
+          />
+          <source
+            srcset={webpSrcset('/img/workshops/training-wide.webp')}
+            sizes="(max-width: 1199px) 86vw, 530px"
+          />
           <img
             src="/img/workshops/training-wide.webp"
             alt="A LOOM workshop in session — the team around a boardroom table, laptops open"
@@ -145,8 +183,14 @@
            card is display:none, and a lazy image inside a hidden box never
            intersects anything, so the phone never pays for the second file. -->
       <figure class="wkp-shot wkp-shot--tall" aria-hidden="true">
-        <img
+        <!-- 188px wide on desktop, 148 on a tablet, and it was fetching the
+             full 1100px file — 2.93x at DPR2, the worst ratio on the page after
+             the app captures. Fixed px in `sizes` because the inset is a fixed
+             card, and it does not render at all below 900px (see the note
+             above), so there is no mobile term to describe. -->
+        <Pic
           src="/img/workshops/training-tall.webp"
+          sizes="(max-width: 1199px) 150px, 190px"
           alt=""
           width="1100"
           height="1900"
