@@ -3560,7 +3560,36 @@ html.sol-tour-live .wa-fab-stack {
   .sol-pin.is-pinned .sol-stage-bg {
     animation-timeline: --sol-tour, --sol-tour;
     animation-fill-mode: both, both;
+    /* The ranges come from custom properties written inline per industry (see
+       TOUR in Solutions.svelte) rather than from an inline `animation-range`,
+       for one reason: an inline `animation-range` cannot be narrowed by the
+       media query below, and the phone MUST hold fewer layers than the desktop.
+
+       THE COMMA IS LOAD-BEARING. Each of these custom properties holds a
+       complete start-and-end pair ("contain 20% contain 40%"), so without the
+       separator the two concatenate into a single four-token value, which is
+       invalid — and an invalid `animation-range` does not fail loudly, it
+       resolves to `normal`, i.e. the FULL timeline for both animations. That
+       arms all thirty layers at once, which is the exact memory blow-up this
+       block exists to prevent. Caught by qa/memory.mjs (122 MB of backgrounds
+       instead of 15) rather than by anything visible on screen.
+       Order matches `animation-name`: arm first, show second. */
+    animation-range: var(--arm), var(--show);
     transition: none;
+  }
+  /* ——— THE PHONE HOLDS FOUR LAYERS, NOT ELEVEN ———
+     A decoded bitmap is width*height*4 bytes whatever the codec, and the
+     portrait render is 720x1280 = 3.7 MB each. Eleven of those is ~41 MB that
+     viewportBudget.js is structurally unable to reclaim — it evicts by walking
+     `document.images`, and these are `<i>` elements with a CSS background, so
+     they are invisible to it. Measured on an iPhone 13 with qa/memory.mjs: the
+     page peaked around 135 MB of resident bitmaps mid-tour, which is what was
+     killing the tab and reloading the page halfway down. This window is the
+     eviction pass the budget cannot perform, done by the timeline instead.
+     Retune this together with the `armRangeTight` arithmetic in
+     Solutions.svelte — they are one decision written in two files. */
+  @media (max-width: 719px) {
+    .sol-pin.is-pinned .sol-stage-bg { animation-range: var(--arm-tight), var(--show); }
   }
   .sol-pin.is-pinned .sol-tourcard {
     animation-timeline: --sol-tour;

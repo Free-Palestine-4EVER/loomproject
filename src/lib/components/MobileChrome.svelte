@@ -13,6 +13,13 @@
   const MOBILE_QUERY = '(max-width: 767px)'
   const HIDE_ACCUM = 10 // px of same-direction travel before the pill flips state — the "lerp" against jitter
 
+  /* The floating "Start a project" pill, switched off 14 Aug 2026 at the
+     client's request — see the long note at the markup below for what else
+     went with it and why the machinery around it is still here. A named
+     constant rather than deleting the block, so the intent reads as a decision
+     rather than as dead code somebody should tidy away. */
+  const SHOW_CTA_PILL = false
+
   let isMobile = $state(false)
   let pastHero = $state(false)
   let hiddenByScroll = $state(false)
@@ -88,7 +95,23 @@
   )
 </script>
 
-{#if isMobile}
+<!-- THE FLOATING "START A PROJECT" PILL IS REMOVED (14 Aug 2026, client:
+     "remove the start a project button on bottom of the screen"). Its desktop
+     twin, <StartProject />, is unmounted in routes/+layout.svelte in the same
+     pass — the CTA existed as one pill per viewport, so taking out only one of
+     them would have left it on the other kind of device.
+
+     The machinery above (`isMobile`, `visible`, `pastHero`, `pillStyle`) is
+     left in place: it is what decides when the pill may show, it costs a
+     matchMedia listener and a scroll flag, and putting the pill back is
+     re-adding this block and nothing else. `.mobile-cta-pill` in
+     mobilechrome.css stays with it for the same reason.
+
+     Nothing else was positioned against it — the WhatsApp FAB's own bottom
+     offset is a fixed value tuned independently (whatsapp-fab.css says it is
+     "tuned against .mobile-cta-pill", but it is a literal, not a calc), so no
+     other element moves as a result of this. Verified by measurement. -->
+{#if SHOW_CTA_PILL && isMobile}
   <div
     class="mobile-cta-pill"
     style={pillStyle}

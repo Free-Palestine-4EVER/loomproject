@@ -384,10 +384,32 @@
     // still on screen after the track releases. Every other photograph is
     // dropped again once the tour is six industries clear of it.
     armName: i === N - 1 ? 'sol-arm-last' : 'sol-arm-mid',
+    /* TWO WINDOWS, AND THE PHONE GETS THE SMALL ONE — see the `@media` block
+       on `.sol-stage-bg` in solutions.css, which is what chooses between them.
+       These are emitted as custom properties rather than a finished
+       `animation-range` because an inline `animation-range` would outrank any
+       media query that tried to narrow it.
+
+       WHY A PHONE NEEDS ITS OWN. A decoded bitmap costs width*height*4 bytes
+       regardless of codec, and the portrait render is 720x1280 = 3.7 MB EACH.
+       At the desktop window (four behind, six ahead) that is eleven layers and
+       ~41 MB — and viewportBudget.js cannot reclaim any of it, because it
+       evicts by walking `document.images` and these are `<i>` elements with a
+       CSS background. Measured with qa/memory.mjs on an iPhone 13: the page
+       peaked at ~135 MB of bitmaps mid-tour, which is what was killing the tab
+       and reloading the page halfway down. One behind, two ahead is four
+       layers and ~15 MB.
+       Two ahead is still a real lookahead: at 17svh per industry that is about
+       two screens of warning, which is what the deleted six-ahead `new Image()`
+       pass was buying at the top of a much cheaper page. */
     armRange:
       i === 0
         ? `cover 0% contain ${at(i + 6)}`
         : `contain ${at(i - 4)} contain ${at(i + 6)}`,
+    armRangeTight:
+      i === 0
+        ? `cover 0% contain ${at(i + 2)}`
+        : `contain ${at(i - 1)} contain ${at(i + 2)}`,
     cardName: i === 0 ? 'sol-card-first' : i === N - 1 ? 'sol-card-last' : 'sol-card-mid',
     cardRange: `contain ${at(i)} contain ${at(i + 1.01)}`,
     tickRange: `contain ${at(i)} contain ${at(i + 1)}`,
@@ -563,7 +585,7 @@
             <i
               class="sol-stage-bg{t.n.key === shown.key ? ' is-on' : ''}"
               aria-hidden="true"
-              style="--sol-w:{t.wide}; --sol-p:{t.port}; --sol-w1:{t.wide1x}; --sol-p1:{t.port1x}; animation-name:{t.armName},{t.showName}; animation-range:{t.armRange},{t.showRange};"
+              style="--sol-w:{t.wide}; --sol-p:{t.port}; --sol-w1:{t.wide1x}; --sol-p1:{t.port1x}; --arm:{t.armRange}; --arm-tight:{t.armRangeTight}; --show:{t.showRange}; animation-name:{t.armName},{t.showName};"
             ></i>
           {/each}
           <i class="sol-stage-scrim" aria-hidden="true"></i>

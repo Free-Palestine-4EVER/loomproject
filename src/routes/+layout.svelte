@@ -24,7 +24,6 @@
   import Footer from '$lib/components/Footer.svelte'
   import Flyer from '$lib/components/Flyer.svelte'
   import MobileChrome from '$lib/components/MobileChrome.svelte'
-  import StartProject from '$lib/components/StartProject.svelte'
   import WhatsAppFab from '$lib/components/WhatsAppFab.svelte'
   import WizardModal from '$lib/components/WizardModal.svelte'
 
@@ -150,11 +149,17 @@
 
 <MobileChrome />
 
-<!-- The persistent CTA. MobileChrome already carries an identical pill below
-     768px, so this one mounts only above it — one per viewport. Bottom-centre,
-     because WhatsAppFab owns the right corner and the client asked for both to
-     stay. -->
-<StartProject />
+<!-- THE PERSISTENT "START A PROJECT" CTA IS NOT MOUNTED (14 Aug 2026, client:
+     "remove the start a project button on bottom of the screen").
+     It came in two halves — this desktop bottom-centre bar, and an identical
+     pill inside MobileChrome below 768px — so removing one would only have
+     cleared it from one kind of device. Both are gone; the mobile half is
+     commented out in MobileChrome.svelte.
+     The components and their stylesheets are left in the repo rather than
+     deleted: this is a CTA the client has asked for and asked to remove before,
+     and the whole apparatus is one import and one tag away from returning.
+     The WhatsApp FAB stays — it is a different offer, and the bottom-right
+     corner it owns is the one the client has never asked to clear. -->
 <WhatsAppFab />
 
 <WizardModal />
