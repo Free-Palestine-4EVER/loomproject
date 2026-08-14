@@ -20,33 +20,28 @@
      that four separate passes tried to fix from the wrong end (two compositor
      hints on `.sol-pin-inner` and `.sol-bar`, a JS-driven pin, and the removal
      of every remount and src-mutation from the scrub — see the archaeology in
-     the `.sol-pin-inner` and `.sol-stage-bg` comments below). It also survived
-     rebuilding the entire tour from a JS scroll loop onto `animation-timeline`,
-     which is what finally proved the driver was never involved.
+     the `.sol-pin-inner` comment below).
 
      WHY IT WAS SO HARD TO SEE. `overflow-x: clip` makes this element the
      nearest CLIP CONTAINER of `.sol-pin-inner`, and WebKit resolves a sticky
-     box's offset against its clip container with a rounding step that Blink
-     does not apply — so the pin lands on a different device pixel from one
-     frame to the next while its computed `top` never stops reading exactly 0.
-     Nothing moves in the layout, which is why every positional probe this
-     file has ever been measured with (including a fresh one at dpr 1 and dpr
-     2, on fractional scroll deltas, in Playwright's WebKit) reports 0px of
-     spread on every box. Chrome is unaffected, which is why it only ever
-     reproduced on the client's machine. Bisected in real Safari, 14 Aug.
+     box's offset against its clip container with a rounding step Blink does
+     not apply — so the pin lands on a different device pixel from one frame to
+     the next while its computed `top` never stops reading exactly 0. Nothing
+     moves in the layout, which is why every positional probe this file has
+     been measured with (qa/shake.mjs, at dpr 1 and dpr 2, on fractional scroll
+     deltas, in Playwright's WebKit) reports 0px of spread on every box, and
+     why Chrome was always clean. Bisected in real Safari with a `?shake=`
+     toggle; the client confirmed the section went still with this line off.
 
-     WHAT IT WAS FOR, AND WHY THAT IS COVERED. It was a belt-and-braces guard
-     so `.sol-console::before`'s bloom — `width: min(1500px, 160%)`, centred,
+     WHAT IT WAS FOR, AND WHY THAT IS COVERED. A belt-and-braces guard so
+     `.sol-console::before`'s bloom — `width: min(1500px, 160%)`, centred,
      deliberately bleeding past the console — could never open a horizontal
-     scrollbar. `body { overflow-x: clip }` (styles.css) still stands, and it is
+     scrollbar. `body { overflow-x: clip }` (styles.css) still stands and is
      far enough up the tree not to be any sticky box's nearest clip container.
-
-     MEASURED BEFORE AND AFTER, at every width from 320 to 1920: this section
-     contributes no horizontal overflow either way, so the guard was never doing
-     any work here. (The page does overflow by 19px at 320 — `.pl-track` in
-     `.proof` and `.ts-ghost-row__track` in `.ts`, both marquee tracks — and it
-     does so IDENTICALLY with this declaration restored. Pre-existing, unrelated,
-     and not to be "fixed" by clipping a section that has a sticky child in it.)
+     Measured with and without, at every width from 320 to 1920: this section
+     contributes no horizontal overflow either way. (The page does overflow by
+     19px at 320 — `.pl-track` and `.ts-ghost-row__track`, both marquees — and
+     it does so IDENTICALLY with this line restored. Pre-existing, unrelated.)
 
      If a future full-bleed child of this section really does overflow, clip it
      ON THAT CHILD. Anything that clips at this level re-creates the shake. */
@@ -186,9 +181,17 @@
   /* `calc(50% - 50vw)` alone is not enough: the 50% resolves against the
      PARENT's content box, which already has the page gutter taken out of it,
      so the stage came out 40px narrower than the viewport. Setting the width
-     to 100vw as well pins it to the viewport exactly. Safe against a
-     scrollbar because `.solutions` is `overflow-x: clip` (see the top of this
-     file) — verified: no horizontal scrollbar at 1000/1280/1440/1920. */
+     to 100vw as well pins it to the viewport exactly.
+
+     WHAT GUARDS THE SCROLLBAR NOW. This used to say "safe because `.solutions`
+     is `overflow-x: clip`". That declaration is gone — it was the Safari sticky
+     shake, see the long note at the top of this file — so the guard is
+     `body { overflow-x: clip }` in styles.css instead. That still contains a
+     100vw child on a platform with classic (space-taking) scrollbars, and it
+     is far enough up the tree not to be any sticky box's nearest clip
+     container, which is the whole reason it is safe to rely on and the
+     section-level one was not. Verified no horizontal scroll at every width
+     from 320 to 1920. Do not "restore" the clip here to protect this line. */
   width: 100vw;
   max-width: 100vw;
   margin: 0 calc(50% - 50vw) clamp(18px, 2.6vh, 32px);
@@ -963,81 +966,35 @@
   container-type: inline-size;
 }
 /* ——— THE STAGE IS A STACK, AND OPACITY IS THE ONLY THING THAT MOVES ———
-   11 Aug 2026, rebuilt 14 Aug. Every industry has its own layer here, all in
-   the same box, all transparent except the current one. The scrub cross-fades
-   between them and NEVER touches the source of a visible element — see the
-   long note in Solutions.svelte's stage markup for why (a source patch on an
-   on-screen element forces a decode, and that decode gap is what the client
-   saw as the section flickering on every scroll).
+   11 Aug 2026. Every industry has its own <img> here, all in the same box,
+   all transparent except the current one. The scrub cross-fades between them
+   and NEVER touches a `src` on a visible element — see the long note in
+   Solutions.svelte's stage markup for why (a src/srcset patch on an on-screen
+   <img> forces a decode, and that decode gap is what the client saw as the
+   section flickering on every scroll).
 
-   `opacity` is deliberately the only animated property on a VISIBLE layer: it
-   is composited, so it cannot force layout, paint or a decode. Do not add a
-   transform, filter or scale here — a settle-scale would put two slightly
-   offset copies of the same photograph on screen mid-fade, which ghosts.
-
-   WHAT IS DECLARED HERE IS THE FALLBACK, not the tour. These rules paint one
-   layer — the `.is-on` one, chosen by the search field — and are what an
-   engine without scroll-driven animation actually renders. When the tour is
-   live every one of these properties is overridden on every layer by a
-   running animation (animations outrank normal author declarations, always),
-   so the two never argue; see the `@supports` block at the foot of this file.
-   That is also why `background-image` is `none` here and set only on `.is-on`:
-   a background is only fetched once a box is told to paint one, so the
-   fallback pulls exactly one photograph and the tour pulls the seven its
-   `sol-arm-*` window has armed — never thirty. */
+   `opacity` is deliberately the only animated property: it is composited, so
+   it cannot force layout, paint or a decode. Do not add a transform, filter
+   or scale here — a settle-scale would put two slightly offset copies of the
+   same photograph on screen mid-fade, which ghosts. */
 .sol-stage-bg {
   position: absolute;
   inset: 0;
   width: 100%; height: 100%;
-  background-repeat: no-repeat;
-  background-size: cover;
+  object-fit: cover;
   /* the renders leave their LEFT third calm on purpose — that is where the
      two white cards land */
-  background-position: 62% center;
-  background-image: none;
-  /* the wide render, and its plain-URL twin one line above it: an engine
-     without `image-set()` drops the second declaration as invalid and keeps
-     the first, rather than painting nothing. Both are written by the element's
-     own inline style — see TOUR in Solutions.svelte. */
-  --sol-src-1x: var(--sol-w1);
-  --sol-src: var(--sol-w);
+  object-position: 62% center;
   opacity: 0;
   transition: opacity 0.42s var(--ease);
-  /* NO `will-change: opacity`. It was right when a window of about seven
-     layers was mounted and the rest did not exist; all thirty are in the
-     document now, and thirty permanently promoted compositor layers is real
-     memory held for a section most visitors scroll past. A running
-     compositor-driven animation gets the element promoted for its duration
-     anyway, which is exactly the window where the promotion is worth having. */
+  /* own layer, so the fade is a compositor job and the browser never has to
+     re-rasterise the photograph underneath it */
+  will-change: opacity;
 }
-.sol-stage-bg.is-on {
-  opacity: 1;
-  background-image: var(--sol-src-1x);
-  background-image: var(--sol-src);
-}
-/* the portrait twin, switched on the SAME breakpoint the stage changes shape
-   on (see the 719px block at the foot of this file) — that pairing has been
-   half-true here twice before and both halves have to move together. */
-@media (max-width: 719px) {
-  .sol-stage-bg {
-    --sol-src-1x: var(--sol-p1);
-    --sol-src: var(--sol-p);
-    background-position: center;
-  }
-}
+.sol-stage-bg.is-on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .sol-stage-bg { transition: none; }
 }
-/* nothing resolved: the photograph stays, dimmed, rather than the stage going
-   blank under the "not on the list" card. The stack used to be removed from
-   the DOM entirely in this state, which threw away thirty decoded layers to
-   say one thing. */
-/* `!important` on purpose, and it is the only one in this file: an important
-   author declaration is the one thing that outranks a running animation, and
-   the tour is running on all thirty layers at all times. Without it this rule
-   would apply on the fallback path and be silently ignored on the live one. */
-.sol-stage.is-empty .sol-stage-bg { opacity: 0.16 !important; }
-.sol-stage.is-empty .sol-tourcard { display: none; }
 /* a soft wash from the left so a white card never sits on a busy stitch —
    much lighter than the old scrim because the cards are opaque now */
 .sol-stage-scrim {
@@ -1286,8 +1243,8 @@
   position: absolute;
   inset: 0;
   width: 100%; height: 100%;
-  background-size: cover;
-  background-position: 60% center;
+  object-fit: cover;
+  object-position: 60% center;
   border-radius: inherit;
 }
 /* a soft light on the left third only, so the straddling card has something
@@ -3489,296 +3446,4 @@ html.sol-tour-live .wa-fab-stack {
   /* the sparkle earns its place back at this size — it read as a decorative
      flourish worth cutting at 34px and reads as a real icon at 48px, so it
      stays rather than being switched off the way it was at the smaller size */
-}
-
-/* ═════════════════════════════════════════════════════════════════════════
-   THE TOUR ENGINE — SCROLL-DRIVEN, AND THE ONLY THING THAT DRIVES IT
-   14 Aug 2026.
-
-   WHAT THIS REPLACED. Until today the tour was JavaScript: a passive `scroll`
-   listener feeding a `requestAnimationFrame` callback, a `pinTop`/`pinHeight`
-   pair cached on mount and re-measured on resize and after `document.fonts`
-   settled, `Math.floor(progress * 30)` to choose an industry, a seven-wide
-   mount window so the next photograph was decoded before it was wanted, a
-   six-ahead `new Image()` lookahead gated behind an IntersectionObserver, and
-   a base64 decode probe to decide which format that lookahead should warm.
-   All of it computed one number the browser already had.
-
-   Everything the visitor sees is unchanged — the section still pins, the
-   photograph and its card still resolve in the same place on screen, still
-   thirty of them, still one scroll you cannot flick past. Only the driver
-   changed, and with it the entire class of bug this section kept producing:
-   there is no frame for this stylesheet to be late for, no layout read on a
-   scroll tick, and nothing that can disagree with `position: sticky` about
-   where the box is, because the same engine now resolves both.
-
-   WHY THE KEYFRAMES LIVE INSIDE `@supports` AND NOT JUST THE RULES. An
-   `animation-name` pointing at keyframes that do not exist is inert — the
-   element keeps its ordinary styles, which is precisely the fallback we want.
-   An `animation-name` pointing at keyframes that DO exist, on an engine that
-   ignored `animation-timeline`, is a time-based animation with the default
-   `0s` duration: it would snap every layer and card straight to its 100%
-   state — hidden — and blank the section. The inline `animation-name`s in
-   Solutions.svelte cannot be guarded by `@supports` themselves, so the
-   keyframes are what has to be conditional. Do not lift them out of here.
-
-   Reduced motion never reaches any of this: `.is-pinned` is not applied (see
-   `pinned` in Solutions.svelte), so the track is one screen tall, there is no
-   timeline, and `.is-on` — the same class the search field drives — decides
-   what shows. Old WebKit takes that identical path. */
-@supports (animation-timeline: view()) {
-  /* THE TIMELINE IS THE TRACK'S OWN `contain` RANGE. For a subject taller
-     than the viewport that range runs from "the track's top edge reaches the
-     top of the screen" to "its bottom edge reaches the bottom" — which is
-     exactly, and not approximately, the span during which the sticky inner is
-     parked. It is the same quantity the deleted rAF loop assembled by hand as
-     `(scrollY - pinTop) / (pinHeight - innerHeight)`, minus the two forced
-     layout reads it took to get there. Every `animation-range` in
-     Solutions.svelte is a slice of it. */
-  .sol-pin.is-pinned {
-    view-timeline-name: --sol-tour;
-    view-timeline-axis: block;
-  }
-
-  .sol-pin.is-pinned .sol-stage-bg,
-  .sol-pin.is-pinned .sol-tourcard,
-  .sol-pin.is-pinned .sol-tour-fill,
-  .sol-pin.is-pinned .sol-tour-tick {
-    animation-timing-function: linear;
-    animation-duration: auto;
-  }
-
-  /* Two animations, two ranges, and they are deliberately different lengths:
-     `sol-arm-*` decides when the photograph is FETCHED and `sol-show-*`
-     decides when it is SEEN, and the whole no-flicker guarantee is the gap
-     between them — a layer is armed several industries before its own slice
-     and therefore decodes while it is still fully transparent. Collapsing
-     these into one range would arm each photograph at the instant it is
-     needed, which is the decode-on-a-visible-element the layer stack exists
-     to prevent. `animation-name` and `animation-range` are written inline,
-     per industry; both lists are two long and must stay in the same order. */
-  .sol-pin.is-pinned .sol-stage-bg {
-    animation-timeline: --sol-tour, --sol-tour;
-    animation-fill-mode: both, both;
-    /* The ranges come from custom properties written inline per industry (see
-       TOUR in Solutions.svelte) rather than from an inline `animation-range`,
-       for one reason: an inline `animation-range` cannot be narrowed by the
-       media query below, and the phone MUST hold fewer layers than the desktop.
-
-       THE COMMA IS LOAD-BEARING. Each of these custom properties holds a
-       complete start-and-end pair ("contain 20% contain 40%"), so without the
-       separator the two concatenate into a single four-token value, which is
-       invalid — and an invalid `animation-range` does not fail loudly, it
-       resolves to `normal`, i.e. the FULL timeline for both animations. That
-       arms all thirty layers at once, which is the exact memory blow-up this
-       block exists to prevent. Caught by qa/memory.mjs (122 MB of backgrounds
-       instead of 15) rather than by anything visible on screen.
-       Order matches `animation-name`: arm first, show second. */
-    animation-range: var(--arm), var(--show);
-    transition: none;
-  }
-  /* ——— THE PHONE HOLDS FOUR LAYERS, NOT ELEVEN ———
-     A decoded bitmap is width*height*4 bytes whatever the codec, and the
-     portrait render is 720x1280 = 3.7 MB each. Eleven of those is ~41 MB that
-     viewportBudget.js is structurally unable to reclaim — it evicts by walking
-     `document.images`, and these are `<i>` elements with a CSS background, so
-     they are invisible to it. Measured on an iPhone 13 with qa/memory.mjs: the
-     page peaked around 135 MB of resident bitmaps mid-tour, which is what was
-     killing the tab and reloading the page halfway down. This window is the
-     eviction pass the budget cannot perform, done by the timeline instead.
-     Retune this together with the `armRangeTight` arithmetic in
-     Solutions.svelte — they are one decision written in two files. */
-  @media (max-width: 719px) {
-    .sol-pin.is-pinned .sol-stage-bg { animation-range: var(--arm-tight), var(--show); }
-  }
-  .sol-pin.is-pinned .sol-tourcard {
-    animation-timeline: --sol-tour;
-    animation-fill-mode: both;
-  }
-
-  /* THE DISSOLVE STRADDLES THE HANDOVER, IT DOES NOT PRECEDE IT. The range is
-     1.6 slices wide (0.3 of a slice of lead either side), so 12.5% of it is
-     0.2 of a slice and 25% is 0.4 — which puts the fade-in across the tenth of
-     a slice before the boundary and the tenth after it, with the card flipping
-     dead centre. An earlier pass ramped 14%→86% over a 1.4-slice range, which
-     completed the fade exactly ON the boundary: the new photograph was fully up
-     while the previous card was still under it, about 30px of scroll where the
-     copy visibly lagged the picture. These four stops and the 0.3 in
-     `showRange` are one number in two files — retune both or neither. */
-  @keyframes sol-show-mid {
-    0%, 12.5% { opacity: 0 }
-    25%, 75% { opacity: 1 }
-    87.5%, 100% { opacity: 0 }
-  }
-  /* The first holds full opacity BEFORE its range and the last holds it
-     after — with `fill: both` an ordinary ramp would resolve to the 0%
-     keyframe on the approach into the section and to the 100% keyframe after
-     the release, i.e. an empty stage at both ends of a photographic section.
-     These two are not stylistic variants of the middle one.
-
-     AND THEIR STOPS ARE NOT THE MIDDLE ONE'S EITHER. Both ranges are clipped
-     by the ends of the timeline — 0.3 of a slice of lead has nowhere to go
-     before `contain 0%` or after `contain 100%` — so they are 1.3 slices wide
-     where every other layer is 1.6, and reusing 12.5/25/75/87.5 here would
-     land their ramps in the wrong place. 0.9 and 1.1 slices into a 1.3-slice
-     range are 69.231% and 84.615%; 0.2 and 0.4 into it are 15.385% and
-     30.769%. That puts these two dissolves across the same tenth of a slice
-     either side of their boundary as all the others, which is the property
-     being preserved — caught by qa/tour.mjs as the last handover running
-     ahead of its card. */
-  @keyframes sol-show-first {
-    0%, 69.231% { opacity: 1 }
-    84.615%, 100% { opacity: 0 }
-  }
-  @keyframes sol-show-last {
-    0%, 15.385% { opacity: 0 }
-    30.769%, 100% { opacity: 1 }
-  }
-
-  /* The mount window and the lookahead, in two rules. `background-image` is
-     not interpolatable, so these steps are discrete — the image is either
-     armed or it is not, and the browser fetches on the frame it is armed.
-     `none` at both ends is what keeps the live set to roughly seven of thirty
-     rather than accumulating all thirty decoded bitmaps by the foot of the
-     track; /img/* is served with a day of `max-age` (see vercel.json), so a
-     re-arm on the way back up is a cache read, not a request. Only the last
-     industry stays armed past its window — it is the one still on screen once
-     the track releases. */
-  @keyframes sol-arm-mid {
-    0% { background-image: none }
-    1%, 99% { background-image: var(--sol-src-1x); background-image: var(--sol-src) }
-    100% { background-image: none }
-  }
-  @keyframes sol-arm-last {
-    0% { background-image: none }
-    1%, 100% { background-image: var(--sol-src-1x); background-image: var(--sol-src) }
-  }
-
-  /* CARDS DO NOT CROSS-FADE, AND THIS IS NOT AN OVERSIGHT. Two blocks of type
-     at partial opacity over a photograph is mush, not a transition, so each
-     card holds its slice outright and hands over inside the ~1% of a slice
-     the ranges overlap by (see `cardRange` in Solutions.svelte). That overlap
-     is load-bearing: shared endpoints would leave one frame where the
-     outgoing card has filled to hidden and the incoming one has not yet
-     begun, which reads as a blink — thirty times down the page.
-
-     `visibility` is animated alongside `opacity` because it is what takes the
-     twenty-nine hidden cards out of the tab order and out of the
-     accessibility tree. An opacity-only version would leave thirty headings
-     announcing and thirty unreachable CTAs focusable. */
-  @keyframes sol-card-mid {
-    0% { opacity: 0; visibility: hidden }
-    0.5% { opacity: 1; visibility: visible }
-    99.5% { opacity: 1; visibility: visible }
-    100% { opacity: 0; visibility: hidden }
-  }
-  @keyframes sol-card-first {
-    0%, 99.5% { opacity: 1; visibility: visible }
-    100% { opacity: 0; visibility: hidden }
-  }
-  @keyframes sol-card-last {
-    0% { opacity: 0; visibility: hidden }
-    0.5%, 100% { opacity: 1; visibility: visible }
-  }
-
-  /* ——— the rail ——— */
-  .sol-pin.is-pinned .sol-tour-fill {
-    animation-name: sol-tour-sweep;
-    animation-timeline: --sol-tour;
-    animation-fill-mode: both;
-  }
-  /* `fill: none`, and it is the one animation in this file that wants it: a
-     tick outside its own slice must fall back to its resting grey, not hold a
-     filled end state. Layers and cards want the exact opposite, which is why
-     the fill mode is set per-rule here rather than once at the top. */
-  .sol-pin.is-pinned .sol-tour-tick {
-    animation-name: sol-tick-on;
-    animation-timeline: --sol-tour;
-    animation-fill-mode: none;
-  }
-  @keyframes sol-tour-sweep {
-    from { transform: scaleX(0) }
-    to { transform: scaleX(1) }
-  }
-  @keyframes sol-tick-on {
-    from, to { background: var(--tick-yarn); transform: scaleY(3) }
-  }
-}
-
-/* ═════════════════════════════════════════════════════════════════════════
-   THE CARD SLOT IS A STACK — ON BOTH PATHS, TOUR OR NO TOUR
-   Thirty cards occupy one grid cell, so the slot is always the height of the
-   TALLEST of them and never the height of the current one.
-
-   That last part deletes a bug this section has had twice. The slot is
-   bottom-anchored, so its height is its own top edge; a slot that resized per
-   industry moved that edge on every step of the scrub, which is the jiggle
-   recorded in CLAUDE.md as "scroll-tour card shake" and the reason a
-   `measureCardHeight()` ghost pass used to clone the card off-screen and run
-   all thirty industries' copy through it on mount and on every resize to
-   reserve `--sol-card-h`. One grid cell reserves the same maximum, for free,
-   with no measurement and no JS.
-
-   `align-self: end` because the cell is as tall as the longest card and grid
-   items stretch by default: without it a short card would be pulled to full
-   cell height and its own copy would float away from the bottom edge the
-   design anchors on. */
-.sol-console .sol-answer-slot {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-.sol-console .sol-answer-slot > .sol-panelcard {
-  grid-area: 1 / 1;
-  align-self: end;
-  width: 100%;
-}
-/* The fallback switch, and the reason the markup needs no branch: on an
-   engine without scroll-driven animation (or under reduced motion) exactly
-   one of these carries `.is-on`, chosen by the search field and the index.
-   When the tour IS live every one of them is overridden by a running
-   animation on both properties, so this pair is simply never what applies. */
-.sol-tourcard { opacity: 0; visibility: hidden; }
-.sol-tourcard.is-on { opacity: 1; visibility: visible; }
-
-/* ——— the rail, restyled as thirty ticks ———
-   The numeral it used to sit beside ("07" of "30") is gone: CSS can paint a
-   position but it cannot count, and reviving a counter here would mean
-   reviving the scroll listener for the sake of two digits. Thirty ticks in
-   their groups' own yarns say more than the fraction did — the visitor reads
-   the shape of what is left, and the seven categories in proportion, instead
-   of a number. */
-.sol-tour-track {
-  position: relative;
-  height: 8px;
-  background: none;
-  overflow: visible;
-}
-.sol-tour-ticks {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.sol-tour-tick {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 2px;
-  border-radius: 2px;
-  background: rgba(96, 40, 76, 0.16);
-  /* the lift is a transform, not a height — thirty ticks changing height as
-     the tour runs is thirty layout invalidations per step on a box that sits
-     directly under a `position: sticky` element */
-  transform-origin: center;
-}
-.sol-tour-fill {
-  position: absolute;
-  left: 0; right: 0; bottom: -3px;
-  height: 1px;
-  display: block;
-  transform: scaleX(0);
-  transform-origin: left center;
-  background: linear-gradient(90deg, var(--yarn-gold), var(--magenta));
-  opacity: 0.5;
-  transition: none;
 }

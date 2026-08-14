@@ -29,11 +29,13 @@
   below carries the same seven icons ahead of their group labels.
 -->
 <script>
+  import { onMount } from 'svelte'
   import { browser } from '$app/environment'
   import { fly } from 'svelte/transition'
   import { cubicOut } from 'svelte/easing'
   import { NICHES, NICHE_GROUPS, CORE_SERVICES, ENTRY_OFFER } from '$data/site.js'
   import { reducedMotion, reveal } from '$lib/motion.svelte.js'
+  import { registerReactiveUrls } from '$lib/imageWarm.js'
   import { wizard } from '$lib/wizard.svelte.js'
   import SplitWords from './SplitWords.svelte'
   /* The wool spool was the CTA here until 13 Aug 2026. It is a photograph
@@ -166,34 +168,16 @@
   })
 
   let query = $state('')
-  /* WHAT THIS IS AND IS NOT. It is the FALLBACK path's only piece of state:
-     which industry an un-pinned section is showing (see `hasTimeline` below —
-     no scroll-driven animation, or reduced motion). It is NOT the tour's
-     index. While the tour is live nothing in this file knows or needs to know
-     which industry is on screen; the browser does, and `.is-on` — the class
-     this drives — is outranked by the running animation on every layer and
-     every card, so the two can never disagree visibly. */
-  let pickedKey = $state(NICHES[0].key)
+  let pinnedKey = $state(NICHES[0].key)
   let focused = $state(false)
 
   const typedMatch = $derived(resolveNiche(query))
   const noMatch = $derived(query.trim().length > 1 && !typedMatch)
-  const shown = $derived(typedMatch ?? NICHES.find((n) => n.key === pickedKey) ?? NICHES[0])
-
-  /* Every keystroke that RESOLVES to a trade moves the track to it. This is
-     the whole of the search fix — see `jumpTo` for why a jump beats the old
-     "search suspends the tour" override, and why it is not animated. A query
-     that resolves to nothing does not move anything: the visitor keeps the
-     photograph they were looking at while the card tells them the loom will
-     take their trade anyway. */
-  $effect(() => {
-    const n = typedMatch
-    if (n) jumpTo(n)
-  })
+  const shown = $derived(typedMatch ?? NICHES.find((n) => n.key === pinnedKey) ?? NICHES[0])
 
   function pick(n) {
+    pinnedKey = n.key
     query = n.name
-    jumpTo(n)
   }
 
   // Bridge for the nav's industries dropdown (Nav.svelte) and its
@@ -255,200 +239,347 @@
       : cycling ? `Try "${example}"…` : 'Type an industry…'
   )
 
-  /* ═══ THE PINNED TOUR — DRIVEN BY THE BROWSER, NOT BY THIS FILE ═══════════
-     What the visitor sees is unchanged and is the whole point of the section:
-     the stage pins to the viewport and one scroll walks them through all
-     thirty industries, each photograph and its card resolving in the same
-     place on screen. Nobody gets to flick past it.
+  /* ——— THE PINNED TOUR ———
+     The section pins to the viewport and the scroll walks the visitor
+     through every one of the thirty industries — the client's ask was that
+     nobody gets to skip past this with one flick. The search field still
+     wins: the moment anything is typed, `query` is non-empty and the scroll
+     stops writing, so a visitor who knows their trade is never fighting the
+     page for control of it.
 
-     WHAT CHANGED IS WHO DRIVES IT (14 Aug 2026). Everything below used to be
-     JavaScript: a passive `scroll` listener, a `requestAnimationFrame` hop, a
-     cached `pinTop`/`pinHeight` pair re-measured on resize and after fonts
-     landed, `Math.floor(progress * 30)` to pick an industry, a seven-wide
-     mount window so the next photograph was decoded before it was needed, a
-     six-ahead `new Image()` lookahead gated on an IntersectionObserver, and a
-     base64 AVIF decode probe to work out which format to warm. Around three
-     hundred lines, every one of them written to answer the same question the
-     browser was already answering: how far through this track are we.
-
-     `animation-timeline` answers it natively. The track declares a view
-     timeline; every layer and every card claims its own slice of that
-     timeline via `animation-range`; the browser interpolates on the
-     compositor. There is no scroll handler, no rAF, no index state, and
-     nothing this component can be a frame late for — which is the class of
-     bug this section has been through four fixes for (see the sticky-vs-JS
-     note in solutions.css, and CLAUDE.md's "scroll-tour card shake").
-
-     The three JS jobs that existed only to serve the JS tour went with it:
-       · the mount window   → `sol-arm-*`, which switches `background-image`
-                              on four industries before and six after the
-                              current one and back off outside that, so the
-                              same seven-ish decodes are live at any moment.
-       · the lookahead      → the same rule. A photograph is armed several
-                              industries early and decodes while fully
-                              transparent, which is exactly what the old
-                              `new Image()` warm-up bought.
-       · the AVIF probe     → `image-set()` with `type()`. Format negotiation
-                              is the browser's job and it never guessed wrong;
-                              the probe's only purpose was telling JS which
-                              URL to warm, and JS no longer warms anything.
-
-     WHERE SCROLL-DRIVEN ANIMATION IS MISSING (Safari before 26) the section
-     is not a degraded tour, it is a different and complete thing: an ordinary
-     un-pinned block showing one industry, changed by the search field and by
-     the index below it. Both paths render the same markup — `.is-on` is the
-     fallback's switch, and a running animation always outranks it, so the two
-     can never both apply. The keyframes themselves live inside an
-     `@supports` block for exactly this reason: where the feature is missing
-     the `animation-name`s below resolve to nothing at all, rather than to a
-     zero-duration time-based animation that would snap every layer to its
-     end state and blank the stage. */
+     Reduced motion opts OUT of the pin entirely (see `pinned`): hijacking
+     the scroll is precisely the thing that setting asks us not to do, and
+     the section still works as an ordinary block with a search field. */
   let pinEl = $state(null)
+  const pinned = $derived(!reducedMotion.current)
+  let tourIndex = $state(0)
 
-  /* Defaults TRUE, and is only ever falsified. This value decides whether the
-     track renders seven screens tall or one, so getting it wrong costs a
-     layout shift below the fold — and it is wrong far less often as `true`
-     (every current engine) than as `false`. Server-rendered markup therefore
-     matches what all but a small tail of visitors will hydrate into. */
-  let hasTimeline = $state(true)
-  $effect(() => {
-    if (!browser) return
-    hasTimeline = typeof CSS !== 'undefined' && !!CSS.supports?.('animation-timeline', 'view()')
-  })
-  /* Reduced motion opts OUT of the pin, same as it always has: hijacking the
-     scroll is precisely the thing that setting asks us not to do, and the
-     section still works as an ordinary block with a search field. */
-  const pinned = $derived(hasTimeline && !reducedMotion.current)
+  /* ——— THE PIN MECHANISM STAYS NATIVE `position: sticky` (13 Aug 2026) ———
+     A same-session pass briefly replaced this with a JS-driven `position:
+     absolute` + `transform: translateY()`, written from a scroll handler, on
+     the theory that `position: sticky` recomputing its own offset against the
+     scroller every frame was the actual source of the client's Safari
+     "shake" (the two backdrop-filter-layer-promotion attempts before it had
+     already shipped and both failed — see the removed-blur comments on
+     `.sol-bar` and `.sol-panelcard` in solutions.css, which stay removed).
+     That replacement is REVERTED. The reason is iOS Safari specifically:
+     WebKit throttles `scroll` event dispatch during momentum scrolling, so a
+     pin whose position is written from a scroll handler cannot keep up with
+     a flick on the exact platform the client is complaining about — this
+     component's own instrumentation caught a 15-36px lag from adding a
+     single `requestAnimationFrame` hop between the scroll event and the
+     write, even writing synchronously in the handler; real iOS momentum
+     throttling is worse than that and is not something this environment can
+     measure. `position: sticky` is positioned by the compositor directly on
+     iOS, with no JS round trip at all, which is precisely why it is the
+     right primitive here — trading its subtle paint artifact for a gross,
+     visible positional lag is a worse bug, not a fix. So: native sticky,
+     for every visitor, unconditionally — see `.sol-pin.is-pinned
+     .sol-pin-inner` in solutions.css. */
 
-  /* ——— EVERY INDUSTRY'S FOUR SCROLL WINDOWS ———
-     Computed once, at module evaluation, into static strings — these are
-     inline `animation-range` values, not reactive state; nothing here is ever
-     recomputed and nothing reads the scroll position.
-
-     The timeline is the pin track's `contain` range, which for a subject
-     taller than the viewport runs from "the track's top edge reaches the top
-     of the screen" to "its bottom edge reaches the bottom" — i.e. precisely
-     the span during which the sticky inner is parked, and precisely the
-     `scrollY - pinTop` over `pinHeight - innerHeight` the deleted rAF loop
-     computed by hand. One slice per industry.
-
-       show  — the photograph's own opacity ramp, running three tenths of a
-               slice wider than its slice at each end so that consecutive
-               industries overlap and dissolve rather than meeting at a frame
-               where neither is lit. The keyframe stops (12.5/25/75/87.5) put
-               the dissolve ITSELF across a tenth of a slice either side of the
-               boundary, which is the thing to preserve if these numbers are
-               ever retuned: the card hands over exactly on the boundary, so a
-               ramp that finishes there instead of straddling it leaves a real
-               window — measured at ~30px of scroll before this was corrected —
-               where the new photograph is up and the old card is still under
-               it, which reads as the copy lagging the picture.
-               The first and last take different keyframes so that the stage is
-               never blank on the approach into the section or after the
-               release out of it.
-       arm   — `background-image` on/off. This is the mount window and the
-               lookahead in one declaration; see the block comment above.
-               Index 0 arms on the `cover` range instead, which begins about a
-               screen before the track pins — the old IntersectionObserver's
-               `rootMargin: 900px`, restated as geometry.
-       card  — the copy. Cards do NOT cross-fade: two blocks of type at
-               partial opacity over a photograph is mush, not a transition, so
-               each card holds its slice outright and hands over in the ~1% of
-               a slice the ranges overlap by. That overlap is deliberate and
-               must not be tidied to an exact abutment: shared endpoints leave
-               a frame where the outgoing card has filled to hidden and the
-               incoming one has not yet begun, which reads as a blink thirty
-               times down the page. */
-  const N = NICHES.length
-  const SLICE = 100 / N
-  const at = (v) => `${(Math.min(N, Math.max(0, v)) * SLICE).toFixed(3)}%`
-  const imgSet = (base) =>
-    `image-set(url("/img/niches/${base}.avif") type("image/avif"), url("/img/niches/${base}.webp") type("image/webp"))`
-
-  const TOUR = NICHES.map((n, i) => ({
-    n,
-    yarn: YARN_HEX[GROUP_YARN[n.group] ?? 'magenta'],
-    // the two sources, as custom properties the stylesheet switches between at
-    // the 719px breakpoint — same pairing the <picture> element used to make,
-    // and it still has to be the same breakpoint the box changes shape on.
-    wide: imgSet(n.key),
-    port: imgSet(`${n.key}-9x16`),
-    // plain-URL twins, declared first so that an engine without image-set()
-    // still paints something. Not dead code: the fallback path below is the
-    // only place they are ever used, and it is the path old WebKit takes.
-    wide1x: `url("/img/niches/${n.key}.webp")`,
-    port1x: `url("/img/niches/${n.key}-9x16.webp")`,
-    showName: i === 0 ? 'sol-show-first' : i === N - 1 ? 'sol-show-last' : 'sol-show-mid',
-    showRange: `contain ${at(i - 0.3)} contain ${at(i + 1.3)}`,
-    // only the LAST industry stays armed past its own window — it is the one
-    // still on screen after the track releases. Every other photograph is
-    // dropped again once the tour is six industries clear of it.
-    armName: i === N - 1 ? 'sol-arm-last' : 'sol-arm-mid',
-    /* TWO WINDOWS, AND THE PHONE GETS THE SMALL ONE — see the `@media` block
-       on `.sol-stage-bg` in solutions.css, which is what chooses between them.
-       These are emitted as custom properties rather than a finished
-       `animation-range` because an inline `animation-range` would outrank any
-       media query that tried to narrow it.
-
-       WHY A PHONE NEEDS ITS OWN. A decoded bitmap costs width*height*4 bytes
-       regardless of codec, and the portrait render is 720x1280 = 3.7 MB EACH.
-       At the desktop window (four behind, six ahead) that is eleven layers and
-       ~41 MB — and viewportBudget.js cannot reclaim any of it, because it
-       evicts by walking `document.images` and these are `<i>` elements with a
-       CSS background. Measured with qa/memory.mjs on an iPhone 13: the page
-       peaked at ~135 MB of bitmaps mid-tour, which is what was killing the tab
-       and reloading the page halfway down. One behind, two ahead is four
-       layers and ~15 MB.
-       Two ahead is still a real lookahead: at 17svh per industry that is about
-       two screens of warning, which is what the deleted six-ahead `new Image()`
-       pass was buying at the top of a much cheaper page. */
-    armRange:
-      i === 0
-        ? `cover 0% contain ${at(i + 6)}`
-        : `contain ${at(i - 4)} contain ${at(i + 6)}`,
-    armRangeTight:
-      i === 0
-        ? `cover 0% contain ${at(i + 2)}`
-        : `contain ${at(i - 1)} contain ${at(i + 2)}`,
-    cardName: i === 0 ? 'sol-card-first' : i === N - 1 ? 'sol-card-last' : 'sol-card-mid',
-    cardRange: `contain ${at(i)} contain ${at(i + 1.01)}`,
-    tickRange: `contain ${at(i)} contain ${at(i + 1)}`,
-  }))
-
-  /* ——— THE SEARCH NO LONGER FIGHTS THE TOUR ———
-     It used to: the rAF loop opened with `if (query.length > 0) return`, so
-     the moment anything was typed the scroll stopped driving the stage. That
-     read as "search wins", and it was the wrong trade in both directions —
-     the visitor was still standing inside a seven-screen track that had
-     stopped doing anything, with nothing to do but scroll through the dead
-     remainder of it, and clearing the field snapped the photograph back to
-     whatever industry the scroll position happened to sit on.
-
-     There is nothing to override now. A resolved query SCROLLS THE TRACK to
-     that industry's slice, and the tour — the only thing that ever drives the
-     stage — shows it because the visitor is genuinely there. The scroll
-     position and the search agree by construction rather than by arbitration.
-
-     `behavior: 'auto'`, and it is not a missing nicety. The inner is pinned,
-     so a jump inside the track moves nothing on screen except the industry
-     itself: the head, the field and the card box all stay exactly where they
-     are. A smooth scroll would animate the tour past every industry in
-     between on every keystroke, which is the one thing that WOULD move. */
-  function jumpTo(n) {
-    pickedKey = n.key
-    if (!browser || !pinned || !pinEl) return
-    const i = NICHES.indexOf(n)
-    if (i < 0) return
-    const total = pinEl.offsetHeight - window.innerHeight
-    if (total <= 0) return
-    const top = pinEl.getBoundingClientRect().top + window.scrollY
-    // land mid-slice, not on its leading edge — the edge is where two
-    // industries are handing over, and arriving there shows the handover
-    // instead of the answer.
-    window.scrollTo({ top: top + ((i + 0.5) / N) * total, behavior: 'auto' })
+  // Same rAF-throttled, passive-listener contract as Products.svelte's
+  // stage — a scroll-linked progress read, not a spring simulation on the
+  // main thread (see PORTING.md rule 2).
+  /* NOT ONE LAYOUT READ PER SCROLL FRAME. The loop below used to open with
+     `pinEl.getBoundingClientRect().top` and `pinEl.offsetHeight` — two
+     properties the browser cannot answer without flushing pending layout
+     first. Doing that inside a scroll-driven rAF is textbook layout
+     thrashing, and here it landed on the worst possible frame: the same tick
+     the compositor is resolving this element's `position: sticky` offset and
+     Svelte may be swapping the card's text. A forced synchronous layout there
+     is a very plausible source of the sub-pixel judder the client keeps
+     reporting and that no position probe can see, because nothing MOVES —
+     the frame just misses its deadline and the sticky box lands late.
+     So the geometry is cached: the track's document offset and its height are
+     read ONCE on mount and re-read only on resize (and after fonts land,
+     which is the other thing that can change the track's top). Inside the
+     rAF only `window.scrollY` is touched, which is a stored scalar on the
+     window and costs nothing. */
+  let pinTop = 0
+  let pinHeight = 0
+  /* Component-scope, not local to onMount, because `measureCardHeight()` below
+     writes `--sol-card-h` on this same element — a layout change to the track
+     — and the cached numbers have to be refreshed when it does. */
+  const measurePin = () => {
+    if (!pinEl || !browser) return
+    const r = pinEl.getBoundingClientRect()
+    pinTop = r.top + window.scrollY
+    pinHeight = pinEl.offsetHeight
   }
 
+  onMount(() => {
+    let raf = 0
+    const measure = measurePin
+
+    const paint = () => {
+      raf = 0
+      if (!pinEl || !pinned) return
+      const total = pinHeight - window.innerHeight
+      if (total <= 0) return
+      if (query.length > 0) return
+      const y = Math.min(Math.max(window.scrollY - pinTop, 0), total)
+      const p = y / total
+      // clamp on both ends: at p===1 the raw index is NICHES.length, which
+      // is past the end of the array and would blank the card on the last
+      // frame.
+      const idx = Math.min(NICHES.length - 1, Math.max(0, Math.floor(p * NICHES.length)))
+      const key = NICHES[idx].key
+      if (pinnedKey !== key) pinnedKey = key
+    }
+
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(paint) }
+    // resize is the only thing allowed to re-measure, and it re-measures
+    // BEFORE painting so the cached numbers are never a frame stale.
+    const onResize = () => { measure(); onScroll() }
+
+    measure()
+    paint()
+    // web fonts reflow the copy above the track, which moves `pinTop`. One
+    // re-measure when they land, not a read every frame forever.
+    document.fonts?.ready?.then(measure).catch(() => {})
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+    return () => {
+      if (raf) cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+    }
+  })
+
+  $effect(() => {
+    tourIndex = NICHES.findIndex((n) => n.key === shown.key)
+  })
+
+  /* ——— PRELOAD THE NEXT FEW INDUSTRIES ———
+     Eager loading fixes the current photograph; it does not fix the NEXT
+     one, which is what the reader is about to scroll into. So as the tour
+     advances, quietly fetch the renders a few industries ahead. `new
+     Image()` warms the HTTP cache and nothing else.
+
+     SIX ahead while the tour is actually pinned (was three, always): a
+     trackpad flick can cross more than three industries between two
+     animation frames, which outran the old lookahead and made
+     `.sol-stage-bg`'s `src` land on an image that was not decoded yet — a
+     real decode stall on the one frame the sticky box is also being
+     recalculated, which is what reads as "the section jiggles" even though
+     nothing actually moved (see the note on `stageFallback` above: the
+     <picture> is a single stable node now, not a remount, so this is the
+     other half of the same fix). Six, not thirty: preloading the whole set
+     would pull ~30 renders the moment anyone reaches this section, which is
+     worse than the problem. Three ahead everywhere else — the pin is the
+     only place the tour can be scrolled PAST this fast. */
+  /* ——— THE LOOKAHEAD IS GATED ON PROXIMITY, AND IT HAS TO BE ———
+     MEASURED (13 Aug 2026, production build, 1440×900): the homepage pulled
+     1,310 KB of images before a reader had scrolled a pixel, and six of the
+     ten heaviest files were industry renders — burger, cafe, catering,
+     fine-dining, dental, bakery, ~250 KB together — for a section several
+     screens down that nobody had reached. This effect was the cause: it reads
+     `shown.key`, which has a value from the first render, so the "few
+     industries ahead" warm-up ran at mount and raced the hero for bandwidth.
+     Cloudflare's own Observatory flagged exactly this ("resource load duration
+     exceeding 10% of LCP").
+     The lookahead itself is right and stays — it is what keeps a fast flick
+     from landing on an undecoded render. It just may not start until the
+     section is within a screen of the viewport. */
+  let nearTour = $state(false)
+  $effect(() => {
+    if (!browser || !pinEl || nearTour) return
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { nearTour = true; io.disconnect() } },
+      { rootMargin: '900px 0px' } // ~one screen of warning: enough for six renders to land before the first one is needed, not so much that they compete with the hero
+    )
+    io.observe(pinEl)
+    return () => io.disconnect()
+  })
+
+  /* AND IT PREFETCHES THE FORMAT THE BROWSER WILL ACTUALLY USE. The warm-up
+     hardcoded `.webp` while the <picture> below offers AVIF first, so on every
+     modern browser these six requests warmed a cache entry nothing would ever
+     read, and the AVIF was then fetched a second time on display — the burger
+     render appeared TWICE in the measurement above, 61 KB of WebP plus 35 KB
+     of AVIF. One decode probe, once per session, settles which extension to
+     warm. */
+  let avifOk = $state(null)
+  // Resolved once, by the SAME probe below — every other reader (the
+  // registerReactiveUrls callback further down, the lookahead effect)
+  // awaits this instead of reading `avifOk` synchronously, which is what
+  // used to race: `warmReactiveUrls()` in imageWarm.js calls the registered
+  // function once, at whatever instant its own pass reaches it, with no
+  // guarantee the probe below has settled by then.
+  //
+  // THE OLD PROBE WAS ALSO WRONG, independent of timing. It used a
+  // hand-built 1×1 AVIF (the classic Modernizr/caniuse test payload) as a
+  // `data:` URI. Instrumented against production's own WebKit: that exact
+  // byte string fails to decode in WebKit's data-URI image loader — `onerror`
+  // fires in ~3ms, every time, not a slow resolve — even though the SAME
+  // engine decodes a real `.avif` file fetched from the network without any
+  // trouble (verified against /img/niches/wedding-9x16.avif: loads fine).
+  // So on WebKit this never raced to the wrong answer, it computed the wrong
+  // answer instantly and confidently: `avifOk` landed on `false`, the
+  // registry warmed `.webp` for every niche, and the real `<picture>` element
+  // — whose format choice is native browser codec negotiation, not this JS
+  // probe — picked `.avif` anyway. Every niches image was double-fetched in
+  // WebKit; the three seen "late" in production were just the ones the
+  // jump-scroll test actually mounted a `<picture>` for.
+  //
+  // The fix is a probe WebKit can actually decode: a real (ffmpeg-encoded,
+  // not hand-assembled) 2×2 AVIF, confirmed here to decode correctly as a
+  // `data:` URI in the same engine that rejected the old one.
+  let avifOkPromise = null
+  function probeAvif() {
+    if (avifOkPromise) return avifOkPromise
+    avifOkPromise = new Promise((resolve) => {
+      if (!browser) return resolve(false)
+      const probe = new Image()
+      probe.onload = () => { const ok = probe.width > 0; avifOk = ok; resolve(ok) }
+      probe.onerror = () => { avifOk = false; resolve(false) }
+      // Real (ffmpeg libaom-av1) 2×2 AVIF — see the comment above for why
+      // this replaced the old hand-built 1×1 test payload.
+      probe.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAWAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAAACAAAAAgAAABBwaXhpAAAAAAMICAgAAAAMYXYxQ4EADAAAAAATY29scm5jbHgAAgACAAIAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAebWRhdAoFGAA2wCAyDRgAAABQAAAAALASmcg='
+    })
+    return avifOkPromise
+  }
+  $effect(() => {
+    if (!browser) return
+    probeAvif()
+  })
+
+  /* ——— PREWARM ALL THIRTY, NOT JUST THE LOOKAHEAD WINDOW ———
+     The lookahead effect below (and `stageNear`, further down) both exist to
+     keep the CURRENT scrub smooth — a handful of industries ahead of
+     wherever the reader actually is. Neither one helps a jump-scroll straight
+     to the bottom of the page: that lands on an industry that was never
+     "ahead" of anything, so nothing pre-fetched it and nothing pre-mounted
+     its <img>. imageWarm.js's reactive-URL pass is the fix — it runs once,
+     late (after the page's own DOM/background warm-up has drained), and
+     covers every industry regardless of scroll position.
+
+     Registered as a lazily-evaluated function, not a static list, so it
+     reads the SAME live decisions the lookahead effect above makes right
+     before imageWarm.js actually calls it: the portrait breakpoint (mirrored
+     exactly from the <picture> media query at `(max-width: 719px)` below)
+     and the AVIF probe. The function is ASYNC — it awaits `probeAvif()`
+     rather than reading `avifOk` synchronously — because imageWarm.js's
+     `warmReactiveUrls()` calls this exactly once, at whatever instant its
+     own batched pass reaches it, with no guarantee the probe has settled by
+     then. `warmReactiveUrls()` awaits whatever this returns, so there is no
+     "falls back to webp because the probe hasn't resolved yet" case left:
+     it either already has, or this suspends until it does. Warming the
+     wrong one would be wasted bytes on top of leaving the real candidate
+     cold — see the brief's point 4. */
+  onMount(() => {
+    return registerReactiveUrls(async () => {
+      const portrait = window.matchMedia('(max-width: 719px)').matches
+      const ext = (await probeAvif()) ? 'avif' : 'webp'
+      return NICHES.map((n) => (portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`))
+    })
+  })
+
+  $effect(() => {
+    if (!browser || !nearTour) return
+    const key = shown.key
+    const portrait = window.matchMedia('(max-width: 719px)').matches
+    const from = NICHES.findIndex((n) => n.key === key)
+    if (from < 0) return
+    let cancelled = false
+    const imgs = []
+    // Same reasoning as the registry callback above: await the probe rather
+    // than reading `avifOk` synchronously, so a lookahead that fires before
+    // the probe settles can't warm the wrong extension either.
+    probeAvif().then((ok) => {
+      if (cancelled) return
+      const ext = ok ? 'avif' : 'webp'
+      const ahead = pinned ? 6 : 3
+      for (let k = 1; k <= ahead; k++) {
+        const n = NICHES[(from + k) % NICHES.length]
+        const img = new Image()
+        img.src = portrait ? `/img/niches/${n.key}-9x16.${ext}` : `/img/niches/${n.key}.${ext}`
+        imgs.push(img)
+      }
+    })
+    return () => { cancelled = true; imgs.forEach((im) => { im.src = '' }) }
+  })
+
+  /* While the pinned tour owns the screen, the site's global bottom pill
+     steps aside — on a phone it is fixed at the bottom and the tour's
+     answer card is a bottom sheet, so "Start a project" would sit right on
+     top of "Build my <industry> system". See the `html.sol-tour-live` rule
+     in solutions.css. An observer on the pin track, not a scroll handler:
+     this needs to be true for exactly as long as the sticky inner is
+     parked, which is precisely what the track's own intersection reports. */
+  $effect(() => {
+    if (!browser || !pinEl || !pinned) return
+    const root = document.documentElement
+    const io = new IntersectionObserver(
+      ([e]) => root.classList.toggle('sol-tour-live', e.isIntersecting),
+      { threshold: 0 }
+    )
+    io.observe(pinEl)
+    return () => { io.disconnect(); root.classList.remove('sol-tour-live') }
+  })
+
   const sectionAccent = $derived(YARN_HEX[GROUP_YARN[shown.group]])
+
+  // ——— THE STAGE PHOTOGRAPH — ONE STABLE NODE, NEVER REMOUNTED ———
+  // This used to be `{#key shown.key}` around the whole <picture>: a fresh
+  // <source>/<img> tree destroyed and recreated on every one of the 30
+  // industries the pinned tour scrubs through. That is real DOM churn
+  // (layout + paint + a fresh decode) happening on the exact same rAF tick
+  // the browser is also recalculating a `position: sticky` box's offset —
+  // and it is the one part of this component an automated position-sampling
+  // pass (getBoundingClientRect every frame) cannot see, because remounting
+  // doesn't move anything, it just stutters the frame the swap lands on.
+  // Client report after that pass came back clean: "still jiggles." This is
+  // the fix — the <picture>/<img> below is now a single element for the
+  // whole scrub; `src`/`srcset` update in place (a plain attribute patch,
+  // not a remount), and the two error-fallback bits that used to reach into
+  // the DOM by hand (`img.dataset`, `pic.querySelectorAll('source').remove()`)
+  // are now ordinary reactive state instead, since there's no longer a fresh
+  // node per industry to hang imperative flags off of.
+  //
+  // Seven of the thirty industries have only a `-9x16` render on disk, so an
+  // errored `-wide` source falls back to the portrait instead of hiding —
+  // `stageFallback` remembers which keys already fell back so the `<source>`
+  // set is skipped for them; `stageBroken` remembers the rare case where even
+  // the fallback 404s, and only then is the node hidden (never removed, so a
+  // later WORKING industry reusing this same element still shows).
+  let stageFallback = $state(new Set())
+  let stageBroken = $state(new Set())
+
+  /* ——— WHICH STAGE IMAGES ARE MOUNTED ———
+     Every industry gets its own <img> in the stage (see the markup), but only
+     the ones in this window carry a real `src`. That is what makes the
+     cross-fade free of decode: a photograph is mounted, fetched and decoded
+     while it is still fully transparent, two to four industries before it is
+     shown, so by the time it fades in there is nothing left to do but
+     composite an opacity.
+
+     The window is deliberately asymmetric — the tour almost always travels
+     forwards, so it reaches further ahead (4) than behind (2). Behind is not
+     zero because a reader scrolling back up needs the same guarantee.
+
+     Keep this SMALL. Every key in here is a live <img> holding a decoded
+     bitmap; widening it to all 30 would hold ~30 full-size decodes in memory
+     for a section most visitors scroll past. */
+  const stageNear = $derived.by(() => {
+    const set = new Set([shown.key])
+    const i = NICHES.findIndex((n) => n.key === shown.key)
+    if (i < 0) return set
+    for (let d = -2; d <= 4; d++) {
+      const j = i + d
+      if (j >= 0 && j < NICHES.length) set.add(NICHES[j].key)
+    }
+    return set
+  })
+  function onStageError(n) {
+    return () => {
+      if (stageFallback.has(n.key)) {
+        if (!stageBroken.has(n.key)) { const s = new Set(stageBroken); s.add(n.key); stageBroken = s }
+        return
+      }
+      const s = new Set(stageFallback); s.add(n.key); stageFallback = s
+    }
+  }
 
   function deliverableParts(d) {
     const cut = d.indexOf(' — ')
@@ -550,44 +681,63 @@
         </div>
 
         <!-- ——— THE STAGE ——— -->
-        <div class="sol-stage{noMatch ? ' is-empty' : ''}">
-          <!-- ——— THE STACK — THIRTY LAYERS, ONE OPACITY EACH ———
-               The rule that produced this shape has not changed and must not
-               be relaxed: THE VISIBLE LAYER'S SOURCE IS NEVER MUTATED. A
-               single element whose `src`/`srcset` (or `background-image`) is
-               patched while it is on screen re-runs source selection and
-               decodes a new file for the element the reader is looking at, and
-               the gap between the write and the decode PAINTS in WebKit —
-               which is what the client reported, repeatedly and correctly, as
-               the section flickering on scroll. Preloading does not help:
-               warming the HTTP cache does not prevent a re-decode on a live
-               node. So every industry owns its own layer, and the only thing
-               that ever changes on a VISIBLE one is opacity, which is
-               composited and cannot force a decode.
+        <div class="sol-stage">
+          {#if !noMatch}
+            <!-- ——— THE FLICKER FIX — 11 Aug 2026 ———
+                 THE VISIBLE IMAGE'S `src` IS NEVER MUTATED. THAT IS THE WHOLE
+                 POINT OF THIS BLOCK; do not "simplify" it back to one <img>.
 
-               These are `<i>` elements carrying a background, not `<img>`s,
-               and that is load-bearing rather than a preference. An `<img>`
-               fetches as soon as it is in the document; a background fetches
-               when the box is told to paint one. That single difference is
-               what lets `sol-arm-*` (see TOUR above) hold thirty sources in
-               the markup while only ~7 are ever live — the job the deleted
-               `stageNear` mount window and the deleted `new Image()`
-               lookahead used to split between them. `image-set()` with
-               `type()` does the format negotiation the deleted AVIF probe was
-               guessing at, and the `-9x16` twin is switched in by the
-               stylesheet at the same 719px breakpoint the stage changes shape
-               on — those two have to stay the same number.
+                 What it was: a single <picture>/<img> whose `src` and the
+                 <source> `srcset`s were patched in place as `shown.key`
+                 changed. That was already the fix for an earlier bug (a
+                 `{#key}` block that destroyed and rebuilt the whole subtree 30
+                 times per scrub) — but it only removed the teardown, not the
+                 decode. Changing `srcset`/`src` on an element that is ON SCREEN
+                 makes the browser re-run source selection and decode a new
+                 file for the element the reader is looking at. Between the
+                 attribute write and the decode landing there is a gap, and in
+                 WebKit that gap paints — reported by the client, repeatedly and
+                 correctly, as the section FLICKERING on scroll. Eager
+                 preloading did not help: warming the HTTP cache does not
+                 prevent a re-decode on the live node.
 
-               Decorative, and genuinely so: every industry's name, hook, arc
-               and deliverables are real text in the card stacked on top of
-               this, and all thirty are real text again in the index below. -->
-          {#each TOUR as t (t.n.key)}
-            <i
-              class="sol-stage-bg{t.n.key === shown.key ? ' is-on' : ''}"
-              aria-hidden="true"
-              style="--sol-w:{t.wide}; --sol-p:{t.port}; --sol-w1:{t.wide1x}; --sol-p1:{t.port1x}; --arm:{t.armRange}; --arm-tight:{t.armRangeTight}; --show:{t.showRange}; animation-name:{t.armName},{t.showName};"
-            ></i>
-          {/each}
+                 What it is now: every industry owns its OWN <img>, stacked in
+                 the same box, and the scrub only cross-fades OPACITY between
+                 them. Opacity is compositor-only — it cannot flicker, and it
+                 cannot force a decode. An image is mounted with a real `src`
+                 only once it enters a window around the current index
+                 (`stageNear`), so it decodes while still fully transparent,
+                 several industries before anyone sees it. Nodes are keyed by
+                 `n.key`, so sliding the window never re-creates a node that is
+                 already decoded.
+
+                 The `{#each}` is keyed and MUST stay keyed: an unkeyed each
+                 would recycle DOM nodes between industries, which reintroduces
+                 exactly the src-mutation-on-a-visible-node this removes. -->
+            {#each NICHES as n (n.key)}
+              {#if stageNear.has(n.key)}
+                <picture style="display:contents">
+                  {#if !stageFallback.has(n.key)}
+                    <source media="(max-width: 719px)" type="image/avif" srcset="/img/niches/{n.key}-9x16.avif" />
+                    <source media="(max-width: 719px)" type="image/webp" srcset="/img/niches/{n.key}-9x16.webp" />
+                    <source type="image/avif" srcset="/img/niches/{n.key}.avif" />
+                  {/if}
+                  <img
+                    class="sol-stage-bg{n.key === shown.key ? ' is-on' : ''}"
+                    src={stageFallback.has(n.key) ? `/img/niches/${n.key}-9x16.webp` : `/img/niches/${n.key}.webp`}
+                    alt=""
+                    width="1400"
+                    height="600"
+                    decoding="async"
+                    loading="lazy"
+                    aria-hidden={n.key === shown.key ? undefined : 'true'}
+                    style={stageBroken.has(n.key) ? 'visibility:hidden' : undefined}
+                    onerror={onStageError(n)}
+                  />
+                </picture>
+              {/if}
+            {/each}
+          {/if}
           <i class="sol-stage-scrim" aria-hidden="true"></i>
 
           <!-- The answer STRADDLES the photograph's bottom edge instead of
@@ -624,54 +774,24 @@
                 </div>
               </article>
             {:else}
-              <!-- ——— THIRTY CARDS, NOT ONE CARD RE-TYPED ———
-                   CSS cannot rewrite text, so the copy stacks the same way the
-                   photographs do: every industry owns its own card and the
-                   timeline decides which is visible. That is more DOM than the
-                   single re-templated card it replaces, and it buys three
-                   things that were previously JS or were simply absent.
-
-                   It buys the CTA back. The deleted tour tracked an index
-                   partly so this button could open the wizard pre-filled with
-                   the right trade; with no index in JS, a shared button could
-                   only have been a generic one. Each card carrying its own
-                   means the ask stays specific — `Build my Law Firms system`,
-                   opening on Law Firms — with nothing having to know which
-                   card that is.
-
-                   It keeps the accessibility tree honest, also with no JS.
-                   `sol-card-*` animates `visibility`, not just opacity, so the
-                   twenty-nine cards that are not showing are out of the tab
-                   order and out of the a11y tree — their headings do not
-                   announce and their buttons cannot be reached. `visibility`
-                   is the reason those keyframes are not pure opacity; do not
-                   simplify them.
-
-                   And it removes the last remount from the scrub. There is no
-                   `{#key}` here and there must never be one (see the
-                   "scroll-tour card shake" note in CLAUDE.md): the thirty are
-                   mounted once, for the life of the page, and the tour only
-                   ever changes which one is painted. The `{#if}` above is a
-                   real branch — "nothing matched" is a different card, not a
-                   different industry — and is the only structural change left
-                   in this subtree. -->
-              {#each TOUR as t (t.n.key)}
-                <article
-                  class="sol-panelcard sol-answer sol-tourcard has-photo{t.n.key === shown.key ? ' is-on' : ''}"
-                  style="--panel-yarn:{t.yarn}; animation-name:{t.cardName}; animation-range:{t.cardRange};"
-                >
+              {@const yarn = yarnOf(shown)}
+              <article
+                class="sol-panelcard sol-answer has-photo"
+                style="--panel-yarn:{YARN_HEX[yarn]}"
+                in:fly={{ y: reducedMotion.current ? 0 : 10, duration: reducedMotion.current ? 10 : 400, easing: cubicOut }}
+              >
                 <i class="sol-answer-thread" aria-hidden="true"></i>
                 <div class="sol-answer-left">
                   <div class="sol-answer-head">
                     <span class="sol-answer-badge" aria-hidden="true">
-                      {@render groupIcon(t.n.group, 'sol-answer-gicon')}
+                      {@render groupIcon(shown.group, 'sol-answer-gicon')}
                     </span>
                     <div class="sol-answer-headtext">
-                      <p class="sol-answer-kicker">{GROUP_LABEL[t.n.group]}</p>
-                      <h3 class="sol-answer-name">{t.n.name}</h3>
+                      <p class="sol-answer-kicker">{GROUP_LABEL[shown.group]}</p>
+                      <h3 class="sol-answer-name">{shown.name}</h3>
                     </div>
                   </div>
-                  <p class="sol-answer-hook">{t.n.hook}</p>
+                  <p class="sol-answer-hook">{shown.hook}</p>
                   <!-- ——— THE ARC, WHICH WAS SITTING IN THE DATA UNUSED ———
                        Client: "the content where the button is needs more".
                        Nothing had actually been deleted from this card — the
@@ -684,7 +804,7 @@
                        here, between the hook and the ask, because that is the
                        gap the button was standing in on its own. Verbatim
                        from the data — not one word is written here. -->
-                  <p class="sol-answer-moon">{t.n.moon}</p>
+                  <p class="sol-answer-moon">{shown.moon}</p>
                   <!-- ——— ONE CTA TREATMENT, THIRTY INDUSTRIES ———
                        This used to be `yarn={yarn}`, i.e. the group's own
                        colour driving the knitted button's fallback texture —
@@ -703,15 +823,15 @@
                        `.sol-console .sol-answer-kicker` in solutions.css),
                        which is where a per-category signal belongs. -->
                   <GradientButton
-                    label={mobileCta ? 'Get started' : `Build my ${t.n.name} system`}
+                    label={mobileCta ? 'Get started' : `Build my ${shown.name} system`}
                     class="sol-cta"
-                    onclick={() => wizard.open({ niche: t.n.name })}
+                    onclick={() => wizard.open({ niche: shown.name })}
                   />
                 </div>
                 <div class="sol-answer-right">
-                  <p class="sol-answer-label sol-sr-only">What resolves for {t.n.name}</p>
+                  <p class="sol-answer-label sol-sr-only">What resolves for {shown.name}</p>
                   <ul class="sol-deliverables">
-                    {#each t.n.deliverables as d (d)}
+                    {#each shown.deliverables as d (d)}
                       {@const parts = deliverableParts(d)}
                       <li>
                         <i class="sol-stitch" aria-hidden="true"></i>
@@ -721,47 +841,23 @@
                   </ul>
                   <p class="sol-agent">
                     <span class="sol-agent-kicker">AI agent</span>
-                    <span class="sol-agent-copy">{t.n.agent}</span>
+                    <span class="sol-agent-copy">{shown.agent}</span>
                   </p>
                 </div>
-                </article>
-              {/each}
+              </article>
             {/if}
           </div>
         </div>
       </div>
 
-      <!-- ——— THE TOUR'S OWN PROGRESS — THIRTY TICKS, THE CURRENT ONE LIT ———
-           This used to read `tourIndex`, which is to say it used to be the
-           only reason this component computed one: a numeral ("07"), a filled
-           bar, and a total. The numeral is gone with it — CSS can paint a
-           position but it cannot count to seven, and reviving a counter here
-           would mean reviving the scroll listener for the sake of two digits.
-
-           What replaces it says more anyway. Thirty ticks, one per industry,
-           each lit across its own slice of the same timeline the stage runs
-           on, and each carrying its group's yarn — so the rail reads as the
-           seven categories in proportion and the visitor can see the shape of
-           what is left rather than a fraction of it. The sweep underneath is
-           one bar scaled across the whole range.
-
-           `animation-fill-mode: none` on the ticks (see solutions.css) is the
-           deliberate difference from every other animation in this section: a
-           tick outside its own slice must fall back to its resting style, not
-           hold a filled end state. Layers and cards need the opposite. -->
+      <!-- the tour's own progress — thirty ticks, the current one lit. -->
       {#if pinned}
         <div class="sol-tour" aria-hidden="true">
+          <span class="sol-tour-now">{String(tourIndex + 1).padStart(2, '0')}</span>
           <span class="sol-tour-track">
-            <span class="sol-tour-fill"></span>
-            <span class="sol-tour-ticks">
-              {#each TOUR as t (t.n.key)}
-                <i
-                  class="sol-tour-tick"
-                  style="--tick-yarn:{t.yarn}; animation-range:{t.tickRange};"
-                ></i>
-              {/each}
-            </span>
+            <span class="sol-tour-fill" style="transform:scaleX({(tourIndex + 1) / NICHES.length})"></span>
           </span>
+          <span class="sol-tour-all">{NICHES.length}</span>
         </div>
       {/if}
     </div>
