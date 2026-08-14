@@ -1,0 +1,157 @@
+/* ═══ /journal — the index page's own sheet ═══════════════════════════════
+   Prefix `jr-`, used nowhere else. No new tokens: every colour, radius,
+   easing and gutter here resolves to a variable already declared in
+   styles.css (--ink / --ink-dim / --ink-faint / --magenta / --magenta-deep /
+   --line / --bg / --bg-2 / --pad / --radius / --ease / --display / --bloom).
+   Same shell as /faq and /work — this is not a new visual language, it is
+   the site's own cards and hero applied to a third archive.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.jr-hero {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(56px, 8vh, 96px) var(--pad) clamp(32px, 5vh, 56px);
+  border-bottom: 1px solid var(--line);
+}
+.jr-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 50% at 18% 0%, rgba(242, 28, 140, 0.12), transparent 70%),
+    radial-gradient(52% 44% at 86% 8%, rgba(123, 47, 190, 0.1), transparent 72%),
+    linear-gradient(to bottom, var(--bg-2), var(--bg));
+}
+.jr-hero-in { max-width: 900px; margin-inline: auto; }
+.jr-h1 {
+  max-width: 18ch;
+  font-size: clamp(2.1rem, 5.4vw, 4rem);
+  line-height: 1.02;
+}
+.jr-hero-lede {
+  margin-top: 20px;
+  color: var(--ink-dim);
+  max-width: 60ch;
+}
+
+/* ——— the grid ————————————————————————————————————————————————— */
+.jr-body { padding: clamp(40px, 6vh, 72px) var(--pad) clamp(20px, 3vh, 36px); }
+.jr-grid {
+  max-width: 1180px;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 2.4vw, 32px);
+}
+@media (max-width: 1024px) {
+  .jr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .jr-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.jr-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  overflow: hidden;
+  transition: transform 0.28s var(--ease), border-color 0.28s var(--ease), box-shadow 0.28s var(--ease);
+}
+.jr-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--magenta) 40%, var(--line));
+  box-shadow: 0 18px 40px -24px rgba(242, 28, 140, 0.35);
+}
+.jr-card-link { display: block; color: inherit; }
+.jr-card-media {
+  aspect-ratio: 1200 / 896;
+  overflow: hidden;
+  background: var(--bg-3, var(--bg-2));
+}
+.jr-card-media :global(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s var(--ease);
+}
+.jr-card:hover .jr-card-media :global(img) { transform: scale(1.04); }
+
+.jr-card-body { padding: clamp(18px, 2.2vw, 24px); display: flex; flex-direction: column; gap: 10px; }
+.jr-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.jr-card-meta i { font-style: normal; opacity: 0.6; }
+.jr-card-title {
+  font-family: var(--display);
+  font-size: clamp(1.1rem, 1.6vw, 1.32rem);
+  font-weight: 640;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.jr-card-desc {
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: var(--ink-dim);
+  /* three-line clamp — the card states a lede, not the whole post */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.jr-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  list-style: none;
+  padding: 0;
+}
+.jr-card-tags li {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--magenta-deep);
+  background: rgba(242, 28, 140, 0.1);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* ——— 3. CTA ——————————————————————————————————————————————————— */
+.jr-stuck { position: relative; padding: clamp(56px, 8vh, 104px) var(--pad); border-top: 1px solid var(--line); }
+.jr-stuck-in { max-width: 720px; margin-inline: auto; text-align: center; }
+.jr-stuck-h { margin-top: 10px; max-width: 20ch; margin-inline: auto; }
+.jr-stuck-lede { margin-top: 16px; color: var(--ink-dim); max-width: 52ch; margin-inline: auto; }
+.jr-stuck-cta {
+  margin-top: clamp(24px, 3vw, 34px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.jr-stuck-alt {
+  font-size: 0.92rem;
+  font-weight: 640;
+  color: var(--ink-dim);
+  border-bottom: 1px solid transparent;
+  transition: color 0.24s var(--ease), border-color 0.24s var(--ease);
+}
+.jr-stuck-alt:hover { color: var(--ink); border-color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .jr-card,
+  .jr-card-media :global(img) { transition: none; }
+  .jr-card:hover { transform: none; }
+}

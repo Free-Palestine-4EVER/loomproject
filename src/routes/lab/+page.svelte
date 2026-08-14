@@ -71,7 +71,15 @@
   }
 </script>
 
-<svelte:head><title>LOOM — the lab</title></svelte:head>
+<svelte:head>
+  <title>LOOM — the lab</title>
+  <!-- Internal variant-picking tool, not a public page (see +page.js's own
+       comment: "not a page that needs to be in the HTML for a crawler").
+       No canonical/OG/twitter tags and no entry in sitemap.xml for the same
+       reason — this is deliberate, not an oversight, so it is called out
+       rather than left to look like every other route was just missed. -->
+  <meta name="robots" content="noindex, nofollow" />
+</svelte:head>
 
 <div class="lab">
   <header class="bar">

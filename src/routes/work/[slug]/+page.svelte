@@ -50,11 +50,28 @@
      foot already serves that purpose. */
   const bands = $derived(shots.slice(1, 7))
   const rest = $derived(shots.slice(7))
+
+  const TITLE = $derived(`${c.client} — ${c.title} | LOOM`)
+  const CANONICAL = $derived(`https://www.loomstudio-jo.com/work/${c.slug}`)
+  // The cover is already an absolute site path (site.js's `img()` helper),
+  // so this is the one og:image on the site that is not the shared
+  // /img/og.jpg — a case page's own cover photograph is a truer preview of
+  // that case than the studio's generic share card would be.
+  const OG_IMAGE = $derived(c.cover)
 </script>
 
 <svelte:head>
-  <title>{c.client} — {c.title} | LOOM</title>
+  <title>{TITLE}</title>
   <meta name="description" content={c.copy} />
+  <link rel="canonical" href={CANONICAL} />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content={CANONICAL} />
+  <meta property="og:title" content={TITLE} />
+  <meta property="og:description" content={c.copy} />
+  <meta property="og:image" content={OG_IMAGE} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={TITLE} />
+  <meta name="twitter:description" content={c.copy} />
 </svelte:head>
 
 <!-- ═══ 1. THE HERO ══════════════════════════════════════════════════════

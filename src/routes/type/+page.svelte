@@ -216,14 +216,25 @@ h1 { font-family: 'LOOM Organic', sans-serif; }`
     io.observe(gridEl)
     return () => io.disconnect()
   })
+
+  const TITLE = 'LOOM Patterns — a free display typeface by LOOM'
+  const DESC =
+    'LOOM Patterns: a free caps-only display typeface in four cuts — Organic, Retro, Linear and Flora — each drawn twice, fill and outline. Eight faces, 98 glyphs each, drawn from scratch by LOOM. Free for personal and commercial use.'
+  const CANONICAL = 'https://www.loomstudio-jo.com/type'
 </script>
 
 <svelte:head>
-  <title>LOOM Patterns — a free display typeface by LOOM</title>
-  <meta
-    name="description"
-    content="LOOM Patterns: a free caps-only display typeface in four cuts — Organic, Retro, Linear and Flora — each drawn twice, fill and outline. Eight faces, 98 glyphs each, drawn from scratch by LOOM. Free for personal and commercial use."
-  />
+  <title>{TITLE}</title>
+  <meta name="description" content={DESC} />
+  <link rel="canonical" href={CANONICAL} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={CANONICAL} />
+  <meta property="og:title" content={TITLE} />
+  <meta property="og:description" content={DESC} />
+  <meta property="og:image" content="/img/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={TITLE} />
+  <meta name="twitter:description" content={DESC} />
 </svelte:head>
 
 <div class="tf">

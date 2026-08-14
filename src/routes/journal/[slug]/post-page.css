@@ -1,0 +1,233 @@
+/* ═══ /journal/[slug] — a single post's own sheet ═════════════════════════
+   Prefix `pg-`, used nowhere else. No new tokens — same variable set as
+   journal-page.css and every other route sheet (--ink / --ink-dim /
+   --ink-faint / --magenta / --magenta-deep / --line / --bg / --bg-2 / --pad /
+   --radius / --ease / --display / --bloom).
+
+   THE PROSE COLUMN is capped at a reading measure (68ch) regardless of the
+   page's own max-width, because a paragraph set edge-to-edge on a wide
+   viewport is unreadable — the one rule every other page on this site never
+   needed, because none of them run a block of continuous prose this long.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.pg-hero {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(40px, 6vh, 72px) var(--pad) clamp(24px, 4vh, 40px);
+  border-bottom: 1px solid var(--line);
+}
+.pg-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 50% at 18% 0%, rgba(242, 28, 140, 0.12), transparent 70%),
+    radial-gradient(52% 44% at 86% 8%, rgba(123, 47, 190, 0.1), transparent 72%),
+    linear-gradient(to bottom, var(--bg-2), var(--bg));
+}
+.pg-hero-in { max-width: 780px; margin-inline: auto; }
+
+.pg-crumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  margin-bottom: clamp(16px, 2.4vh, 26px);
+}
+.pg-crumb a { color: var(--ink-dim); transition: color 0.2s var(--ease); }
+.pg-crumb a:hover { color: var(--magenta-deep); }
+.pg-crumb span[aria-current] {
+  color: var(--ink-faint);
+  max-width: 32ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pg-h1 {
+  max-width: 22ch;
+  font-size: clamp(1.9rem, 4.6vw, 3.2rem);
+  line-height: 1.06;
+}
+.pg-hero-lede { margin-top: 18px; color: var(--ink-dim); max-width: 62ch; }
+
+.pg-meta {
+  margin-top: clamp(20px, 3vh, 30px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+}
+.pg-meta i { font-style: normal; opacity: 0.55; }
+
+/* ——— hero image ——————————————————————————————————————————————— */
+.pg-media {
+  max-width: 900px;
+  margin: clamp(-8px, -1vh, 0) auto 0;
+  padding: 0 var(--pad);
+}
+.pg-media :global(img) {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 896;
+  object-fit: cover;
+  border-radius: var(--radius);
+  display: block;
+  margin-top: clamp(-28px, -4vh, -44px);
+  box-shadow: 0 30px 60px -30px rgba(20, 12, 30, 0.35);
+}
+
+/* ——— prose ————————————————————————————————————————————————————— */
+.pg-body { padding: clamp(48px, 7vh, 84px) var(--pad) clamp(24px, 4vh, 40px); }
+.pg-prose {
+  max-width: 68ch;
+  margin-inline: auto;
+  color: var(--ink);
+  font-size: 1.06rem;
+  line-height: 1.75;
+}
+.pg-prose p { margin: 0 0 1.3em; }
+.pg-prose h2 {
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  font-weight: 660;
+  letter-spacing: -0.01em;
+  margin: 2em 0 0.7em;
+  color: var(--ink);
+}
+.pg-prose h2:first-child { margin-top: 0; }
+.pg-prose h3 {
+  font-family: var(--display);
+  font-size: clamp(1.14rem, 1.8vw, 1.4rem);
+  font-weight: 640;
+  margin: 1.6em 0 0.6em;
+  color: var(--ink);
+}
+.pg-prose ul {
+  margin: 0 0 1.3em;
+  padding-left: 1.3em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.pg-prose li { line-height: 1.6; }
+.pg-prose li::marker { color: var(--magenta-deep); }
+
+/* Inline links in the prose. Underlined, not colour-only — a link inside a
+   paragraph identified by colour alone is invisible to a reader who cannot
+   separate the two, and this column has no other affordance to fall back on. */
+.pg-prose a {
+  color: var(--magenta-deep);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.2s var(--ease), text-decoration-color 0.2s var(--ease);
+}
+.pg-prose a:hover { color: var(--ink); }
+
+/* Arabic passages inside a post. Clash Display and Satoshi carry no Arabic
+   glyphs, so :lang(ar) falls to a system Arabic stack rather than rendering
+   whatever the browser picks by default — the same stack machine.css and
+   machine-offer.css already use, repeated rather than re-invented. Looser and
+   a touch larger, because Arabic at the Latin size and leading reads cramped
+   and the dots below the line meet the line above.
+
+   This is a PASSAGE-level rule. A whole Arabic post still needs per-post
+   dir/lang plumbing (task 19d); nothing here claims to be that. */
+.pg-prose :lang(ar) {
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.95;
+  letter-spacing: 0; /* never track Arabic — it damages the joins */
+}
+.pg-prose [dir='rtl'] { text-align: right; }
+
+.pg-tags {
+  max-width: 68ch;
+  margin: clamp(24px, 3vh, 36px) auto 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: clamp(20px, 3vh, 28px);
+}
+.pg-tags li {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--magenta-deep);
+  background: rgba(242, 28, 140, 0.1);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+/* ——— CTA ——————————————————————————————————————————————————————— */
+.pg-cta { padding: clamp(48px, 7vh, 88px) var(--pad); border-top: 1px solid var(--line); }
+.pg-cta-in { max-width: 620px; margin-inline: auto; text-align: center; }
+.pg-cta-h { max-width: 20ch; margin-inline: auto; }
+.pg-cta-lede { margin-top: 14px; color: var(--ink-dim); }
+.pg-cta-row {
+  margin-top: clamp(22px, 3vw, 30px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.pg-cta-alt {
+  font-size: 0.92rem;
+  font-weight: 640;
+  color: var(--ink-dim);
+  border-bottom: 1px solid transparent;
+  transition: color 0.24s var(--ease), border-color 0.24s var(--ease);
+}
+.pg-cta-alt:hover { color: var(--ink); border-color: var(--ink); }
+
+/* ——— prev/next ———————————————————————————————————————————————— */
+.pg-more {
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: 0 var(--pad) clamp(56px, 8vh, 96px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 22px);
+}
+.pg-more-a {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: clamp(18px, 2.2vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  transition: border-color 0.24s var(--ease), transform 0.24s var(--ease);
+}
+.pg-more-a:hover { border-color: color-mix(in srgb, var(--magenta) 40%, var(--line)); transform: translateY(-2px); }
+.pg-more-a--next { text-align: right; align-items: flex-end; }
+.pg-more-a span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pg-more-a b {
+  font-family: var(--display);
+  font-weight: 620;
+  font-size: 1.02rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .pg-more { grid-template-columns: minmax(0, 1fr); }
+  .pg-more-a--next { text-align: left; align-items: flex-start; }
+}

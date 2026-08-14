@@ -119,7 +119,10 @@
     alternateName: m.nameAr,
     serviceType: 'Monthly content production subscription',
     description: m.ledeEn,
-    provider: { '@type': 'Organization', name: 'LOOM', url: 'https://www.loomstudio-jo.com' },
+    // A REFERENCE, not a duplicate: `@id` alone points at the Organization
+    // node the home page defines in full (src/routes/+page.svelte) instead
+    // of re-typing name/url a third time across the site.
+    provider: { '@id': 'https://www.loomstudio-jo.com/#organization' },
     offers: {
       '@type': 'Offer',
       priceCurrency: 'JOD',

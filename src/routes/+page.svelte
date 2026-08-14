@@ -69,11 +69,21 @@
     name="description"
     content="LOOM is an AI-native creative agency in Amman and Sarajevo. Branding, campaigns, social content, AI systems, web and CGI for brands across the Gulf, the Balkans and beyond."
   />
+  <!-- Missing until 14 Aug 2026 — the home page is the one URL every other
+       route's canonical/og:url already points at as ITS alternative-language
+       or itself, and it was the one page on the site with no canonical of
+       its own and no og:url, which is the two tags a search engine or a
+       social unfurl needs most to know this IS the root rather than a
+       duplicate of it. -->
+  <link rel="canonical" href="https://www.loomstudio-jo.com" />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.loomstudio-jo.com" />
   <meta property="og:title" content="LOOM — AI-Native Creative Agency" />
   <meta property="og:description" content="We weave brands on the edge of creativity. Amman × Sarajevo." />
   <meta property="og:image" content="/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="LOOM — AI-Native Creative Agency" />
+  <meta name="twitter:description" content="We weave brands on the edge of creativity. Amman × Sarajevo." />
 
   <!-- Measured with a PerformanceObserver('largest-contentful-paint') at
        390×844 (throttled): the LCP element there is Hero's own "See the
@@ -127,13 +137,51 @@
     crossorigin
   />
 
+  <!-- THE SITEWIDE ORGANIZATION NODE. `@id` is a stable, dereferenceable
+       anchor (a URL fragment, not something meant to be fetched) — every
+       other route's own JSON-LD that needs to say "LOOM, the studio" points
+       AT this `@id` (`{ '@id': 'https://www.loomstudio-jo.com/#organization' }`)
+       instead of writing out a second, slightly different copy of the same
+       facts. contact/+page.svelte and machine/+page.svelte do exactly that;
+       grep `#organization` to find every reference. A crawler that combines
+       JSON-LD across pages of one site resolves matching `@id`s to the same
+       entity, so this is the one place these facts are asserted in full.
+
+       `'@type': ['Organization', 'ProfessionalService']` rather than either
+       alone: Organization is the safe generic type every consumer
+       understands, ProfessionalService is the more specific one that lets a
+       local-search surface (Google Business Profile's own schema reading,
+       an AI answer engine looking for "an agency near me") treat LOOM as a
+       bookable local business rather than only a brand.
+
+       `areaServed` and `address` are the two facts task #4 asked for that
+       were not on this node before: Jordan and Bosnia and Herzegovina are
+       BRAND.cities/STUDIOS' own countries (see $data/site.js and
+       contact/+page.svelte), and Amman is the HQ studio's city per the same
+       source — `locality` only, because no street address exists anywhere
+       in this codebase (see the "facts I need from the client" list this
+       task's report ends with; inventing one here would be worse than
+       leaving it out).
+
+       `sameAs` is deliberately absent: this codebase's only social URLs are
+       Footer.svelte's SHARE-intent links (linkedin.com/sharing/…,
+       facebook.com/sharer/…), which are not the studio's own profile pages,
+       so there is nothing true to cite. -->
   {@html `<script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': ['Organization', 'ProfessionalService'],
+    '@id': 'https://www.loomstudio-jo.com/#organization',
     name: 'LOOM',
+    url: 'https://www.loomstudio-jo.com',
+    logo: 'https://www.loomstudio-jo.com/img/logo/loom-woven.webp',
     description: 'AI-native creative agency — branding, campaigns, AI systems, apps, web and CGI.',
     email: 'mofakhori@gmail.com',
     telephone: '+962791792129',
+    areaServed: [
+      { '@type': 'Country', name: 'Jordan' },
+      { '@type': 'Country', name: 'Bosnia and Herzegovina' },
+    ],
+    address: { '@type': 'PostalAddress', addressLocality: 'Amman', addressCountry: 'JO' },
     location: [
       { '@type': 'Place', name: 'Amman, Jordan' },
       { '@type': 'Place', name: 'Sarajevo, Bosnia and Herzegovina' },

@@ -48,6 +48,8 @@
   <meta property="og:description" content={DESC} />
   <meta property="og:image" content="/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={TITLE} />
+  <meta name="twitter:description" content={DESC} />
 </svelte:head>
 
 <div class="route-page">

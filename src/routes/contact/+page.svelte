@@ -150,9 +150,15 @@
 
   const DESC = `Reach LOOM directly — WhatsApp ${BRAND.phoneJO}, ${BRAND.email}, or the four-step brief form. Two studios, Amman and Sarajevo, and exactly what happens between sending a brief and starting work.`
 
+  // `@id` matches the node the home page defines in full (src/routes/+page.svelte)
+  // — same entity, asserted again here with the fields THIS page's content
+  // backs up (the contact channels and the two studios), rather than a
+  // disconnected second Organization a crawler has no reason to treat as
+  // the same business.
   const schema = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': 'https://www.loomstudio-jo.com/#organization',
     name: BRAND.name,
     url: 'https://www.loomstudio-jo.com',
     email: BRAND.email,

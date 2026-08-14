@@ -22,6 +22,14 @@
 
   const fmt = (n) => n.toLocaleString('en-US')
 
+  // Same sentence the <title>/<meta description> below used to carry alone —
+  // pulled into a constant so canonical/og:description/twitter:description
+  // quote it instead of each hand-typing a slightly different version.
+  const TITLE = 'AI Workshops for Teams — LOOM'
+  const DESC =
+    'Corporate AI training in Amman, priced per employee and per module. LOOM trains the team you already have to run AI agents day to day — sales, marketing, finance, ops, HR and support — with a live per-seat price.'
+  const CANONICAL = 'https://www.loomstudio-jo.com/ai-workshops'
+
   // The worked example in the pricing section — a plausible mid-size cohort,
   // computed through the exact same estimate() the live form uses. Change the
   // two numbers below and every figure on the page that quotes this example
@@ -124,11 +132,17 @@
 </script>
 
 <svelte:head>
-  <title>AI Workshops for Teams — LOOM</title>
-  <meta
-    name="description"
-    content="Corporate AI training in Amman, priced per employee and per module. LOOM trains the team you already have to run AI agents day to day — sales, marketing, finance, ops, HR and support — with a live per-seat price."
-  />
+  <title>{TITLE}</title>
+  <meta name="description" content={DESC} />
+  <link rel="canonical" href={CANONICAL} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={CANONICAL} />
+  <meta property="og:title" content={TITLE} />
+  <meta property="og:description" content={DESC} />
+  <meta property="og:image" content="/img/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={TITLE} />
+  <meta name="twitter:description" content={DESC} />
 </svelte:head>
 
 <div class="wk">

@@ -129,6 +129,14 @@ export const LINKS = [
      page and will reach it; the tab is for the one who came back looking for
      the ownership answer specifically. */
   { href: '/faq', label: 'FAQ', extra: true },
+  /* Added 14 Aug 2026 with the journal. `extra`, same reasoning as MCP and
+     FAQ above: this is a route a visitor finds by searching (a "how much
+     does a website cost" query, an AI-search query) and lands on directly
+     from Google or an AI answer, not one they hunt for in the header bar —
+     so it costs nothing to keep out of the fitted 1100–1360 band and it
+     still renders unconditionally in the mobile drawer and the footer
+     sitemap below. */
+  { href: '/journal', label: 'Journal', extra: true },
   { href: '/contact', label: 'Contact' },
 ]
 

@@ -1,2 +1,56 @@
+# LOOM sells getting a business found and quoted by AI answer engines (see
+# /ai-search) — being unreachable to those crawlers on its own site would be
+# the one place the studio failed to do the thing it sells. So every major
+# AI crawler is allowed by name below, not just covered by the wildcard.
+# Nothing on the site is gated behind a login (see svelte.config.js's note
+# on /dashboard being the one exception, and it does not exist yet), so
+# there is nothing to disallow.
 User-agent: *
 Allow: /
+
+# Search
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# AI answer engines and their citation crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+Sitemap: https://www.loomstudio-jo.com/sitemap.xml
+
+# A plain-language summary of the studio for models that read it instead of
+# (or alongside) crawling the HTML — see the llms.txt convention.
+# https://www.loomstudio-jo.com/llms.txt
