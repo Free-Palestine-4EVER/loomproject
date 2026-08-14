@@ -40,6 +40,9 @@
   What moved and why is annotated at each seam below.
 -->
 <script>
+  // Centres this route's own sections. Scoped to `.home-centered` (the wrapper
+  // below the head), so it cannot reach the nav or the footer in +layout.
+  import '$lib/styles/home-center.css'
   import Hero from '$lib/components/Hero.svelte'
   import Proof from '$lib/components/Proof.svelte'
   import Work from '$lib/components/Work.svelte'
@@ -137,6 +140,14 @@
     ],
   })}<\/script>`}
 </svelte:head>
+
+<!-- THE HOMEPAGE IS CENTRED (14 Aug 2026, client request). One wrapper, one
+     stylesheet — see src/lib/styles/home-center.css for what is centred, what
+     is deliberately handed back to the left, and why. The nav and the footer
+     are NOT inside this: they live in +layout.svelte and are shared with every
+     other route, so centring them here would silently re-align the whole site.
+     Removing this div and its import reverts the change completely. -->
+<div class="home-centered">
 
 <Hero />
 
@@ -333,3 +344,4 @@
      as a footnote to the page rather than a second pitch competing with
      Contact's. -->
 <Hiring />
+</div>
