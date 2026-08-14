@@ -119,17 +119,11 @@ export const APPS = [
     glyph: 'M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3M8 12h8M12 8v8',
     blurb: 'Point a phone at a room — get a 3D model, a floor plan and walk-in AR, in minutes.',
   },
-  {
-    name: 'Glowbar', tag: 'iOS · Beauty',
-    platforms: ['ios'],
-    shot: '/img/apps/glowbar.webp',
-    logo: '/img/apps/glowbar-icon.webp',
-    screen: 'glowbar',
-    icon: 'sparkle-face',
-    grad: ['#ffc740', '#f21c8c'],
-    glyph: 'M12 3l2.1 5.4L20 10.5l-5.9 2.1L12 18l-2.1-5.4L4 10.5l5.9-2.1L12 3Z',
-    blurb: 'A luxury studio app for a face-pilates brand — rituals, bookings, glow tracking.',
-  },
+  /* Glowbar removed here too — 14 Aug 2026, same client call that took it out
+     of SUITE (suite.js). This `APPS` array currently has no consumer anywhere
+     in src/, so nothing was rendering from it; it is cleared anyway so the two
+     product lists cannot disagree, and so a future component that does start
+     reading APPS does not quietly bring Glowbar back. */
   {
     name: 'TAWSIYAT', tag: 'Web · Ordering',
     shot: '/img/apps/tawsiyat.webp',
