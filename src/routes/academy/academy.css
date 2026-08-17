@@ -172,8 +172,29 @@
 .cr-weave-b { stroke: var(--violet); animation-delay: 0.45s; }
 @keyframes cr-draw { to { stroke-dashoffset: 0; } }
 
+/* The commissioned hero art. Absolutely positioned on purpose: the hero is a
+   complete composition without it, so the art can land later without moving a
+   single line of copy. It sits BEHIND the text (z-index 0 against the inner's
+   1) and is clipped by the hero's own `overflow: clip`. Under 900px it drops
+   to a faint wash — at phone width a 46vw illustration either crowds the
+   headline or shrinks to nothing, and the headline wins that argument. */
+.cr-hero-art {
+  position: absolute; inset-inline-end: 0; top: 8%;
+  width: min(46vw, 620px); z-index: 0; pointer-events: none;
+}
+.cr-hero-art img { width: 100%; height: auto; display: block; }
+
+.cr-status {
+  display: inline-block; margin-inline-start: 10px;
+  padding: 3px 10px; border-radius: 999px;
+  background: var(--ink); color: var(--bg);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; vertical-align: 2px;
+}
+.cr--ar .cr-status { text-transform: none; letter-spacing: 0; }
+
 .cr-hero-inner {
-  position: relative;
+  position: relative; z-index: 1;
   max-width: 1180px; margin-inline: auto;
   padding: clamp(118px, 19vh, 200px) var(--pad) clamp(40px, 6vh, 72px);
 }
@@ -272,6 +293,26 @@
 }
 .cr-fact-l { color: var(--ink-faint); font-size: 0.82rem; }
 
+/* ──────────────────────────────────────────────────────────────── academy
+   The institution band. Sits on its own tinted ground so it reads as a
+   different KIND of statement from the program's argument below it — one is
+   who is teaching, the other is what is being taught. */
+
+.cr-academy {
+  border-block: 1px solid var(--cr-line);
+  background: rgba(255, 255, 255, 0.34);
+  padding-block: clamp(38px, 5vw, 64px);
+}
+.cr-academy-grid {
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(20px, 4vw, 60px); align-items: start;
+}
+.cr-academy-h2 { font-size: clamp(1.4rem, 2.6vw, 2rem); max-width: 18ch; }
+.cr-academy-body {
+  color: var(--ink-dim); font-size: clamp(1rem, 1.3vw, 1.08rem);
+  line-height: 1.72; max-width: 62ch;
+}
+
 /* ─────────────────────────────────────────────────────────────── argument */
 
 .cr-arg-grid {
@@ -331,6 +372,15 @@
   font-family: var(--display); font-weight: 700; font-size: 0.86rem;
   letter-spacing: 0.1em; color: var(--magenta);
 }
+/* The felted medallion, when a module has one. It replaces the module number
+   in the same grid cell rather than sitting beside it, so a half-illustrated
+   curriculum still has one clean column of markers instead of two competing
+   ones. 52px is the emblem's painted size — the `sizes` prop on <Pic> says the
+   same number, and if this changes both have to change together or the browser
+   downloads a variant it does not need. */
+.cr-mod-emblem { display: block; width: 52px; height: 52px; flex: none; }
+.cr-mod-emblem img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
 .cr-mod-title {
   font-family: var(--display); font-weight: 640; letter-spacing: -0.01em;
   font-size: clamp(1.08rem, 2vw, 1.45rem); line-height: 1.2;

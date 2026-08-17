@@ -1,22 +1,22 @@
 <!--
-  /course — FIRST CLIENT, the LOOM course. Sold on Whop, argued here.
+  /academy — LOOM ACADEMY. Program 01, FIRST CLIENT, is what is open in it.
 
   This page is not like the rest of the site and is deliberately built apart
   from it, the same way /ai-workshops and /type are: its own hero, its own
   section rhythm, its own CSS file. Everything else on loomstudio-jo.com sells
-  agency work to a company. This sells a course to one person, and a person
+  agency work to a company. This sells a program to one person, and a person
   reading a sales page needs a different shape — one argument, repeated CTAs,
   the objections answered before they are asked.
 
   ── THE PAGE IS BILINGUAL AND THE REST OF THE SITE IS NOT ──────────────────
-  The course is taught in Arabic. Its buyer is an Arabic speaker who wants to
+  The program is taught in Arabic. Its buyer is an Arabic speaker who wants to
   make money building websites, and selling that in English throws away most
-  of the market. So `lang` is a rune, every string comes out of $data/course.js
+  of the market. So `lang` is a rune, every string comes out of $data/academy.js
   as { en, ar }, and the whole wrapper flips `dir`. See the header of that file.
 
   The Arabic is set in the system Arabic stack, not in Clash Display — Clash
   and Satoshi carry no Arabic glyphs and an Arabic h1 in Clash renders as
-  fallback tofu at 96px. course.css does that switch on :lang(ar); the same
+  fallback tofu at 96px. academy.css does that switch on :lang(ar); the same
   problem and the same fix as journal/[slug]/post-page.css.
 
   SplitWords is used on the ENGLISH headline only. It splits on spaces and
@@ -25,9 +25,9 @@
   string instead.
 
   ── THE BUY BUTTON IS HONEST ──────────────────────────────────────────────
-  WHOP_URL in $data/course.js is empty until the Whop product exists. While it
+  WHOP_URL in $data/academy.js is empty until the Whop product exists. While it
   is empty this page renders the WAITLIST (WhatsApp + email, the same two
-  routes every other CTA on the site uses) and says the course opens soon,
+  routes every other CTA on the site uses) and says the program opens soon,
   rather than a "Buy now" that 404s. Paste the checkout URL into that constant
   and every CTA on this page becomes a real buy button — nothing else changes.
 -->
@@ -38,10 +38,12 @@
   import CountUp from '$lib/components/CountUp.svelte'
   import { BRAND } from '$data/site.js'
   import {
-    COURSE, PRICE, WHOP_URL, FOR_WHO, NOT_FOR_WHO, OUTCOMES,
-    MODULES, BONUSES, FAQ, LESSON_COUNT, MODULE_COUNT, TOTAL_HOURS,
-  } from '$data/course.js'
-  import './course.css'
+    ACADEMY, PROGRAM, PRICE, WHOP_URL, FOR_WHO, NOT_FOR_WHO, OUTCOMES,
+    MODULES, BONUSES, FAQ, LESSON_COUNT, MODULE_COUNT, TOTAL_HOURS, emblemFor,
+    HERO_ART, OG_IMAGE,
+  } from '$data/academy.js'
+  import Pic from '$lib/components/Pic.svelte'
+  import './academy.css'
 
   /* ── language ───────────────────────────────────────────────────────────
      Default 'en' so the SERVER renders English: the page is prerendered, the
@@ -56,14 +58,14 @@
 
   onMount(() => {
     let saved = null
-    try { saved = localStorage.getItem('loom-course-lang') } catch { /* private mode */ }
+    try { saved = localStorage.getItem('loom-academy-lang') } catch { /* private mode */ }
     if (saved === 'ar' || saved === 'en') { lang = saved; return }
     if (navigator.language && navigator.language.toLowerCase().startsWith('ar')) lang = 'ar'
   })
 
   function setLang(next) {
     lang = next
-    try { localStorage.setItem('loom-course-lang', next) } catch { /* private mode */ }
+    try { localStorage.setItem('loom-academy-lang', next) } catch { /* private mode */ }
   }
 
   /* ── the curriculum accordion ───────────────────────────────────────────
@@ -82,17 +84,17 @@
   const live = $derived(Boolean(WHOP_URL))
   const waitBrief = $derived(
     isAr
-      ? `مرحبا LOOM! بدي أعرف لما يفتح كورس «${COURSE.name.ar}».`
-      : `Hi LOOM! I want to know when the ${COURSE.name.en} course opens.`
+      ? `مرحبا LOOM! بدي أعرف لما يفتح برنامج «${PROGRAM.name.ar}» بأكاديمية LOOM.`
+      : `Hi LOOM! I want to know when ${PROGRAM.name.en} at LOOM Academy opens.`
   )
   const waHref = $derived(`${BRAND.whatsapp}?text=${encodeURIComponent(waitBrief)}`)
   const mailHref = $derived(
-    `mailto:${BRAND.email}?subject=${encodeURIComponent(`${COURSE.name.en} — waitlist`)}&body=${encodeURIComponent(waitBrief)}`
+    `mailto:${BRAND.email}?subject=${encodeURIComponent(`LOOM Academy — ${PROGRAM.name.en} waitlist`)}&body=${encodeURIComponent(waitBrief)}`
   )
   const ctaHref = $derived(live ? WHOP_URL : waHref)
   const ctaLabel = $derived(
     live
-      ? (isAr ? `احجز مكانك — $${PRICE.launch}` : `Get the course — $${PRICE.launch}`)
+      ? (isAr ? `سجّل — $${PRICE.launch}` : `Enrol — $${PRICE.launch}`)
       : (isAr ? 'سجّلني بقائمة الانتظار' : 'Join the waitlist')
   )
 
@@ -119,12 +121,12 @@
     }
   })
 
-  const TITLE = 'FIRST CLIENT — build websites with AI and sell them | LOOM'
+  const TITLE = 'LOOM Academy — build websites with AI and sell them, in Arabic'
   const DESC =
-    'A practical course in Arabic: build a real website with AI without writing code, '
+    'LOOM Academy, Program 01: FIRST CLIENT. A practical program in Arabic — build a real website with AI without writing code, '
     + 'then find the business that needs one, say the right thing to the owner, price it and get paid. '
     + `${MODULE_COUNT} modules, ${LESSON_COUNT} lessons, by the studio behind loomstudio-jo.com.`
-  const CANONICAL = 'https://www.loomstudio-jo.com/course'
+  const CANONICAL = 'https://www.loomstudio-jo.com/academy'
 
   /* Course structured data. `offers` quotes PRICE, so the number in Google's
      rich result cannot drift from the number on the page. Only emitted with a
@@ -133,11 +135,16 @@
   const jsonLd = $derived(JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Course',
-    name: `${COURSE.name.en} — ${COURSE.tagline.en}`,
+    name: `${PROGRAM.name.en} — ${PROGRAM.tagline.en}`,
     description: DESC,
     inLanguage: 'ar',
     url: CANONICAL,
-    provider: { '@type': 'Organization', name: 'LOOM', url: 'https://www.loomstudio-jo.com' },
+    provider: {
+      '@type': 'Organization',
+      name: 'LOOM Academy',
+      parentOrganization: { '@type': 'Organization', name: 'LOOM', url: 'https://www.loomstudio-jo.com' },
+      url: CANONICAL,
+    },
     hasCourseInstance: {
       '@type': 'CourseInstance',
       courseMode: 'online',
@@ -163,7 +170,7 @@
   <meta property="og:url" content={CANONICAL} />
   <meta property="og:title" content={TITLE} />
   <meta property="og:description" content={DESC} />
-  <meta property="og:image" content="/img/og.jpg" />
+  <meta property="og:image" content={OG_IMAGE} />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={TITLE} />
   <meta name="twitter:description" content={DESC} />
@@ -175,7 +182,7 @@
   <!-- ═══════════════════════════════════════════════════ hero -->
   <section class="cr-hero" bind:this={heroEl}>
     <!-- THE SIGNATURE OF THE PAGE: two threads, woven.
-         The course's whole argument is that the build half and the sell half
+         The program's whole argument is that the build half and the sell half
          are taught apart and are worthless apart. So the hero draws them as
          two yarns that cross into one braid — the LOOM mark's own logic used
          to state the offer, rather than an ornament sitting next to it. Pure
@@ -186,6 +193,16 @@
       <path class="cr-weave-b" d="M0 160 C 150 160, 180 60, 330 60 S 510 160, 660 160 S 840 60, 990 60 1200 110 1200 110" />
     </svg>
 
+    <!-- Commissioned art slot. Absolutely positioned and decorative, so the
+         page is complete without it and gains depth when it lands — no layout
+         moves either way. `aria-hidden` because it says nothing the headline
+         does not already say. -->
+    {#if HERO_ART}
+      <div class="cr-hero-art" aria-hidden="true">
+        <Pic src={HERO_ART} alt="" width="1100" height="1100" loading="eager" fetchpriority="high" decoding="async" sizes="(max-width: 900px) 60vw, 46vw" />
+      </div>
+    {/if}
+
     <div class="cr-hero-inner" bind:this={heroInnerEl}>
       <div class="cr-langbar" role="group" aria-label="Language">
         <button type="button" class="cr-lang" class:is-on={!isAr} onclick={() => setLang('en')} lang="en">English</button>
@@ -193,20 +210,21 @@
       </div>
 
       <p class="cr-tag">
-        {isAr ? 'كورس من LOOM · بالعربي' : 'A course by LOOM · Taught in Arabic'}
+        {isAr ? `أكاديمية LOOM · ${PROGRAM.codeAr} · بالعربي` : `LOOM Academy · ${PROGRAM.code} · Taught in Arabic`}
+        <span class="cr-status">{t(PROGRAM.status)}</span>
       </p>
 
       <h1 class="cr-h1">
         {#if isAr}
-          <span class="cr-h1-name">{COURSE.name.ar}</span>
-          <span class="cr-h1-line">{COURSE.promise.ar}</span>
+          <span class="cr-h1-name">{PROGRAM.name.ar}</span>
+          <span class="cr-h1-line">{PROGRAM.promise.ar}</span>
         {:else}
-          <span class="cr-h1-name">{COURSE.name.en}</span>
-          <SplitWords as="span" class="cr-h1-line" text={COURSE.promise.en} delay={0.2} />
+          <span class="cr-h1-name">{PROGRAM.name.en}</span>
+          <SplitWords as="span" class="cr-h1-line" text={PROGRAM.promise.en} delay={0.2} />
         {/if}
       </h1>
 
-      <p class="cr-hero-sub" use:reveal={{ delay: 0.5 }}>{t(COURSE.sub)}</p>
+      <p class="cr-hero-sub" use:reveal={{ delay: 0.5 }}>{t(PROGRAM.sub)}</p>
 
       <div class="cr-hero-cta" use:reveal={{ delay: 0.62 }}>
         <div class="magnetic" use:magnetic={{ strength: 0.2 }}>
@@ -219,7 +237,7 @@
         </a>
       </div>
 
-      <p class="cr-hero-meta" use:reveal={{ delay: 0.7 }}>{t(COURSE.language)}</p>
+      <p class="cr-hero-meta" use:reveal={{ delay: 0.7 }}>{t(PROGRAM.language)}</p>
     </div>
 
     <!-- The four facts, in the hero, because they are the specification of
@@ -230,6 +248,22 @@
       <li use:reveal={{ delay: 0.15 }}><span class="cr-fact-n"><CountUp value={TOTAL_HOURS} suffix="h" /></span><span class="cr-fact-l">{isAr ? 'فيديو' : 'of video'}</span></li>
       <li use:reveal={{ delay: 0.2 }}><span class="cr-fact-n">∞</span><span class="cr-fact-l">{isAr ? 'وصول مدى الحياة' : 'lifetime access'}</span></li>
     </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ the academy
+       The band that makes this an academy rather than a course page: it
+       introduces the institution before the program argues for itself. It is
+       deliberately short — three lines and the studio's own credential — 
+       because a reader who came for the program should be able to scroll past
+       it in two seconds. -->
+  <section class="cr-section cr-academy">
+    <div class="cr-academy-grid" use:reveal>
+      <div>
+        <p class="cr-kicker"><span>—</span> {isAr ? 'الأكاديمية' : 'The academy'}</p>
+        <h2 class="cr-h2 cr-academy-h2">{t(ACADEMY.line)}</h2>
+      </div>
+      <p class="cr-academy-body">{t(ACADEMY.intro)}</p>
+    </div>
   </section>
 
   <!-- ═══════════════════════════════════════════════════ the argument -->
@@ -256,7 +290,7 @@
             ما إله موقع — وإنت الوحيد اللي بيقدر يفوت ويحكي معه.
           </p>
           <p class="cr-arg-punch">
-            هالكورس بيعلّمك النصّين سوا. لأنه واحد بدون التاني ما بيساوي إشي.
+            هالبرنامج بيعلّمك النصّين سوا. لأنه واحد بدون التاني ما بيساوي إشي.
           </p>
         {:else}
           <p>
@@ -272,7 +306,7 @@
             are the only one who can walk in and say so.
           </p>
           <p class="cr-arg-punch">
-            This course teaches both halves. Because either one alone is worth nothing.
+            This program teaches both halves. Because either one alone is worth nothing.
           </p>
         {/if}
       </div>
@@ -319,7 +353,15 @@
         <article class="cr-mod" class:is-open={on} use:reveal={{ delay: 0.03 * i, y: 18 }}>
           <h3>
             <button type="button" class="cr-mod-head" aria-expanded={on} onclick={() => toggle(m.id)}>
-              <span class="cr-mod-n" aria-hidden="true">{m.n}</span>
+              {#if emblemFor(m.id)}
+                <!-- Only rendered for a module whose art exists; see EMBLEMS
+                     in $data/academy.js for why this is a set and not a flag. -->
+                <span class="cr-mod-emblem" aria-hidden="true">
+                  <Pic src={emblemFor(m.id)} alt="" width="120" height="120" loading="lazy" decoding="async" sizes="52px" />
+                </span>
+              {:else}
+                <span class="cr-mod-n" aria-hidden="true">{m.n}</span>
+              {/if}
               <span class="cr-mod-title">{t(m.title)}</span>
               <span class="cr-mod-meta">
                 {m.lessons.length} {isAr ? 'دروس' : 'lessons'}
@@ -407,12 +449,12 @@
 
       {#if !live}
         <!-- Shown only while WHOP_URL is empty. The moment a checkout URL is
-             pasted into $data/course.js this whole block disappears on its
+             pasted into $data/academy.js this whole block disappears on its
              own — there is no second flag to remember to flip. -->
         <p class="cr-offer-soon" role="status">
           {isAr
-            ? 'الكورس بيفتح قريباً بسعر المؤسسين. اترك رقمك ورح تكون أول من يعرف — وبتاخد السعر المخفّض حتى لو ارتفع بعدين.'
-            : 'The course opens shortly at the founding price. Join the list and you get that price when it opens, even after it goes up.'}
+            ? 'البرنامج بيفتح قريباً بسعر المؤسسين. اترك رقمك ورح تكون أول من يعرف — وبتاخد السعر المخفّض حتى لو ارتفع بعدين.'
+            : 'Program 01 opens shortly at the founding price. Join the list and you get that price when it opens, even after it goes up.'}
         </p>
       {/if}
     </div>

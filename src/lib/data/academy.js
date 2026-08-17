@@ -1,6 +1,25 @@
 /**
- * FIRST CLIENT — أول عميل
- * The LOOM course: build websites with AI, then sell them.
+ * LOOM ACADEMY — أكاديمية LOOM
+ * The school. FIRST CLIENT (أول عميل) is Program 01 inside it.
+ *
+ * ── WHY THE SHELF AND THE PRODUCT ARE SEPARATE ────────────────────────────
+ * This started as a single course page and was restructured at the client's
+ * call: "this isn't a course, make it an academy". That is not a rename — it
+ * changes what the page is. A course page sells one thing and is finished the
+ * day that thing stops being new. An academy is a place LOOM teaches from, and
+ * a program is what is open in it right now, so a second program is an entry
+ * in PROGRAMS rather than a second page and a second design.
+ *
+ * ACADEMY is the institution: name, stance, what it is for.
+ * PROGRAM is what you can enrol in today. Everything below it — modules,
+ * outcomes, bonuses, FAQ, price — belongs to the PROGRAM, not to the academy,
+ * and is named that way so a second program does not have to fight the first
+ * one for a variable name.
+ *
+ * NOTHING HERE INVENTS A PROGRAM THAT DOES NOT EXIST. There is one, it is
+ * real, and the page says so. A shelf padded with "coming soon" tiles for
+ * courses nobody has recorded reads as vapour and costs more trust than the
+ * empty space costs.
  *
  * ── WHY THIS FILE IS BILINGUAL AND NOTHING ELSE ON THE SITE IS ─────────────
  * The course is TAUGHT IN ARABIC (spoken). Its buyer is an Arabic speaker in
@@ -24,9 +43,32 @@
  * the FAQ and the JSON-LD; all four read PRICE.
  */
 
-/* ── the offer ──────────────────────────────────────────────────────────── */
+/* ── the academy ────────────────────────────────────────────────────────── */
 
-export const COURSE = {
+export const ACADEMY = {
+  name: { en: 'LOOM ACADEMY', ar: 'أكاديمية LOOM' },
+  line: {
+    en: 'The studio teaches what it builds with.',
+    ar: 'الاستوديو بيعلّم بنفس الأدوات اللي بيشتغل فيها.',
+  },
+  intro: {
+    en:
+      'LOOM builds websites, apps and campaigns for companies across Jordan, the Gulf and '
+      + 'Bosnia. The academy is the same craft, handed over instead of delivered — the tools we '
+      + 'use on paid work, the way we actually use them, taught in Arabic by the people doing it.',
+    ar:
+      'LOOM بتبني مواقع وتطبيقات وحملات لشركات بالأردن والخليج والبوسنة. الأكاديمية هي نفس '
+      + 'الحرفة، بس منسلّمهالك بدل ما نسلّم الشغل — نفس الأدوات اللي منستخدمها بشغل مدفوع، '
+      + 'وبنفس الطريقة اللي منستخدمها فيها، مشروحة بالعربي من ناس عم يشتغلوا فيها.',
+  },
+}
+
+/* ── the program that is open ───────────────────────────────────────────── */
+
+export const PROGRAM = {
+  code: 'PROGRAM 01',
+  codeAr: 'البرنامج الأول',
+  status: { en: 'Enrolling now', ar: 'التسجيل مفتوح' },
   name: { en: 'FIRST CLIENT', ar: 'أول عميل' },
   tagline: {
     en: 'Build websites with AI. Then sell them.',
@@ -38,12 +80,12 @@ export const COURSE = {
   },
   sub: {
     en:
-      'A practical course, taught in Arabic, on the two halves nobody teaches together: '
+      'A practical program, taught in Arabic, on the two halves nobody teaches together: '
       + 'building a real website with AI even if you have never written code, and the part '
       + 'that actually pays — finding the business that needs one, saying the right thing to '
       + 'the owner, pricing it, and getting the money into your account.',
     ar:
-      'كورس عملي بالعربي، بيجمع النصّين اللي دايماً بينباعوا منفصلين: كيف تبني موقع حقيقي '
+      'برنامج عملي بالعربي، بيجمع النصّين اللي دايماً بينباعوا منفصلين: كيف تبني موقع حقيقي '
       + 'بالذكاء الاصطناعي حتى لو عمرك ما كتبت سطر كود، والنص التاني — اللي هو مصدر '
       + 'المصاري فعلياً — كيف تلاقي المحل اللي محتاج موقع، كيف تحكي مع صاحبه، كيف تسعّر، '
       + 'وكيف توصلك المصاري.',
@@ -67,6 +109,24 @@ export const PRICE = {
   },
 }
 
+/* ── art slots ──────────────────────────────────────────────────────────────
+   Two pieces of commissioned art this page wants and does not have yet. Both
+   are null until the file exists, and the page renders correctly without
+   either — the hero art is a decorative absolutely-positioned layer, so its
+   arrival changes no layout, and the share card falls back to the site's own
+   og.jpg.
+
+   HERO_ART wants the site's textile world, not a stock classroom: a felted
+   wool desk scene, laptop and yarn, shot as macro craft photography on the
+   pink ground. See the asset brief for the exact prompts.
+
+   OG_IMAGE matters more than it looks. Every sale in the first launch arrives
+   from a link pasted into WhatsApp or an Instagram story, and that link's
+   preview card IS the first impression — currently it is the studio's generic
+   banner, which says nothing about an academy. */
+export const HERO_ART = null
+export const OG_IMAGE = '/img/og.jpg'
+
 /* THE WHOP LINK. Empty until the product exists.
    The page reads this: with a URL it renders a Buy button; without one it
    renders the waitlist instead and says so honestly. A "Buy now" pointing at
@@ -82,8 +142,8 @@ export const FOR_WHO = [
     ar: 'بدك دخل حقيقي من النت، وزهقت من فيديوهات بتخلص قبل ما توصل لجزء المصاري.',
   },
   {
-    en: 'You cannot code — and after this course you still will not need to.',
-    ar: 'ما بتعرف برمجة — وبعد الكورس كمان مش رح تحتاج تتعلمها.',
+    en: 'You cannot code — and after this program you still will not need to.',
+    ar: 'ما بتعرف برمجة — وبعد البرنامج كمان مش رح تحتاج تتعلمها.',
   },
   {
     en: 'You already build a bit, but every conversation with a client ends at “I’ll get back to you”.',
@@ -226,11 +286,11 @@ export const MODULES = [
     hours: 2.0,
     blurb: {
       en:
-        'The spine of the course. One real business, one complete website, start to published, '
+        'The spine of the program. One real business, one complete website, start to published, '
         + 'nothing cut. You build it alongside me at the same pace, and it becomes the first piece '
         + 'in your portfolio.',
       ar:
-        'عمود الكورس. محل حقيقي واحد، موقع كامل، من أول لحظة لحد النشر، بدون ما نقص إشي. '
+        'عمود البرنامج. محل حقيقي واحد، موقع كامل، من أول لحظة لحد النشر، بدون ما نقص إشي. '
         + 'بتبنيه معي بنفس السرعة، وبيصير أول شغلة بمعرضك.',
     },
     lessons: [
@@ -275,11 +335,11 @@ export const MODULES = [
     hours: 1.2,
     blurb: {
       en:
-        'The module people buy this course for. Word for word: what you send first, what you say '
+        'The module people buy this program for. Word for word: what you send first, what you say '
         + 'on the call, what you answer when he asks the price, and what you do with each of the '
         + 'four things he will say to avoid deciding.',
       ar:
-        'الوحدة اللي بينشرى الكورس عشانها. كلمة بكلمة: شو بتبعت أول رسالة، شو بتحكي '
+        'الوحدة اللي بينشرى البرنامج عشانها. كلمة بكلمة: شو بتبعت أول رسالة، شو بتحكي '
         + 'بالمكالمة، شو بتجاوب لما يسألك «قديش»، وشو بتعمل مع كل وحدة من الأربع جمل '
         + 'اللي بيقولها عشان يهرب من القرار.',
     },
@@ -360,6 +420,24 @@ export const MODULES = [
   },
 ]
 
+/* ── module emblems ─────────────────────────────────────────────────────────
+   Each module gets a felted-wool medallion, generated to the recipe the rest
+   of the site's icons use: round badge shot flat from above, cream felted face
+   with visible fibre, thick braided cord rim in the module's own colour, and a
+   glyph built from chunky braided yarn in the four brand colours interlacing
+   over and under so each stroke changes colour along its length.
+
+   A SET, NOT A `emblem: true` FLAG PER MODULE, and not a path guessed from the
+   id — same reasoning as Pic.svelte's two manifests: a source is only emitted
+   for a file that actually exists, because the alternative costs a 404 per
+   miss, per page load, per visitor. Nine missing emblems would be nine failed
+   requests on every view of this page.
+
+   To light one up: generate `static/img/academy/emblem-<id>.webp`, run
+   `node scripts/responsive.mjs`, add the id below. Nothing else. */
+export const EMBLEMS = new Set([])
+export const emblemFor = (id) => (EMBLEMS.has(id) ? `/img/academy/emblem-${id}.webp` : null)
+
 /* ── the extras that raise perceived value without more filming ─────────── */
 
 export const BONUSES = [
@@ -401,8 +479,8 @@ export const BONUSES = [
   {
     title: { en: 'Lifetime updates', ar: 'تحديثات مدى الحياة' },
     body: {
-      en: 'The tools change every few months. New lessons land in the same course, free.',
-      ar: 'الأدوات بتتغير كل كم شهر. الدروس الجديدة بتنزل بنفس الكورس، مجاناً.',
+      en: 'The tools change every few months. New lessons land in the same program, free.',
+      ar: 'الأدوات بتتغير كل كم شهر. الدروس الجديدة بتنزل بنفس البرنامج، مجاناً.',
     },
   },
 ]
@@ -423,7 +501,7 @@ export const FAQ = [
     },
   },
   {
-    q: { en: 'Is the course in Arabic?', ar: 'الكورس بالعربي؟' },
+    q: { en: 'Is the program in Arabic?', ar: 'البرنامج بالعربي؟' },
     a: {
       en:
         'Yes — every lesson is spoken in Arabic. The templates, prompts and contract come in both '

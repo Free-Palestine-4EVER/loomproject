@@ -115,14 +115,14 @@ export const LINKS = [
   /* A path, not a hash. The home page's own WorkshopsPromo (#ai-workshops)
      sits exactly here in the scroll, which is why the tab does too. */
   { href: '/ai-workshops', label: 'AI Workshops' },
-  /* Added 17 Aug 2026 with /course. `extra`, and deliberately so: this is the
+  /* Added 17 Aug 2026 with /academy. `extra`, and deliberately so: this is the
      only thing on the site sold to a PERSON rather than to a company, and the
      1100–1360 bar is where a company's decision-maker on a laptop reads the
      nav. It renders unconditionally in the mobile drawer — which is where its
      buyer actually is — and in the footer sitemap. It sits directly after
      AI Workshops because the two are the same shelf: what LOOM teaches, as
      opposed to what LOOM builds for you. */
-  { href: '/course', label: 'Course', extra: true },
+  { href: '/academy', label: 'Academy', extra: true },
   { href: '/apps', label: 'Apps' },
   /* Demoted to `extra` on 10 Aug, when Pricing and FAQ took the list from
      eleven tabs to thirteen. Something had to leave the 1100–1360 bar and this
