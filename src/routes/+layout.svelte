@@ -13,6 +13,7 @@
 <script>
   import { onMount } from 'svelte'
   import { browser } from '$app/environment'
+  import { page } from '$app/state'
   import { afterNavigate } from '$app/navigation'
   import { reducedMotion, coarsePointer } from '$lib/motion.svelte.js'
   import { mountAnchorLinks } from '$lib/scroll.svelte.js'
@@ -49,6 +50,13 @@
   import '$lib/styles/button-scale.css'
 
   let { children } = $props()
+
+  // /configurator is a bare embed handed out by link: the header, then one
+  // full-window iframe, and nothing else. The footer, the butterfly and the
+  // floating CTA are all skipped — each would sit over a live 3D viewport the
+  // visitor is meant to drag, and there is no page below the frame for them to
+  // belong to.
+  const bare = $derived(page.url.pathname === '/configurator')
 
   // Live media queries. Started here rather than per-component so there is one
   // matchMedia listener per query for the whole app instead of one per
@@ -137,19 +145,23 @@
   <div class="loom-bg-weft loom-bg-weft--low"></div>
 </div>
 
-<Loader />
-<ScrollProgress />
+{#if !bare}
+  <Loader />
+  <ScrollProgress />
+{/if}
 <Nav />
 
-<main>
+<main class={bare ? 'main--bare' : ''}>
   {@render children()}
 </main>
 
-<Footer />
+{#if !bare}
+  <Footer />
 
-<!-- the butterfly rides the whole page, above the copy and under the nav -->
-<Flyer />
+  <!-- the butterfly rides the whole page, above the copy and under the nav -->
+  <Flyer />
 
-<WhatsAppFab />
+  <WhatsAppFab />
+{/if}
 
 <WizardModal />
