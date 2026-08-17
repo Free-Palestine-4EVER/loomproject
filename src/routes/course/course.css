@@ -1,0 +1,526 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   course.css — /course, the FIRST CLIENT sales page.
+
+   Colocated with the route and imported from its <script>, the way
+   PORTING.md §5 requires: Vite hoists it into the global sheet, and every
+   rule here is namespaced `.cr-` so it cannot reach anything else.
+
+   It uses the site's tokens (--bg, --ink, --magenta, --pad, --display) and
+   none of the site's section classes. A sales page and a section of the
+   agency site want different rhythms — this one is denser, with the CTA
+   never more than a screen away — so it is built apart rather than by
+   overriding .section from four places.
+
+   ── THE ARABIC RULES ARE NOT DECORATION ───────────────────────────────────
+   `.cr--ar` is on the wrapper whenever the reader has chosen Arabic, and it
+   does three things that are load-bearing, not stylistic:
+
+     1. FONT. Clash Display and Satoshi contain no Arabic glyphs. Left in
+        --display, an Arabic h1 renders in whatever the browser substitutes,
+        at Clash's metrics, and looks broken. So `.cr--ar` swaps in the same
+        system Arabic stack journal/[slug]/post-page.css already settled on.
+     2. TRACKING. `letter-spacing` on Arabic breaks the joins between letters
+        — it is not "tighter type", it is misspelling. Every tracked rule in
+        this file is reset to 0 under `.cr--ar`.
+     3. LEADING AND SIZE. Arabic at Latin size and leading reads cramped;
+        ascenders and descenders are taller. Both are lifted a touch.
+
+   `dir="rtl"` is set on the element in the component, not here, so the whole
+   grid mirrors natively — no rule in this file flips a margin by hand.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cr {
+  /* `clip`, not `hidden` — same reason route-page.css gives: an
+     `overflow: hidden` ancestor silently kills `position: sticky` inside. */
+  overflow-x: clip;
+  --cr-line: var(--line);
+  --cr-panel: rgba(255, 255, 255, 0.5);
+}
+
+.cr--ar {
+  font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+}
+/* Reset every tracked rule in one place rather than per selector, so a new
+   tracked class added below cannot forget to opt out. */
+.cr--ar .cr-tag,
+.cr--ar .cr-kicker,
+.cr--ar .cr-h1,
+.cr--ar .cr-h2,
+.cr--ar .cr-lang,
+.cr--ar .cr-btn,
+.cr--ar .cr-mod-title,
+.cr--ar .cr-bonus h3,
+.cr--ar .cr-faq-item summary {
+  letter-spacing: 0;
+}
+.cr--ar .cr-hero-sub,
+.cr--ar .cr-arg-body p,
+.cr--ar .cr-lede,
+.cr--ar .cr-outcomes p,
+.cr--ar .cr-lessons li,
+.cr--ar .cr-fit-list li,
+.cr--ar .cr-faq-item p {
+  line-height: 1.85;
+  font-size: 1.05em;
+}
+.cr--ar .cr-h1,
+.cr--ar .cr-h2 {
+  line-height: 1.28;
+  font-weight: 700;
+}
+/* Arabic sets WIDER than Latin at the same point size — no capitals, longer
+   joined runs, and no hyphenation to fall back on. The English promise wraps
+   to two lines at 4.8rem; the Arabic one ran as a single line past the
+   viewport edge and collided with the page's butterfly layer. Both a smaller
+   ceiling and an explicit measure are needed: the size alone still produced
+   one very long line on a wide screen, and the measure alone left the type
+   too big to wrap gracefully. */
+.cr--ar .cr-h1 {
+  font-size: clamp(1.9rem, 4.6vw, 3.6rem);
+  max-width: 16ch;
+}
+.cr--ar .cr-h2 { max-width: 20ch; }
+
+/* ─────────────────────────────────────────────────────────────── section */
+
+.cr-section {
+  position: relative;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: clamp(56px, 8vw, 116px) var(--pad);
+}
+.cr-head { max-width: 74ch; margin-bottom: clamp(30px, 4.5vw, 56px); }
+.cr-kicker {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--magenta); font-size: 0.8rem; font-weight: 640;
+  letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px;
+}
+.cr-kicker span { width: 22px; height: 1px; background: currentColor; display: block; }
+.cr--ar .cr-kicker { text-transform: none; }
+
+.cr-h2 {
+  font-family: var(--display); font-weight: 640; letter-spacing: -0.02em;
+  font-size: clamp(1.6rem, 3.2vw, 2.6rem); line-height: 1.14; color: var(--ink);
+  max-width: 22ch;
+}
+.cr-lede {
+  margin-top: 18px; max-width: 68ch;
+  color: var(--ink-dim); font-size: clamp(1rem, 1.3vw, 1.08rem); line-height: 1.68;
+}
+
+/* ─────────────────────────────────────────────────────────────── buttons */
+
+.cr-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 14px 26px; border-radius: 999px;
+  border: 1px solid var(--ink); color: var(--ink); background: transparent;
+  font-weight: 640; font-size: 0.98rem; letter-spacing: 0.01em;
+  text-decoration: none; white-space: nowrap;
+  transition: background 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cr-btn:hover { background: var(--ink); color: var(--bg); }
+.cr-btn:active { transform: scale(0.98); }
+.cr-btn--fill {
+  background: var(--ink); color: var(--bg); border-color: var(--ink);
+  box-shadow: 0 12px 34px -18px rgba(51, 36, 61, 0.9);
+}
+.cr-btn--fill:hover {
+  background: var(--magenta); border-color: var(--magenta); color: #fff;
+}
+.cr-btn--lg { padding: 17px 34px; font-size: 1.05rem; }
+
+/* ─────────────────────────────────────────────────────────────────── hero */
+
+.cr-hero {
+  position: relative;
+  padding-bottom: clamp(30px, 5vw, 56px);
+  background:
+    radial-gradient(120% 80% at 82% 4%, rgba(123, 47, 190, 0.24), transparent 62%),
+    radial-gradient(90% 70% at 8% 12%, rgba(242, 28, 140, 0.16), transparent 60%),
+    linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 78%);
+  overflow: clip;
+}
+
+/* THE SIGNATURE. Two yarns crossing into one — the course's argument (the
+   build half and the sell half are worthless apart) drawn as the LOOM mark's
+   own logic. Pure SVG: no image request, no library, and it scales to any
+   width because the viewBox is stretched with preserveAspectRatio="none".
+
+   The dash animation runs ONCE on load rather than looping. A looping line on
+   a sales page is a distraction competing with the headline for the same eye;
+   drawing itself in and then holding is the whole effect.
+
+   IT SITS AT THE BOTTOM OF THE HERO, NOT BEHIND THE COPY. The first draft
+   floated it at 12vh, where it crossed the language toggle, the kicker and
+   the headline — two 2.5px strokes running through live text, which read as
+   a rendering bug rather than as art. Anchored to the hero's floor it does
+   the same job (it is the last thing under the promise, leading into the
+   facts row) and touches nothing. */
+.cr-weave {
+  position: absolute; inset-inline: 0; bottom: 0;
+  width: 100%; height: clamp(90px, 15vh, 150px);
+  opacity: 0.55; pointer-events: none; z-index: 0;
+}
+.cr-weave path {
+  fill: none; stroke-width: 2.5; stroke-linecap: round;
+  stroke-dasharray: 2600; stroke-dashoffset: 2600;
+  animation: cr-draw 2.1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+}
+.cr-weave-a { stroke: var(--magenta); }
+.cr-weave-b { stroke: var(--violet); animation-delay: 0.45s; }
+@keyframes cr-draw { to { stroke-dashoffset: 0; } }
+
+.cr-hero-inner {
+  position: relative;
+  max-width: 1180px; margin-inline: auto;
+  padding: clamp(118px, 19vh, 200px) var(--pad) clamp(40px, 6vh, 72px);
+}
+
+.cr-langbar {
+  display: inline-flex; gap: 4px; padding: 4px;
+  border: 1px solid var(--cr-line); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55); margin-bottom: 26px;
+}
+.cr-lang {
+  appearance: none; border: 0; cursor: pointer;
+  padding: 7px 16px; border-radius: 999px; background: transparent;
+  color: var(--ink-faint); font: inherit; font-size: 0.84rem; font-weight: 640;
+  letter-spacing: 0.04em;
+  transition: background 0.24s, color 0.24s;
+}
+.cr-lang:hover { color: var(--ink); }
+.cr-lang.is-on { background: var(--ink); color: var(--bg); }
+/* The Arabic label must render in an Arabic face even while the page is in
+   English — it is the button you press to GET Arabic. */
+.cr-lang[lang='ar'] { font-family: 'SF Arabic', 'Geeza Pro', 'Noto Sans Arabic', Tahoma, sans-serif; }
+
+.cr-tag {
+  color: var(--magenta); font-size: 0.84rem; font-weight: 640;
+  letter-spacing: 0.13em; text-transform: uppercase; margin-bottom: 18px;
+}
+.cr--ar .cr-tag { text-transform: none; }
+
+.cr-h1 {
+  display: block; font-family: var(--display); font-weight: 640;
+  letter-spacing: -0.025em; color: var(--ink);
+  font-size: clamp(2.2rem, 6vw, 4.8rem); line-height: 1.03;
+}
+.cr-h1-name {
+  display: block;
+  font-size: clamp(0.86rem, 1.5vw, 1.02rem); font-weight: 700;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--accent-ink, var(--magenta-deep)); margin-bottom: 14px;
+}
+.cr--ar .cr-h1-name { letter-spacing: 0; text-transform: none; font-size: clamp(1rem, 1.8vw, 1.2rem); }
+/* SOLID INK, AND NOT A CLIPPED GRADIENT — this cost a debugging pass, so the
+   reason is written down.
+
+   The first version set `background-clip: text; color: transparent` on this
+   element, copying .wk-h1-line2 on /ai-workshops. There it works; here the
+   headline is ALSO a <SplitWords>, and SplitWords wraps every word in an
+   `overflow: hidden` inline-block mask. A clipped background on the inline
+   parent has no text of its own left to clip against — every glyph lives
+   inside a descendant that establishes its own formatting context — so the
+   parent painted nothing and `color: transparent` inherited down to the
+   words. The result was a headline-sized hole in the hero: correct in the
+   DOM, correct to a screen reader, invisible on screen.
+
+   Two things could have gone wrong here and only one of them is obvious, so:
+   clipped text computes `color: transparent`, which means a contrast sweep
+   that reads getComputedStyle().color skips it and reports nothing. Neither
+   the missing headline nor a low-contrast one would have been caught by an
+   automated check — only by looking at the page.
+
+   Rule of thumb for this codebase: background-clip:text and SplitWords do not
+   compose. Pick one per element.
+
+   The `.cr-h1` prefix is not decoration either — a bare `.cr-h1-line` lost
+   `display: block` to a more specific rule in the global sheet and the
+   headline ran inline. */
+.cr-h1 .cr-h1-line {
+  display: block;
+  color: var(--ink);
+}
+
+.cr-hero-sub {
+  margin-top: 26px; max-width: 60ch;
+  color: var(--ink-dim); font-size: clamp(1.02rem, 1.5vw, 1.18rem); line-height: 1.62;
+}
+.cr-hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+.cr-hero-meta {
+  margin-top: 18px; color: var(--ink-faint); font-size: 0.9rem;
+}
+
+.cr-facts {
+  position: relative;
+  max-width: 1180px; margin-inline: auto;
+  padding: clamp(22px, 3.4vw, 34px) var(--pad) 0;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(14px, 2.4vw, 30px);
+  list-style: none;
+}
+.cr-facts::before {
+  content: ''; position: absolute; top: 0; inset-inline: var(--pad);
+  /* the house 6/5 stitch rhythm — see textile.css */
+  border-top: 1px dashed var(--cr-line);
+}
+.cr-facts li { display: flex; flex-direction: column; gap: 5px; }
+.cr-fact-n {
+  font-family: var(--display); font-weight: 640;
+  font-size: clamp(1.5rem, 3vw, 2.4rem); color: var(--ink); line-height: 1;
+}
+.cr-fact-l { color: var(--ink-faint); font-size: 0.82rem; }
+
+/* ─────────────────────────────────────────────────────────────── argument */
+
+.cr-arg-grid {
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 4vw, 64px); align-items: start;
+}
+.cr-arg-body p {
+  color: var(--ink-dim); font-size: clamp(1rem, 1.35vw, 1.1rem); line-height: 1.72;
+  max-width: 62ch;
+}
+.cr-arg-body p + p { margin-top: 18px; }
+.cr-arg-punch {
+  color: var(--ink) !important; font-weight: 640;
+  border-inline-start: 2px solid var(--magenta);
+  padding-inline-start: 18px; margin-top: 24px !important;
+}
+
+/* ─────────────────────────────────────────────────────────────── outcomes */
+
+.cr-outcomes {
+  list-style: none;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(16px, 2.4vw, 26px);
+}
+.cr-outcomes li {
+  position: relative;
+  padding: clamp(22px, 2.6vw, 30px);
+  border: 1px solid var(--cr-line); border-radius: var(--radius);
+  background: var(--cr-panel);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.cr-out-n {
+  font-family: var(--display); font-weight: 700; font-size: 0.92rem;
+  letter-spacing: 0.1em; color: var(--magenta);
+}
+.cr-outcomes p { color: var(--ink-dim); line-height: 1.62; font-size: 0.99rem; }
+
+/* ───────────────────────────────────────────────────────────── curriculum */
+
+.cr-mods { display: flex; flex-direction: column; gap: 10px; }
+.cr-mod {
+  border: 1px solid var(--cr-line); border-radius: var(--radius);
+  background: var(--cr-panel);
+  transition: border-color 0.3s, background 0.3s;
+}
+.cr-mod.is-open { border-color: rgba(242, 28, 140, 0.4); background: rgba(255, 255, 255, 0.74); }
+.cr-mod h3 { margin: 0; font: inherit; }
+
+.cr-mod-head {
+  width: 100%; appearance: none; border: 0; background: transparent; cursor: pointer;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center; gap: clamp(12px, 2vw, 22px);
+  padding: clamp(18px, 2.2vw, 24px) clamp(18px, 2.4vw, 28px);
+  text-align: start; color: var(--ink); font: inherit;
+}
+.cr-mod-n {
+  font-family: var(--display); font-weight: 700; font-size: 0.86rem;
+  letter-spacing: 0.1em; color: var(--magenta);
+}
+.cr-mod-title {
+  font-family: var(--display); font-weight: 640; letter-spacing: -0.01em;
+  font-size: clamp(1.08rem, 2vw, 1.45rem); line-height: 1.2;
+}
+.cr-mod-meta { color: var(--ink-faint); font-size: 0.84rem; white-space: nowrap; }
+.cr-mod-dot { margin-inline: 6px; }
+.cr-mod-chev {
+  width: 11px; height: 11px; border-inline-end: 2px solid var(--ink-faint);
+  border-bottom: 2px solid var(--ink-faint);
+  transform: rotate(45deg); transform-origin: 60% 60%;
+  transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cr-mod.is-open .cr-mod-chev { transform: rotate(-135deg); }
+
+/* The body is collapsed by MAX-HEIGHT, never by {#if}. All 54 lesson titles
+   stay in the HTML for a crawler and for an AI answer engine — which is most
+   of this page's SEO surface — and `visibility` (not `display`) keeps them
+   out of the tab order while closed without removing them from the document.
+   The 1400px ceiling is comfortably over the tallest module (10 lessons). */
+.cr-mod-body {
+  max-height: 0; overflow: hidden; visibility: hidden;
+  transition: max-height 0.42s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.42s;
+}
+.cr-mod.is-open .cr-mod-body {
+  max-height: 1400px; visibility: visible;
+  transition: max-height 0.52s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s;
+}
+.cr-mod-body-in {
+  padding: 0 clamp(18px, 2.4vw, 28px) clamp(22px, 2.6vw, 30px);
+  display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(18px, 3vw, 46px); align-items: start;
+}
+.cr-mod-blurb { color: var(--ink-dim); line-height: 1.68; font-size: 0.98rem; }
+.cr-lessons { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.cr-lessons li {
+  display: flex; gap: 12px; align-items: baseline;
+  padding: 9px 0; border-top: 1px dashed var(--cr-line);
+  color: var(--ink-dim); font-size: 0.96rem; line-height: 1.5;
+}
+.cr-lesson-n {
+  color: var(--magenta); font-size: 0.78rem; font-weight: 700;
+  font-variant-numeric: tabular-nums; flex: none; min-width: 2.6em;
+}
+
+/* ─────────────────────────────────────────────────────────── for / not for */
+
+.cr-fit {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(24px, 4vw, 56px);
+}
+.cr-fit-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.cr-fit-list li {
+  display: flex; gap: 12px; color: var(--ink-dim); line-height: 1.6; font-size: 1rem;
+}
+.cr-fit-list li::before {
+  content: ''; flex: none; width: 18px; height: 18px; margin-top: 3px;
+  border-radius: 50%; border: 1.5px solid currentColor;
+  background-repeat: no-repeat; background-position: center; background-size: 10px;
+}
+.cr-fit-list--yes li::before {
+  color: var(--magenta);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.4L4.6 9 10 3.2' fill='none' stroke='%23f21c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.cr-fit-list--no li::before {
+  color: var(--ink-faint);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 3l6 6M9 3l-6 6' fill='none' stroke='%236b5273' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* ─────────────────────────────────────────────────────────────── bonuses */
+
+.cr-bonuses {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: clamp(14px, 2vw, 22px);
+}
+.cr-bonus {
+  padding: clamp(20px, 2.4vw, 26px);
+  border: 1px dashed var(--cr-line); border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.4);
+}
+.cr-bonus h3 {
+  font-family: var(--display); font-weight: 640; font-size: 1.04rem;
+  letter-spacing: -0.01em; color: var(--ink); margin-bottom: 8px;
+}
+.cr-bonus p { color: var(--ink-dim); font-size: 0.94rem; line-height: 1.58; }
+
+/* ───────────────────────────────────────────────────────────────── offer */
+
+.cr-offer-section { padding-block: clamp(40px, 6vw, 80px); }
+.cr-offer {
+  position: relative;
+  padding: clamp(30px, 5vw, 64px);
+  border-radius: calc(var(--radius) * 1.6);
+  border: 1px solid rgba(242, 28, 140, 0.3);
+  background:
+    radial-gradient(120% 100% at 90% 0%, rgba(123, 47, 190, 0.16), transparent 60%),
+    rgba(255, 255, 255, 0.66);
+  box-shadow: 0 40px 90px -60px rgba(51, 36, 61, 0.7);
+  text-align: center;
+}
+.cr-offer .cr-kicker { justify-content: center; }
+.cr-offer-h2 { margin-inline: auto; max-width: 24ch; }
+.cr-price {
+  display: flex; align-items: baseline; justify-content: center; gap: 14px;
+  margin-top: clamp(24px, 3.5vw, 38px);
+}
+.cr-price-now {
+  font-family: var(--display); font-weight: 700; line-height: 1;
+  font-size: clamp(3rem, 8vw, 5.2rem); color: var(--ink);
+  letter-spacing: -0.03em;
+}
+.cr-price-was {
+  font-size: clamp(1.1rem, 2vw, 1.5rem); color: var(--ink-faint);
+  text-decoration: line-through; text-decoration-color: var(--magenta);
+}
+.cr-price-note { margin-top: 12px; color: var(--ink-dim); font-size: 0.98rem; }
+.cr-offer-cta {
+  display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
+  margin-top: clamp(24px, 3.4vw, 34px);
+}
+.cr-offer-soon {
+  margin-top: 22px; margin-inline: auto; max-width: 56ch;
+  color: var(--ink-faint); font-size: 0.92rem; line-height: 1.6;
+}
+
+/* ─────────────────────────────────────────────────────────────────── faq */
+
+.cr-faq { display: flex; flex-direction: column; }
+.cr-faq-item {
+  border-top: 1px solid var(--cr-line); padding: clamp(16px, 2vw, 22px) 0;
+}
+.cr-faq-item:last-child { border-bottom: 1px solid var(--cr-line); }
+.cr-faq-item summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  font-family: var(--display); font-weight: 640; letter-spacing: -0.01em;
+  font-size: clamp(1rem, 1.8vw, 1.2rem); color: var(--ink);
+}
+.cr-faq-item summary::-webkit-details-marker { display: none; }
+.cr-faq-item summary::after {
+  content: '+'; flex: none; color: var(--magenta); font-size: 1.4rem; line-height: 1;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cr-faq-item[open] summary::after { transform: rotate(45deg); }
+.cr-faq-item p {
+  margin-top: 14px; max-width: 70ch;
+  color: var(--ink-dim); line-height: 1.68; font-size: 1rem;
+}
+
+/* ───────────────────────────────────────────────────────────────── close */
+
+.cr-close { text-align: center; padding-bottom: clamp(70px, 10vw, 140px); }
+.cr-close-h2 { margin-inline: auto; max-width: 26ch; }
+.cr-close-sub {
+  margin: 18px auto 0; max-width: 58ch;
+  color: var(--ink-dim); font-size: clamp(1rem, 1.4vw, 1.12rem); line-height: 1.62;
+}
+.cr-close-cta { justify-content: center; margin-top: 30px; }
+
+/* ──────────────────────────────────────────────────────────────── mobile
+   80% of this site's traffic is mobile (see the v6 note in the project
+   memory) and a course buyer is on a phone in an Instagram browser more
+   often than anyone else who reaches this domain. Every grid collapses to
+   one column and the two four-across rows go two-by-two rather than
+   shrinking to unreadable. */
+
+@media (max-width: 900px) {
+  .cr-arg-grid,
+  .cr-mod-body-in { grid-template-columns: 1fr; }
+  .cr-mod-head {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    row-gap: 4px;
+  }
+  /* the lesson/hours meta drops under the title instead of squeezing it */
+  .cr-mod-meta { grid-column: 2; grid-row: 2; }
+}
+
+@media (max-width: 640px) {
+  .cr-facts { grid-template-columns: repeat(2, 1fr); row-gap: 20px; }
+  .cr-hero-cta { flex-direction: column; align-items: stretch; }
+  .cr-hero-cta .cr-btn, .cr-offer-cta .cr-btn { width: 100%; }
+  .cr-weave { opacity: 0.34; }
+  .cr-offer { padding-inline: 22px; }
+}
+
+/* Reduced motion: the weave is drawn already, nothing animates in.
+   NOT gated on anything else — see the project note about Chrome's Battery
+   Saver forcing prefers-reduced-motion; this only removes an ornament's
+   animation, so a false positive costs the reader nothing. */
+@media (prefers-reduced-motion: reduce) {
+  .cr-weave path { animation: none; stroke-dashoffset: 0; }
+  .cr-mod-body, .cr-mod.is-open .cr-mod-body,
+  .cr-mod-chev, .cr-btn { transition-duration: 0.01ms; }
+}

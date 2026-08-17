@@ -99,6 +99,10 @@ const WEIGHT = {
   '/apps': { changefreq: 'monthly', priority: '0.6' },
   '/mcp': { changefreq: 'monthly', priority: '0.6' },
   '/ai-workshops': { changefreq: 'monthly', priority: '0.6' },
+  // High: it is a product with its own buying intent ("build websites with AI
+  // course arabic"), it carries the site's only Course structured data, and
+  // it is meant to be landed on from a reel or a search rather than browsed to.
+  '/course': { changefreq: 'weekly', priority: '0.8' },
   '/type': { changefreq: 'monthly', priority: '0.5' },
   // Same tier as /faq and /contact — this is exactly what a bottom-of-funnel
   // searcher or an AI answer engine wants, and it is meant to be found
