@@ -168,7 +168,7 @@
   <meta property="og:url" content="https://www.loomstudio-jo.com/solutions" />
   <meta property="og:title" content="Solutions — {NEED_LIST.length} Needs, {NICHES.length} Industries | LOOM" />
   <meta property="og:description" content={DESC} />
-  <meta property="og:image" content="/img/og.jpg" />
+  <meta property="og:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Solutions — {NEED_LIST.length} Needs, {NICHES.length} Industries | LOOM" />
   <meta name="twitter:description" content={DESC} />

@@ -197,7 +197,7 @@
   <meta property="og:url" content="https://www.loomstudio-jo.com/pricing" />
   <meta property="og:title" content="Pricing — What Things Cost at LOOM" />
   <meta property="og:description" content={DESC} />
-  <meta property="og:image" content="/img/og.jpg" />
+  <meta property="og:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Pricing — What Things Cost at LOOM" />
   <meta name="twitter:description" content={DESC} />

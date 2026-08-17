@@ -55,7 +55,7 @@
   <meta property="og:url" content="https://www.loomstudio-jo.com/journal" />
   <meta property="og:title" content="Journal — Practical Writing on Web, AI Search and Growth in Jordan | LOOM" />
   <meta property="og:description" content={DESC} />
-  <meta property="og:image" content="/img/og.jpg" />
+  <meta property="og:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Journal — Practical Writing on Web, AI Search and Growth in Jordan | LOOM" />
   <meta name="twitter:description" content={DESC} />

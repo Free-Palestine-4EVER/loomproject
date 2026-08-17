@@ -53,11 +53,16 @@
 
   const TITLE = $derived(`${c.client} — ${c.title} | LOOM`)
   const CANONICAL = $derived(`https://www.loomstudio-jo.com/work/${c.slug}`)
-  // The cover is already an absolute site path (site.js's `img()` helper),
-  // so this is the one og:image on the site that is not the shared
-  // /img/og.jpg — a case page's own cover photograph is a truer preview of
-  // that case than the studio's generic share card would be.
-  const OG_IMAGE = $derived(c.cover)
+  // The cover is a root-relative site path (site.js's `img()` helper returns
+  // `/img/cases/...`, not a full URL) — og:image needs a protocol+host to
+  // resolve on Facebook/LinkedIn/WhatsApp/Slack, so it is prefixed with the
+  // origin here. Found and fixed 17 Aug 2026: the comment this replaces
+  // called the path "already absolute", which was wrong and meant this tag
+  // never resolved for any unfurler. This is still the one og:image on the
+  // site that is not the shared /img/og.jpg — a case page's own cover
+  // photograph is a truer preview of that case than the studio's generic
+  // share card would be.
+  const OG_IMAGE = $derived(`https://www.loomstudio-jo.com${c.cover}`)
 </script>
 
 <svelte:head>

@@ -125,7 +125,11 @@ export const PRICE = {
    preview card IS the first impression — currently it is the studio's generic
    banner, which says nothing about an academy. */
 export const HERO_ART = '/img/academy/hero.webp'
-export const OG_IMAGE = '/img/academy/og.jpg'
+// Absolute, not root-relative — og:image needs a full URL to resolve on
+// Facebook/LinkedIn/WhatsApp/Slack. Fixed 17 Aug 2026 alongside the same
+// relative-URL bug found sitewide (og.jpg on every other route, and
+// work/[slug]'s c.cover) during that day's head audit.
+export const OG_IMAGE = 'https://www.loomstudio-jo.com/img/academy/og.jpg'
 
 /* THE WHOP LINK. Empty until the product exists.
    The page reads this: with a URL it renders a Buy button; without one it

@@ -161,7 +161,7 @@
   <meta property="og:url" content="https://www.loomstudio-jo.com/mcp" />
   <meta property="og:title" content="The LOOM Protocol — MCP Servers for Agencies and Brands" />
   <meta property="og:description" content={DESC} />
-  <meta property="og:image" content="/img/og.jpg" />
+  <meta property="og:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="The LOOM Protocol — MCP Servers for Agencies and Brands" />
   <meta name="twitter:description" content={DESC} />

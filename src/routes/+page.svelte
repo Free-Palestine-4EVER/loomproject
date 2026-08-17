@@ -74,16 +74,31 @@
        or itself, and it was the one page on the site with no canonical of
        its own and no og:url, which is the two tags a search engine or a
        social unfurl needs most to know this IS the root rather than a
-       duplicate of it. -->
-  <link rel="canonical" href="https://www.loomstudio-jo.com" />
+       duplicate of it.
+
+       Trailing slash added 17 Aug 2026: sitemap.xml/+server.js builds every
+       <loc> as `${ORIGIN}${loc}`, and routeFromFile() maps the home
+       +page.svelte to loc = '/' (every other route maps to a leading-slash
+       path with NO trailing slash, e.g. '/work'). That makes the sitemap's
+       home entry 'https://www.loomstudio-jo.com/' — WITH the slash — while
+       this tag had no trailing slash, so canonical and sitemap disagreed on
+       the one URL that matters most. Fixed here rather than in the sitemap
+       generator: every other route's canonical already has no trailing
+       slash and matches its own sitemap entry, so home's bare-domain form
+       (no trailing slash) was the actual outlier, not the sitemap's '/'. A
+       bare domain without a trailing slash is also not really a URL path at
+       all — the root resource IS '/' — so this is the more correct of the
+       two forms, not just the matching one. -->
+  <link rel="canonical" href="https://www.loomstudio-jo.com/" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.loomstudio-jo.com" />
+  <meta property="og:url" content="https://www.loomstudio-jo.com/" />
   <meta property="og:title" content="LOOM — AI-Native Creative Agency" />
   <meta property="og:description" content="We weave brands on the edge of creativity. Amman × Sarajevo." />
-  <meta property="og:image" content="/img/og.jpg" />
+  <meta property="og:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="LOOM — AI-Native Creative Agency" />
   <meta name="twitter:description" content="We weave brands on the edge of creativity. Amman × Sarajevo." />
+  <meta name="twitter:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
 
   <!-- Measured with a PerformanceObserver('largest-contentful-paint') at
        390×844 (throttled): the LCP element there is Hero's own "See the

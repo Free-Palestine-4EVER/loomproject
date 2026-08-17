@@ -231,7 +231,7 @@ h1 { font-family: 'LOOM Organic', sans-serif; }`
   <meta property="og:url" content={CANONICAL} />
   <meta property="og:title" content={TITLE} />
   <meta property="og:description" content={DESC} />
-  <meta property="og:image" content="/img/og.jpg" />
+  <meta property="og:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={TITLE} />
   <meta name="twitter:description" content={DESC} />

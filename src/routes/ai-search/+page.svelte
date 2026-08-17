@@ -132,7 +132,7 @@
   <meta property="og:url" content="https://www.loomstudio-jo.com/ai-search" />
   <meta property="og:title" content="AI Search — Answer Engine Optimisation | LOOM" />
   <meta property="og:description" content={DESC} />
-  <meta property="og:image" content="/img/og.jpg" />
+  <meta property="og:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="AI Search — Answer Engine Optimisation | LOOM" />
   <meta name="twitter:description" content={DESC} />
