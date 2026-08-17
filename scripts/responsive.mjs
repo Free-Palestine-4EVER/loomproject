@@ -64,7 +64,13 @@ const DRY = process.argv.includes('--dry')
  *  gets these four" (rendered into a ~330px column); img/forge holds the
  *  three pipeline stages on the 2D→3D band. ADDING A DIRECTORY OF <Pic>
  *  SOURCES WITHOUT ADDING IT HERE IS ALWAYS THIS BUG. */
-const SETS = ['img/cases', 'img/niches', 'img/needs', 'img/apps', 'img/suite', 'img/workshops', 'img/lab', 'img/mcp', 'img/manifesto', 'img/hero', 'img/tree', 'img/loom', 'img/core', 'img/forge']
+/*  img/academy ADDED 17 Aug 2026 with /academy, and it walked straight into
+ *  the trap the two notes above describe — the emblems ship at 512px and are
+ *  painted at 52, which is ~10x the width and ~100x the pixel data, exactly
+ *  the ratio the star thumbnails had. Nine emblems plus the hero were wired
+ *  through <Pic sizes> before this line was touched, and the first run of
+ *  this script wrote nothing for them. */
+const SETS = ['img/cases', 'img/niches', 'img/needs', 'img/apps', 'img/suite', 'img/workshops', 'img/lab', 'img/mcp', 'img/manifesto', 'img/hero', 'img/tree', 'img/loom', 'img/core', 'img/forge', 'img/academy']
 
 const WIDTHS = [160, 320, 480, 768, 1024, 1600, 2048]
 const SRC_EXT = new Set(['.webp', '.png', '.jpg', '.jpeg'])

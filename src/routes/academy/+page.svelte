@@ -357,7 +357,7 @@
                 <!-- Only rendered for a module whose art exists; see EMBLEMS
                      in $data/academy.js for why this is a set and not a flag. -->
                 <span class="cr-mod-emblem" aria-hidden="true">
-                  <Pic src={emblemFor(m.id)} alt="" width="120" height="120" loading="lazy" decoding="async" sizes="52px" />
+                  <Pic src={emblemFor(m.id)} alt="" width="120" height="120" loading="lazy" decoding="async" sizes="64px" />
                 </span>
               {:else}
                 <span class="cr-mod-n" aria-hidden="true">{m.n}</span>

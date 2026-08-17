@@ -124,8 +124,8 @@ export const PRICE = {
    from a link pasted into WhatsApp or an Instagram story, and that link's
    preview card IS the first impression — currently it is the studio's generic
    banner, which says nothing about an academy. */
-export const HERO_ART = null
-export const OG_IMAGE = '/img/og.jpg'
+export const HERO_ART = '/img/academy/hero.webp'
+export const OG_IMAGE = '/img/academy/og.jpg'
 
 /* THE WHOP LINK. Empty until the product exists.
    The page reads this: with a URL it renders a Buy button; without one it
@@ -434,8 +434,19 @@ export const MODULES = [
    requests on every view of this page.
 
    To light one up: generate `static/img/academy/emblem-<id>.webp`, run
-   `node scripts/responsive.mjs`, add the id below. Nothing else. */
-export const EMBLEMS = new Set([])
+   `node scripts/responsive.mjs`, add the id below. Nothing else.
+
+   ALL NINE EXIST (17 Aug 2026). Eight were generated on Higgsfield's web
+   Unlimited toggle — the MCP reports `unlim.available: false` and refuses
+   nano_banana_pro outright, so the browser is the only free route — and the
+   ninth, `eye`, was already in the site: /img/wool/icons/eye.webp is exactly
+   the glyph module 02 needed, so it was copied rather than regenerated.
+   `ladder` and `polish` are second takes: the first ladder read as a braided
+   bar because the motif was described as diagonal, and the first sparkle sat
+   too small in the face to survive being painted at 52px. */
+export const EMBLEMS = new Set([
+  'map', 'eye', 'toolkit', 'build', 'polish', 'mouth', 'paper', 'machine', 'ladder',
+])
 export const emblemFor = (id) => (EMBLEMS.has(id) ? `/img/academy/emblem-${id}.webp` : null)
 
 /* ── the extras that raise perceived value without more filming ─────────── */

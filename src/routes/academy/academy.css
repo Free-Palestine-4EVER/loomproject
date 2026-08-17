@@ -179,8 +179,24 @@
    to a faint wash — at phone width a 46vw illustration either crowds the
    headline or shrinks to nothing, and the headline wins that argument. */
 .cr-hero-art {
-  position: absolute; inset-inline-end: 0; top: 8%;
-  width: min(46vw, 620px); z-index: 0; pointer-events: none;
+  position: absolute; inset-inline-end: 0; top: 18%;
+  width: min(40vw, 560px); z-index: 0; pointer-events: none;
+  /* The art and the headline share the upper right of the hero, and the
+     headline wins. Sitting the art behind the copy (z-index) keeps the words
+     legible but leaves them fighting a busy ball of yarn for the same pixels.
+     The mask fades the art out along the edge that meets the copy — so it
+     reads as depth behind the sentence rather than as a collision with it.
+     `mask-image` needs the -webkit- prefix for Safari, which is most of this
+     page's traffic. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #fff 34%, #fff 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #fff 34%, #fff 100%);
+}
+/* RTL flips the art to the left, so the fade has to flip with it — otherwise
+   the solid edge lands against the Arabic copy and the faded edge against the
+   empty side, which is the bug this rule exists to prevent, mirrored. */
+.cr--ar .cr-hero-art {
+  -webkit-mask-image: linear-gradient(to left, transparent 0%, #fff 34%, #fff 100%);
+  mask-image: linear-gradient(to left, transparent 0%, #fff 34%, #fff 100%);
 }
 .cr-hero-art img { width: 100%; height: auto; display: block; }
 
@@ -375,10 +391,10 @@
 /* The felted medallion, when a module has one. It replaces the module number
    in the same grid cell rather than sitting beside it, so a half-illustrated
    curriculum still has one clean column of markers instead of two competing
-   ones. 52px is the emblem's painted size — the `sizes` prop on <Pic> says the
+   ones. 64px is the emblem's painted size — the `sizes` prop on <Pic> says the
    same number, and if this changes both have to change together or the browser
    downloads a variant it does not need. */
-.cr-mod-emblem { display: block; width: 52px; height: 52px; flex: none; }
+.cr-mod-emblem { display: block; width: 64px; height: 64px; flex: none; }
 .cr-mod-emblem img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
 .cr-mod-title {
