@@ -175,7 +175,7 @@
     url: 'https://www.loomstudio-jo.com',
     logo: 'https://www.loomstudio-jo.com/img/logo/loom-woven.webp',
     description: 'AI-native creative agency — branding, campaigns, AI systems, apps, web and CGI.',
-    email: 'mofakhori@gmail.com',
+    email: 'marketing@loomstudio-jo.com',
     telephone: '+962791792129',
     areaServed: [
       { '@type': 'Country', name: 'Jordan' },

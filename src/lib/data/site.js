@@ -10,7 +10,7 @@ export const BRAND = {
   cities: ['Amman', 'Sarajevo'],
   whatsapp: 'https://wa.me/962791792129',
   phoneJO: '+962 79 179 2129',
-  email: 'mofakhori@gmail.com',
+  email: 'marketing@loomstudio-jo.com',
 }
 
 // ————————————————————————————————————————————
