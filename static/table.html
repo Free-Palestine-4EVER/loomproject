@@ -74,27 +74,17 @@
     if (now - t0 < HOLD) requestAnimationFrame(tick);
     else finish();
   }
-  /* On phones the option panel sits below the fold at every reachable scroll
-     position — a layout problem, not a scroll one. Two dead ends first:
-     position:fixed does nothing because an ancestor of the section is
-     transformed, and a transform makes a fixed descendant behave like an
-     absolute one; moving the node to <body><div id="boot"><i></i><span>Loading the configurator</span></div> does pin it, but the panel loses
-     its card — the background belongs to the wrapper left behind.
-     So nudge it up in place. It keeps its parent, keeps its styling, and the
-     offset is measured rather than guessed, so it is right on any viewport. */
+  /* Keep the AR button clear of the option panel. It used to also nudge the
+     panel upward with a transform — that fixed a headless 390x844 test and
+     removed the panel entirely on a real phone, which is a far worse bug than
+     the one it solved. The panel is left exactly where the site puts it. */
   function pin(){
     var p = document.querySelector('[class*="ColorPanel_panel__"]');
     var ar = document.getElementById("ar-cta");
-    if (p && ar) {
-      // park it 14px above whatever the panel ended up at
-      var gap = window.innerHeight - p.getBoundingClientRect().top + 14;
-      ar.style.bottom = Math.round(gap) + "px";
-    }
-    if (!p) return;
-    if (window.innerWidth > 640) { p.style.transform = ""; return }
+    if (!p || !ar) return;
     p.style.transform = "";
-    var over = p.getBoundingClientRect().bottom - (window.innerHeight - 14);
-    if (over > 0) p.style.transform = "translateY(" + (-Math.round(over)) + "px)";
+    var gap = window.innerHeight - p.getBoundingClientRect().top + 14;
+    if (gap > 0 && gap < window.innerHeight) ar.style.bottom = Math.round(gap) + "px";
   }
   setInterval(pin, 500);
 
