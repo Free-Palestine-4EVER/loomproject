@@ -120,7 +120,44 @@
    both are files rather than a live scene; covering all 864 combinations means
    baking 864 pairs. */
 (function(){
-  var USDZ = "/models/ar/table.usdz", GLB = "/models/ar/table.glb";
+  /* One baked pair per configuration. The slug matches tools/build-ar-variants.cjs:
+       <shape>-<wood>                      solid tops
+       <shape>-<wood>-epoxy-<resin>        epoxy tops
+     Brushed is a sheen and base metal is a small area, so neither is baked —
+     both fall back to the nearest model rather than a wrong one. */
+  function slug(){
+    var c = window.__cfg || {};
+    var shape = (c.shape || "Rectangular").toLowerCase();
+    var wood = (c.wood || "Walnut").toLowerCase();
+    if (c.finish === "Epoxy") return shape + "-" + wood + "-epoxy-" + (c.resin || "Black").toLowerCase();
+    return shape + "-" + wood;
+  }
+  /* The 192 baked pairs are ~111MB all told and cannot sit inside the Vercel
+     deployment — putting them there took the whole site down with a 500. They
+     live on a plain file host instead. The PAGE is still entirely LOOM's; this
+     is a CDN bucket and nothing else, immutable and cached for a year. */
+  var CDN = "https://loom-ar.web.app/models/ar/";
+  function asset(ext){ return CDN + slug() + "." + ext }
+
+  /* Warm the model the moment a configuration settles, so tapping the button
+     opens AR straight away instead of starting a download. One file, 90-360KB.
+     Debounced, fetched once per configuration, and skipped when the phone has
+     asked for less data. */
+  var warmed = {};
+  var warmTimer = null;
+  function warm(){
+    var c = navigator.connection;
+    if (c && (c.saveData || /^([23]g|slow-2g)$/.test(c.effectiveType || ""))) return;
+    var ext = isIOS() ? "usdz" : "glb";
+    var url = asset(ext);
+    if (warmed[url]) return;
+    warmed[url] = 1;
+    fetch(url, { mode: "cors", cache: "force-cache" }).catch(function(){});
+  }
+  function scheduleWarm(){
+    clearTimeout(warmTimer);
+    warmTimer = setTimeout(warm, 1200);
+  }
   function isIOS(){
     var ua = navigator.userAgent || "";
     return /iPad|iPhone|iPod/.test(ua) || (/Mac/.test(ua) && navigator.maxTouchPoints > 1);
@@ -129,7 +166,7 @@
     if (isIOS()) {
       var a = document.createElement("a");
       a.setAttribute("rel", "ar");
-      a.href = USDZ;
+      a.href = asset("usdz");
       var img = document.createElement("img");   // must be the ONLY child
       img.src = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
       img.style.cssText = "width:1px;height:1px;opacity:0";
@@ -139,7 +176,7 @@
       a.click();
       setTimeout(function(){ a.remove() }, 2000);
     } else {
-      var url = location.origin + GLB;
+      var url = location.origin + asset("glb");
       location.href = "intent://arvr.google.com/scene-viewer/1.0?file=" + encodeURIComponent(url) +
         "&mode=ar_preferred&resizable=true&title=" + encodeURIComponent("Walnut spider table") +
         "#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;" +
@@ -154,6 +191,14 @@
     b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 21 7v10l-9 4.5L3 17V7z"/><path d="M3 7l9 4.5L21 7"/><path d="M12 11.5V21.5"/></svg><span>Try it in your home</span>';
     b.addEventListener("click", openAR);
     document.body.appendChild(b);
+    /* Watch the configuration rather than listening for clicks. The panel
+       seeds itself AFTER this button is built, so warming on creation fetched
+       the wrong model — the solid default, when the page opens on epoxy. */
+    var lastSlug = "";
+    setInterval(function(){
+      var s = slug();
+      if (s !== lastSlug) { lastSlug = s; scheduleWarm() }
+    }, 400);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", make);
   else make();
