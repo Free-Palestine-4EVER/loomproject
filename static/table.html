@@ -120,7 +120,19 @@
    both are files rather than a live scene; covering all 864 combinations means
    baking 864 pairs. */
 (function(){
-  var USDZ = "/models/ar/table.usdz", GLB = "/models/ar/table.glb";
+  /* One baked pair per configuration. The slug matches tools/build-ar-variants.cjs:
+       <shape>-<wood>                      solid tops
+       <shape>-<wood>-epoxy-<resin>        epoxy tops
+     Brushed is a sheen and base metal is a small area, so neither is baked —
+     both fall back to the nearest model rather than a wrong one. */
+  function slug(){
+    var c = window.__cfg || {};
+    var shape = (c.shape || "Rectangular").toLowerCase();
+    var wood = (c.wood || "Walnut").toLowerCase();
+    if (c.finish === "Epoxy") return shape + "-" + wood + "-epoxy-" + (c.resin || "Black").toLowerCase();
+    return shape + "-" + wood;
+  }
+  function asset(ext){ return "/models/ar/" + slug() + "." + ext }
   function isIOS(){
     var ua = navigator.userAgent || "";
     return /iPad|iPhone|iPod/.test(ua) || (/Mac/.test(ua) && navigator.maxTouchPoints > 1);
@@ -129,7 +141,7 @@
     if (isIOS()) {
       var a = document.createElement("a");
       a.setAttribute("rel", "ar");
-      a.href = USDZ;
+      a.href = asset("usdz");
       var img = document.createElement("img");   // must be the ONLY child
       img.src = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
       img.style.cssText = "width:1px;height:1px;opacity:0";
@@ -139,7 +151,7 @@
       a.click();
       setTimeout(function(){ a.remove() }, 2000);
     } else {
-      var url = location.origin + GLB;
+      var url = location.origin + asset("glb");
       location.href = "intent://arvr.google.com/scene-viewer/1.0?file=" + encodeURIComponent(url) +
         "&mode=ar_preferred&resizable=true&title=" + encodeURIComponent("Walnut spider table") +
         "#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;" +
