@@ -19,6 +19,7 @@ import { post as aiSearchVisibility } from './ai-search-visibility.js'
 import { post as googleBusinessProfileAmman } from './google-business-profile-amman.js'
 import { post as arabicWebsiteTypography } from './arabic-website-typography.js'
 import { post as aiNativeAgency } from './ai-native-agency.js'
+import { post as ecommerceJordanCliqCodCheckout } from './ecommerce-jordan-cliq-cod-checkout.js'
 
 /* website-cost-jordan-ar.js is deliberately NOT imported here. It is a
    finished Arabic draft with nowhere correct to render: /journal/[slug] has no
@@ -31,6 +32,7 @@ const ALL = [
   googleBusinessProfileAmman,
   arabicWebsiteTypography,
   aiNativeAgency,
+  ecommerceJordanCliqCodCheckout,
 ]
 
 export const POSTS = [...ALL].sort(
