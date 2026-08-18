@@ -1,0 +1,430 @@
+/*
+  bbsimon.css — the B.B. Simon pitch pages.
+
+  Every selector is prefixed `.bbs`. These two routes render with the LOOM shell
+  switched off (see +layout.svelte), but the shell's global stylesheets are
+  still imported by the layout and would otherwise reach in — the prefix keeps
+  this page's chrome and LOOM's design system from touching each other.
+
+  Deliberately restrained. The clone is meant to read as B.B. Simon's own store:
+  white ground, black text, product photography doing the work. The ONLY place
+  the page raises its voice is the 3D stage and the AR button, because that is
+  the thing being sold. If a later edit makes the page prettier at the cost of
+  making the 3D less obviously the new part, that edit is wrong.
+*/
+
+.bbs {
+  --bbs-ink: #111;
+  --bbs-mute: #6b6b6b;
+  --bbs-line: #e4e4e4;
+  --bbs-ground: #fff;
+  --bbs-stone: #f6f5f3;
+  --bbs-gold: #9a7b3f;
+
+  background: var(--bbs-ground);
+  color: var(--bbs-ink);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.bbs *,
+.bbs *::before,
+.bbs *::after { box-sizing: border-box; }
+
+.bbs h1, .bbs h2 { font-weight: 400; letter-spacing: 0.02em; margin: 0; }
+
+/* Anything reproduced for the look of the thing but not wired up. Reads as
+   normal store furniture, does not invite a click. */
+.bbs [data-inert] { cursor: default; user-select: none; }
+.bbs [data-inert] input,
+.bbs [data-inert] button { pointer-events: none; }
+
+/* ── the LOOM ribbon ──────────────────────────────────────────────────── */
+.bbs-ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem clamp(1rem, 4vw, 2.5rem);
+  background: #111;
+  color: #f2efe9;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 12.5px;
+  letter-spacing: 0.03em;
+}
+.bbs-ribbon__mark {
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: #fff;
+}
+.bbs-ribbon__text { color: #b9b3a8; flex: 1 1 20rem; }
+.bbs-ribbon__link { color: #f2efe9; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+
+/* ── their store chrome ───────────────────────────────────────────────── */
+.bbs-head { border-bottom: 1px solid var(--bbs-line); }
+.bbs-head__bar {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 4vw, 3rem);
+  padding: 1.4rem clamp(1rem, 4vw, 2.5rem);
+  max-width: 1240px;
+  margin: 0 auto;
+}
+.bbs-head__logo { height: 34px; width: auto; flex: 0 0 auto; }
+.bbs-head__search { flex: 1 1 auto; max-width: 30rem; }
+.bbs-head__search input {
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--bbs-line);
+  background: var(--bbs-stone);
+  font: inherit;
+  font-size: 13px;
+  color: var(--bbs-mute);
+}
+.bbs-head__icons {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bbs-mute);
+}
+.bbs-head__nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(0.85rem, 2.2vw, 1.9rem);
+  padding: 0 clamp(1rem, 4vw, 2.5rem) 1rem;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bbs-ink);
+}
+
+.bbs-crumb {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 1.1rem clamp(1rem, 4vw, 2.5rem) 0;
+  font-size: 12px;
+  color: var(--bbs-mute);
+  letter-spacing: 0.04em;
+}
+.bbs-crumb__sep { margin: 0 0.45rem; opacity: 0.5; }
+.bbs-crumb__here { color: var(--bbs-ink); }
+
+/* ── product ──────────────────────────────────────────────────────────── */
+.bbs-product {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 4vw, 2.5rem) 0;
+  align-items: start;
+}
+
+/* stage ------------------------------------------------------------------ */
+.bbs-stage {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--bbs-stone);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--bbs-line);
+}
+/* The one moment of theatre on the page: in 3D the stage goes dark, so the
+   crystal has something to throw light against and the mode change is
+   unmistakable at a glance. */
+.bbs-stage--model {
+  background:
+    radial-gradient(120% 90% at 50% 12%, #2a2a2c 0%, #141416 55%, #0d0d0f 100%);
+  border-color: #17171a;
+}
+.bbs-stage__img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* The viewer sits in the stage for the whole life of the page — see the note
+   in BBSimonProduct.svelte — so it is positioned over the photograph rather
+   than replacing it in flow, and hidden with `visibility` when the stage is
+   showing a photo. Not `display: none`: that gives the canvas a zero size and
+   costs a re-measure every time the visitor toggles back into 3D. */
+.bbs-stage__viewer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  --poster-color: transparent;
+  --progress-bar-color: var(--bbs-gold);
+  background: transparent;
+}
+.bbs-stage__viewer.is-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+.bbs-stage__loading {
+  color: var(--bbs-mute);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+.bbs-stage__exit,
+.bbs-stage__hint {
+  position: absolute;
+  z-index: 2;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+}
+.bbs-stage__exit {
+  top: 0.9rem;
+  left: 0.9rem;
+  padding: 0.42rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.35);
+  color: #f2efe9;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.bbs-stage__exit:hover { background: rgba(0, 0, 0, 0.55); }
+.bbs-stage__hint {
+  bottom: 0.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(242, 239, 233, 0.62);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* model-viewer's own AR button, restyled through its slot. */
+.bbs-ar-btn {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.72rem 1.15rem;
+  border: 0;
+  background: #f2efe9;
+  color: #111;
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35);
+}
+.bbs-ar-btn:hover { background: #fff; }
+.bbs-ar-btn__icon { color: var(--bbs-gold); }
+
+.bbs-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+}
+.bbs-thumb {
+  position: relative;
+  width: 74px;
+  height: 74px;
+  padding: 0;
+  border: 1px solid var(--bbs-line);
+  background: var(--bbs-stone);
+  cursor: pointer;
+  transition: border-color 0.16s ease;
+}
+.bbs-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.bbs-thumb:hover { border-color: #b6b6b6; }
+.bbs-thumb.is-active { border-color: var(--bbs-ink); }
+.bbs-thumb--3d { background: #141416; border-color: #141416; }
+.bbs-thumb--3d img { opacity: 0.62; }
+.bbs-thumb--3d.is-active { border-color: var(--bbs-gold); }
+.bbs-thumb__badge {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 2px 0 3px;
+  background: rgba(0, 0, 0, 0.68);
+  color: #f2efe9;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-align: center;
+}
+
+/* buy column ------------------------------------------------------------- */
+.bbs-buy__title { font-size: clamp(1.35rem, 2.4vw, 1.9rem); letter-spacing: 0.06em; }
+.bbs-buy__price { font-size: 1.45rem; margin-top: 0.55rem; letter-spacing: 0.02em; }
+.bbs-buy__blurb { color: #3d3d3d; margin: 1rem 0 0; max-width: 34rem; }
+
+.bbs-buy__meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 1.1rem;
+  margin: 1.2rem 0 0;
+  font-size: 12.5px;
+}
+.bbs-buy__meta dt { color: var(--bbs-mute); text-transform: uppercase; letter-spacing: 0.1em; }
+.bbs-buy__meta dd { margin: 0; }
+
+.bbs-cta { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
+.bbs-cta__3d,
+.bbs-cta__ar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.3rem;
+  font: inherit;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border: 1px solid var(--bbs-ink);
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.bbs-cta__3d { background: #fff; color: var(--bbs-ink); }
+.bbs-cta__3d:hover { background: var(--bbs-ink); color: #fff; }
+.bbs-cta__ar { background: var(--bbs-ink); color: #fff; }
+.bbs-cta__ar:hover { background: #000; }
+.bbs-cta__ar:disabled {
+  background: #fff;
+  color: #9a9a9a;
+  border-color: var(--bbs-line);
+  cursor: not-allowed;
+}
+
+.bbs-arfall {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.95rem 1.1rem;
+  background: var(--bbs-stone);
+  border: 1px solid var(--bbs-line);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #3d3d3d;
+  max-width: 34rem;
+}
+.bbs-arfall__qr { width: 84px; height: 84px; flex: 0 0 auto; }
+.bbs-arfall strong { display: block; color: var(--bbs-ink); }
+
+.bbs-scale {
+  margin: 1rem 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--bbs-mute);
+  max-width: 34rem;
+}
+.bbs-scale__tag {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 1px 7px;
+  border: 1px solid var(--bbs-line);
+  color: var(--bbs-gold);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+
+.bbs-buy__form { display: flex; gap: 0.6rem; margin-top: 1.6rem; }
+.bbs-buy__qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bbs-mute);
+}
+.bbs-buy__qty input {
+  width: 62px;
+  padding: 0.6rem 0.5rem;
+  border: 1px solid var(--bbs-line);
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+  color: var(--bbs-mute);
+}
+.bbs-buy__add {
+  flex: 1 1 auto;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid var(--bbs-line);
+  background: var(--bbs-stone);
+  color: #9a9a9a;
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.bbs-buy__inert { margin: 0.55rem 0 0; font-size: 11.5px; color: #9a9a9a; }
+
+/* ── pitch / info / related ───────────────────────────────────────────── */
+.bbs-pitch,
+.bbs-info,
+.bbs-related {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3.4rem) clamp(1rem, 4vw, 2.5rem) 0;
+}
+.bbs-pitch h2,
+.bbs-info h2,
+.bbs-related h2 {
+  font-size: 1.1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--bbs-line);
+  margin-bottom: 1.2rem;
+}
+.bbs-pitch p { margin: 0 0 1.1rem; max-width: 48rem; color: #3d3d3d; }
+.bbs-pitch ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; max-width: 48rem; }
+.bbs-pitch li { padding-left: 1.1rem; position: relative; color: #3d3d3d; }
+.bbs-pitch li::before { content: '—'; position: absolute; left: 0; color: var(--bbs-gold); }
+
+.bbs-info table { border-collapse: collapse; width: 100%; max-width: 34rem; font-size: 13.5px; }
+.bbs-info th,
+.bbs-info td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--bbs-line); }
+.bbs-info th { width: 11rem; font-weight: 400; color: var(--bbs-mute); }
+.bbs-info__note { margin: 0.9rem 0 0; font-size: 12px; color: var(--bbs-mute); max-width: 42rem; }
+
+.bbs-related__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: clamp(1rem, 2.5vw, 1.8rem);
+}
+.bbs-related__card { text-align: center; }
+.bbs-related__card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background: var(--bbs-stone);
+  display: block;
+}
+.bbs-related__name { margin-top: 0.7rem; font-size: 12px; letter-spacing: 0.06em; }
+.bbs-related__price { margin-top: 0.25rem; font-size: 13px; color: var(--bbs-mute); }
+
+.bbs-foot {
+  margin-top: clamp(2.5rem, 6vw, 4.5rem);
+  padding: clamp(1.8rem, 4vw, 2.8rem) clamp(1rem, 4vw, 2.5rem);
+  background: #111;
+  color: #b9b3a8;
+  text-align: center;
+  font-size: 12.5px;
+}
+.bbs-foot__mark { color: #fff; font-weight: 700; letter-spacing: 0.3em; margin-bottom: 0.7rem; }
+.bbs-foot p { margin: 0 auto 0.7rem; max-width: 42rem; }
+.bbs-foot a { color: #f2efe9; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── narrow ───────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .bbs-product { grid-template-columns: minmax(0, 1fr); }
+  .bbs-head__bar { flex-wrap: wrap; gap: 0.9rem; }
+  .bbs-head__search { order: 3; flex-basis: 100%; max-width: none; }
+  .bbs-head__icons { margin-left: auto; }
+  .bbs-arfall { flex-direction: column; align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bbs-thumb,
+  .bbs-cta__3d,
+  .bbs-cta__ar { transition: none; }
+}

@@ -58,6 +58,29 @@
   // belong to.
   const bare = $derived(page.url.pathname === '/configurator')
 
+  /* /bbsimon1 and /bbsimon2 go further than bare: they drop the NAV as well.
+     They are client pitch pages that reproduce B.B. Simon's own store — their
+     logo, their category bar, their product photography — so that the reviewer
+     sees their page with 3D and AR added to it. LOOM's nav sitting on top of
+     that would make it read as our site quoting theirs, which is the one thing
+     the artefact must not do.
+
+     It is still signed. Both pages carry a LOOM ribbon across the top saying
+     whose concept it is and that nothing transacts, and a LOOM footer. Losing
+     the chrome is a framing decision, not an attempt to pass the page off as
+     B.B. Simon's own work. */
+  const unbranded = $derived(
+    page.url.pathname === '/bbsimon1' || page.url.pathname === '/bbsimon2'
+  )
+
+  /* /gpt-boost carries its OWN bottom dock — three tier chips and a full-width
+     call to action, sticky at the foot of the report — and the floating
+     WhatsApp bubble lands on top of it on a phone, covering the third tier. So
+     the bubble alone stands down there; the nav's "Get started" pill and the
+     footer's WhatsApp link are still on the page. THE BUTTERFLY IS NOT AFFECTED
+     and must not be: it rides every route. */
+  const hasOwnDock = $derived(page.url.pathname === '/gpt-boost')
+
   // Live media queries. Started here rather than per-component so there is one
   // matchMedia listener per query for the whole app instead of one per
   // consumer.
@@ -138,30 +161,40 @@
 <!-- The loom never stops running — a fixed, compositor-only backdrop behind
      every section (see loom-bg.css). Pure CSS, so it is in the server HTML and
      painting before a single byte of JS has been parsed. -->
-<div class="loom-bg" aria-hidden="true">
-  <div class="loom-bg-warp"></div>
-  <div class="loom-bg-dye"><i></i><i></i><i></i></div>
-  <div class="loom-bg-weft"></div>
-  <div class="loom-bg-weft loom-bg-weft--low"></div>
-</div>
+{#if !unbranded}
+  <div class="loom-bg" aria-hidden="true">
+    <div class="loom-bg-warp"></div>
+    <div class="loom-bg-dye"><i></i><i></i><i></i></div>
+    <div class="loom-bg-weft"></div>
+    <div class="loom-bg-weft loom-bg-weft--low"></div>
+  </div>
+{/if}
 
-{#if !bare}
+{#if !bare && !unbranded}
   <Loader />
   <ScrollProgress />
 {/if}
-<Nav />
+{#if !unbranded}
+  <Nav />
+{/if}
 
-<main class={bare ? 'main--bare' : ''}>
+<main class={bare || unbranded ? 'main--bare' : ''}>
   {@render children()}
 </main>
 
-{#if !bare}
+{#if !bare && !unbranded}
   <Footer />
 
-  <!-- the butterfly rides the whole page, above the copy and under the nav -->
+  <!-- the butterfly rides the whole page, above the copy and under the nav.
+       IT RIDES /gpt-boost TOO. It was briefly hidden there on the grounds that
+       it flew across the scan headline; that was not anyone's call to make and
+       it is back. If it ever needs handling on that route, move it — do not
+       remove it. -->
   <Flyer />
 
-  <WhatsAppFab />
+  {#if !hasOwnDock}
+    <WhatsAppFab />
+  {/if}
 {/if}
 
 <WizardModal />

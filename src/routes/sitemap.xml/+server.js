@@ -29,8 +29,17 @@ const pages = import.meta.glob('/src/routes/**/+page.svelte')
      - /lab — the internal variant-picking tool. Its own +page.js says so
        directly ("not a page that needs to be in the HTML for a crawler")
        and it renders nothing server-side (`ssr = false`), so a crawler
-       would index an empty shell even if it were listed. */
-const EXCLUDE = (route) => route.includes('[') || route === '/lab' || route === '/configurator'
+       would index an empty shell even if it were listed.
+     - /bbsimon1, /bbsimon2 — unlisted client pitch pages, on the same footing
+       as /configurator and carrying the same noindex tag. They also reproduce
+       B.B. Simon's own product photography, names and prices, so there is a
+       second reason beyond "unlisted": a LOOM URL ranking for a prospect's own
+       SKU is a problem we would have created for them. */
+const EXCLUDE = (route) =>
+  route.includes('[') ||
+  route === '/lab' ||
+  route === '/configurator' ||
+  route.startsWith('/bbsimon')
 
 function routeFromFile(file) {
   // '/src/routes/work/+page.svelte' -> '/work'
@@ -97,6 +106,11 @@ const WEIGHT = {
   '/pricing': { changefreq: 'monthly', priority: '0.8' },
   '/machine': { changefreq: 'monthly', priority: '0.8' },
   '/ai-search': { changefreq: 'monthly', priority: '0.8' },
+  // Top of the non-home tier: a free tool that returns a number about the
+  // visitor's own site is the highest-intent thing on the site, and it is
+  // built to be landed on directly — from a cold mail, a search for "is my
+  // site visible to ChatGPT", or an AI answer to that same question.
+  '/gpt-boost': { changefreq: 'weekly', priority: '0.9' },
   '/contact': { changefreq: 'monthly', priority: '0.7' },
   '/faq': { changefreq: 'monthly', priority: '0.7' },
   '/apps': { changefreq: 'monthly', priority: '0.6' },
