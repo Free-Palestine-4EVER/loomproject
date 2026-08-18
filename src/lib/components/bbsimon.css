@@ -282,8 +282,28 @@
 }
 .bbs-cta__3d { background: #fff; color: var(--bbs-ink); }
 .bbs-cta__3d:hover { background: var(--bbs-ink); color: #fff; }
-.bbs-cta__ar { background: var(--bbs-ink); color: #fff; }
-.bbs-cta__ar:hover { background: #000; }
+/* .bbs-cta__ar is an <a> on iOS/Android and a disabled <button> elsewhere —
+   see the markup. It has to look identical either way, so everything a link
+   brings with it (underline, visited colour) is neutralised here. */
+.bbs-cta__ar {
+  position: relative; /* contains the required rel="ar" <img> */
+  background: var(--bbs-ink);
+  color: #fff;
+  text-decoration: none;
+}
+.bbs-cta__ar:hover,
+.bbs-cta__ar:visited { background: #000; color: #fff; }
+/* Safari only honours <a rel="ar"> when it wraps an <img>; without one it
+   treats the anchor as an ordinary link and navigates to the .usdz. So the
+   image is required markup, not decoration — it is present and unseen, never
+   display:none, which would take it out of the equation entirely. */
+.bbs-cta__arimg {
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+}
 .bbs-cta__ar:disabled {
   background: #fff;
   color: #9a9a9a;

@@ -43,6 +43,7 @@
 -->
 <script>
   import { onMount } from 'svelte'
+  import { browser } from '$app/environment'
   import { BB_NAV } from '$data/bbsimon.js'
   import './bbsimon.css'
 
@@ -55,30 +56,45 @@
   let photoIndex = $state(0)
 
   let viewerReady = $state(false) // custom element defined
-  let canAR = $state(false) // this device can actually place the model
-  let arChecked = $state(false) // …and we have asked, so the QR can appear
   let viewer = $state(null)
 
-  /* THE ONE THAT ACTUALLY BITES ON A PITCH: iOS AR ONLY WORKS IN SAFARI.
+  /* PLATFORM, NOT CAPABILITY-PROBING.
 
-     AR Quick Look is not a web feature, it is a Safari feature. It fires
-     because Safari intercepts an <a rel="ar"> before it navigates. Every other
-     iOS browser — Chrome (CriOS), Firefox (FxiOS), Edge (EdgiOS) — and every
-     in-app webview (Gmail, LinkedIn, Instagram, WhatsApp) shares Safari's
-     engine but NOT that interception, so the same anchor is treated as an
-     ordinary link: the page navigates away to /models/….usdz and the visitor
-     lands on a bare file preview offering to "Open 3D model".
+     The previous version asked model-viewer whether it could do AR and built
+     the UI around the answer. That was wrong twice over: the answer was read
+     before Svelte had bound the element (so it was always false, and only
+     looked right on desktop, where false is the correct answer anyway), and
+     even when read correctly it routed AR through the 3D viewer — which meant
+     opening the 3D view, waiting for a 6.6 MB download, and only then getting
+     an AR button. Three taps for something that should be one.
 
-     model-viewer cannot detect this. `canActivateAR` is true on any iOS
-     browser, because as far as the element is concerned the platform supports
-     Quick Look. So the AR button lights up, and then loses the page.
-
-     This matters more here than on a normal site: the whole point of the pitch
-     is that the client taps AR, and a client taps it from the link in an email
-     — which opens in exactly the webview where it breaks. So we detect it and
-     say what to do instead of shipping a button that throws the page away. */
-  let arNeedsSafari = $state(false)
+     AR does not need the viewer at all. iOS Quick Look wants a USDZ behind an
+     <a rel="ar">, and Android's Scene Viewer wants a GLB behind an intent URL.
+     Both are plain links the OS handles, both work from a cold page load, and
+     neither cares whether WebGL has drawn a single frame. So the CTA is a link
+     chosen by platform, and the model-viewer AR button is just a bonus for
+     anyone already in the 3D view. */
+  let platform = $state('unknown') // 'ios' | 'ios-other' | 'android' | 'desktop'
   let copied = $state(false)
+
+  const usdzHref = $derived(product.model.usdz)
+  /* Scene Viewer takes an ABSOLUTE url — a relative one silently fails, since
+     the intent leaves the browser's origin behind. `mode=ar_only` skips Scene
+     Viewer's own 3D preview, which is the Android half of the three-tap
+     problem. browser_fallback_url returns anyone without ARCore to this page
+     rather than to an error. */
+  const sceneViewerHref = $derived(
+    browser
+      ? 'intent://arvr.google.com/scene-viewer/1.0?file=' +
+        encodeURIComponent(location.origin + product.model.glb) +
+        '&mode=ar_only&title=' +
+        encodeURIComponent(product.title) +
+        '#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;' +
+        'S.browser_fallback_url=' +
+        encodeURIComponent(location.href) +
+        ';end;'
+      : ''
+  )
 
   async function copyLink() {
     try {
@@ -92,17 +108,22 @@
     }
   }
 
-  function detectIOSBrowser() {
+  function detectPlatform() {
     const ua = navigator.userAgent
+    if (/Android/.test(ua)) return 'android'
     const isIOS =
       /iPad|iPhone|iPod/.test(ua) ||
       // iPadOS 13+ reports as desktop Safari; the touch count gives it away.
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-    if (!isIOS) return false
-    // Real mobile Safari carries a "Safari/" token and none of the rival
-    // browsers' tokens. In-app webviews drop the Safari token entirely.
+    if (!isIOS) return 'desktop'
+    /* Quick Look fires because SAFARI intercepts <a rel="ar"> before it
+       navigates. Chrome (CriOS), Firefox (FxiOS), Edge (EdgiOS) and every
+       in-app webview (Mail, Gmail, LinkedIn, WhatsApp) share the engine but
+       not the interception, so there the same anchor is an ordinary link and
+       the page navigates off to the .usdz. Real mobile Safari carries a
+       "Safari/" token and none of the rivals'; webviews drop it entirely. */
     const isRealSafari = /Safari\//.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua)
-    return !isRealSafari
+    return isRealSafari ? 'ios' : 'ios-other'
   }
 
   const m = $derived(product.model)
@@ -110,6 +131,10 @@
   /* Load the element once per document. Two of these pages could in principle
      be open in one SPA session, and defining a custom element twice throws. */
   onMount(() => {
+    // Decided once, from the UA alone — no element, no WebGL, no waiting. The
+    // AR links are correct on the first paint the visitor sees.
+    platform = detectPlatform()
+
     const SRC = '/vendor/model-viewer.min.js'
 
     const ready = () => {
@@ -146,14 +171,7 @@
         // canActivateAR settles asynchronously — it depends on the UA, the
         // WebXR session check and, on iOS, on Quick Look being available. Read
         // it after the element upgrades, not before.
-        queueMicrotask(() => {
-          arNeedsSafari = detectIOSBrowser()
-          // An iOS browser that is not Safari reports canActivateAR true and
-          // then navigates away. Treat it as "cannot", so the page offers the
-          // way out instead of the trap.
-          canAR = !!viewer?.canActivateAR && !arNeedsSafari
-          arChecked = true
-        })
+        viewerReady = true
       })
     }
 
@@ -170,8 +188,6 @@
       document.head.appendChild(tag)
     }
     tag.addEventListener('load', ready, { once: true })
-    // If the bundle fails outright, say so rather than leaving a dead frame.
-    tag.addEventListener('error', () => { arChecked = true }, { once: true })
   })
 
   function showModel() {
@@ -184,13 +200,11 @@
     photoIndex = i
     view = 'photo'
   }
-  /* The AR button lives in model-viewer's own `ar-button` slot, so the element
-     handles activation itself. This is only for the duplicate CTA in the buy
-     column, which is outside the element. */
-  function activateAR() {
-    if (view !== 'model') view = 'model'
-    viewer?.activateAR?.()
-  }
+  /* There is deliberately no activateAR() any more. The buy-column CTA is a
+     plain platform link (see the markup), and the button inside the stage
+     lives in model-viewer's own `ar-button` slot, which the element wires up
+     itself. Driving AR from our own JS was what made it depend on the viewer
+     having loaded first. */
 </script>
 
 <!-- Who made this, and that it does not sell anything. -->
@@ -247,6 +261,13 @@
         {/if}
 
         <!--
+          touch-action is "none", not model-viewer's default "pan-y". `pan-y`
+          hands every vertical drag to the PAGE, so trying to tilt the piece
+          scrolls past it instead — on a phone the stage is most of the screen,
+          which makes the model feel locked to one axis. "none" gives both axes
+          to the model; the page still scrolls everywhere outside the stage,
+          which is a single square.
+
           THE VIEWER IS MOUNTED FOR THE WHOLE PAGE, NOT ONLY IN 3D MODE.
 
           Two things depend on it being in the DOM early. `canActivateAR` is a
@@ -273,7 +294,7 @@
             poster={m.poster}
             alt={m.alt}
             camera-controls
-            touch-action="pan-y"
+            touch-action="none"
             interaction-prompt="auto"
             auto-rotate
             auto-rotate-delay="2200"
@@ -293,7 +314,7 @@
           >
             <!-- Hidden in the iOS browsers where tapping it would navigate to
                  the .usdz instead of opening Quick Look. See detectIOSBrowser. -->
-            <button class="bbs-ar-btn" class:is-hidden={arNeedsSafari} slot="ar-button">
+            <button class="bbs-ar-btn" class:is-hidden={platform === 'ios-other'} slot="ar-button">
               <span class="bbs-ar-btn__icon" aria-hidden="true">◈</span>
               Try it in your home
             </button>
@@ -349,23 +370,42 @@
         <dt>Availability</dt><dd>{product.stock}</dd>
       </dl>
 
-      <!-- The two things this page exists to demonstrate. -->
+      <!--
+        The two things this page exists to demonstrate.
+
+        ONE TAP TO AR. The AR control is a LINK, not a button that drives the
+        viewer, so it does not wait on the 3D view or on a 6.6 MB download:
+        iOS gets <a rel="ar"> straight to the USDZ, Android an ar_only Scene
+        Viewer intent straight to the GLB. Both are handed to the OS from a
+        cold page. The rel="ar" anchor MUST contain an <img> — Safari ignores
+        it otherwise and navigates to the file, which is the "Open 3D model"
+        dead end.
+      -->
       <div class="bbs-cta">
         <button class="bbs-cta__3d" onclick={showModel}>
           <span aria-hidden="true">◐</span> View in 3D
         </button>
-        <button class="bbs-cta__ar" onclick={activateAR} disabled={arChecked && !canAR}>
-          <span aria-hidden="true">◈</span> Try it in your home
-        </button>
+
+        {#if platform === 'ios'}
+          <a class="bbs-cta__ar" rel="ar" href={usdzHref}>
+            <img class="bbs-cta__arimg" src={m.poster} alt="" width="1" height="1" />
+            <span aria-hidden="true">◈</span> Try it in your home
+          </a>
+        {:else if platform === 'android'}
+          <a class="bbs-cta__ar" href={sceneViewerHref}>
+            <span aria-hidden="true">◈</span> Try it in your home
+          </a>
+        {:else}
+          <!-- Desktop, or an iOS browser that cannot reach Quick Look. Inert,
+               with the reason spelled out underneath rather than a bare grey
+               button. -->
+          <button class="bbs-cta__ar" disabled>
+            <span aria-hidden="true">◈</span> Try it in your home
+          </button>
+        {/if}
       </div>
 
-      <!--
-        AR cannot work on the desktop this deck gets reviewed on: WebXR is
-        Android, Quick Look is iOS, and a laptop has neither. Rather than a
-        greyed-out button with no explanation, hand over the QR — it is the
-        difference between the reviewer reading about AR and using it.
-      -->
-      {#if arChecked && arNeedsSafari}
+      {#if platform === 'ios-other'}
         <!-- On iOS but not in Safari: AR exists on this device, it just cannot
              be reached from this browser. Say that, rather than showing a QR
              pointing at the page they are already on. -->
@@ -380,7 +420,11 @@
             {copied ? 'Link copied' : 'Copy link'}
           </button>
         </div>
-      {:else if arChecked && !canAR}
+      {:else if platform === 'desktop'}
+        <!-- AR cannot work on the desktop this deck gets reviewed on: Scene
+             Viewer is Android, Quick Look is iOS, a laptop has neither. The QR
+             is the difference between the reviewer reading about AR and using
+             it. -->
         <div class="bbs-arfall">
           <img class="bbs-arfall__qr" src={`/img/bbsimon/qr-${product.slug}.svg`} alt="" width="96" height="96" />
           <div>
