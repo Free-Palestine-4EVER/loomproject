@@ -92,6 +92,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={post.title} />
   <meta name="twitter:description" content={post.description} />
+  <meta name="twitter:image" content="{SITE}{post.image.src}" />
   {@html `<script type="application/ld+json">${schema}</script>`}
   {@html `<script type="application/ld+json">${breadcrumbSchema}</script>`}
 </svelte:head>

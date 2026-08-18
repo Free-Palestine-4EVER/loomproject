@@ -165,6 +165,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="The LOOM Protocol — MCP Servers for Agencies and Brands" />
   <meta name="twitter:description" content={DESC} />
+  <meta name="twitter:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
 </svelte:head>
 
 <div class="route-page">

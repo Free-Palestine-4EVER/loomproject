@@ -144,6 +144,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="The Machine — A Month of Content, Every Month | LOOM" />
   <meta name="twitter:description" content={DESC} />
+  <meta name="twitter:image" content="https://www.loomstudio-jo.com/img/og.jpg" />
   {@html `<script type="application/ld+json">${schema}</script>`}
 </svelte:head>
 

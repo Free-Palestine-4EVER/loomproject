@@ -43,6 +43,9 @@
   <meta property="og:description" content={DESC} />
   <meta property="og:image" content="https://www.loomstudio-jo.com/img/configurator-poster.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Live 3D Product Configurator — LOOM" />
+  <meta name="twitter:description" content={DESC} />
+  <meta name="twitter:image" content="https://www.loomstudio-jo.com/img/configurator-poster.jpg" />
 </svelte:head>
 
 <iframe

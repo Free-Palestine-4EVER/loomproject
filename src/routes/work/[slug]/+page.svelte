@@ -77,6 +77,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={TITLE} />
   <meta name="twitter:description" content={c.copy} />
+  <meta name="twitter:image" content={OG_IMAGE} />
 </svelte:head>
 
 <!-- ═══ 1. THE HERO ══════════════════════════════════════════════════════
