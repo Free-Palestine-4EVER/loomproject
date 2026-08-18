@@ -59,6 +59,52 @@
   let arChecked = $state(false) // …and we have asked, so the QR can appear
   let viewer = $state(null)
 
+  /* THE ONE THAT ACTUALLY BITES ON A PITCH: iOS AR ONLY WORKS IN SAFARI.
+
+     AR Quick Look is not a web feature, it is a Safari feature. It fires
+     because Safari intercepts an <a rel="ar"> before it navigates. Every other
+     iOS browser — Chrome (CriOS), Firefox (FxiOS), Edge (EdgiOS) — and every
+     in-app webview (Gmail, LinkedIn, Instagram, WhatsApp) shares Safari's
+     engine but NOT that interception, so the same anchor is treated as an
+     ordinary link: the page navigates away to /models/….usdz and the visitor
+     lands on a bare file preview offering to "Open 3D model".
+
+     model-viewer cannot detect this. `canActivateAR` is true on any iOS
+     browser, because as far as the element is concerned the platform supports
+     Quick Look. So the AR button lights up, and then loses the page.
+
+     This matters more here than on a normal site: the whole point of the pitch
+     is that the client taps AR, and a client taps it from the link in an email
+     — which opens in exactly the webview where it breaks. So we detect it and
+     say what to do instead of shipping a button that throws the page away. */
+  let arNeedsSafari = $state(false)
+  let copied = $state(false)
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(location.href)
+      copied = true
+      setTimeout(() => (copied = false), 2200)
+    } catch {
+      // Clipboard is permissioned and can simply refuse. Selecting the URL
+      // bar is still available to them; do not pretend it worked.
+      copied = false
+    }
+  }
+
+  function detectIOSBrowser() {
+    const ua = navigator.userAgent
+    const isIOS =
+      /iPad|iPhone|iPod/.test(ua) ||
+      // iPadOS 13+ reports as desktop Safari; the touch count gives it away.
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    if (!isIOS) return false
+    // Real mobile Safari carries a "Safari/" token and none of the rival
+    // browsers' tokens. In-app webviews drop the Safari token entirely.
+    const isRealSafari = /Safari\//.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua)
+    return !isRealSafari
+  }
+
   const m = $derived(product.model)
 
   /* Load the element once per document. Two of these pages could in principle
@@ -101,7 +147,11 @@
         // WebXR session check and, on iOS, on Quick Look being available. Read
         // it after the element upgrades, not before.
         queueMicrotask(() => {
-          canAR = !!viewer?.canActivateAR
+          arNeedsSafari = detectIOSBrowser()
+          // An iOS browser that is not Safari reports canActivateAR true and
+          // then navigates away. Treat it as "cannot", so the page offers the
+          // way out instead of the trap.
+          canAR = !!viewer?.canActivateAR && !arNeedsSafari
           arChecked = true
         })
       })
@@ -229,7 +279,7 @@
             auto-rotate-delay="2200"
             rotation-per-second="14deg"
             camera-orbit={m.cameraOrbit}
-            field-of-view={m.fieldOfView}
+            bounds="tight"
             min-field-of-view="12deg"
             max-field-of-view="45deg"
             environment-image="neutral"
@@ -241,7 +291,9 @@
             ar-placement={product.ar.placement}
             ar-scale="fixed"
           >
-            <button class="bbs-ar-btn" slot="ar-button">
+            <!-- Hidden in the iOS browsers where tapping it would navigate to
+                 the .usdz instead of opening Quick Look. See detectIOSBrowser. -->
+            <button class="bbs-ar-btn" class:is-hidden={arNeedsSafari} slot="ar-button">
               <span class="bbs-ar-btn__icon" aria-hidden="true">◈</span>
               Try it in your home
             </button>
@@ -313,13 +365,28 @@
         greyed-out button with no explanation, hand over the QR — it is the
         difference between the reviewer reading about AR and using it.
       -->
-      {#if arChecked && !canAR}
+      {#if arChecked && arNeedsSafari}
+        <!-- On iOS but not in Safari: AR exists on this device, it just cannot
+             be reached from this browser. Say that, rather than showing a QR
+             pointing at the page they are already on. -->
+        <div class="bbs-arfall bbs-arfall--safari">
+          <div>
+            <strong>Open this page in Safari to place it in your room.</strong>
+            iPhone AR only runs in Safari — in Chrome, or from a link opened inside
+            Mail, Gmail or LinkedIn, it saves the file instead of placing it.
+            Tap ••• and choose “Open in Safari”. The 3D view above works here.
+          </div>
+          <button class="bbs-arfall__copy" onclick={copyLink}>
+            {copied ? 'Link copied' : 'Copy link'}
+          </button>
+        </div>
+      {:else if arChecked && !canAR}
         <div class="bbs-arfall">
           <img class="bbs-arfall__qr" src={`/img/bbsimon/qr-${product.slug}.svg`} alt="" width="96" height="96" />
           <div>
             <strong>Scan to place it in your room.</strong>
-            AR runs on the phone — iPhone opens it in Quick Look, Android in Scene Viewer.
-            The 3D view above works right here.
+            AR runs on the phone — iPhone opens it in Safari's Quick Look, Android in
+            Scene Viewer. The 3D view above works right here.
           </div>
         </div>
       {/if}

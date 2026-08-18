@@ -214,6 +214,9 @@
 }
 .bbs-ar-btn:hover { background: #fff; }
 .bbs-ar-btn__icon { color: var(--bbs-gold); }
+/* Suppressed where tapping it would navigate to the .usdz rather than open
+   Quick Look — every iOS browser that is not Safari. */
+.bbs-ar-btn.is-hidden { display: none; }
 
 .bbs-thumbs {
   display: flex;
@@ -303,6 +306,28 @@
 }
 .bbs-arfall__qr { width: 84px; height: 84px; flex: 0 0 auto; }
 .bbs-arfall strong { display: block; color: var(--bbs-ink); }
+
+/* The "you are on iOS but not in Safari" variant. Gold rule on the leading
+   edge because this one is an instruction the visitor has to act on, not a
+   note — it is the difference between them seeing AR and not. */
+.bbs-arfall--safari {
+  align-items: flex-start;
+  border-left: 2px solid var(--bbs-gold);
+}
+.bbs-arfall__copy {
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 0.6rem 0.95rem;
+  border: 1px solid var(--bbs-ink);
+  background: #fff;
+  color: var(--bbs-ink);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.bbs-arfall__copy:hover { background: var(--bbs-ink); color: #fff; }
 
 .bbs-scale {
   margin: 1rem 0 0;

@@ -80,10 +80,14 @@ export const PRODUCTS = {
       glb: `${MODELS}/tb108-table.glb`,
       usdz: `${MODELS}/tb108-table.usdz`,
       alt: 'Interactive 3D model of the TB-108-LT.COLORADO crystal-set dining table',
-      // Framing for the idle orbit. Slightly above eye level so the tabletop
-      // reads as a surface rather than as an edge-on ellipse.
-      cameraOrbit: '25deg 72deg 2.4m',
-      fieldOfView: '32deg',
+      /* ANGLES ONLY — NEVER A FIXED RADIUS, AND NEVER A FIXED field-of-view.
+         Slightly above eye level so the tabletop reads as a surface rather
+         than an edge-on ellipse. The distance is `auto` on purpose: horizontal
+         FOV is vertical FOV times the stage's aspect ratio, so a pinned
+         "2.4m / 32deg" that frames this 1.355m-wide table on a desktop stage
+         crops it at both sides on a portrait phone. Letting model-viewer solve
+         the distance is what makes the framing survive every screen. */
+      cameraOrbit: '25deg 72deg auto',
       poster: `${IMG}/products-tb-108-ltcolorado-1.png`,
     },
 
@@ -139,8 +143,8 @@ export const PRODUCTS = {
       glb: `${MODELS}/hh101-horse.glb`,
       usdz: `${MODELS}/hh101-horse.usdz`,
       alt: 'Interactive 3D model of the HH-101 crystal and mosaic horse head sculpture',
-      cameraOrbit: '-30deg 78deg 1.6m',
-      fieldOfView: '30deg',
+      // Angles only — see the note on the table's framing above.
+      cameraOrbit: '-30deg 78deg auto',
       poster: `${IMG}/products-hh-101-1.png`,
     },
 
