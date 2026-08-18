@@ -56,5 +56,5 @@ build() {  # $1=source glb  $2=slug  $3=height(m)  $4=web simplify err  $5=AR si
     "$(( $(stat -f%z "$OUT/$2.usdz") / 1048576.0 ))"
 }
 
-build "$SRC/Meshy_AI_Ornate_Gold_Filigree__0818044200_texture.glb" tb108-table 0.76 0.0008 0.004
+build "$SRC/Meshy_AI_Ornate_Gold_Filigree__0818061657_texture.glb" tb108-table 0.76 0.0008 0.004
 build "$SRC/Meshy_AI_Beaded_Horse_Bust_0818044014_texture.glb"     hh101-horse 0.55 0.0008 0.002
