@@ -43,7 +43,6 @@
 -->
 <script>
   import { onMount } from 'svelte'
-  import { browser } from '$app/environment'
   import { BB_NAV } from '$data/bbsimon.js'
   import './bbsimon.css'
 
@@ -70,31 +69,70 @@
 
      AR does not need the viewer at all. iOS Quick Look wants a USDZ behind an
      <a rel="ar">, and Android's Scene Viewer wants a GLB behind an intent URL.
-     Both are plain links the OS handles, both work from a cold page load, and
-     neither cares whether WebGL has drawn a single frame. So the CTA is a link
-     chosen by platform, and the model-viewer AR button is just a bonus for
-     anyone already in the 3D view. */
+     Both are handed to the OS, both work from a cold page load, and neither
+     cares whether WebGL has drawn a single frame. So the platform is read once
+     from the UA and openAR() does the rest — model-viewer has no AR role. */
   let platform = $state('unknown') // 'ios' | 'ios-other' | 'android' | 'desktop'
   let copied = $state(false)
 
-  const usdzHref = $derived(product.model.usdz)
-  /* Scene Viewer takes an ABSOLUTE url — a relative one silently fails, since
-     the intent leaves the browser's origin behind. `mode=ar_only` skips Scene
-     Viewer's own 3D preview, which is the Android half of the three-tap
-     problem. browser_fallback_url returns anyone without ARCore to this page
-     rather than to an error. */
-  const sceneViewerHref = $derived(
-    browser
-      ? 'intent://arvr.google.com/scene-viewer/1.0?file=' +
+  /* OPENING AR — THE SAME WAY /configurator DOES IT, WHICH IS THE ONE THAT
+     DEMONSTRABLY WORKS. Do not "improve" this; the shape of it is the feature.
+
+     iOS IS FUSSY: Quick Look only hijacks an <a rel="ar"> whose ONLY element
+     child is an <img>. Put an icon and a label in that anchor — which is what
+     a styled AR button naturally is — and Safari does not intercept it. It
+     treats it as an ordinary link to a file and offers "View 3D Object?", the
+     object-preview path, with AR another tap beyond it. That is the extra step,
+     and it looks exactly like a broken AR button to a customer.
+
+     So the VISIBLE control is a <button>, and the tap builds a throwaway
+     conforming anchor off-screen and clicks it. The click stays inside the
+     user gesture, which iOS also requires. */
+  const AR_PIXEL =
+    'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+
+  function openAR() {
+    if (platform === 'ios') {
+      const a = document.createElement('a')
+      a.setAttribute('rel', 'ar')
+      a.href = product.model.usdz
+      const img = document.createElement('img') // MUST be the only child
+      img.src = AR_PIXEL
+      img.style.cssText = 'width:1px;height:1px;opacity:0'
+      a.appendChild(img)
+      a.style.cssText = 'position:absolute;left:-9999px'
+      document.body.appendChild(a)
+      a.click()
+      setTimeout(() => a.remove(), 2000)
+      return
+    }
+    if (platform === 'android') {
+      /* Scene Viewer needs an ABSOLUTE url — a relative one silently fails,
+         because the intent leaves the browser's origin behind.
+         browser_fallback_url returns anyone without ARCore to this page
+         rather than to an error. */
+      location.href =
+        'intent://arvr.google.com/scene-viewer/1.0?file=' +
         encodeURIComponent(location.origin + product.model.glb) +
-        '&mode=ar_only&title=' +
+        '&mode=ar_preferred&resizable=false&title=' +
         encodeURIComponent(product.title) +
         '#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;' +
         'S.browser_fallback_url=' +
         encodeURIComponent(location.href) +
         ';end;'
-      : ''
-  )
+    }
+  }
+
+  /* Warm the AR file once, so the tap opens Quick Look instead of starting a
+     download in front of the client. Skipped on a metered or slow connection —
+     these are 3.5 MB and 17.9 MB, which is not something to pull down behind
+     someone's back. */
+  function warmAR() {
+    const c = navigator.connection
+    if (c && (c.saveData || /^([23]g|slow-2g)$/.test(c.effectiveType || ''))) return
+    const url = platform === 'ios' ? product.model.usdz : product.model.glb
+    fetch(url, { cache: 'force-cache' }).catch(() => {})
+  }
 
   async function copyLink() {
     try {
@@ -134,6 +172,10 @@
     // Decided once, from the UA alone — no element, no WebGL, no waiting. The
     // AR links are correct on the first paint the visitor sees.
     platform = detectPlatform()
+    // Pull the AR file down quietly once we know which one this device wants,
+    // so the tap opens Quick Look rather than starting a download in front of
+    // the client. Delayed so it never competes with the page's own images.
+    if (platform === 'ios' || platform === 'android') setTimeout(warmAR, 1500)
 
     const SRC = '/vendor/model-viewer.min.js'
 
@@ -268,15 +310,15 @@
           to the model; the page still scrolls everywhere outside the stage,
           which is a single square.
 
-          THE VIEWER IS MOUNTED FOR THE WHOLE PAGE, NOT ONLY IN 3D MODE.
+          THIS ELEMENT DOES 3D ONLY. IT HAS NO AR ROLE AT ALL.
 
-          Two things depend on it being in the DOM early. `canActivateAR` is a
-          property of the upgraded element, so probing it before the element
-          exists returns false — which on a PHONE would disable the AR button
-          on exactly the device that can do AR, and show the desktop QR
-          fallback instead. And Quick Look needs the `ios-src` in the document.
+          There are deliberately no `ar` / `ar-modes` / `ios-src` attributes
+          here. AR is opened by openAR(), which builds the anchor iOS demands
+          and hands Android its intent, and having model-viewer offer a second,
+          differently-implemented route to the same feature is how the two
+          behaviours drifted apart in the first place. One path.
 
-          Mounted is not loaded. `reveal="manual"` means not one byte of the
+          Mounted but not loaded: `reveal="manual"` means not one byte of the
           6.6 MB GLB is fetched until showModel() calls dismissPoster(), so a
           visitor who never opens the 3D view pays nothing for it. It is hidden
           with visibility rather than `display: none` so the element keeps a
@@ -290,7 +332,6 @@
             class:is-hidden={view !== 'model'}
             reveal="manual"
             src={m.glb}
-            ios-src={m.usdz}
             poster={m.poster}
             alt={m.alt}
             camera-controls
@@ -307,17 +348,7 @@
             shadow-intensity="1.1"
             shadow-softness="0.9"
             exposure="1.05"
-            ar
-            ar-modes="webxr scene-viewer quick-look"
-            ar-placement={product.ar.placement}
-            ar-scale="fixed"
           >
-            <!-- Hidden in the iOS browsers where tapping it would navigate to
-                 the .usdz instead of opening Quick Look. See detectIOSBrowser. -->
-            <button class="bbs-ar-btn" class:is-hidden={platform === 'ios-other'} slot="ar-button">
-              <span class="bbs-ar-btn__icon" aria-hidden="true">◈</span>
-              Try it in your home
-            </button>
             <div class="bbs-stage__progress" slot="progress-bar"></div>
           </model-viewer>
         {:else if view === 'model'}
@@ -331,7 +362,15 @@
           <button class="bbs-stage__exit" onclick={() => showPhoto(photoIndex)}>
             ← Photos
           </button>
-          <span class="bbs-stage__hint">Drag to rotate · scroll to zoom</span>
+          <span class="bbs-stage__hint">Drag to rotate · pinch to zoom</span>
+          <!-- Our button, not model-viewer's ar-button slot: one AR path only.
+               Absent where AR cannot be reached, rather than dead. -->
+          {#if platform === 'ios' || platform === 'android'}
+            <button class="bbs-ar-btn" onclick={openAR}>
+              <span class="bbs-ar-btn__icon" aria-hidden="true">◈</span>
+              Try it in your home
+            </button>
+          {/if}
         {/if}
       </div>
 
@@ -386,23 +425,16 @@
           <span aria-hidden="true">◐</span> View in 3D
         </button>
 
-        {#if platform === 'ios'}
-          <a class="bbs-cta__ar" rel="ar" href={usdzHref}>
-            <img class="bbs-cta__arimg" src={m.poster} alt="" width="1" height="1" />
-            <span aria-hidden="true">◈</span> Try it in your home
-          </a>
-        {:else if platform === 'android'}
-          <a class="bbs-cta__ar" href={sceneViewerHref}>
-            <span aria-hidden="true">◈</span> Try it in your home
-          </a>
-        {:else}
-          <!-- Desktop, or an iOS browser that cannot reach Quick Look. Inert,
-               with the reason spelled out underneath rather than a bare grey
-               button. -->
-          <button class="bbs-cta__ar" disabled>
-            <span aria-hidden="true">◈</span> Try it in your home
-          </button>
-        {/if}
+        <!-- A <button>, never a styled <a rel="ar"> — see openAR(). Disabled
+             only where AR genuinely cannot be reached: desktop, or an iOS
+             browser that is not Safari. -->
+        <button
+          class="bbs-cta__ar"
+          onclick={openAR}
+          disabled={platform !== 'ios' && platform !== 'android'}
+        >
+          <span aria-hidden="true">◈</span> Try it in your home
+        </button>
       </div>
 
       {#if platform === 'ios-other'}
