@@ -353,6 +353,10 @@ loadMaps((p) => UI.setLoading(0.10 + p * 0.35, 'Loading materials')).then(() => 
     UI.buildUI(state, handlers)
     UI.buildViewBar(state.view, setView)
     requestAnimationFrame(() => UI.setLoading(1))
+
+    // After the loading gate has faded, not before — a drawer that opens
+    // behind a black overlay has demonstrated nothing.
+    demoTimers.push(setTimeout(runOpeningDemo, 1400))
   })
 })
 
@@ -393,7 +397,11 @@ function pickAt(clientX, clientY) {
 let dragged = false
 let downAt = null
 
-canvas.addEventListener('pointerdown', (e) => { dragged = false; downAt = [e.clientX, e.clientY] })
+canvas.addEventListener('pointerdown', (e) => {
+  cancelDemo()
+  dragged = false
+  downAt = [e.clientX, e.clientY]
+})
 canvas.addEventListener('pointermove', (e) => {
   // Touch has no hover. Without this the last-touched front stays nudged proud
   // of the carcass after the finger lifts, because nothing ever moves the
@@ -489,6 +497,81 @@ function animateOpenable(o, to, delay = 0) {
       ? (o.type === 'door' ? easeOutSettle : easeOutQuart)
       : easeInOutCubic,
   }
+}
+
+/* --------------------------------------------------------------- demo -- */
+//
+// Nobody knows a render is interactive until something moves.
+//
+// On load, one drawer opens itself, holds, and closes again. It is the only
+// way to say "this is not a picture" without relying on the visitor reading a
+// caption — and the caption then retires, because an instruction that stays on
+// screen after it has been obeyed becomes chrome.
+//
+// It picks the drawer nearest the camera whose front actually faces the camera,
+// rather than a hard-coded index: the layouts and the bay-splitting decide how
+// many drawers there are and where, so any fixed choice would eventually point
+// at a drawer behind the island or off the side of the frame.
+//
+// CANCELS ON ANY INPUT. A demo that keeps playing while the visitor is already
+// dragging the camera is not a demo, it is a fight — and the one thing worse
+// than not knowing it is interactive is touching it and having it ignore you.
+
+let demoTimers = []
+let demoDone = false
+
+function cancelDemo() {
+  if (demoDone) return
+  demoDone = true
+  demoTimers.forEach(clearTimeout)
+  demoTimers = []
+  document.body.classList.add('has-opened')
+}
+
+function pickDemoDrawer() {
+  const forward = new THREE.Vector3()
+  camera.getWorldDirection(forward)
+  let best = null, bestScore = -Infinity
+  for (const o of built.ctx.openables) {
+    if (o.type !== 'drawer') continue
+    // Facing the camera: the drawer's outward normal must oppose the view
+    // direction. A drawer on the far side of the island opens away from you and
+    // demonstrates nothing.
+    const facing = -(o.normal.x * forward.x + o.normal.z * forward.z)
+    if (facing < 0.35) continue
+    const dist = camera.position.distanceTo(o.pivot.position)
+    // Near, and squarely facing. Distance dominates; facing breaks ties.
+    const score = -dist + facing * 1.5
+    if (score > bestScore) { bestScore = score; best = o }
+  }
+  return best
+}
+
+function runOpeningDemo() {
+  if (demoDone || !built) return
+  if (REDUCED.matches) { cancelDemo(); return }
+
+  const drawer = pickDemoDrawer()
+  if (!drawer) { cancelDemo(); return }
+
+  drawer.target = 1
+  animateOpenable(drawer, 1)
+  invalidate()
+
+  // Open, hold long enough to read as deliberate, close, then retire the hint
+  // once the drawer is actually shut rather than the moment it starts closing.
+  demoTimers.push(setTimeout(() => {
+    if (demoDone) return
+    drawer.target = 0
+    animateOpenable(drawer, 0)
+    invalidate()
+  }, 1500))
+
+  demoTimers.push(setTimeout(() => {
+    if (demoDone) return
+    demoDone = true
+    document.body.classList.add('has-opened')
+  }, 2900))
 }
 
 function setAllOpen(open) {
@@ -695,7 +778,7 @@ function setQuality(q) {
 let needsRender = true
 function invalidate() { needsRender = true }
 
-controls.addEventListener('start', () => { setQuality(QUALITY.moving); invalidate() })
+controls.addEventListener('start', () => { cancelDemo(); setQuality(QUALITY.moving); invalidate() })
 controls.addEventListener('change', invalidate)
 controls.addEventListener('end', () => { settleTimer = 0.22; invalidate() })
 
@@ -804,7 +887,10 @@ document.getElementById('shot')?.addEventListener('click', () => {
   UI.toast('Render saved')
 })
 
-document.getElementById('openall')?.addEventListener('click', () => setAllOpen(!openAllState))
+document.getElementById('openall')?.addEventListener('click', () => {
+  cancelDemo()
+  setAllOpen(!openAllState)
+})
 
 document.getElementById('spec-toggle')?.addEventListener('click', (e) => {
   const open = document.body.classList.toggle('spec-open')
@@ -816,4 +902,14 @@ document.getElementById('panel-toggle')?.addEventListener('click', () => {
 })
 
 // Exposed for the QA pass and for anyone poking at it in the console.
-Object.assign(window, { __kitchen: { scene, state, rebuild, renderer, composer, gtao, camera, controls, setLid, get lidAmount() { return lidAmount }, get lidTarget() { return lidTarget }, get built() { return built } } })
+Object.assign(window, { __kitchen: { scene, state, rebuild, renderer, composer, gtao, camera, controls, setLid,
+  // Replays the load-time demo. Exposed for QA: the real one fires once, 1.4 s
+  // after the gate clears, which is almost impossible to catch by hand.
+  replayDemo: () => {
+    demoDone = false
+    demoTimers.forEach(clearTimeout)
+    demoTimers = []
+    document.body.classList.remove('has-opened')
+    for (const o of built.ctx.openables) { o.target = 0; o.open = 0; o.anim = null }
+    runOpeningDemo()
+  }, get lidAmount() { return lidAmount }, get lidTarget() { return lidTarget }, get built() { return built } } })
