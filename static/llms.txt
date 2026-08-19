@@ -32,9 +32,68 @@ about the studio, not marketing copy.
   ChatGPT, Gemini, Perplexity and Google's AI answers: an llms.txt like this
   one, schema.org structured data, Google Business Profile work, and consistent
   business facts across the sources these models cite.
+- **GPT BOOST** — a free audit at https://www.loomstudio-jo.com/gpt-boost that
+  fetches a website's own robots.txt, llms.txt, sitemap.xml and homepage HTML
+  and reports how readable it is to AI assistants: which named AI crawlers
+  (OAI-SearchBot, ChatGPT-User, GPTBot, ClaudeBot, Claude-User, PerplexityBot,
+  Google-Extended and others) the site allows, how much text arrives before
+  JavaScript runs, what schema.org markup is declared, and whether the basic
+  business facts can be quoted. It scores out of 100 across four printed
+  weights and quotes the line of the site's own file behind every finding. No
+  email or account is required and nothing is stored. The fix, done by LOOM and
+  re-audited after 30 days, starts from 250 JOD.
+- **LOOM Academy** — the studio teaches what it builds with. Program 01,
+  "First Client," is open now: build websites with AI, then sell them —
+  taught in Arabic, at https://www.loomstudio-jo.com/academy. Founding-member
+  price is 97 USD one-time (lifetime access, including every future lesson);
+  it rises to 149 USD after the founding cohort.
 - **The LOOM Protocol** — three MCP (Model Context Protocol) servers in private
   beta, issued by hand: LOOM ATELIER (brand context), LOOM MACHINE (content
   production) and LOOM ROOM (3D and AR).
+
+## Work
+
+Case studies at https://www.loomstudio-jo.com/work, and their own pages:
+
+- **Ana Ellie** (Jordan, 2026) — "A whole catalogue, no studio," product
+  photography, AI imaging, e-commerce.
+  https://www.loomstudio-jo.com/work/ellie
+- **Maison de l'Avenir** (UAE, 2026) — "Nebula Nectar, carved in ice,"
+  campaign, AI imaging, fragrance.
+  https://www.loomstudio-jo.com/work/maison
+- **Evora Future Home** (Jordan, 2026) — "A furniture catalogue that builds
+  itself," 3D catalogue, e-commerce, AR.
+  https://www.loomstudio-jo.com/work/evorahome
+- **Auraa Desire × Savia** (UAE, 2024) — "Extrait de désir," campaign,
+  content, social media.
+  https://www.loomstudio-jo.com/work/auraa
+- **Slatko i Slano** (Bosnia and Herzegovina, 2023–25) — "A bakery, fully
+  baked," 360 campaign, VFX.
+  https://www.loomstudio-jo.com/work/slatko
+- **OJAR** (Oman × UAE, 2026) — "Hojari, bottled," brand identity, product
+  photography, e-commerce, campaign.
+  https://www.loomstudio-jo.com/work/ojar
+
+## Journal
+
+Articles at https://www.loomstudio-jo.com/journal:
+
+- **How Much Does a Website Cost in Jordan? An Honest Breakdown**
+  https://www.loomstudio-jo.com/journal/website-cost-jordan
+- **How to Get Your Business to Show Up in ChatGPT and AI Search**
+  https://www.loomstudio-jo.com/journal/ai-search-visibility
+- **Google Business Profile Setup for a Business in Amman: A Complete Guide**
+  https://www.loomstudio-jo.com/journal/google-business-profile-amman
+- **Why Your Arabic Website Is Losing You Customers**
+  https://www.loomstudio-jo.com/journal/arabic-website-typography
+- **What "AI-Native Agency" Actually Means, and What It Doesn't**
+  https://www.loomstudio-jo.com/journal/ai-native-agency
+- **E-commerce in Jordan: CliQ, Cash on Delivery, and Building an
+  Arabic-First Checkout**
+  https://www.loomstudio-jo.com/journal/ecommerce-jordan-cliq-cod-checkout
+- **Instagram or a Website: What a Jordanian SMB Actually Needs First in
+  2026**
+  https://www.loomstudio-jo.com/journal/instagram-or-website-jordan-smb
 
 ## The studio itself
 
