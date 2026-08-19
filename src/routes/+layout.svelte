@@ -51,12 +51,13 @@
 
   let { children } = $props()
 
-  // /configurator is a bare embed handed out by link: the header, then one
-  // full-window iframe, and nothing else. The footer, the butterfly and the
-  // floating CTA are all skipped — each would sit over a live 3D viewport the
-  // visitor is meant to drag, and there is no page below the frame for them to
-  // belong to.
-  const bare = $derived(page.url.pathname === '/configurator')
+  // /configurator and /kitchen3d are bare embeds handed out by link: the
+  // header, then one full-window iframe, and nothing else. The footer, the
+  // butterfly and the floating CTA are all skipped — each would sit over a live
+  // 3D viewport the visitor is meant to drag, and there is no page below the
+  // frame for them to belong to.
+  const BARE_ROUTES = new Set(['/configurator', '/kitchen3d'])
+  const bare = $derived(BARE_ROUTES.has(page.url.pathname))
 
   /* /bbsimon1 and /bbsimon2 go further than bare: they drop the NAV as well.
      They are client pitch pages that reproduce B.B. Simon's own store — their

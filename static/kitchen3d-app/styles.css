@@ -1,0 +1,675 @@
+/*
+  styles.css — the chrome around the 3D.
+
+  The whole interface is a dark, low-contrast frame so that the brightest thing
+  on screen is always the kitchen. Every panel is translucent over the render
+  rather than opaque beside it: a configurator that boxes the product into 60%
+  of the viewport is selling the interface, not the kitchen.
+
+  Type is system UI at small sizes with wide tracking on labels — the reference
+  aesthetic is architectural drawing, not app. No webfont: one more network
+  dependency for a page whose whole point is that it has none.
+*/
+
+:root {
+  --bg: #0b0b0c;
+  --ink: #f2ede4;
+  --ink-2: #a49c8f;
+  --ink-3: #6c665c;
+  --line: rgba(242, 237, 228, 0.11);
+  --line-2: rgba(242, 237, 228, 0.055);
+  --brass: #c9a35c;
+  --panel: rgba(14, 14, 15, 0.72);
+  --panel-2: rgba(20, 20, 21, 0.86);
+  --r: 3px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --pad: 22px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+body { overflow: hidden; }
+
+#view {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* The canvas takes every pointer event that no panel claims first, so drag
+     works right up to the edge of the controls. */
+  touch-action: none;
+}
+
+.upper {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ gate -- */
+
+#gate {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  background: #0b0b0c;
+  transition: opacity 0.8s var(--ease);
+}
+#gate.done { opacity: 0; pointer-events: none; }
+.gate-in { width: min(280px, 70vw); text-align: center; }
+.gate-mark {
+  font-size: 13px;
+  letter-spacing: 0.46em;
+  font-weight: 700;
+  margin-bottom: 26px;
+  color: var(--ink);
+}
+.gate-l {
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 12px;
+}
+.gate-bar { height: 1px; background: var(--line); overflow: hidden; }
+.gate-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--brass);
+  transform: scaleX(0.05);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease);
+}
+
+/* ------------------------------------------------------------------- top -- */
+
+#top {
+  position: fixed;
+  z-index: 20;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px var(--pad);
+  pointer-events: none;
+}
+#top > * { pointer-events: auto; }
+
+.brand { display: flex; align-items: baseline; gap: 14px; }
+.brand-m { font-size: 13px; letter-spacing: 0.42em; font-weight: 700; }
+.brand-s {
+  font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.top-actions { display: flex; gap: 8px; }
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 9px 15px;
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease), background 0.25s var(--ease);
+}
+.btn:hover { color: var(--ink); border-color: rgba(242, 237, 228, 0.26); }
+.btn-a { color: var(--brass); border-color: rgba(201, 163, 92, 0.35); }
+.btn-a:hover { background: rgba(201, 163, 92, 0.1); color: var(--brass); }
+
+/* ----------------------------------------------------------------- panel -- */
+
+#panel-wrap {
+  position: fixed;
+  z-index: 25;
+  top: 68px;
+  left: var(--pad);
+  bottom: 108px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+#panel-toggle { display: none; }
+
+#panel {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(242, 237, 228, 0.16) transparent;
+}
+#panel::-webkit-scrollbar { width: 3px; }
+#panel::-webkit-scrollbar-thumb { background: rgba(242, 237, 228, 0.16); }
+
+.panel-scroll { padding: 4px 0 18px; }
+
+.grp { padding: 15px 17px 16px; border-bottom: 1px solid var(--line-2); }
+.grp:last-child { border-bottom: 0; }
+.grp h3 {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-bottom: 11px;
+}
+.grp-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.grp-h h3 { margin-bottom: 11px; }
+.grp-v {
+  font-size: 11px;
+  color: var(--ink-2);
+  margin-bottom: 11px;
+  text-align: right;
+  /* The live value is the thing you check after a change, so it gets to win on
+     truncation over the group label. */
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------- swatches -- */
+
+.sw-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), 1fr);
+  gap: 7px;
+}
+
+.sw {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  display: block;
+}
+.sw-chip {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.5;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.2s var(--ease), transform 0.25s var(--ease);
+}
+.sw:hover .sw-chip { transform: translateY(-1px); }
+.sw[aria-pressed="true"] .sw-chip { outline-color: var(--brass); }
+.sw-n {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.25;
+  color: var(--ink-3);
+  transition: color 0.2s var(--ease);
+}
+.sw[aria-pressed="true"] .sw-n { color: var(--ink); }
+.sw:focus-visible .sw-chip { outline-color: var(--ink); }
+
+/* -------------------------------------------------------------- segmented -- */
+
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.seg-b {
+  appearance: none;
+  flex: 1 1 auto;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  padding: 7px 9px;
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.22s var(--ease);
+}
+.seg-b:hover { color: var(--ink-2); border-color: rgba(242, 237, 228, 0.2); }
+.seg-b[aria-pressed="true"] {
+  color: #14120e;
+  background: var(--brass);
+  border-color: var(--brass);
+}
+
+/* ------------------------------------------------------------------ spec -- */
+
+#spec-wrap {
+  position: fixed;
+  z-index: 25;
+  top: 68px;
+  right: var(--pad);
+  width: 286px;
+  max-height: calc(100vh - 190px);
+  background: var(--panel);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#spec { padding: 16px 17px 18px; }
+
+.spec-h { margin-bottom: 13px; }
+.spec-k {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.spec-l {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 7px 12px;
+  font-size: 11.5px;
+}
+.spec-l dt { color: var(--ink-3); white-space: nowrap; }
+.spec-l dd { color: var(--ink); text-align: right; }
+
+.spec-lead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line-2);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.spec-lead strong { color: var(--ink); font-weight: 500; }
+
+.spec-notes {
+  list-style: none;
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line-2);
+  display: grid;
+  gap: 7px;
+}
+.spec-notes li {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+  padding-left: 11px;
+  position: relative;
+}
+.spec-notes li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 4px;
+  height: 1px;
+  background: var(--brass);
+}
+
+/* ----------------------------------------------------------------- views -- */
+
+#views {
+  position: fixed;
+  z-index: 25;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--panel-2);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+}
+
+.view-b {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  padding: 8px 17px;
+  border-radius: 2px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.25s var(--ease), color 0.25s var(--ease);
+}
+.view-b:hover { color: var(--ink-2); }
+.view-b[aria-pressed="true"] { background: rgba(242, 237, 228, 0.07); color: var(--ink); }
+.view-n {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.view-h {
+  display: block;
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  /* The hint is a nicety; it is the first thing to go when the bar gets tight. */
+  max-width: 22ch;
+}
+.view-b[aria-pressed="true"] .view-h { color: var(--ink-2); }
+
+/* ----------------------------------------------------------------- toast -- */
+
+#toast {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  bottom: 104px;
+  transform: translate(-50%, 8px);
+  padding: 9px 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease), transform 0.4s var(--ease);
+  max-width: 80vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ------------------------------------------------------------------ busy -- */
+
+body.busy #panel-wrap { cursor: progress; }
+
+.ns {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--ink-2);
+  padding: 40px;
+  text-align: center;
+  z-index: 100;
+}
+
+/* ---------------------------------------------------------------- mobile -- */
+
+@media (max-width: 900px) {
+  :root { --pad: 12px; }
+
+  #spec-wrap {
+    top: auto;
+    bottom: 84px;
+    right: var(--pad);
+    left: var(--pad);
+    width: auto;
+    max-height: 34vh;
+    /* On a phone the spec is reference material, not a control. It sits behind
+       the options sheet and is only reachable when the sheet is collapsed. */
+    z-index: 22;
+  }
+
+  #panel-wrap {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: 72vh;
+    border-radius: var(--r) var(--r) 0 0;
+    border-bottom: 0;
+    transform: translateY(calc(100% - 46px));
+    transition: transform 0.45s var(--ease);
+  }
+  body.panel-open #panel-wrap { transform: translateY(0); }
+
+  #panel-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 46px;
+    flex: 0 0 46px;
+    padding: 0 16px;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+  }
+  .pt-l { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; }
+  .pt-c {
+    width: 9px; height: 9px;
+    border-right: 1px solid var(--ink-2);
+    border-bottom: 1px solid var(--ink-2);
+    transform: rotate(-135deg);
+    transition: transform 0.45s var(--ease);
+  }
+  body.panel-open .pt-c { transform: rotate(45deg); }
+
+  #views {
+    bottom: auto;
+    top: 58px;
+    padding: 2px;
+  }
+  .view-h { display: none; }
+  .view-b { padding: 7px 12px; }
+
+  #toast { bottom: auto; top: 108px; }
+
+  .brand-s { display: none; }
+  .btn { padding: 8px 11px; letter-spacing: 0.14em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Camera easing is handled in JS (it checks nothing here) but everything the
+     stylesheet animates is decoration and can stop. */
+  * { transition-duration: 0.01ms !important; }
+}
+
+
+/* ------------------------------------------------- single-scheme mode -- */
+/*
+  While the catalogue is cut to one approved specification there is nothing to
+  configure, so the options panel is removed rather than left as an empty box.
+  The spec sheet and the camera views still carry everything worth showing.
+  Adding a second finish to any table in config.js brings the panel straight
+  back — this is driven by a body class the UI sets, not by editing markup.
+*/
+body.no-options #panel-wrap { display: none; }
+
+body.no-options #spec-wrap {
+  /* With the left column gone the spec can sit where the eye already is,
+     rather than hugging the right edge of a very wide viewport. */
+  top: 68px;
+  right: var(--pad);
+}
+
+@media (max-width: 900px) {
+  body.no-options #spec-wrap {
+    top: auto;
+    bottom: var(--pad);
+    max-height: 40vh;
+  }
+}
+
+
+/* ---------------------------------------------------------------- hint -- */
+
+#hint {
+  position: fixed;
+  z-index: 24;
+  left: var(--pad);
+  bottom: 26px;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  pointer-events: none;
+  /* Fades once the user has opened something — see main.js. It is an
+     instruction, not a label, and an instruction that never goes away starts
+     reading as chrome. */
+  transition: opacity 0.6s var(--ease);
+}
+body.has-opened #hint { opacity: 0; }
+
+@media (max-width: 900px) {
+  #hint { bottom: auto; top: 96px; left: var(--pad); }
+}
+
+
+/* --------------------------------------------------------------- mobile -- */
+/*
+  The desktop layout puts the spec sheet in a fixed column on the right. On a
+  phone that column is the whole screen, so it becomes a sheet docked to the
+  bottom edge that collapses to its own header.
+
+  Everything here is driven by a real breakpoint plus `pointer: coarse`, not by
+  user-agent sniffing — a small window on a desktop gets the same treatment and
+  a tablet with a mouse does not get thumb-sized controls it has no use for.
+*/
+
+#spec-toggle { display: none; }
+
+@media (max-width: 900px), (pointer: coarse) {
+  :root { --pad: 10px; }
+
+  #spec-wrap {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: 62vh;
+    border-radius: var(--r) var(--r) 0 0;
+    border-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Below the safe area on notched phones — a sheet that ends under the home
+       indicator loses its last row to a gesture bar. */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    transform: translateY(calc(100% - 44px - env(safe-area-inset-bottom, 0px)));
+    transition: transform 0.42s var(--ease);
+    z-index: 26;
+  }
+  body.spec-open #spec-wrap { transform: translateY(0); }
+
+  #spec-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 44px;
+    width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--ink);
+    font: inherit;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .st-c {
+    width: 9px; height: 9px;
+    border-right: 1px solid var(--ink-2);
+    border-bottom: 1px solid var(--ink-2);
+    transform: rotate(-135deg);
+    transition: transform 0.42s var(--ease);
+  }
+  body.spec-open .st-c { transform: rotate(45deg); }
+
+  #spec { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .spec-h { display: none; }              /* the toggle is the heading now */
+
+  /* Views move to the top, out from under the sheet, and get thumb-sized
+     targets. 44 px is the minimum anyone can hit reliably while holding a
+     phone one-handed. */
+  #views {
+    top: 56px;
+    bottom: auto;
+    left: 50%;
+  }
+  .view-b { padding: 11px 14px; min-height: 44px; }
+  .view-h { display: none; }
+
+  #hint { top: 108px; bottom: auto; left: 50%; transform: translateX(-50%); text-align: center; }
+
+  /* The top bar was overlapping itself: wordmark, three buttons and the view
+     switcher all competing for one 390 px row. Save render goes — a PNG
+     download is close to useless on a phone — and the rest is given room. */
+  #top {
+    padding: 10px var(--pad);
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    gap: 8px;
+  }
+  .brand-s { display: none; }
+  .brand-m { font-size: 11px; letter-spacing: 0.3em; }
+  #shot { display: none; }
+  .btn { padding: 10px 11px; letter-spacing: 0.1em; min-height: 40px; font-size: 9.5px; }
+
+  #views { top: calc(60px + env(safe-area-inset-top, 0px)); }
+  #hint { top: calc(126px + env(safe-area-inset-top, 0px)); }
+  #toast { top: calc(156px + env(safe-area-inset-top, 0px)); }
+
+  #toast { bottom: auto; top: 152px; }
+}
+
+/* Landscape phones are short, not narrow — the bottom sheet would take the
+   whole viewport, so it goes back to a side column. */
+@media (pointer: coarse) and (orientation: landscape) {
+  #spec-wrap {
+    top: 56px;
+    bottom: auto;
+    left: auto;
+    right: var(--pad);
+    width: 260px;
+    max-height: calc(100vh - 120px);
+    border-radius: var(--r);
+    transform: none;
+  }
+  #spec-toggle { display: none; }
+  .spec-h { display: block; }
+  #views { top: auto; bottom: 14px; }
+  #hint { display: none; }
+}

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Kitchen Configurator — LOOM</title>
+<meta name="description" content="A live 3D kitchen configurator: four layouts, six cabinet finishes, five worktops, four metals — every surface generated in the browser, nothing pre-rendered." />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#0b0b0c" />
+<link rel="stylesheet" href="./styles.css" />
+
+<!--
+  No bundler, no build step, no CDN. three.js is vendored under ./vendor and
+  resolved through an import map, so this whole thing is a folder you can copy
+  onto any static host — or open from the filesystem behind a plain server —
+  and it runs. That matters more than it sounds for a sales tool: the demo that
+  needs a deploy pipeline is the demo that is broken when a client asks to see it.
+-->
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/build/three.module.js",
+    "three/addons/": "./vendor/three/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body class="panel-open">
+
+<canvas id="view"></canvas>
+
+<!-- Loading gate. It has a real progress signal behind it (see main.js) rather
+     than a fake timed animation — the first build genuinely takes ~400 ms of
+     texture synthesis and pretending otherwise just makes it feel slower. -->
+<div id="gate">
+  <div class="gate-in">
+    <div class="gate-mark">LOOM</div>
+    <div class="gate-l">Generating materials</div>
+    <div class="gate-bar"><i class="gate-bar-fill"></i></div>
+  </div>
+</div>
+
+<header id="top">
+  <div class="brand">
+    <span class="brand-m">LOOM</span>
+    <span class="brand-s">Kitchen Configurator</span>
+  </div>
+  <div class="top-actions">
+    <button id="openall" type="button" class="btn">Open all</button>
+    <button id="shot" type="button" class="btn">Save render</button>
+    <button id="share" type="button" class="btn btn-a">Share spec</button>
+  </div>
+</header>
+
+<aside id="panel-wrap">
+  <button id="panel-toggle" type="button" aria-label="Toggle options">
+    <span class="pt-l">Configure</span>
+    <span class="pt-c"></span>
+  </button>
+  <div id="panel"></div>
+</aside>
+
+<section id="spec-wrap">
+  <!-- Collapsible, and collapsed by default on phones. A spec sheet is
+       reference material, not a control; on a 6-inch screen an always-open one
+       covers the product it describes. -->
+  <button id="spec-toggle" type="button" aria-expanded="false">
+    <span>Specification</span>
+    <span class="st-c"></span>
+  </button>
+  <div id="spec"></div>
+</section>
+
+<nav id="views" aria-label="Camera views"></nav>
+
+<div id="toast" role="status"></div>
+
+<!-- Told once, in the corner, because a click-to-open interface that does not
+     say it is click-to-open is just a picture. -->
+<p id="hint">Click any door or drawer to open it</p>
+
+<noscript>
+  <div class="ns">This configurator renders in real time and needs JavaScript and WebGL.</div>
+</noscript>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

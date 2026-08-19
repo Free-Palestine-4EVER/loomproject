@@ -23,9 +23,9 @@ const pages = import.meta.glob('/src/routes/**/+page.svelte')
      - anything with a `[param]` segment — those are templates, not pages;
        the real URLs they stand for are expanded below from the actual data
        source, not guessed.
-     - /configurator — an unlisted demo page, handed out by direct link for
-       a specific conversation. It also carries a noindex robots tag; listing
-       it here would contradict that.
+     - /configurator, /kitchen3d — unlisted demo pages, handed out by direct
+       link for a specific conversation. They also carry a noindex robots tag;
+       listing them here would contradict that.
      - /lab — the internal variant-picking tool. Its own +page.js says so
        directly ("not a page that needs to be in the HTML for a crawler")
        and it renders nothing server-side (`ssr = false`), so a crawler
@@ -39,6 +39,7 @@ const EXCLUDE = (route) =>
   route.includes('[') ||
   route === '/lab' ||
   route === '/configurator' ||
+  route === '/kitchen3d' ||
   route.startsWith('/bbsimon')
 
 function routeFromFile(file) {
