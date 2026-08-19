@@ -44,7 +44,22 @@ export const VIEWS = {
  *  2. Once the cap is reached, STEP THE CAMERA BACK by whatever the fov could
  *     not deliver. Distance costs nothing optically; over-wide lenses do.
  */
-const REFERENCE_ASPECT = 16 / 9
+// 1.3, NOT 16/9.
+//
+// This started at 16/9 and that was a real mistake: almost no desktop window is
+// that wide. A 1440x900 laptop is 1.6, a maximised 1920x1080 browser with
+// chrome is around 1.9 but a windowed one is far less — so the "portrait
+// correction" was firing on ordinary desktop viewports and quietly widening the
+// authored 42° lens to 46°. A wider lens spreads the same pixels over more
+// scene, so the kitchen came out smaller, softer and distorted at the edges.
+// It read as a bad camera and a blurry render, and it was neither: it was the
+// wrong lens.
+//
+// At 1.3 the correction engages only when a viewport is genuinely squarish or
+// portrait — a phone, or a narrow split-screen window. Every normal desktop
+// aspect is at or above it, so the framings render exactly as they were
+// composed, with no discontinuity at the threshold.
+const REFERENCE_ASPECT = 1.3
 const MAX_FOV = 74
 
 function fitToAspect(f, aspect) {
