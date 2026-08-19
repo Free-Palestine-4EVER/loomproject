@@ -256,9 +256,22 @@
 /* height-driven for the same reason as the defaults: the hero pairs a 2.49:1
    render with a 2.14:1 one, and pinning the pair to one width left them
    visibly different heights side by side in a single row */
-.hero-ctas .wool-btn--photo { --wool-btn-h: clamp(64px, 5vw, 76px); }
+.hero-ctas { --hero-btn-h: clamp(64px, 5vw, 76px); }
+.hero-ctas .wool-btn--photo { --wool-btn-h: var(--hero-btn-h); }
+/* EQUAL BOXES STILL LOOKED UNEQUAL, and the reason is inside the photographs,
+   not the CSS. Measured on the shipped renders: "Start weaving"'s knit fills
+   86.4% of its frame's height, "See the work"'s fills 94.6% — the latter is
+   shot tight to a thick rope border, the former carries transparent air above
+   and below. So a shared --wool-btn-h gave a 62px knit next to a 70px one and
+   the right-hand pill read as fatter, which is exactly what the client saw.
+   Scaling the box by 86.4/94.6 = 0.913 makes the KNITS match instead of the
+   boxes. Re-measure both renders before changing this number; it is a property
+   of those two files, not a taste value. */
+.hero-ctas .wool-btn--photo:not(.wool-btn--hero) {
+  --wool-btn-h: calc(var(--hero-btn-h) * 0.913);
+}
 @media (max-width: 600px) {
-  .hero-ctas .wool-btn--photo { --wool-btn-h: 60px; }
+  .hero-ctas { --hero-btn-h: 60px; }
   .hero-ctas { gap: 10px; }
 }
 .hero { padding-bottom: clamp(40px, 7vh, 84px); }
