@@ -16,10 +16,19 @@
   and it runs. That matters more than it sounds for a sales tool: the demo that
   needs a deploy pipeline is the demo that is broken when a client asks to see it.
 -->
+<!--
+  NOTE: the three.js distribution lives in vendor/three/LIB, not vendor/three/build.
+  This repo's .gitignore contains a bare `build` rule, which is unanchored and so
+  matches a directory of that name at ANY depth. `git add` skips such files
+  silently — no error, no warning — so the first deploy of this app shipped every
+  file EXCEPT three.js and the page 404'd on its own engine in production.
+  Renaming the folder keeps the fix local to this app rather than punching a
+  negation into a .gitignore the rest of the site relies on.
+-->
 <script type="importmap">
 {
   "imports": {
-    "three": "./vendor/three/build/three.module.js",
+    "three": "./vendor/three/lib/three.module.js",
     "three/addons/": "./vendor/three/examples/jsm/"
   }
 }
