@@ -673,3 +673,24 @@ body.has-opened #hint { opacity: 0; }
   #views { top: auto; bottom: 14px; }
   #hint { display: none; }
 }
+
+
+/* --------------------------------------------------------------- debug -- */
+
+#debug {
+  display: none;
+  position: fixed;
+  z-index: 60;
+  left: var(--pad);
+  bottom: calc(var(--pad) + 56px);
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.82);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #9ee8a0;
+  white-space: pre;
+  pointer-events: none;
+}
+body.debug #debug { display: block; }

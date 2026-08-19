@@ -22,8 +22,6 @@
   matches a directory of that name at ANY depth. `git add` skips such files
   silently — no error, no warning — so the first deploy of this app shipped every
   file EXCEPT three.js and the page 404'd on its own engine in production.
-  Renaming the folder keeps the fix local to this app rather than punching a
-  negation into a .gitignore the rest of the site relies on.
 -->
 <script type="importmap">
 {
@@ -87,6 +85,11 @@
 <!-- Told once, in the corner, because a click-to-open interface that does not
      say it is click-to-open is just a picture. -->
 <p id="hint">Click any door or drawer to open it</p>
+
+<!-- ?debug=1 only. Mobile render quality cannot be diagnosed from a desktop:
+     resolution, MSAA sample count and the calibration outcome are all
+     device-dependent. This prints what THIS device actually did. -->
+<pre id="debug"></pre>
 
 <noscript>
   <div class="ns">This configurator renders in real time and needs JavaScript and WebGL.</div>

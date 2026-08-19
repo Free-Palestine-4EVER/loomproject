@@ -210,6 +210,9 @@ composer.addPass(smaa)
 /* ----------------------------------------------------------------- state -- */
 
 const state = UI.readStateFromURL(DEFAULTS)
+if (new URLSearchParams(location.search).get('debug') === '1') {
+  document.body.classList.add('debug')
+}
 let built = null
 let pendingBuild = null
 let lidAmount = 1
@@ -702,6 +705,26 @@ function updateOpenables(dt) {
  */
 const IS_MOBILE = matchMedia('(pointer: coarse)').matches || innerWidth < 820
 
+/**
+ * Caps the idle pixel ratio by TOTAL PIXELS rather than by ratio.
+ *
+ * The buffer is half-float with 4x MSAA, so it costs 8 bytes per sample per
+ * pixel — 32 bytes per pixel of colour before the AO and SMAA targets are
+ * counted. Asking for 1.3x on a 3x phone is a 5-megapixel buffer and roughly
+ * 160 MB of colour attachment, which is where iOS starts dropping the WebGL
+ * context outright. A blank canvas is not a quality setting.
+ *
+ * A pixel budget is the honest constraint: it lands at about device-native on a
+ * modern high-density phone, and lets a lower-density device supersample into
+ * the headroom it actually has. Ratio caps cannot express that, because the
+ * same ratio means very different memory on different screens.
+ */
+const MAX_IDLE_PIXELS = 3.0e6
+function idleRatio(preferred) {
+  const area = Math.max(1, innerWidth * innerHeight)
+  return Math.min(preferred, Math.sqrt(MAX_IDLE_PIXELS / area))
+}
+
 const QUALITY = IS_MOBILE
   ? {
     // The FULL panel, up to 3x. A current phone is 3x, so capping at 2 renders
@@ -709,7 +732,19 @@ const QUALITY = IS_MOBILE
     // razor sharp while the product itself is visibly soft, which is the worst
     // possible combination because it makes the softness obvious by comparison.
     // The calibration below is what makes this safe to ask for.
-    idle: { pixelRatio: Math.min(devicePixelRatio, 3), ao: true, aoScale: 0.5 },
+    // SUPERSAMPLED past the panel: 1.3x the device ratio, capped at 4.
+    //
+    // Rendering at exactly the device ratio still leaves stair-stepping on the
+    // thin brass rails and the reeded glass. MSAA only takes coverage samples
+    // at geometry edges, and half-float multisampling is silently unavailable
+    // on some mobile drivers anyway — so on those devices there is effectively
+    // no MSAA at all. Rendering ABOVE the panel and letting the browser
+    // downscale is true supersampling: it works on every driver, it
+    // antialiases shading as well as geometry, and it depends on no extension.
+    //
+    // Affordable only because of on-demand rendering — this is one frame, drawn
+    // when the camera stops.
+    idle: { pixelRatio: idleRatio(devicePixelRatio * 1.3), ao: true, aoScale: 0.6 },
     moving: { pixelRatio: Math.min(devicePixelRatio, 0.85), ao: false, aoScale: 0.5 },
   }
   : {
@@ -738,17 +773,58 @@ const QUALITY = IS_MOBILE
  * alternative is quality that visibly flickers between tiers while you are
  * looking at it, which is worse than either tier.
  */
+//
+// REVISED: this is a last resort, not a quality policy.
+//
+// It used to step the tier down at 260 ms and strip ambient occlusion at
+// 480 ms. Those numbers are trivially exceeded by a real phone rendering three
+// megapixels with AO, SMAA and 4x MSAA — so the safety net was firing on
+// perfectly capable hardware and was itself the reason mobile looked poor. The
+// mechanism meant to protect quality was the thing destroying it.
+//
+// Half a second of refinement after you let go is not a performance problem;
+// it is how progressive rendering has always worked. Only a device that cannot
+// produce the frame in about a second is genuinely in trouble.
 let calibrated = !IS_MOBILE
+let calibrationResult = 'full'
+let lastIdleMs = 0
+
 function calibrateOnce(renderMs) {
   if (calibrated) return
   calibrated = true
-  if (renderMs < 260) return
+  lastIdleMs = renderMs
+  if (renderMs < 950) return
 
-  QUALITY.idle = renderMs > 480
-    ? { pixelRatio: Math.min(devicePixelRatio, 1.5), ao: false, aoScale: 0.4 }
-    : { pixelRatio: Math.min(devicePixelRatio, 2), ao: true, aoScale: 0.4 }
+  // Even here, resolution goes before ambient occlusion — AO is worth more to
+  // perceived quality than the last half-step of pixel density.
+  calibrationResult = 'reduced'
+  QUALITY.idle = { pixelRatio: Math.min(devicePixelRatio, 2), ao: true, aoScale: 0.5 }
   quality = null
   setQuality(QUALITY.idle)
+}
+
+/* ---------------------------------------------------------------- debug -- */
+//
+// ?debug=1 prints what THIS device actually decided.
+//
+// Mobile render quality cannot be diagnosed from a desktop: resolution, the
+// MSAA sample count and the calibration outcome are all device-dependent, and
+// half-float multisampling in particular is silently dropped by some mobile
+// drivers — the request succeeds and you simply get no MSAA. Showing it beats
+// guessing at it from the outside.
+function renderDebug() {
+  const el = document.getElementById('debug')
+  if (!el) return
+  const gl = renderer.getContext()
+  el.textContent = [
+    `dpr ${devicePixelRatio} -> ${renderer.getPixelRatio()}`,
+    `buffer ${gl.drawingBufferWidth}x${gl.drawingBufferHeight}`,
+    `msaa ${composer.renderTarget1.samples} (max ${renderer.capabilities.maxSamples})`,
+    `ao ${gtao.enabled ? 'on @' + (quality ? quality.aoScale : '?') : 'OFF'}`,
+    `smaa ${composer.passes.some((p) => p.constructor.name === 'SMAAPass')}`,
+    `idle ${Math.round(lastIdleMs)}ms -> ${calibrationResult}`,
+    `mobile ${IS_MOBILE}`,
+  ].join('\n')
 }
 
 let quality = null
@@ -826,6 +902,7 @@ function frame(now = performance.now()) {
       const gl = renderer.getContext()
       gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px)
       calibrateOnce(performance.now() - t0)
+      renderDebug()
     } else {
       composer.render()
     }
