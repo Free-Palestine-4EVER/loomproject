@@ -17,6 +17,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js'
 
 import { DEFAULTS } from './config.js'
 import { buildKitchen, applyLighting, makeEnvironment, bakeRoomProbe, disposeKitchen } from './scene.js'
@@ -122,18 +123,17 @@ const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(
   innerWidth, innerHeight,
   {
     type: THREE.HalfFloatType,
-    // 4x MSAA, back up from 2. Fluting is 18 mm reeds and reeded glass is
-    // finer still — at any distance those are sub-pixel geometric edges, and
-    // sub-pixel edges without enough samples crawl and shimmer as the camera
-    // moves. MSAA is precisely the tool for geometric edge aliasing, and
-    // because rendering is on demand the cost lands only on frames that
-    // actually change.
-    // 2x on mobile. MSAA is per-sample fill, which is exactly what a phone GPU
-    // is short of; the fluting still resolves acceptably at 2.
-    samples: Math.min(
-      matchMedia('(pointer: coarse)').matches || innerWidth < 820 ? 2 : 4,
-      renderer.capabilities.maxSamples ?? 4
-    ),
+    // 4x MSAA everywhere, mobile included.
+    //
+    // This was 2 on mobile as a fill-rate saving. Two samples gives an edge
+    // exactly two levels of gradation, which on a dark cabinet against a bright
+    // wall is still a visible staircase. And because rendering is on demand,
+    // the saving was buying nothing — the cost lands only on frames that
+    // actually change, and it was being paid in the one frame anyone looks at.
+    //
+    // MSAA handles GEOMETRY edges. The SMAA pass further down handles the
+    // shader aliasing it structurally cannot touch; both are needed.
+    samples: Math.min(4, renderer.capabilities.maxSamples ?? 4),
   }
 ))
 composer.addPass(new RenderPass(scene, camera))
@@ -183,6 +183,29 @@ composer.addPass(gtao)
 // dialled down, because at any setting it was doing more harm than good.
 
 composer.addPass(new OutputPass())
+
+/* ------------------------------------------------------------------ SMAA -- */
+//
+// MSAA and SMAA solve DIFFERENT halves of the same complaint, which is why
+// raising MSAA alone never fixed it.
+//
+// MSAA supersamples GEOMETRY EDGES — it takes multiple coverage samples per
+// pixel at triangle boundaries. It does nothing whatsoever for aliasing that
+// happens INSIDE a triangle, because there is only ever one shader evaluation
+// per pixel there. This kitchen is full of exactly that: thin brass rails,
+// ribbed glass, 90 mm V-grooves and a polished floor, all of which produce
+// specular highlights finer than a pixel. Those sparkle and crawl no matter how
+// many coverage samples the edges get.
+//
+// SMAA is a post-process: it finds edges in the finished image by luma and
+// reconstructs them, so it catches shader aliasing as well as geometry.
+//
+// Placed AFTER OutputPass deliberately. OutputPass applies tone mapping and the
+// sRGB transfer; running SMAA before it means detecting edges in linear HDR,
+// where luma differences do not correspond to what the eye will see and half
+// the edges go unfound. After it, SMAA works on the same image the viewer does.
+const smaa = new SMAAPass()
+composer.addPass(smaa)
 
 /* ----------------------------------------------------------------- state -- */
 
@@ -614,22 +637,33 @@ const QUALITY = IS_MOBILE
 /**
  * One-shot calibration.
  *
- * Times the first full-quality frame on a real device and steps the idle tier
- * down if it was too slow. The threshold is generous — 120 ms for a frame you
- * see once is fine, and anything under it means the phone is comfortable.
+ * Times the first full-quality frame on the real device and steps the idle tier
+ * down only if that device genuinely cannot deliver it.
  *
- * Runs once. A phone that thermally throttles later will not be re-measured,
- * because the alternative is a quality setting that flickers between tiers
- * while you are looking at it, which is worse than either tier.
+ * The thresholds are deliberately generous, because of what this frame IS: it
+ * is drawn once, when the camera stops, and then held. A 300 ms idle frame is
+ * not 3 fps — it is a third of a second of refinement after you let go, and
+ * then a still image for as long as you look at it. Judging it against a
+ * 16 ms real-time budget would downgrade phones that are perfectly capable of
+ * producing a sharp picture.
+ *
+ * Degrades in two steps rather than one, so a mid-range device loses resolution
+ * before it loses ambient occlusion — AO is doing more for perceived quality
+ * here than the last half-step of pixel density.
+ *
+ * Runs once. A phone that thermally throttles later is not re-measured: the
+ * alternative is quality that visibly flickers between tiers while you are
+ * looking at it, which is worse than either tier.
  */
 let calibrated = !IS_MOBILE
 function calibrateOnce(renderMs) {
   if (calibrated) return
   calibrated = true
-  if (renderMs < 120) return
-  QUALITY.idle = renderMs > 260
-    ? { pixelRatio: 1, ao: false, aoScale: 0.4 }
-    : { pixelRatio: Math.min(devicePixelRatio, 1.4), ao: false, aoScale: 0.4 }
+  if (renderMs < 260) return
+
+  QUALITY.idle = renderMs > 480
+    ? { pixelRatio: Math.min(devicePixelRatio, 1.5), ao: false, aoScale: 0.4 }
+    : { pixelRatio: Math.min(devicePixelRatio, 2), ao: true, aoScale: 0.4 }
   quality = null
   setQuality(QUALITY.idle)
 }
