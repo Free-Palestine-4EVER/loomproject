@@ -68,5 +68,22 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/360",
+      "destination": "/360/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/360/",
+      "destination": "https://loom-360.web.app/"
+    },
+    {
+      "source": "/360/:path*",
+      "destination": "https://loom-360.web.app/:path*"
+    }
   ]
 }
