@@ -79,7 +79,15 @@
   "rewrites": [
     {
       "source": "/360/",
-      "destination": "https://loom-360.web.app/"
+      "destination": "https://loom-360.web.app/index.html"
+    },
+    {
+      "source": "/360/house",
+      "destination": "https://loom-360.web.app/house/index.html"
+    },
+    {
+      "source": "/360/house/",
+      "destination": "https://loom-360.web.app/house/index.html"
     },
     {
       "source": "/360/:path*",
