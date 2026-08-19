@@ -277,7 +277,7 @@ function frontSplit(width, height) {
  * axis, facing either way, hinged on either side — the alternative is four
  * sign-flipped special cases that fall apart the first time a layout changes.
  */
-function registerOpenable(ctx, { type, pivotPos, offset, normal, width, height }) {
+function registerOpenable(ctx, { type, pivotPos, offset, normal, width, height, boxDepth }) {
   const pivot = new THREE.Group()
   pivot.position.copy(pivotPos)
 
@@ -287,16 +287,68 @@ function registerOpenable(ctx, { type, pivotPos, offset, normal, width, height }
     type,
     swing,
     normal: normal.clone(),
-    // A door opens to 105°: past 90 it clears the adjacent front, which is
-    // what a real hinge does and what makes a run of open doors readable.
-    maxAngle: Math.PI * 0.583,
-    // Drawers pull to 90% of the carcass depth, as a full-extension runner does.
-    maxSlide: D.baseDepth * 0.9,
+
+    // 88°, not 105°.
+    //
+    // The old value was justified as "past 90 it clears the adjacent front",
+    // which is true of a real hinge and irrelevant here — nothing in this scene
+    // collides. What it actually produced was doors swinging back on themselves
+    // past square, which reads as broken rather than as generous. Add the
+    // settle overshoot on top and they were reaching about 110°.
+    //
+    // Just under 90 is what a fitted kitchen door does when it stops, and it
+    // keeps the front readable instead of edge-on to the camera.
+    maxAngle: Math.PI * 0.489,
+
+    // Travel is measured against THIS cabinet's box, not a global constant.
+    //
+    // Every drawer used to slide 540 mm — 90% of a base carcass — including
+    // island drawers whose boxes are only 460 mm deep. The box left its own
+    // carcass entirely and hung in the air over the floor. Now it is a fraction
+    // of the real box depth, so the back of the drawer always stays inside the
+    // cabinet and the thing reads as running on rails.
+    maxSlide: (boxDepth ?? D.baseDepth) * 0.72,
+
     open: 0,
     target: 0,
   })
   return pivot
 }
+
+/**
+ * Shelves inside a cabinet.
+ *
+ * Opening a door used to reveal an empty black carcass, which looks less like a
+ * cupboard than a hole. A shelf or two costs nothing and is the difference
+ * between "this door opens" and "this is a cupboard".
+ */
+function buildShelves(ctx, { cx, cz, nx, nz, dx, dz, width, depth, y0, y1 }) {
+  const g = new THREE.Group()
+  const span = y1 - y0
+  // One shelf per ~380 mm of height, which is roughly how they are actually
+  // set out — enough to be useful, not so many it reads as a display unit.
+  const count = Math.max(1, Math.round(span / 0.38) - 1)
+  const inset = 0.03
+
+  for (let i = 1; i <= count; i++) {
+    const y = y0 + (span / (count + 1)) * i
+    const shelf = mesh(
+      roundedBox(
+        Math.abs(dx) * (width - inset * 2) + Math.abs(nx) * (depth - inset * 2),
+        0.018,
+        Math.abs(dz) * (width - inset * 2) + Math.abs(nz) * (depth - inset * 2),
+        0.002
+      ),
+      ctx.shelfMat,
+      cx + nx * depth / 2, y, cz + nz * depth / 2,
+      { cast: false }
+    )
+    g.add(shelf)
+  }
+  return g
+}
+
+
 
 /**
  * The box behind a drawer front. Only built for drawers, only visible once one
@@ -417,6 +469,7 @@ function buildRun(spec, state, ctx) {
         : new THREE.Vector3(faceX, cy, faceZ)
       const offset = new THREE.Vector3(faceX - pivotPos.x, 0, faceZ - pivotPos.z)
 
+      const boxDepth = depth - 0.05
       const pivot = registerOpenable(ctx, {
         type,
         pivotPos,
@@ -424,8 +477,18 @@ function buildRun(spec, state, ctx) {
         normal: new THREE.Vector3(nx, 0, nz),
         width: fw,
         height: fh,
+        boxDepth,
       })
       g.add(pivot)
+
+      // Doors get an interior. Drawers bring their own box, and glazed fronts
+      // already have lit shelves built for them by the vitrine pass.
+      if (type === 'door' && !isGlass) {
+        g.add(buildShelves(ctx, {
+          cx, cz, nx, nz, dx, dz,
+          width: fw, depth, y0: fy + 0.04, y1: fy + fh - 0.04,
+        }))
+      }
 
       let front
       if (isGlass) {
@@ -448,7 +511,7 @@ function buildRun(spec, state, ctx) {
       pivot.add(front)
 
       if (type === 'drawer') {
-        const box = drawerBox(ctx, fw, fh, D.baseDepth - 0.04, new THREE.Vector3(nx, 0, nz))
+        const box = drawerBox(ctx, fw, fh, boxDepth, new THREE.Vector3(nx, 0, nz))
         box.position.set(offset.x, 0, offset.z)
         pivot.add(box)
       }
@@ -996,6 +1059,6 @@ function buildPlates(ctx, x, y, z, n = 5) {
   return g
 }
 
-export { D, frontGeometry, flutedPanel, registerOpenable, drawerBox, cylY, buildRun, buildWorktop, buildSink, buildHob, buildOvenStack, buildPendant,
+export { D, frontGeometry, flutedPanel, registerOpenable, drawerBox, buildShelves, cylY, buildRun, buildWorktop, buildSink, buildHob, buildOvenStack, buildPendant,
          buildHood, buildStool, buildGlassware, buildBottle, buildBoard, buildHerbs, buildPlates, buildBowl,
          ledStrip, roundedBox, mesh, box, dirVec, normalVec, bays }

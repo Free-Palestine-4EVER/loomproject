@@ -440,12 +440,17 @@ function buildIsland(plan, state, ctx) {
           // Island fronts are all drawers — every band on an island is a
           // drawer box in practice, because a door on an island opens into the
           // walkway.
+          // The island is 1000 deep but fronted on both sides, so a drawer
+          // gets a little under half of it. Travel is derived from that, not
+          // from the base-carcass constant — these were sliding 540 mm out of a
+          // 460 mm box and ending up airborne over the floor.
+          const islandBox = D.islandDepth / 2 - 0.06
           const pivot = K.registerOpenable(ctx, {
             type: 'drawer',
             pivotPos: new THREE.Vector3(px, fy + bh / 2, pz),
             offset: new THREE.Vector3(0, 0, 0),
             normal: new THREE.Vector3(ox, 0, oz),
-            width: fw, height: bh,
+            width: fw, height: bh, boxDepth: islandBox,
           })
           g.add(pivot)
 
@@ -455,8 +460,7 @@ function buildIsland(plan, state, ctx) {
           )
           panel.userData.openable = ctx.openables.length - 1
           pivot.add(panel)
-          pivot.add(K.drawerBox(ctx, fw, bh, D.islandDepth / 2 - 0.04,
-            new THREE.Vector3(ox, 0, oz)))
+          pivot.add(K.drawerBox(ctx, fw, bh, islandBox, new THREE.Vector3(ox, 0, oz)))
 
           if (state.handles === 'bar') {
             const bl = Math.min(fw * 0.5, 0.32)
@@ -524,9 +528,16 @@ export function buildKitchen(state) {
     underCabLights: 0,
     openables: [],
     drawerMat: new THREE.MeshStandardMaterial({ color: '#6f6a63', roughness: 0.8 }),
+    // Cabinet interiors are a light board, as they actually are — a near-black
+    // carcass with black shelves in it just looks like an empty hole when the
+    // door swings open.
+    shelfMat: new THREE.MeshStandardMaterial({ color: '#b8b2a8', roughness: 0.72 }),
     vitrines: [],
     islandTops: [],
-    carcassMat: new THREE.MeshStandardMaterial({ color: '#141313', roughness: 0.92 }),
+    // Lifted from near-black. The carcass is only ever seen through an open
+    // door or a shadow gap; at #141313 an opened cabinet was a black rectangle
+    // with a shelf floating in it.
+    carcassMat: new THREE.MeshStandardMaterial({ color: '#5c574f', roughness: 0.9 }),
     plinthMat: new THREE.MeshStandardMaterial({ color: '#0d0d0d', roughness: 0.95 }),
     metalMat: metalMaterial(state.metal, 'x', 4),
     sinkMat: metalMaterial('nickel', 'x', 2),
@@ -538,7 +549,7 @@ export function buildKitchen(state) {
   }
   // Only the two locally-built materials are per-build; the metal, sink, tap
   // and glass all come from the shared cache.
-  ctx.disposables.push(ctx.carcassMat, ctx.plinthMat, ctx.drawerMat)
+  ctx.disposables.push(ctx.carcassMat, ctx.plinthMat, ctx.drawerMat, ctx.shelfMat)
 
   root.add(buildShell(plan, state, ctx))
 
