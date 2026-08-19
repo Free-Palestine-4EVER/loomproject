@@ -32,16 +32,6 @@ about the studio, not marketing copy.
   ChatGPT, Gemini, Perplexity and Google's AI answers: an llms.txt like this
   one, schema.org structured data, Google Business Profile work, and consistent
   business facts across the sources these models cite.
-- **GPT BOOST** — a free audit at https://www.loomstudio-jo.com/gpt-boost that
-  fetches a website's own robots.txt, llms.txt, sitemap.xml and homepage HTML
-  and reports how readable it is to AI assistants: which named AI crawlers
-  (OAI-SearchBot, ChatGPT-User, GPTBot, ClaudeBot, Claude-User, PerplexityBot,
-  Google-Extended and others) the site allows, how much text arrives before
-  JavaScript runs, what schema.org markup is declared, and whether the basic
-  business facts can be quoted. It scores out of 100 across four printed
-  weights and quotes the line of the site's own file behind every finding. No
-  email or account is required and nothing is stored. The fix, done by LOOM and
-  re-audited after 30 days, starts from 250 JOD.
 - **LOOM Academy** — the studio teaches what it builds with. Program 01,
   "First Client," is open now: build websites with AI, then sell them —
   taught in Arabic, at https://www.loomstudio-jo.com/academy. Founding-member

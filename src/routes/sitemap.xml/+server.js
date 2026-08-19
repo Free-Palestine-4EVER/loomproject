@@ -107,11 +107,6 @@ const WEIGHT = {
   '/pricing': { changefreq: 'monthly', priority: '0.8' },
   '/machine': { changefreq: 'monthly', priority: '0.8' },
   '/ai-search': { changefreq: 'monthly', priority: '0.8' },
-  // Top of the non-home tier: a free tool that returns a number about the
-  // visitor's own site is the highest-intent thing on the site, and it is
-  // built to be landed on directly — from a cold mail, a search for "is my
-  // site visible to ChatGPT", or an AI answer to that same question.
-  '/gpt-boost': { changefreq: 'weekly', priority: '0.9' },
   '/contact': { changefreq: 'monthly', priority: '0.7' },
   '/faq': { changefreq: 'monthly', priority: '0.7' },
   '/apps': { changefreq: 'monthly', priority: '0.6' },

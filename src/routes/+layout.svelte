@@ -74,14 +74,6 @@
     page.url.pathname === '/bbsimon1' || page.url.pathname === '/bbsimon2'
   )
 
-  /* /gpt-boost carries its OWN bottom dock — three tier chips and a full-width
-     call to action, sticky at the foot of the report — and the floating
-     WhatsApp bubble lands on top of it on a phone, covering the third tier. So
-     the bubble alone stands down there; the nav's "Get started" pill and the
-     footer's WhatsApp link are still on the page. THE BUTTERFLY IS NOT AFFECTED
-     and must not be: it rides every route. */
-  const hasOwnDock = $derived(page.url.pathname === '/gpt-boost')
-
   // Live media queries. Started here rather than per-component so there is one
   // matchMedia listener per query for the whole app instead of one per
   // consumer.
@@ -187,15 +179,11 @@
   <Footer />
 
   <!-- the butterfly rides the whole page, above the copy and under the nav.
-       IT RIDES /gpt-boost TOO. It was briefly hidden there on the grounds that
-       it flew across the scan headline; that was not anyone's call to make and
-       it is back. If it ever needs handling on that route, move it — do not
+       It rides every route; if one ever needs it handled, move it — do not
        remove it. -->
   <Flyer />
 
-  {#if !hasOwnDock}
-    <WhatsAppFab />
-  {/if}
+  <WhatsAppFab />
 {/if}
 
 <WizardModal />
