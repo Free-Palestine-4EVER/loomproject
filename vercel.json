@@ -74,16 +74,17 @@
       "source": "/360",
       "destination": "/360/",
       "permanent": false
+    },
+    {
+      "source": "/360/house",
+      "destination": "/360/house/",
+      "permanent": false
     }
   ],
   "rewrites": [
     {
       "source": "/360/",
       "destination": "https://loom-360.web.app/index.html"
-    },
-    {
-      "source": "/360/house",
-      "destination": "https://loom-360.web.app/house/index.html"
     },
     {
       "source": "/360/house/",
