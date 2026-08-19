@@ -1008,7 +1008,10 @@ export function bakeRoomProbe(renderer, scene, room, previous) {
   // 256 on phones. The probe is six full scene renders plus a PMREM; at 512 it
   // is a visible hitch on load and a memory cost that matters on a device with
   // a hard texture budget.
-  const probeRes = matchMedia('(pointer: coarse)').matches || innerWidth < 820 ? 256 : 512
+  // 384 on phones rather than 256: the probe is what the polished floor and the
+  // stone reflect, and at 256 those reflections were mush on a screen held a
+  // foot from your face. Still one bake per rebuild, not per frame.
+  const probeRes = matchMedia('(pointer: coarse)').matches || innerWidth < 820 ? 384 : 512
   const rt = new THREE.WebGLCubeRenderTarget(probeRes, {
     type: THREE.HalfFloatType,
     generateMipmaps: true,

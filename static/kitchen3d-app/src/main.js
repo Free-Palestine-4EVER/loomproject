@@ -574,30 +574,66 @@ function updateOpenables(dt) {
 // to protect a framerate nobody is spending was making every lined surface
 // crawl.
 /**
- * Phones are not small desktops.
+ * Phones are not small desktops — but they are not potatoes either.
  *
- * A modern phone reports devicePixelRatio 3 and a 1200-logical-pixel viewport,
- * which is 13 megapixels of GTAO, area lights and clearcoat on a GPU with a
- * fraction of the fill rate and a hard thermal ceiling. Rendering that once is
- * survivable; the phone then throttles and everything after it is slow.
+ * The first version of this ran mobile at 1.4x resolution with ambient
+ * occlusion switched off entirely, reasoning from peak fill rate and thermals.
+ * That reasoning ignored the architecture already in place: RENDERING IS ON
+ * DEMAND. The still frame is drawn once when you stop moving and then held
+ * indefinitely, so its cost is paid once, not sixty times a second. Spending a
+ * conservative budget on the one frame the user actually looks at is the wrong
+ * trade — it produced a soft, flat image on the exact screen where people were
+ * going to judge the product.
  *
- * So mobile gets its own budget: no ambient occlusion at all, resolution capped
- * near 1.0, and a smaller reflection probe. The AO is the biggest single loss
- * and it is the right one to take — it is a full extra depth-and-normal pass of
- * the scene, and on a 6-inch screen the corner darkening it buys is close to
- * invisible.
+ * So mobile now mirrors desktop: an expensive, sharp IDLE frame at full device
+ * resolution with AO on, and a genuinely cheap MOVING frame that motion hides.
+ *
+ * Because "mobile" spans a five-year-old budget Android and a current iPhone,
+ * the idle tier is not trusted blindly — see the calibration below. The first
+ * idle frame is timed, and if the device cannot deliver it in a sensible
+ * budget the tier is permanently downgraded. Measuring one real frame beats
+ * any amount of guessing from user-agent strings.
  */
 const IS_MOBILE = matchMedia('(pointer: coarse)').matches || innerWidth < 820
 
 const QUALITY = IS_MOBILE
   ? {
-    idle: { pixelRatio: Math.min(devicePixelRatio, 1.4), ao: false, aoScale: 0.4 },
-    moving: { pixelRatio: Math.min(devicePixelRatio, 0.75), ao: false, aoScale: 0.4 },
+    // The FULL panel, up to 3x. A current phone is 3x, so capping at 2 renders
+    // the 3D at two thirds resolution and upscales it — the DOM chrome stays
+    // razor sharp while the product itself is visibly soft, which is the worst
+    // possible combination because it makes the softness obvious by comparison.
+    // The calibration below is what makes this safe to ask for.
+    idle: { pixelRatio: Math.min(devicePixelRatio, 3), ao: true, aoScale: 0.5 },
+    moving: { pixelRatio: Math.min(devicePixelRatio, 0.85), ao: false, aoScale: 0.5 },
   }
   : {
     idle: { pixelRatio: Math.min(devicePixelRatio, 2), ao: true, aoScale: 0.75 },
     moving: { pixelRatio: Math.min(devicePixelRatio, 0.8), ao: false, aoScale: 0.4 },
   }
+
+/**
+ * One-shot calibration.
+ *
+ * Times the first full-quality frame on a real device and steps the idle tier
+ * down if it was too slow. The threshold is generous — 120 ms for a frame you
+ * see once is fine, and anything under it means the phone is comfortable.
+ *
+ * Runs once. A phone that thermally throttles later will not be re-measured,
+ * because the alternative is a quality setting that flickers between tiers
+ * while you are looking at it, which is worse than either tier.
+ */
+let calibrated = !IS_MOBILE
+function calibrateOnce(renderMs) {
+  if (calibrated) return
+  calibrated = true
+  if (renderMs < 120) return
+  QUALITY.idle = renderMs > 260
+    ? { pixelRatio: 1, ao: false, aoScale: 0.4 }
+    : { pixelRatio: Math.min(devicePixelRatio, 1.4), ao: false, aoScale: 0.4 }
+  quality = null
+  setQuality(QUALITY.idle)
+}
+
 let quality = null
 let settleTimer = 0
 
@@ -664,7 +700,18 @@ function frame(now = performance.now()) {
 
   if (needsRender) {
     needsRender = false
-    composer.render()
+    if (!calibrated && quality === QUALITY.idle) {
+      const t0 = performance.now()
+      composer.render()
+      // readPixels forces the GPU to finish, so this is a real frame time and
+      // not just the cost of queueing the commands.
+      const px = new Uint8Array(4)
+      const gl = renderer.getContext()
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px)
+      calibrateOnce(performance.now() - t0)
+    } else {
+      composer.render()
+    }
   }
   requestAnimationFrame(frame)
 }
