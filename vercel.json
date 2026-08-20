@@ -92,6 +92,14 @@
   ],
   "rewrites": [
     {
+      "source": "/lexus/",
+      "destination": "/lexus/index.html"
+    },
+    {
+      "source": "/lexus",
+      "destination": "/lexus/index.html"
+    },
+    {
       "source": "/360/",
       "destination": "https://loom-360.web.app/index.html?v=2"
     },
