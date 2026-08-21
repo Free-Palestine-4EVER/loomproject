@@ -31,7 +31,7 @@
   // The explicit index.html, not the directory. SvelteKit's prerender crawler
   // follows the iframe src and resolves it as a file — a bare directory URL is
   // a 404 to it and fails the whole build, even though a real static host would
-  // serve the index. /configurator points at /configurator.html for the same reason.
+  // serve the index. /configurator points at /loom-table.html for the same reason.
   const DEMO = '/kitchen3d-app/index.html'
   const DESC =
     'A live 3D kitchen configurator running in the browser: real hinged doors and ' +

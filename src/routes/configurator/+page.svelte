@@ -4,21 +4,30 @@
   UNLISTED. Nothing links here; it exists to be pasted into an email. See
   +page.js for what that does and does not guarantee.
 
-  The configurator is SERVED FROM THIS SITE, at /configurator.html, with its
+  The configurator is SERVED FROM THIS SITE, at /loom-table.html, with its
   bundle in static/_next and its model in static/models. It used to be an
   iframe onto a separate deploy (diaz.web.app); that meant every fix had to be
   deployed there and nothing about it was under this repo's control or in its
   git history. Now a push here ships the whole thing.
 
-  RENAMED from /table.html (2026-08-21): /diaaz's own Diaaz-branded copy of
-  this exact same Textura build needs the literal path /table.html?bare=1 —
-  that's what its own iframe requests, hardcoded in its build, unchangeable
-  from here. A static file at /table.html always wins over a vercel.json
-  rewrite for that same path regardless of query string (Vercel matches
-  static assets by pathname only), so as long as this route's own copy sat at
-  /table.html too, the /diaaz proxy could never win that path — Diaaz's iframe
-  silently loaded LOOM's generic build instead of its own. Freeing the literal
-  filename let vercel.json claim /table.html outright for the proxy.
+  RENAMED from /table.html, TWICE (2026-08-21): /diaaz's own Diaaz-branded
+  copy of this exact same Textura build needs the literal path
+  /table.html?bare=1 — that's what its own iframe requests, hardcoded in its
+  build, unchangeable from here. A static file at /table.html always wins
+  over a vercel.json rewrite for that same path regardless of query string
+  (Vercel matches static assets by pathname only), so as long as this route's
+  own copy sat at /table.html too, the /diaaz proxy could never win that path.
+
+  First rename landed on /configurator.html — wrong, for a DIFFERENT reason
+  than the one it fixed: SvelteKit's own prerendered output for the
+  /configurator ROUTE is itself literally named configurator.html
+  (trailingSlash convention), so the static asset and the route's own build
+  output collided at the exact same output path. The route won; every
+  request for the static file 404'd through the app's own not-found page
+  instead (x-sveltekit-page: true) — the SAME class of bug the kitchen3d-app
+  folder-naming comment below already warns about, just missed here on the
+  file rather than the folder. /loom-table.html shares no name with any
+  route, so nothing to collide with.
 
   Still an iframe rather than a port: the configurator is a compiled Next.js
   build with a patched three.js scene inside it. Rewriting that into SvelteKit
@@ -37,7 +46,7 @@
 <script>
   import './configurator.css'
 
-  const DEMO = '/configurator.html'
+  const DEMO = '/loom-table.html'
   const DESC =
     'A live 3D product configurator running in the browser: four table shapes, six timbers, ' +
     'three finishes and a transmissive epoxy river, all from one real-time model.'

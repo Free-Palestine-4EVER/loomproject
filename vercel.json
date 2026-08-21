@@ -51,7 +51,7 @@
       ]
     },
     {
-      "source": "/configurator.html",
+      "source": "/loom-table.html",
       "headers": [
         {
           "key": "Cache-Control",
