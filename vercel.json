@@ -118,6 +118,25 @@
     {
       "source": "/diaaz/:path*",
       "destination": "https://diaaz-konfigurator.web.app/:path*"
+    },
+    {
+      "source": "/table.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "bare",
+          "value": "1"
+        }
+      ],
+      "destination": "https://diaaz-konfigurator.web.app/table.html?bare=1"
+    },
+    {
+      "source": "/assets/:path*",
+      "destination": "https://diaaz-konfigurator.web.app/assets/:path*"
+    },
+    {
+      "source": "/brand/:path*",
+      "destination": "https://diaaz-konfigurator.web.app/brand/:path*"
     }
   ]
 }
