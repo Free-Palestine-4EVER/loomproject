@@ -110,6 +110,14 @@
     {
       "source": "/360/:path*",
       "destination": "https://loom-360.web.app/:path*?v=2"
+    },
+    {
+      "source": "/diaaz",
+      "destination": "https://diaaz-konfigurator.web.app/"
+    },
+    {
+      "source": "/diaaz/:path*",
+      "destination": "https://diaaz-konfigurator.web.app/:path*"
     }
   ]
 }
