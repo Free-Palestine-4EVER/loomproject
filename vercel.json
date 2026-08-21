@@ -51,6 +51,15 @@
       ]
     },
     {
+      "source": "/configurator.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
       "source": "/table.html",
       "headers": [
         {
@@ -117,17 +126,10 @@
     },
     {
       "source": "/diaaz/:path*",
-      "destination": "https://diaaz-konfigurator.web.app/:path*"
+      "destination": "https://diaaz-konfigurator.web.app/diaaz/:path*"
     },
     {
       "source": "/table.html",
-      "has": [
-        {
-          "type": "query",
-          "key": "bare",
-          "value": "1"
-        }
-      ],
       "destination": "https://diaaz-konfigurator.web.app/table.html?bare=1"
     },
     {
