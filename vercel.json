@@ -139,6 +139,10 @@
     {
       "source": "/brand/:path*",
       "destination": "https://diaaz-konfigurator.web.app/brand/:path*"
+    },
+    {
+      "source": "/refs/:path*",
+      "destination": "https://diaaz-konfigurator.web.app/refs/:path*"
     }
   ]
 }
