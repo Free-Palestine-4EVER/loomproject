@@ -51,15 +51,12 @@
 
   let { children } = $props()
 
-  // /configurator, /diaaz and /kitchen3d are bare embeds handed out by link:
-  // the
+  // /configurator and /kitchen3d are bare embeds handed out by link: the
   // header, then one full-window iframe, and nothing else. The footer, the
   // butterfly and the floating CTA are all skipped — each would sit over a live
   // 3D viewport the visitor is meant to drag, and there is no page below the
   // frame for them to belong to.
-  // /diaaz is a second URL onto the same configurator embed as /configurator,
-  // for a separate conversation — so it is bare on exactly the same grounds.
-  const BARE_ROUTES = new Set(['/configurator', '/diaaz', '/kitchen3d'])
+  const BARE_ROUTES = new Set(['/configurator', '/kitchen3d'])
   const bare = $derived(BARE_ROUTES.has(page.url.pathname))
 
   /* /bbsimon1 and /bbsimon2 go further than bare: they drop the NAV as well.
@@ -73,8 +70,14 @@
      whose concept it is and that nothing transacts, and a LOOM footer. Losing
      the chrome is a framing decision, not an attempt to pass the page off as
      B.B. Simon's own work. */
+  /* /diaaz is the same kind of page for Diaaz: their own "Kreiraj svoj sto"
+     page, chrome and wording included, with our configurator doing the work
+     their form only describes. Same signature, same rule — it carries a LOOM
+     ribbon across the top and nothing on it transacts. */
   const unbranded = $derived(
-    page.url.pathname === '/bbsimon1' || page.url.pathname === '/bbsimon2'
+    page.url.pathname === '/bbsimon1' ||
+      page.url.pathname === '/bbsimon2' ||
+      page.url.pathname === '/diaaz'
   )
 
   // Live media queries. Started here rather than per-component so there is one

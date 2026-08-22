@@ -1,0 +1,566 @@
+/*
+  /diaaz — Diaaz's page, styled as Diaaz's page.
+
+  Global rather than Svelte-scoped for the same reason every other page here
+  does it: the rules have to reach `main`, which the layout owns, and
+  `html`/`body`, which nobody does. The route is in the layout's `unbranded`
+  set, so LOOM's nav, footer and pink ground are already gone — what is left to
+  undo is the page padding and the fixed backdrop.
+
+  The tokens are measured off diaaz.ba, not invented: brand brown #5C4942 (their
+  top bar and their button), Lexend Deca 600 for headings and nav, Kumbh Sans
+  for body copy, 25px pills.
+*/
+
+:root:has(.dz) {
+  --dz-brown: #5c4942;
+  --dz-brown-dark: #4a3a34;
+  --dz-ink: #0f0f0f;
+  --dz-muted: #6b6560;
+  --dz-line: #e6e1dc;
+  --dz-paper: #ffffff;
+  --dz-ground: #f6f3f0;
+  --dz-accent: #b4763a;
+}
+
+html:has(.dz),
+body:has(.dz) {
+  background: var(--dz-ground);
+  margin: 0;
+  padding: 0;
+}
+
+/* the layout paints a fixed pink backdrop behind every page; this one is not
+   a LOOM page */
+body:has(.dz) .loom-bg { display: none; }
+
+main.main--bare:has(.dz) {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+  width: 100%;
+}
+
+.dz {
+  font-family: 'Kumbh Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--dz-ink);
+  background: var(--dz-ground);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dz h1,
+.dz h2,
+.dz legend,
+.dz-nav,
+.dz-btn {
+  font-family: 'Lexend Deca', 'Kumbh Sans', sans-serif;
+}
+
+/* ── the LOOM ribbon ──────────────────────────────────────────────────────
+   Signs the page. Deliberately not styled as Diaaz: it is not part of their
+   site and must not read as if it were. */
+.dz-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  background: #16110f;
+  color: #efe9e0;
+  font: 400 0.78rem/1.4 'Kumbh Sans', sans-serif;
+  flex-wrap: wrap;
+}
+.dz-ribbon__mark { font-weight: 700; letter-spacing: 0.16em; }
+.dz-ribbon__text { opacity: 0.82; }
+.dz-ribbon__link { color: #efe9e0; margin-left: auto; white-space: nowrap; }
+
+/* ── their chrome ────────────────────────────────────────────────────────── */
+.dz-topbar { background: var(--dz-brown); color: #fff; }
+.dz-topbar__in {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.84rem;
+}
+.dz-topbar__social { display: flex; gap: 0.9rem; }
+.dz-topbar__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.55);
+  display: inline-block;
+}
+.dz-topbar__contact { display: flex; gap: 1.75rem; }
+.dz-topbar__contact a { color: #fff; text-decoration: none; }
+.dz-topbar__contact a:hover { text-decoration: underline; }
+
+.dz-head { background: var(--dz-paper); border-bottom: 1px solid var(--dz-line); }
+.dz-head__in {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.dz-head__logo img { display: block; width: 200px; height: auto; }
+.dz-nav {
+  display: flex;
+  gap: 1.9rem;
+  margin-left: auto;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.dz-nav a { color: #000; text-decoration: none; }
+.dz-nav a:hover { color: var(--dz-brown); }
+.dz-head__cta {
+  background: var(--dz-brown);
+  color: #fff;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── hero ────────────────────────────────────────────────────────────────
+   A band, not a screen. The configurator is the page; the copy introduces it
+   and gets out of the way so the table can have the viewport. */
+.dz-hero__in {
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 1.6rem 1.5rem 1.1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 1rem 3rem;
+  align-items: end;
+}
+.dz-hero h1 {
+  font-size: clamp(1.5rem, 2.3vw, 2.05rem);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+  margin: 0;
+  max-width: 20ch;
+}
+.dz-hero__lead {
+  margin: 0;
+  color: var(--dz-muted);
+  font-size: 0.95rem;
+  max-width: 62ch;
+}
+.dz-hero__lead strong { color: var(--dz-ink); }
+
+/* ── the workspace ───────────────────────────────────────────────────────
+   The table is pinned and nearly a full screen tall; the questions scroll past
+   it. See the note in +page.svelte for why this is a scroll and not a stepper. */
+.dz-work {
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 452px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.dz-stage {
+  position: sticky;
+  top: 1rem;
+  min-width: 0;
+}
+.dz-stage__frame {
+  position: relative;
+  height: min(calc(100svh - 2rem), 860px);
+  min-height: 460px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #efece7;
+  box-shadow: 0 34px 80px -38px rgba(30, 20, 14, 0.5);
+}
+/* Rendered at its design size and cover-scaled into the box — see the note in
+   +page.svelte for why the embed needs a full-size viewport to compose. */
+.dz-stage__frame iframe {
+  display: block;
+  border: 0;
+  transform-origin: top left;
+}
+.dz-stage__wait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--dz-muted);
+  font-size: 0.88rem;
+  background: #efece7;
+  pointer-events: none;
+}
+.dz-stage__wait span {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(92, 73, 66, 0.25);
+  border-top-color: var(--dz-brown);
+  border-radius: 50%;
+  animation: dz-spin 0.8s linear infinite;
+}
+@keyframes dz-spin { to { transform: rotate(360deg); } }
+.dz-stage__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 1.1rem;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(6px);
+  color: #4a3f38;
+  font-size: 0.74rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* the caption + progress the scroll drives */
+.dz-now {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.95rem 0.5rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 26px -16px rgba(30, 20, 14, 0.6);
+  pointer-events: none;
+  max-width: calc(100% - 2rem);
+}
+.dz-now__no {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--dz-brown);
+  color: #fff;
+  font: 600 0.7rem 'Lexend Deca', sans-serif;
+}
+.dz-now__t { display: grid; min-width: 0; line-height: 1.25; }
+.dz-now__t em {
+  font-style: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--dz-muted);
+}
+.dz-now__t b {
+  font: 600 0.88rem/1.25 'Lexend Deca', sans-serif;
+  color: var(--dz-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dz-stage__bar {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: rgba(92, 73, 66, 0.14);
+}
+.dz-stage__bar span {
+  display: block;
+  height: 100%;
+  background: var(--dz-brown);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── the rail ────────────────────────────────────────────────────────────
+   Ten cards down the right. The one the scroll is on lifts and takes the
+   brand rule up its left edge; the rest sit back. That is the whole scroll
+   "effect" — no reveal animations, nothing that moves under the reader. */
+.dz-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.dz-sec {
+  position: relative;
+  background: var(--dz-paper);
+  border: 1px solid var(--dz-line);
+  border-radius: 18px;
+  padding: 1.2rem 1.3rem 1.35rem;
+  margin: 0;
+  scroll-margin-top: 1.5rem;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+  opacity: 0.72;
+}
+.dz-sec::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 1.35rem;
+  bottom: 1.35rem;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--dz-brown);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dz-sec--on {
+  opacity: 1;
+  border-color: #ded3cb;
+  box-shadow: 0 22px 44px -30px rgba(30, 20, 14, 0.45);
+}
+.dz-sec--on::before { transform: scaleY(1); }
+.dz-sec--quote { background: #fffdfb; }
+
+/* A <legend> is laid out by the UA against the fieldset's border, not as a
+   normal first child: it shrink-wraps, sits half outside the padding box and
+   ignores `margin-left:auto` on anything inside it. Floating it takes it out
+   of that special case and makes it an ordinary full-width row. */
+.dz-sec legend {
+  float: left;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0;
+  margin: 0 0 0.15rem;
+}
+.dz-sec::after { content: ''; display: table; clear: both; }
+/* ...and a float has to be cleared by what follows it, or the note and the
+   chip grid lay themselves out alongside a 100%-wide float and land off the
+   right edge of the card. */
+.dz-sec > :not(legend) { clear: both; }
+.dz-sec__no {
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--dz-accent);
+}
+.dz-sec__title {
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.dz-sec__tag {
+  margin-left: auto;
+  font-family: 'Kumbh Sans', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 500;
+  color: var(--dz-muted);
+  background: var(--dz-ground);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  white-space: nowrap;
+}
+.dz-sec__note {
+  margin: 0.15rem 0 0;
+  color: var(--dz-muted);
+  font-size: 0.83rem;
+}
+
+/* ── chips ───────────────────────────────────────────────────────────────── */
+.dz-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+.dz-chip {
+  appearance: none;
+  border: 1px solid var(--dz-line);
+  background: #fff;
+  border-radius: 11px;
+  padding: 0.4rem 0.4rem 0.5rem;
+  cursor: pointer;
+  text-align: center;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+.dz-chip:hover { border-color: #cdc3bb; transform: translateY(-1px); }
+.dz-chip--on {
+  border-color: var(--dz-brown);
+  box-shadow: 0 0 0 2px rgba(92, 73, 66, 0.16);
+}
+.dz-chip__art {
+  display: block;
+  height: 74px;
+  border-radius: 7px;
+  background-size: cover;
+  background-position: center;
+}
+.dz-chip__art--img {
+  background-color: #fff;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.dz-chip__label {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  color: #2b2119;
+  overflow-wrap: anywhere;
+}
+.dz-chip--on .dz-chip__label { font-weight: 600; }
+
+/* A question with no picture to show — how the edge is cut — is a word, not a
+   swatch. Without art the chip would be a tall empty card, so it sizes to the
+   text instead. */
+.dz-chip:not(:has(.dz-chip__art)) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.25rem;
+  padding: 0.6rem 0.5rem;
+}
+.dz-chip:not(:has(.dz-chip__art)) .dz-chip__label { margin-top: 0; font-size: 0.78rem; }
+
+/* the leg catalogue is thirty drawings; a tighter grid so more of it is in
+   view at once, and it is the one step whose panel scrolls */
+.dz-chips--wide { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+.dz-chips--wide .dz-chip__art { height: 62px; }
+
+/* ── dimensions ──────────────────────────────────────────────────────────── */
+.dz-dims { display: flex; gap: 0.6rem; margin-top: 0.9rem; }
+.dz-dim {
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.25rem 0.4rem;
+  font-size: 0.78rem;
+  color: var(--dz-muted);
+}
+.dz-dim span { grid-column: 1 / -1; }
+.dz-dim input {
+  width: 100%;
+  border: 1px solid var(--dz-line);
+  border-radius: 9px;
+  padding: 0.5rem 0.6rem;
+  font: 600 0.95rem 'Kumbh Sans', sans-serif;
+  color: var(--dz-ink);
+  background: #fff;
+}
+.dz-dim em { font-style: normal; font-size: 0.75rem; }
+
+/* ── quote ───────────────────────────────────────────────────────────────── */
+.dz-summary {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0.8rem 0.9rem;
+  background: var(--dz-ground);
+  border-radius: 11px;
+  font-size: 0.8rem;
+  color: #3b332e;
+  display: grid;
+  gap: 0.25rem;
+}
+.dz-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+.dz-fields__wide { grid-column: 1 / -1; }
+.dz-fields label { display: grid; gap: 0.25rem; font-size: 0.78rem; color: var(--dz-muted); }
+.dz-fields input,
+.dz-fields textarea {
+  border: 1px solid var(--dz-line);
+  border-radius: 9px;
+  padding: 0.55rem 0.65rem;
+  font: 400 0.9rem 'Kumbh Sans', sans-serif;
+  color: var(--dz-ink);
+  background: #fff;
+  resize: vertical;
+}
+.dz-actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+.dz-btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  line-height: 1.2;
+  font-family: 'Lexend Deca', sans-serif;
+  background: var(--dz-brown);
+  color: #fff;
+  border-radius: 25px;
+  padding: 13px 26px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.16s ease;
+}
+.dz-btn:hover { background: var(--dz-brown-dark); }
+.dz-btn--ghost {
+  background: transparent;
+  color: var(--dz-brown);
+  border: 1px solid var(--dz-brown);
+}
+.dz-btn--ghost:hover { background: rgba(92, 73, 66, 0.06); color: var(--dz-brown); }
+.dz-actions__note { margin: 0.6rem 0 0; font-size: 0.74rem; color: var(--dz-muted); }
+
+/* ── footer ──────────────────────────────────────────────────────────────── */
+.dz-foot {
+  background: var(--dz-brown);
+  color: #f3ece7;
+  padding: 1.9rem 1.5rem;
+  text-align: center;
+}
+.dz-foot img { width: 170px; height: auto; filter: brightness(0) invert(1); opacity: 0.92; }
+.dz-foot p { margin: 0.9rem 0 0; font-size: 0.85rem; }
+.dz-foot a { color: #fff; }
+.dz-foot__by { opacity: 0.7; font-size: 0.78rem !important; }
+
+/* ── narrow ──────────────────────────────────────────────────────────────
+   Below 1180 the two columns stack, and the one-screen rule is kept by giving
+   the stage a fixed share of the viewport and the rail the rest. */
+@media (max-width: 1180px) {
+  .dz-hero__in { grid-template-columns: minmax(0, 1fr); padding-bottom: 0.9rem; }
+  .dz-work {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    padding-bottom: 3rem;
+  }
+  /* The stage stays pinned — it is the point of the page — but as a band, so
+     the question under it is readable at the same time. */
+  .dz-stage {
+    top: 0;
+    z-index: 3;
+    padding: 0.6rem 0 0.7rem;
+    background: linear-gradient(var(--dz-ground) 88%, rgba(246, 243, 240, 0));
+  }
+  .dz-stage__frame { height: min(46svh, 420px); min-height: 280px; }
+  .dz-stage__hint { display: none; }
+  .dz-nav { display: none; }
+}
+
+@media (max-width: 700px) {
+  .dz-head__in { gap: 1rem; }
+  .dz-head__logo img { width: 150px; }
+  .dz-head__cta { margin-left: auto; padding: 10px 18px; font-size: 0.8rem; }
+  .dz-topbar__social { display: none; }
+  .dz-topbar__contact { width: 100%; justify-content: space-between; gap: 1rem; }
+  .dz-work { padding: 0 0.9rem 2.5rem; }
+  .dz-hero__in { padding: 1.1rem 0.9rem 0.8rem; }
+  .dz-sec { padding: 1rem 1.05rem 1.15rem; }
+  .dz-fields { grid-template-columns: 1fr; }
+  .dz-chips { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+  .dz-chips--wide { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); }
+  .dz-stage__hint { display: none; }
+}
