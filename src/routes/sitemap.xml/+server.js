@@ -23,7 +23,8 @@ const pages = import.meta.glob('/src/routes/**/+page.svelte')
      - anything with a `[param]` segment — those are templates, not pages;
        the real URLs they stand for are expanded below from the actual data
        source, not guessed.
-     - /configurator, /kitchen3d — unlisted demo pages, handed out by direct
+     - /configurator, /diaaz, /kitchen3d — unlisted demo pages, handed out by
+       direct
        link for a specific conversation. They also carry a noindex robots tag;
        listing them here would contradict that.
      - /lab — the internal variant-picking tool. Its own +page.js says so
@@ -39,6 +40,7 @@ const EXCLUDE = (route) =>
   route.includes('[') ||
   route === '/lab' ||
   route === '/configurator' ||
+  route === '/diaaz' ||
   route === '/kitchen3d' ||
   route.startsWith('/bbsimon')
 

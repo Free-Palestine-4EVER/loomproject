@@ -10,13 +10,16 @@
   deployed there and nothing about it was under this repo's control or in its
   git history. Now a push here ships the whole thing.
 
-  RENAMED from /table.html, TWICE (2026-08-21): /diaaz's own Diaaz-branded
-  copy of this exact same Textura build needs the literal path
-  /table.html?bare=1 — that's what its own iframe requests, hardcoded in its
-  build, unchangeable from here. A static file at /table.html always wins
+  RENAMED from /table.html, TWICE (2026-08-21): back when /diaaz was a reverse
+  proxy onto its own Diaaz-branded copy of this exact same Textura build, that
+  copy's iframe requested the literal path /table.html?bare=1 — hardcoded in
+  its build, unchangeable from here. A static file at /table.html always wins
   over a vercel.json rewrite for that same path regardless of query string
-  (Vercel matches static assets by pathname only), so as long as this route's
-  own copy sat at /table.html too, the /diaaz proxy could never win that path.
+  (Vercel matches static assets by pathname only), so while this route's own
+  copy sat at /table.html too, the /diaaz proxy could never win that path.
+  That proxy is gone — /diaaz is now a clone of this route, embedding this
+  same /loom-table.html — but the rename stays: the SECOND reason below is
+  still live, and /table.html is now simply an unused path.
 
   First rename landed on /configurator.html — wrong, for a DIFFERENT reason
   than the one it fixed: SvelteKit's own prerendered output for the

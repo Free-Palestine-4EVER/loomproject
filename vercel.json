@@ -60,15 +60,6 @@
       ]
     },
     {
-      "source": "/table.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    },
-    {
       "source": "/_next/(.*)",
       "headers": [
         {
@@ -119,18 +110,6 @@
     {
       "source": "/360/:path*",
       "destination": "https://loom-360.web.app/:path*?v=2"
-    },
-    {
-      "source": "/assets/:path*",
-      "destination": "https://diaaz-konfigurator.web.app/assets/:path*"
-    },
-    {
-      "source": "/brand/:path*",
-      "destination": "https://diaaz-konfigurator.web.app/brand/:path*"
-    },
-    {
-      "source": "/refs/:path*",
-      "destination": "https://diaaz-konfigurator.web.app/refs/:path*"
     }
   ]
 }

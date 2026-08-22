@@ -51,12 +51,15 @@
 
   let { children } = $props()
 
-  // /configurator and /kitchen3d are bare embeds handed out by link: the
+  // /configurator, /diaaz and /kitchen3d are bare embeds handed out by link:
+  // the
   // header, then one full-window iframe, and nothing else. The footer, the
   // butterfly and the floating CTA are all skipped — each would sit over a live
   // 3D viewport the visitor is meant to drag, and there is no page below the
   // frame for them to belong to.
-  const BARE_ROUTES = new Set(['/configurator', '/kitchen3d'])
+  // /diaaz is a second URL onto the same configurator embed as /configurator,
+  // for a separate conversation — so it is bare on exactly the same grounds.
+  const BARE_ROUTES = new Set(['/configurator', '/diaaz', '/kitchen3d'])
   const bare = $derived(BARE_ROUTES.has(page.url.pathname))
 
   /* /bbsimon1 and /bbsimon2 go further than bare: they drop the NAV as well.
