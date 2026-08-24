@@ -88,6 +88,11 @@
       "source": "/360/house",
       "destination": "/360/house/",
       "permanent": false
+    },
+    {
+      "source": "/qrmenu",
+      "destination": "/qrmenu/",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -110,6 +115,14 @@
     {
       "source": "/360/:path*",
       "destination": "https://loom-360.web.app/:path*?v=2"
+    },
+    {
+      "source": "/qrmenu/",
+      "destination": "https://loom-qrmenu.web.app/qrmenu/index.html"
+    },
+    {
+      "source": "/qrmenu/:path*",
+      "destination": "https://loom-qrmenu.web.app/qrmenu/:path*"
     }
   ]
 }
