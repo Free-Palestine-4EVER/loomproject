@@ -1,142 +1,416 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Loomina — Light, considered.</title>
-<meta name="description" content="Loomina makes architectural lighting by hand. Eighty fixtures. See every one of them lit.">
+<meta name="description" content="Loomina makes architectural lighting by hand. Eighty fixtures, each photographed twice — once dark, once burning. Scroll, and the room turns on.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%23ffb34a'/></svg>">
 <link rel="stylesheet" href="./css/loomina.css">
 <style>
-  .hero{ position:relative; min-height:min(94vh,940px); display:grid; place-items:center; text-align:center;
-         padding-block:clamp(60px,9vw,110px) 0; overflow:hidden; }
-  .hero-copy{ position:relative; z-index:3; max-width:820px; padding-inline:var(--gut); }
-  .hero-stage{ position:relative; width:min(1100px,100%); margin-top:clamp(24px,4vw,48px); }
-  .hero-stage .shot{ aspect-ratio:16/10; border-radius:var(--r-lg); }
-  .hero-aura{ position:absolute; left:50%; top:26%; width:min(760px,90vw); aspect-ratio:1; transform:translate(-50%,-50%);
-    background:radial-gradient(circle,var(--glow) 0%,rgba(0,0,0,0) 62%); opacity:0; pointer-events:none; z-index:0;
-    transition:opacity var(--t-light) var(--e-soft); }
-  :root[data-lit="on"] .hero-aura{ opacity:1; }
-  .tiles{ display:grid; gap:clamp(14px,1.6vw,22px); grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr)); }
-  .tile{ position:relative; border-radius:var(--r-lg); overflow:hidden; background:var(--surface); min-height:min(64vw,520px);
-         display:grid; align-content:start; justify-items:center; text-align:center; padding-top:clamp(30px,4vw,46px);
-         transition:background var(--t-light) var(--e-soft); }
-  .tile .shot{ position:absolute; inset:0; border-radius:0; aspect-ratio:auto; z-index:0; }
-  .tile .shot img{ object-position:center 62%; }
-  .tile-copy{ position:relative; z-index:2; display:grid; gap:6px; padding-inline:24px; }
-  .tile-copy .t-lg{ text-shadow:0 1px 26px var(--ground); }
-  .strip{ display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:14px;
-          scrollbar-width:none; -ms-overflow-style:none; }
-  .strip::-webkit-scrollbar{ display:none; }
-  .strip > a{ flex:0 0 clamp(200px,26vw,268px); scroll-snap-align:start; }
-  .demo{ display:grid; gap:clamp(28px,4vw,56px); grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr)); align-items:center; }
-  .big-switch{ display:inline-flex; align-items:center; gap:14px; padding:12px 12px 12px 22px; border-radius:var(--pill);
-    border:1px solid var(--hairline); background:var(--plate); cursor:pointer;
-    transition:background var(--t-light) var(--e-soft), border-color var(--t-light) var(--e-soft), box-shadow .4s var(--e-out); }
-  :root[data-lit="on"] .big-switch{ box-shadow:0 0 46px var(--glow-2); }
-  .marq{ font-size:clamp(56px,13vw,180px); font-weight:600; letter-spacing:-.045em; line-height:.92; }
+/* ============ scroll progress ============ */
+.prog{ position:fixed; top:0; left:0; right:0; height:2px; z-index:9200; pointer-events:none; }
+.prog i{ display:block; height:100%; width:100%; transform-origin:0 50%; transform:scaleX(var(--sp,0));
+  background:linear-gradient(90deg, rgb(var(--amber-rgb)/.25), rgb(var(--amber-rgb)/1));
+  opacity:0; transition:opacity .5s var(--e-out); }
+:root[data-lit="on"] .prog i{ opacity:1; }
+
+/* ============ pointer spotlight, dusk only ============ */
+.spot{ position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0;
+  transition:opacity 1s var(--e-soft);
+  background:radial-gradient(340px circle at var(--mx,50%) var(--my,40%), rgb(var(--amber-rgb)/.055), transparent 70%); }
+:root[data-lit="on"] .spot{ opacity:1; }
+@media (prefers-reduced-motion:reduce){ .spot{ display:none; } }
+
+/* ============ 01 · HERO ============ */
+.hero{ position:relative; height:190vh; }
+/* The pin must fit ANY viewport height: copy in an auto row, the stage in a
+   minmax(0,1fr) row so the photograph absorbs whatever is left instead of
+   pushing the headline up under the sticky nav. */
+.hero-pin{ position:sticky; top:0; height:100vh; height:100svh;
+  display:grid; grid-template-rows:auto minmax(0,1fr);
+  align-items:start; justify-items:center; text-align:center; overflow:hidden;
+  padding-top:calc(var(--nav-h) + clamp(14px,4vh,44px)); }
+.hero-aura{ position:absolute; left:50%; top:58%; width:min(1000px,150vw); aspect-ratio:1;
+  transform:translate(-50%,-50%) scale(calc(.6 + var(--p,0) * .6));
+  background:radial-gradient(circle, rgb(var(--amber-rgb)/.30) 0%, rgb(var(--amber-rgb)/0) 62%);
+  opacity:var(--p,0); pointer-events:none; z-index:0; }
+.hero-copy{ position:relative; z-index:3; max-width:860px; padding-inline:var(--gut);
+  transform:translateY(calc(var(--p,0) * -22px)); }
+.hero-stage{ position:relative; z-index:2; width:min(1180px,100%); min-height:0; align-self:stretch;
+  padding:clamp(14px,3vh,34px) var(--gut) 0; display:grid; grid-template-rows:minmax(0,1fr);
+  transform:translateY(calc(var(--p,0) * -10px)) scale(calc(1 + var(--p,0) * .02)); }
+.hero-stage .shot{ aspect-ratio:auto; height:100%; min-height:0;
+  border-radius:var(--r-lg) var(--r-lg) 0 0; }
+.hero-cue{ display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  font-size:12px; color:var(--ink-3); opacity:calc(1 - var(--p,0) * 2.4);
+  pointer-events:none;
+  transition:color var(--t-light) var(--e-soft); }
+@media (max-height:720px){
+  .hero-pin .t-hero{ font-size:clamp(30px,5.4vw,50px) }
+  .hero-pin .t-bd{ font-size:16px }
+}
+.hero-cue .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent);
+  animation:pulse 2.2s var(--e-soft) infinite; }
+@keyframes pulse{ 0%,100%{ transform:scale(1); opacity:.5 } 50%{ transform:scale(1.9); opacity:1 } }
+
+/* ============ 02 · THE DIMMER ============ */
+.dim-wrap{ display:grid; gap:clamp(28px,4vw,60px); align-items:center;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr)); }
+.dim-shot{ position:relative; }
+.dim-shot .shot{ border-radius:var(--r-lg); }
+.dim-read{ display:flex; gap:26px; padding-top:18px; }
+.dim-read b{ display:block; font-size:26px; font-weight:600; letter-spacing:-.02em; }
+.slider{ -webkit-appearance:none; appearance:none; width:100%; height:44px; background:transparent; cursor:grab; }
+.slider:active{ cursor:grabbing; }
+.slider::-webkit-slider-runnable-track{ height:6px; border-radius:var(--pill);
+  background:linear-gradient(90deg, var(--accent) var(--fill,0%), var(--hairline) var(--fill,0%)); }
+.slider::-moz-range-track{ height:6px; border-radius:var(--pill); background:var(--hairline); }
+.slider::-moz-range-progress{ height:6px; border-radius:var(--pill); background:var(--accent); }
+.slider::-webkit-slider-thumb{ -webkit-appearance:none; width:28px; height:28px; margin-top:-11px;
+  border-radius:50%; background:var(--surface); border:1px solid var(--hairline);
+  box-shadow:0 2px 10px rgb(0 0 0/.18), 0 0 0 0 rgb(var(--amber-rgb)/.5);
+  transition:box-shadow .3s var(--e-out), transform .2s var(--e-spring); }
+.slider:hover::-webkit-slider-thumb{ transform:scale(1.08); }
+:root[data-lit="on"] .slider::-webkit-slider-thumb{ box-shadow:0 2px 10px rgb(0 0 0/.4), 0 0 26px rgb(var(--amber-rgb)/.55); }
+.slider::-moz-range-thumb{ width:26px; height:26px; border-radius:50%; background:var(--surface); border:1px solid var(--hairline); }
+
+/* ============ 03 · ONE ROOM ============ */
+/* The fixtures were shot square. Full-bleed `cover` on a wide viewport threw
+   away most of the frame and left an extreme close-up, so the sequence runs in
+   a centred stage instead: modest 4:3 crop, whole fixture intact, copy below it
+   on normal tokens where it can never strand. */
+.room{ position:relative; }
+.room-pin{ position:sticky; top:0; height:100vh; height:100svh; overflow:hidden;
+  display:grid; grid-template-rows:minmax(0,1fr) auto; align-items:center;
+  padding:calc(var(--nav-h) + clamp(14px,3vh,32px)) var(--gut) clamp(24px,5vh,54px); }
+.room-stage{ position:relative; aspect-ratio:4/3; width:100%; height:auto;
+  /* max-width AND max-height with an aspect-ratio = fit inside the row without
+     distorting. Forcing height:100% instead made the box portrait on phones. */
+  max-width:min(1120px,100%); max-height:100%; min-height:0; margin:auto;
+  border-radius:var(--r-lg); overflow:hidden; background:var(--shot-bg);
+  transition:background var(--t-light) var(--e-soft); }
+.room-frames{ position:absolute; inset:0; }
+.room-frames .shot{ position:absolute; inset:0; border-radius:0; aspect-ratio:auto; }
+.room-frames .shot img{ object-position:center 44%; }
+.room-glow{ position:absolute; inset:0; pointer-events:none; opacity:0;
+  box-shadow:inset 0 0 120px 24px rgb(var(--amber-rgb)/.18);
+  transition:opacity var(--t-light) var(--e-soft); }
+:root[data-lit="on"] .room-glow{ opacity:1; }
+.room-copy{ text-align:center; padding-top:clamp(16px,3vh,28px); }
+.room-copy .rname{ font-size:clamp(26px,4.2vw,50px); font-weight:600; letter-spacing:-.03em; line-height:1.05; }
+.room-copy .rsub{ font-size:15px; color:var(--ink-2); margin-top:6px; }
+.room-copy .rname, .room-copy .rsub{ transition:opacity .3s var(--e-out), transform .3s var(--e-out); }
+.room-copy .swap{ opacity:0; transform:translateY(9px); }
+@media (prefers-reduced-motion:reduce){ .room-copy .swap{ opacity:1; transform:none } }
+.room-rail{ position:absolute; right:calc(var(--gut) / 2); top:50%; transform:translateY(-50%);
+  z-index:3; display:grid; gap:9px; }
+.room-rail i{ display:block; width:3px; height:18px; border-radius:2px; background:var(--ink);
+  opacity:.18; transition:opacity .35s var(--e-out), height .35s var(--e-spring), background .35s; }
+.room-rail i.on{ opacity:1; height:30px; background:var(--accent); }
+@media (max-width:760px){
+  .room-rail{ display:none }
+  /* a portrait frame wastes less of a square source on a phone */
+  .room-stage{ aspect-ratio:4/5 }
+}
+
+/* ============ 04 · MARQUEE ============ */
+.marq-band{ overflow:hidden; border-block:1px solid var(--hairline-2); padding-block:22px;
+  transform:skewY(calc(var(--scroll-v,0) * -0.03deg));   /* velocity is clamped to +/-60 => max 1.8deg */ }
+.marq-run{ display:flex; gap:46px; width:max-content; animation:run 46s linear infinite; }
+.marq-band:hover .marq-run{ animation-play-state:paused; }
+@keyframes run{ to{ transform:translateX(-50%) } }
+.marq-run span{ font-size:clamp(22px,3.4vw,44px); font-weight:600; letter-spacing:-.03em;
+  color:var(--ink-3); white-space:nowrap; transition:color .3s var(--e-out); }
+.marq-run span b{ color:var(--accent); font-weight:600; }
+@media (prefers-reduced-motion:reduce){ .marq-run{ animation:none } .marq-band{ transform:none } }
+
+/* ============ 05 · NUMBERS ============ */
+.nums{ display:grid; gap:clamp(22px,4vw,48px); grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); }
+.num b{ display:block; font-size:clamp(52px,8vw,104px); font-weight:600; letter-spacing:-.045em;
+  line-height:1; font-variant-numeric:tabular-nums; }
+.num span{ display:block; font-size:15px; color:var(--ink-2); margin-top:10px; }
+
+/* ============ 06 · TILES / STRIP / GRID ============ */
+.tiles{ display:grid; gap:clamp(14px,1.6vw,22px); grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr)); }
+.tile{ position:relative; border-radius:var(--r-lg); overflow:hidden; background:var(--surface);
+  min-height:min(66vw,540px); display:grid; align-content:start; justify-items:center; text-align:center;
+  padding-top:clamp(30px,4vw,46px); transition:background var(--t-light) var(--e-soft); }
+.tile .shot{ position:absolute; inset:0; border-radius:0; aspect-ratio:auto; z-index:0; }
+.tile .shot img{ object-position:center 62%; transition:transform .9s var(--e-spring), opacity var(--t-light) var(--e-soft); }
+.tile:hover .shot img{ transform:scale(1.035); }
+.tile-copy{ position:relative; z-index:2; display:grid; gap:6px; padding-inline:24px;
+  /* halo in the page's own ground colour: light in day, dark at dusk, so the
+     caption reads wherever the fixture happens to sit in the frame */
+  text-shadow:0 1px 20px var(--ground), 0 1px 6px var(--ground); }
+.strip{ display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:14px;
+  scrollbar-width:none; -ms-overflow-style:none; }
+.strip::-webkit-scrollbar{ display:none; }
+.strip > a{ flex:0 0 clamp(200px,26vw,268px); scroll-snap-align:start; }
+
+/* ============ 07 · CLOSER ============ */
+.closer{ position:relative; text-align:center; padding-block:clamp(90px,14vw,180px); overflow:hidden; }
+.closer::before{ content:""; position:absolute; left:50%; top:50%; width:min(900px,140vw); aspect-ratio:1;
+  transform:translate(-50%,-50%); pointer-events:none;
+  background:radial-gradient(circle, rgb(var(--amber-rgb)/.16), transparent 66%);
+  opacity:0; transition:opacity var(--t-light) var(--e-soft); }
+:root[data-lit="on"] .closer::before{ opacity:1; }
+.closer > *{ position:relative; z-index:1; }
+
+.rv-up{ opacity:0; transform:translateY(30px); transition:opacity .9s var(--e-out), transform .9s var(--e-out); }
+.rv-up.in{ opacity:1; transform:none; }
+@media (prefers-reduced-motion:reduce){ .rv-up{ opacity:1 !important; transform:none !important } }
 </style></head><body>
 
+<div class="prog"><i data-prog></i></div>
+<div class="spot"></div>
+
 <main>
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-aura"></div>
-    <div class="hero-copy stack-16">
-      <p class="t-eyebrow rv">Loomina</p>
-      <h1 class="t-hero rv">Light, considered.</h1>
-      <p class="t-bd dim rv" style="max-width:620px;margin-inline:auto">
-        Eighty fixtures, blown, spun and turned by hand. Every one photographed twice, so you can see exactly what it does to a room.</p>
-      <div class="row rv" style="justify-content:center;flex-wrap:wrap;gap:12px 22px">
-        <a class="btn" href="./pages/shop.html">Shop all lighting</a>
-        <a class="link-arrow" href="#switch">See them lit</a>
+  <!-- 01 · HERO -->
+  <section class="hero" data-hero>
+    <div class="hero-pin">
+      <div class="hero-aura"></div>
+      <div class="hero-copy stack-16">
+        <p class="t-eyebrow rv">Loomina</p>
+        <h1 class="t-hero rv">Light, considered.</h1>
+        <p class="t-bd dim rv" style="max-width:640px;margin-inline:auto">
+          Eighty fixtures, blown, spun and turned by hand. Every one photographed twice, so you can see exactly what it does to a room.</p>
+        <div class="row rv" style="justify-content:center;flex-wrap:wrap;gap:12px 22px">
+          <a class="btn" href="./pages/shop.html" data-magnet>Shop all lighting</a>
+          <a class="link-arrow" href="#dimmer">Try the dimmer</a>
+        </div>
+        <div class="hero-cue"><span class="dot"></span> Keep scrolling — the room turns on</div>
       </div>
+      <div class="hero-stage rv" data-hero-stage></div>
     </div>
-    <div class="hero-stage rv" data-hero></div>
   </section>
 
-  <!-- TILES -->
-  <section class="sec-tight"><div class="wrap-wide"><div class="tiles" data-tiles></div></div></section>
-
-  <!-- THE SWITCH -->
-  <section class="sec" id="switch"><div class="wrap-wide">
-    <div class="demo">
-      <div class="stack-24 rv">
-        <p class="t-eyebrow">The Light switch</p>
-        <h2 class="t-xl">Every product, twice.</h2>
-        <p class="t-bd dim">Catalogue photography lies about lamps. A fixture that looks quiet at noon can flood a room at eight. So we shot all eighty in the same room, from the same mark, once cold and once burning. Flip the switch anywhere on the site and the whole place changes with it.</p>
-        <button class="big-switch" data-switch-proxy>
-          <span class="t-md">Turn the lights on</span>
-          <span class="switch" data-switch role="switch" aria-checked="false" aria-label="Turn the lights on"></span>
-        </button>
+  <!-- 02 · THE DIMMER -->
+  <section class="sec" id="dimmer"><div class="wrap-wide">
+    <div class="dim-wrap">
+      <div class="stack-24 rv-up">
+        <p class="t-eyebrow">Interactive</p>
+        <h2 class="t-xl">Take it up slowly.</h2>
+        <p class="t-bd dim">Catalogue photography lies about lamps. A fixture that reads as quiet at noon can flood a room at eight. Drag the dimmer and watch this one cross the whole distance.</p>
+        <div>
+          <input class="slider" type="range" min="0" max="100" value="0" step="1"
+                 data-dimmer aria-label="Dim the fixture from off to full">
+          <div class="dim-read">
+            <div><b class="tnum" data-lumens>0</b><span class="t-xs dimmer">lumens</span></div>
+            <div><b class="tnum" data-kelvin>—</b><span class="t-xs dimmer">colour temperature</span></div>
+            <div><b class="tnum" data-pct>0%</b><span class="t-xs dimmer">output</span></div>
+          </div>
+        </div>
       </div>
-      <div class="stack-16 rv" data-demo></div>
+      <div class="dim-shot rv-up" data-dim-shot></div>
     </div>
   </div></section>
 
-  <!-- CATEGORY STRIP -->
+  <!-- 03 · ONE ROOM -->
+  <section class="room" data-room>
+    <div class="room-pin">
+      <div class="room-stage">
+        <div class="room-frames" data-room-frames></div>
+        <div class="room-glow"></div>
+      </div>
+      <div class="room-copy">
+        <p class="t-eyebrow">One room, eighty fixtures</p>
+        <div class="rname" data-room-name>—</div>
+        <div class="rsub" data-room-sub>—</div>
+      </div>
+      <div class="room-rail" data-room-rail></div>
+    </div>
+  </section>
+
+  <!-- 04 · MARQUEE -->
+  <section class="sec-tight"><div class="marq-band"><div class="marq-run" data-marq></div></div></section>
+
+  <!-- 05 · NUMBERS -->
+  <section class="sec"><div class="wrap-wide">
+    <div class="nums">
+      <div class="num rv-up"><b data-to="80">0</b><span>fixtures, each made by hand</span></div>
+      <div class="num rv-up"><b data-to="160">0</b><span>photographs — every piece, dark and lit</span></div>
+      <div class="num rv-up"><b data-to="2700" data-suffix="K">0</b><span>one colour temperature, held across the catalogue</span></div>
+    </div>
+  </div></section>
+
+  <!-- 06 · TILES -->
+  <section class="sec-tight"><div class="wrap-wide"><div class="tiles" data-tiles></div></div></section>
+
+  <!-- 07 · CATEGORIES -->
   <section class="sec-tight"><div class="wrap-wide stack-24">
-    <div class="row rv"><h2 class="t-lg">Shop by room, or by shape.</h2><span class="nav-spacer"></span>
+    <div class="row rv-up"><h2 class="t-lg">Shop by room, or by shape.</h2><span class="nav-spacer"></span>
       <a class="link-arrow" href="./pages/shop.html">All lighting</a></div>
     <div class="strip" data-cats></div>
   </div></section>
 
-  <!-- FEATURED -->
+  <!-- 08 · FEATURED -->
   <section class="sec"><div class="wrap-wide stack-24">
-    <div class="row rv"><h2 class="t-lg">New this season.</h2><span class="nav-spacer"></span>
-      <a class="link-arrow" href="./pages/shop.html?sort=new">See all 80</a></div>
+    <div class="row rv-up"><h2 class="t-lg">New this season.</h2><span class="nav-spacer"></span>
+      <a class="link-arrow" href="./pages/shop.html">See all 80</a></div>
     <div class="grid" data-featured></div>
   </div></section>
 
-  <!-- MARQUEE STATEMENT -->
-  <section class="sec"><div class="wrap-wide center stack-24">
-    <p class="marq rv">2700K</p>
-    <p class="t-bd dim rv" style="max-width:560px;margin-inline:auto">
-      One colour temperature, chosen and held across the whole catalogue. Mix a pendant with a floor lamp and the room still reads as one light.</p>
+  <!-- 09 · CLOSER -->
+  <section class="closer"><div class="wrap stack-24">
+    <h2 class="t-xl rv-up">Turn it on before you buy it.</h2>
+    <p class="t-bd dim rv-up" style="max-width:560px;margin-inline:auto">
+      Every fixture on this site has a second photograph waiting behind it. Flip the switch in the corner and the whole catalogue lights at once.</p>
+    <div class="row rv-up" style="justify-content:center;gap:14px;flex-wrap:wrap">
+      <a class="btn btn-lg" href="./pages/shop.html" data-magnet>Shop all lighting</a>
+      <button class="btn btn-lg btn-ghost" data-switch-proxy>Turn the lights on</button>
+    </div>
   </div></section>
 </main>
 
 <script src="./js/core.js"></script>
+<script src="./js/motion.js"></script>
 <script>
 (async () => {
   await LM.mountChrome();
-  const D = await LM.db();
-  const P = D.products, cn = D.catName;
-  const pick = (cat, n) => P.filter(p => p.category === cat).slice(0, n);
+  const D = await LM.db(), P = D.products, cn = D.catName;
+  const $ = s => document.querySelector(s);
+  const byCat = c => P.filter(p => p.category === c);
 
-  // hero — the most expensive chandelier
+  /* ---------- 01 hero: scrub the room from dark to lit ---------- */
   const hero = [...P].sort((a,b) => b.price - a.price)[0];
-  document.querySelector('[data-hero]').innerHTML =
-    `<div class="shot">${LM.imgPair(hero)}</div>
-     <div class="row" style="justify-content:center;padding-top:16px;gap:10px">
-       <span class="t-sm dim">${hero.name}</span><span class="t-sm dimmer">·</span>
-       <a class="t-sm link-arrow" href="./pages/product.html?p=${hero.slug}">${LM.money(hero.price)}</a></div>`;
+  $('[data-hero-stage]').innerHTML =
+    `<a class="shot scrub" data-hero-shot href="./pages/product.html?p=${hero.slug}"
+        aria-label="${hero.name}, ${LM.money(hero.price)}">${LM.imgPair(hero)}</a>`;
 
-  // two tiles
-  const t = [P.find(p => p.category==='floor-lamps'), P.find(p => p.category==='sconces')].filter(Boolean);
-  document.querySelector('[data-tiles]').innerHTML = t.map(p => `
-    <a class="tile rv" href="./pages/product.html?p=${p.slug}">
+  const heroSec = $('[data-hero]'), heroPin = heroSec.querySelector('.hero-pin');
+  let autoFlipped = false;                 // false | true (we flipped it) | 'user' (they did)
+  let litNow = document.documentElement.dataset.lit === 'on';
+  let heroP = 0;
+
+  // If the lights are already on because the visitor asked for them — or because
+  // localStorage remembered them from a previous visit — the hero must open on the
+  // LIT frame. Showing the daylight photograph on a dusk page reads as a bug.
+  // While our own scroll auto-flip is what turned them on, we keep scrubbing so the
+  // crossfade stays continuous instead of snapping.
+  const applyHero = () => {
+    const forced = litNow && autoFlipped !== true;
+    heroPin.style.setProperty('--p', (forced ? 1 : heroP).toFixed(3));
+  };
+  addEventListener('lm:lit', e => { litNow = e.detail.on; applyHero(); });
+  document.addEventListener('click', e => { if (e.target.closest('[data-switch]')) autoFlipped = 'user'; }, true);
+
+  MO.scrub(heroSec, p => {
+    heroP = MO.easeOut(Math.min(p / .72, 1));      // lit well before the pin releases
+    if (autoFlipped !== 'user'){
+      if (heroP > .58 && !autoFlipped){ autoFlipped = true; LM.setLit(true); }
+      else if (heroP < .12 && autoFlipped === true){ autoFlipped = false; LM.setLit(false); }
+    }
+    applyHero();
+  });
+  applyHero();
+
+  /* ---------- 02 the dimmer ---------- */
+  const dimP = byCat('table-lamps')[0] || P[0];
+  $('[data-dim-shot]').innerHTML = `<div class="shot scrub" data-dim-shot-el>${LM.imgPair(dimP)}</div>
+    <span class="t-sm dimmer" style="display:block;padding-top:14px">${dimP.name} · ${dimP.dimensions}</span>`;
+  const slider = $('[data-dimmer]'), dimShot = $('[data-dim-shot-el]');
+  const paint = v => {
+    const f = v / 100;
+    slider.style.setProperty('--fill', v + '%');
+    dimShot.style.setProperty('--p', f.toFixed(3));
+    $('[data-lumens]').textContent = Math.round(dimP.lumens * f).toLocaleString('en-US');
+    $('[data-kelvin]').textContent = f > .02 ? dimP.kelvin + 'K' : '—';
+    $('[data-pct]').textContent = v + '%';
+  };
+  slider.addEventListener('input', e => paint(+e.target.value));
+  paint(0);
+  // nudge it once when it first scrolls into view, so the affordance is obvious
+  if ('IntersectionObserver' in window && !MO.reduce()){
+    const io = new IntersectionObserver(es => es.forEach(en => {
+      if (!en.isIntersecting) return; io.disconnect();
+      let v = 0; const t = setInterval(() => { v += 2; slider.value = v; paint(v); if (v >= 46) clearInterval(t); }, 16);
+    }), { threshold:.6 });
+    io.observe(slider);
+  }
+
+  /* ---------- 03 one room, eighty fixtures ---------- */
+  // Every fixture was photographed in the same room, from the same mark — so
+  // dissolving between them reads as changing the lamp, not changing the picture.
+  const pick = ['pendants','chandeliers','floor-lamps','table-lamps','sconces','flush-mounts','bed-reading','portable']
+    .map(c => byCat(c)[1] || byCat(c)[0]).filter(Boolean);
+  const roomSec = $('[data-room]'), frames = $('[data-room-frames]'), rail = $('[data-room-rail]');
+  roomSec.style.height = (pick.length * 88) + 'vh';
+  frames.innerHTML = pick.map(p => `<div class="shot">${LM.imgPair(p)}</div>`).join('');
+  rail.innerHTML = pick.map(() => '<i></i>').join('');
+  const fEls = [...frames.children], rEls = [...rail.children];
+  // These are far down the page, so they are lazy — but a scroll into a pinned
+  // sequence gives no time to fetch. Warm them while the dimmer is on screen.
+  if ('IntersectionObserver' in window){
+    const warm = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return; warm.disconnect();
+      frames.querySelectorAll('img').forEach(i => { i.loading = 'eager'; });
+    }), { rootMargin:'200px' });
+    warm.observe($('#dimmer'));
+  } else frames.querySelectorAll('img').forEach(i => { i.loading = 'eager'; });
+  const nameEl = $('[data-room-name]'), subEl = $('[data-room-sub]');
+  let shown = -1, swapT = 0;
+  MO.scrub(roomSec, p => {
+    const f = p * (pick.length - 1);
+    fEls.forEach((el, i) => { el.style.opacity = MO.clamp(1 - Math.abs(f - i) / .85).toFixed(3); });
+    const idx = Math.round(f);
+    if (idx !== shown){
+      shown = idx; const it = pick[idx];
+      nameEl.textContent = it.name; subEl.textContent = `${cn[it.category]} · ${LM.money(it.price)}`;
+      const pair = [nameEl, subEl];
+      pair.forEach(el => el.classList.add('swap'));
+      const clear = () => pair.forEach(el => el.classList.remove('swap'));
+      requestAnimationFrame(() => requestAnimationFrame(clear));
+      clearTimeout(swapT); swapT = setTimeout(clear, 400);   // may never stay hidden
+      rEls.forEach((r, i) => r.classList.toggle('on', i === idx));
+    }
+  });
+
+  /* ---------- 04 marquee ---------- */
+  const names = P.filter((_, i) => i % 3 === 0).map(p => p.name);
+  const run = names.map(n => `<span>${n}</span>`).join('<span><b>·</b></span>');
+  $('[data-marq]').innerHTML = run + '<span><b>·</b></span>' + run;
+
+  /* ---------- 06 tiles ---------- */
+  const t = [byCat('floor-lamps')[0], byCat('sconces')[0]].filter(Boolean);
+  $('[data-tiles]').innerHTML = t.map(p => `
+    <a class="tile rv-up" href="./pages/product.html?p=${p.slug}">
       <div class="shot">${LM.imgPair(p)}</div>
       <div class="tile-copy"><span class="t-eyebrow">${cn[p.category]}</span>
-        <span class="t-lg">${p.name}</span>
-        <span class="t-sm dim">${p.tagline}</span></div></a>`).join('');
+        <span class="t-lg">${p.name}</span><span class="t-sm dim">${p.tagline}</span></div></a>`).join('');
 
-  // demo pair
-  const d = P.find(p => p.category === 'table-lamps');
-  document.querySelector('[data-demo]').innerHTML =
-    `<div class="shot">${LM.imgPair(d)}</div>
-     <span class="t-sm dimmer center">${d.name} — same frame, same room, one switch.</span>`;
-
-  // categories
-  document.querySelector('[data-cats]').innerHTML = D.categories.map(c => {
-    const p = P.find(x => x.category === c.slug);
-    return `<a class="card rv" href="./pages/shop.html?c=${c.slug}">
+  /* ---------- 07 categories ---------- */
+  $('[data-cats]').innerHTML = D.categories.map(c => {
+    const p = byCat(c.slug)[0];
+    return `<a class="card rv-up" href="./pages/shop.html?c=${c.slug}">
       <div class="shot" data-peek="1">${p ? LM.imgPair(p) : ''}</div>
       <div class="card-meta"><span class="card-name">${c.name}</span>
-        <span class="card-cat">${P.filter(x=>x.category===c.slug).length} fixtures</span></div></a>`; }).join('');
+        <span class="card-cat">${byCat(c.slug).length} fixtures</span></div></a>`; }).join('');
 
-  // featured
-  document.querySelector('[data-featured]').innerHTML =
-    P.filter((_, i) => i % 7 === 0).slice(0, 8).map(p => LM.card(p, cn[p.category])).join('');
+  /* ---------- 08 featured ---------- */
+  $('[data-featured]').innerHTML = P.filter((_, i) => i % 7 === 0).slice(0, 8)
+    .map(p => LM.card(p, cn[p.category]).replace('class="card rv"', 'class="card rv-up"')).join('');
 
-  document.querySelector('[data-switch-proxy]').addEventListener('click', e => {
-    if (!e.target.closest('[data-switch]')) LM.toggleLit(); });
+  /* ---------- 09 + chrome ---------- */
+  $('[data-switch-proxy]').addEventListener('click', () => { autoFlipped = 'user'; LM.toggleLit(); });
+  document.querySelectorAll('[data-magnet]').forEach(el => MO.magnet(el));
+  MO.spotlight();
+  MO.countsIn();
+  MO.reveal();
   LM.reveals();
+  // reveal .rv-up too
+  (function upReveal(){
+    const els = [...document.querySelectorAll('.rv-up:not(.in)')];
+    if (MO.reduce() || !('IntersectionObserver' in window)){ els.forEach(e => e.classList.add('in')); return; }
+    const io = new IntersectionObserver(es => es.forEach((e, i) => {
+      if (e.isIntersecting){ setTimeout(() => e.target.classList.add('in'), Math.min(i * 70, 300)); io.unobserve(e.target); }
+    }), { rootMargin:'0px 0px -10% 0px', threshold:.05 });
+    els.forEach(e => io.observe(e));
+    setTimeout(() => els.forEach(e => e.classList.add('in')), 3500);
+  })();
+
+  // scroll progress
+  const prog = $('[data-prog]');
+  addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    prog.style.setProperty('--sp', max > 0 ? (scrollY / max).toFixed(4) : 0);
+  }, { passive:true });
 })();
 </script></body></html>

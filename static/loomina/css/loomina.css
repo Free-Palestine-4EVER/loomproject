@@ -27,6 +27,12 @@
   --glow:        rgba(255,176,74,0);   /* no glow in daylight */
   --glow-2:      rgba(255,176,74,0);
 
+  /* raw channels, for overlays that need a runtime alpha */
+  --ink-rgb:     29 29 31;
+  --dusk-rgb:    16 14 12;
+  --media-ink:   246 239 228;   /* always over darkened media, both themes */
+  --amber-rgb:   255 179 74;
+
   /* nav */
   --nav-bg:      rgba(251,251,253,.72);
   --nav-ink:     #1d1d1f;
@@ -74,6 +80,11 @@
   --link:        #ffc270;
   --glow:        rgba(255,169,72,.34);
   --glow-2:      rgba(255,140,40,.16);
+
+  --ink-rgb:     246 239 228;
+  --dusk-rgb:    16 14 12;
+  --media-ink:   246 239 228;
+  --amber-rgb:   255 179 74;
 
   --nav-bg:      rgba(20,17,15,.72);
   --nav-ink:     #f6efe4;
@@ -220,6 +231,13 @@ ul{ margin:0; padding:0; list-style:none; }
   opacity:0; transition:opacity var(--t-light) var(--e-soft);
 }
 :root[data-lit="on"] .shot::after{ opacity:1; }
+
+:root[data-lit="off"] .shot.scrub .off,
+:root[data-lit="on"]  .shot.scrub .off{ opacity:calc(1 - var(--p,0)); transition:none; }
+:root[data-lit="off"] .shot.scrub .on,
+:root[data-lit="on"]  .shot.scrub .on { opacity:var(--p,0); transition:none; }
+:root[data-lit="off"] .shot.scrub::after,
+:root[data-lit="on"]  .shot.scrub::after{ opacity:var(--p,0); transition:none; }
 
 /* ---------- 10. PRODUCT CARD ---------- */
 .grid{ display:grid; gap:clamp(16px,2vw,26px); grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); }

@@ -44,9 +44,9 @@ const LM = (() => {
                 + "this.src='" + b + "img/products/" + p.slug + "-off.webp';}"
                 + "else if(this.dataset.f==='1'){this.dataset.f=2;this.src='" + b + "img/placeholder.svg';}";
     return `<img class="off" src="${b}img/products/${p.slug}-off.webp" alt="${p.name}, unlit"
-              loading="${load}" fetchpriority="${load==='eager'?'high':'auto'}" decoding="async" width="1024" height="1024" style="height:auto" onerror="${fbOff}">
+              loading="${load}" fetchpriority="${load==='eager'?'high':'auto'}" decoding="async" width="1024" height="1024" onerror="${fbOff}">
             <img class="on"  src="${b}img/products/${p.slug}-on.webp"  alt="${p.name}, lit"
-              loading="${load}" decoding="async" width="1024" height="1024" style="height:auto" onerror="${fbOn}">`;
+              loading="${load}" decoding="async" width="1024" height="1024" onerror="${fbOn}">`;
   }
 
   function resetEager(){ _eager = 0; }
