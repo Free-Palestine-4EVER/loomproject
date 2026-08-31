@@ -76,6 +76,24 @@
           "value": "public, max-age=600, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/loomina/img/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=2592000, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/loomina/data/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, must-revalidate"
+        }
+      ]
     }
   ],
   "redirects": [
@@ -123,6 +141,14 @@
     {
       "source": "/qrmenu/:path*",
       "destination": "https://loom-qrmenu.web.app/qrmenu/:path*"
+    },
+    {
+      "source": "/loomina/",
+      "destination": "/loomina/index.html"
+    },
+    {
+      "source": "/loomina",
+      "destination": "/loomina/index.html"
     }
   ]
 }

@@ -1,0 +1,2852 @@
+{
+  "brand": "Loomina",
+  "categories": [
+    {
+      "slug": "pendants",
+      "name": "Pendants",
+      "blurb": "Suspended fixtures in hand-blown glass, stone, and metal, for tables and stairwells."
+    },
+    {
+      "slug": "chandeliers",
+      "name": "Chandeliers",
+      "blurb": "Multi-arm and sculptural centerpieces scaled for great rooms and long tables."
+    },
+    {
+      "slug": "sconces",
+      "name": "Sconces",
+      "blurb": "Wall-mounted fixtures that wash a plane of light without occupying floor or table."
+    },
+    {
+      "slug": "table-lamps",
+      "name": "Table Lamps",
+      "blurb": "Base-and-shade lamps in cast stone, ceramic, and wood for consoles and desks."
+    },
+    {
+      "slug": "floor-lamps",
+      "name": "Floor Lamps",
+      "blurb": "Freestanding fixtures that anchor a corner and carry light to full room height."
+    },
+    {
+      "slug": "bed-reading",
+      "name": "Bed & Reading",
+      "blurb": "Headboard, clip-on, and swing-arm lights sized for one page and one sleeper."
+    },
+    {
+      "slug": "flush-mounts",
+      "name": "Flush Mounts",
+      "blurb": "Low-profile ceiling fixtures for rooms with limited overhead clearance."
+    },
+    {
+      "slug": "portable",
+      "name": "Portable",
+      "blurb": "Cordless, rechargeable lamps that travel from the table to the porch."
+    },
+    {
+      "slug": "outdoor",
+      "name": "Outdoor",
+      "blurb": "Weatherproof fixtures built to withstand rain, salt air, and open exposure."
+    }
+  ],
+  "products": [
+    {
+      "id": "lm-001",
+      "slug": "halo-pendant",
+      "name": "Halo Pendant",
+      "category": "pendants",
+      "tagline": "A sphere of hand-blown glass, held by almost nothing.",
+      "price": 980,
+      "materials": [
+        "Hand-blown opal glass",
+        "Satin brass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Polished Nickel",
+          "hex": "#c7c9cb"
+        }
+      ],
+      "dimensions": "14\" dia × 15\" h",
+      "lumens": 680,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A single blown-glass sphere in soft opal white, suspended from a slim brass canopy. The glass diffuses the source into an even, shadowless glow with no visible hardware inside. It reads as one continuous surface from every angle, at home over a table or alone in a stairwell.",
+      "details": [
+        "Hand-blown opal glass diffuser",
+        "Slim brass suspension cable, adjustable 12–72 in",
+        "90+ CRI integrated LED",
+        "Dimmable via ELV or 0–10V driver"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one hand-blown opal glass sphere pendant hanging from a slender satin brass canopy, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the opal glass sphere now glowing warm amber from within, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-002",
+      "slug": "strand-pendant",
+      "name": "Strand Pendant",
+      "category": "pendants",
+      "tagline": "A thin brass line, punctuated by light.",
+      "price": 1450,
+      "materials": [
+        "Satin brass",
+        "Hand-blown glass beads"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Aged Brass",
+          "hex": "#8a6f3e"
+        }
+      ],
+      "dimensions": "36\" long × 3\" dia",
+      "lumens": 520,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A horizontal brass rod strung with a loose cluster of small hand-blown glass beads, each one catching light differently. Designed for a long table or a run above a kitchen island, it reads as jewellery for a room rather than a fixture. The beads scatter light into soft, moving points.",
+      "details": [
+        "Slender brass rod armature, 36 in span",
+        "Cluster of hand-blown glass beads",
+        "Twin dual mounting points",
+        "Dimmable integrated LED"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one slender horizontal brass rod strung with a loose cluster of small hand-blown glass beads, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the strung glass bead cluster now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-003",
+      "slug": "cinder-pendant",
+      "name": "Cinder Pendant",
+      "category": "pendants",
+      "tagline": "A blackened steel drum, quietly industrial.",
+      "price": 760,
+      "materials": [
+        "Blackened steel",
+        "Opal acrylic diffuser"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "10\" dia × 8\" h",
+      "lumens": 540,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A compact drum spun from blackened steel, open at the base to a recessed opal acrylic diffuser. The dark shell disappears into a room by day and frames a clean disc of light by night. Built for repetition, in pairs or a long row, without ever feeling heavy.",
+      "details": [
+        "Spun blackened steel drum shell",
+        "Recessed opal acrylic diffuser",
+        "6 ft field-cuttable cord",
+        "Dimmable integrated LED, 3000K"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one spun blackened steel drum pendant with a recessed opal acrylic diffuser at its base, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the blackened steel drum now glowing warm amber at its base, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-004",
+      "slug": "alba-pendant",
+      "name": "Alba Pendant",
+      "category": "pendants",
+      "tagline": "Carved alabaster, lit from the inside.",
+      "price": 2100,
+      "materials": [
+        "Solid alabaster",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Warm Bronze",
+          "hex": "#7a5a3a"
+        }
+      ],
+      "dimensions": "12\" dia × 11\" h",
+      "lumens": 610,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A dome carved from a single block of alabaster, its natural veining visible only once the light inside is switched on. By day it is pale, dense stone; by night the veining glows amber through the surface. A slim steel stem keeps the attention entirely on the material.",
+      "details": [
+        "Solid carved alabaster dome, natural veining",
+        "Slim blackened steel suspension stem",
+        "Integrated LED engine, no visible bulb",
+        "Each dome unique in grain"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one dome carved from a single solid block of pale veined alabaster on a slim blackened steel stem, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the carved alabaster dome now glowing warm amber and revealing its natural veining, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-005",
+      "slug": "kiln-pendant",
+      "name": "Kiln Pendant",
+      "category": "pendants",
+      "tagline": "A stoneware bell, fired by hand.",
+      "price": 690,
+      "materials": [
+        "Glazed ceramic",
+        "Oiled walnut"
+      ],
+      "finishes": [
+        {
+          "name": "Clay",
+          "hex": "#b5735a"
+        },
+        {
+          "name": "Bone",
+          "hex": "#e8e1d3"
+        }
+      ],
+      "dimensions": "9\" dia × 10\" h",
+      "lumens": 480,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A bell-shaped shade thrown in stoneware and finished with a matte clay glaze, capped by a small walnut disc. The slightly uneven glaze catches daylight in a way no mould ever could. Light escapes only from the open base, landing in a soft circle below.",
+      "details": [
+        "Hand-thrown glazed stoneware shade",
+        "Solid oiled walnut ceiling cap",
+        "Open-base light distribution",
+        "No two shades glazed identically"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one hand-thrown bell-shaped stoneware pendant with a matte clay glaze and a walnut ceiling cap, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the glazed stoneware bell now glowing warm amber from its open base, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-006",
+      "slug": "vellum-pendant",
+      "name": "Vellum Pendant",
+      "category": "pendants",
+      "tagline": "A linen drum, softened at the edges.",
+      "price": 520,
+      "materials": [
+        "Linen shade",
+        "Satin brass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "16\" dia × 11\" h",
+      "lumens": 560,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A drum shade in natural linen stretched over a fine brass frame, suspended from a single brass stem. The weave lets light pass through evenly, turning the whole shade into one soft, glowing panel. Quiet and warm, built for a dining room that wants no hard edges.",
+      "details": [
+        "Natural linen shade over brass frame",
+        "Single-stem brass suspension",
+        "Even 360-degree glow through the weave",
+        "Dimmable integrated LED"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one natural linen drum shade stretched over a fine brass frame pendant, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the linen drum shade now glowing warm amber through its weave, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-007",
+      "slug": "basalt-pendant",
+      "name": "Basalt Pendant",
+      "category": "pendants",
+      "tagline": "A cast bronze cone, weighted and still.",
+      "price": 1680,
+      "materials": [
+        "Cast bronze",
+        "Opal glass diffuser"
+      ],
+      "finishes": [
+        {
+          "name": "Patinated Bronze",
+          "hex": "#5c6d5e"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "11\" dia × 13\" h",
+      "lumens": 640,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A downward cone cast in solid bronze, left to patinate naturally rather than sealed. Inside, an opal glass diffuser softens the source before it reaches the room. Heavy in the hand and in appearance, it is built to darken and change character over years of use.",
+      "details": [
+        "Solid cast bronze cone body",
+        "Internal opal glass diffuser",
+        "Natural living patina, ages over time",
+        "Integrated LED, sealed optics"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one solid cast bronze downward cone pendant left to patinate naturally, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the cast bronze cone now glowing warm amber at its rim, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-008",
+      "slug": "reed-pendant",
+      "name": "Reed Pendant",
+      "category": "pendants",
+      "tagline": "Fluted glass, a column of soft ridges.",
+      "price": 890,
+      "materials": [
+        "Fluted glass",
+        "Brushed aluminium"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        }
+      ],
+      "dimensions": "7\" dia × 18\" h",
+      "lumens": 500,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A tall cylinder of fluted glass, its vertical ridges catching daylight in narrow bright lines. The aluminium cap keeps the profile slim so the glass carries the whole design. At night the ridges scatter the light into a soft, striped column rather than a flat glow.",
+      "details": [
+        "Fluted glass cylinder shade",
+        "Slim brushed aluminium ceiling cap",
+        "Vertical ribbing scatters light evenly",
+        "Compact profile for grouping in rows"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one tall fluted glass cylinder pendant with narrow vertical ridges, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the fluted glass cylinder now glowing warm amber along its ridges, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-009",
+      "slug": "drift-pendant",
+      "name": "Drift Pendant",
+      "category": "pendants",
+      "tagline": "A travertine disc, floating flat above the table.",
+      "price": 1590,
+      "materials": [
+        "Travertine",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        },
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        }
+      ],
+      "dimensions": "18\" dia × 3\" h",
+      "lumens": 590,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A thin disc cut from solid travertine, suspended perfectly flat on two fine steel cables. The stone's natural pitting stays visible along the edge, softened only by the light escaping beneath it. It hovers rather than hangs, a quiet horizontal plane over a table.",
+      "details": [
+        "Solid travertine disc, natural pitting",
+        "Dual blackened steel suspension cables",
+        "Downlight only, edge-lit stone rim",
+        "Perfectly level hang, adjustable height"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one thin flat disc cut from solid travertine suspended level on two fine steel cables, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the travertine disc now glowing warm amber along its underside and edge, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-010",
+      "slug": "cast-pendant",
+      "name": "Cast Pendant",
+      "category": "pendants",
+      "tagline": "A sculptural orb, poured rather than blown.",
+      "price": 1340,
+      "materials": [
+        "Cast glass",
+        "Satin brass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Polished Nickel",
+          "hex": "#c7c9cb"
+        }
+      ],
+      "dimensions": "13\" dia × 13\" h",
+      "lumens": 630,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "An irregular orb of cast glass, thicker at its base than its crown, poured rather than blown into shape. The uneven density bends the light unevenly across the surface, so no two angles look the same. A short brass stem is the only other visible material.",
+      "details": [
+        "Solid cast glass orb, poured construction",
+        "Uneven wall thickness bends light naturally",
+        "Short satin brass suspension stem",
+        "Each orb individually cast"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one irregular sculptural orb of poured cast glass thicker at its base than its crown, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the poured cast glass orb now glowing warm amber unevenly across its surface, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-011",
+      "slug": "ember-pendant",
+      "name": "Ember Pendant",
+      "category": "pendants",
+      "tagline": "A lantern of patinated bronze, closed like a fist.",
+      "price": 1420,
+      "materials": [
+        "Patinated bronze",
+        "Hand-blown glass"
+      ],
+      "finishes": [
+        {
+          "name": "Patinated Bronze",
+          "hex": "#5c6d5e"
+        },
+        {
+          "name": "Aged Brass",
+          "hex": "#8a6f3e"
+        }
+      ],
+      "dimensions": "9\" dia × 16\" h",
+      "lumens": 470,
+      "kelvin": 2200,
+      "bulb": "Integrated LED, dimmable, 2200K",
+      "description": "A lantern-form pendant with a patinated bronze cage wrapped tightly around a single glass vessel inside. Little slats of light escape between the metal ribs rather than through an open face. The warmest tone in the collection, tuned for entryways and low evening rooms.",
+      "details": [
+        "Patinated bronze cage frame",
+        "Interior hand-blown glass vessel",
+        "Warm 2200K colour temperature",
+        "Light escapes through ribbed slats"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one lantern-form pendant with a patinated bronze cage wrapped around a single interior glass vessel, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the bronze cage lantern now glowing warm amber through its ribbed slats, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-012",
+      "slug": "nimbus-pendant",
+      "name": "Nimbus Pendant",
+      "category": "pendants",
+      "tagline": "An opal cloud, weightless above the room.",
+      "price": 1180,
+      "materials": [
+        "Opal acrylic",
+        "Brushed aluminium"
+      ],
+      "finishes": [
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        },
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        }
+      ],
+      "dimensions": "20\" dia × 9\" h",
+      "lumens": 710,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A softly irregular cloud form molded from opal acrylic, its surface catching light without a single hard edge. The shape is deliberately asymmetric, more organic than geometric, and glows evenly across its entire underside. Best suited to a room that wants one large, calm gesture overhead.",
+      "details": [
+        "Molded opal acrylic cloud form",
+        "Asymmetric organic silhouette",
+        "Even full-surface light distribution",
+        "Slim aluminium mounting canopy"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one softly irregular cloud-shaped pendant molded from opal acrylic with an asymmetric organic silhouette, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the opal acrylic cloud form now glowing warm amber evenly across its underside, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-013",
+      "slug": "meridian-chandelier",
+      "name": "Meridian Chandelier",
+      "category": "chandeliers",
+      "tagline": "A brass ring, strung with vertical glass rods.",
+      "price": 5200,
+      "materials": [
+        "Satin brass",
+        "Hand-blown glass rods"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Polished Nickel",
+          "hex": "#c7c9cb"
+        }
+      ],
+      "dimensions": "42\" dia × 20\" h",
+      "lumens": 2600,
+      "kelvin": 2700,
+      "bulb": "12x integrated LED, dimmable",
+      "description": "A wide brass ring hung level, from which dozens of slim hand-blown glass rods drop in a loose, even field. Each rod carries its own point of light, so the whole fixture reads as a hovering constellation rather than a single lamp. Scaled for a stairwell or a great room.",
+      "details": [
+        "Solid brass ring armature, 42 in diameter",
+        "48 individually blown glass light rods",
+        "Independently dimmable in three zones",
+        "Professional installation recommended"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one wide satin brass ring chandelier hung level with dozens of slim hand-blown glass rods dropping from it in an even field, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the field of hanging glass rods now glowing warm amber like a constellation, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-014",
+      "slug": "grove-chandelier",
+      "name": "Grove Chandelier",
+      "category": "chandeliers",
+      "tagline": "Blackened steel branches, each ending in a bulb of glass.",
+      "price": 6800,
+      "materials": [
+        "Blackened steel",
+        "Hand-blown glass globes"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "48\" dia × 30\" h",
+      "lumens": 2400,
+      "kelvin": 2700,
+      "bulb": "9x integrated LED, dimmable",
+      "description": "A branching armature welded from blackened steel, spreading outward like a bare winter tree. Nine hand-blown glass globes sit where the branches end, each one slightly different in size. It occupies a room the way a piece of furniture does, not merely a light source overhead.",
+      "details": [
+        "Hand-welded blackened steel branch frame",
+        "9 hand-blown glass globe diffusers",
+        "Organic asymmetric branch spread",
+        "Dimmable, zone-controllable"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one branching blackened steel chandelier frame spreading like a bare winter tree with nine hand-blown glass globes at its branch ends, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the nine branch-end glass globes now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-015",
+      "slug": "cascade-chandelier",
+      "name": "Cascade Chandelier",
+      "category": "chandeliers",
+      "tagline": "Alabaster discs, stacked and staggered downward.",
+      "price": 7400,
+      "materials": [
+        "Solid alabaster",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Warm Bronze",
+          "hex": "#7a5a3a"
+        }
+      ],
+      "dimensions": "30\" dia × 44\" h",
+      "lumens": 2200,
+      "kelvin": 2700,
+      "bulb": "7x integrated LED, dimmable",
+      "description": "Seven alabaster discs of decreasing size, stacked on a single steel spine and staggered to fall like water down a slow drop. Each disc glows individually from its own hidden source, so the veining of the stone becomes visible layer by layer as the eye moves down.",
+      "details": [
+        "7 staggered solid alabaster discs",
+        "Central blackened steel spine mount",
+        "Each tier independently lit",
+        "Natural stone veining, no two alike"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one chandelier of seven staggered solid alabaster discs of decreasing size stacked on a slender steel spine, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the stacked alabaster discs now glowing warm amber tier by tier, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-016",
+      "slug": "aurelia-chandelier",
+      "name": "Aurelia Chandelier",
+      "category": "chandeliers",
+      "tagline": "Brass arms, each holding a bead of opal glass.",
+      "price": 4600,
+      "materials": [
+        "Satin brass",
+        "Opal glass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Aged Brass",
+          "hex": "#8a6f3e"
+        }
+      ],
+      "dimensions": "34\" dia × 22\" h",
+      "lumens": 2100,
+      "kelvin": 2700,
+      "bulb": "8x integrated LED, dimmable",
+      "description": "Eight slender brass arms radiate from a central column, each terminating in a small opal glass bead. The geometry is precise and symmetrical, closer to a piece of jewellery scaled up than a traditional fixture. Ideal above a round dining table where every angle matters.",
+      "details": [
+        "8 radial satin brass arms",
+        "Opal glass bead diffusers at each arm",
+        "Symmetrical radial geometry",
+        "Central column conceals wiring"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one chandelier with eight slender satin brass arms radiating from a central column each ending in a small opal glass bead, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the eight opal glass beads now glowing warm amber at the end of each brass arm, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-017",
+      "slug": "thicket-chandelier",
+      "name": "Thicket Chandelier",
+      "category": "chandeliers",
+      "tagline": "Oxidized bronze branches, thick with hand-blown bulbs.",
+      "price": 8200,
+      "materials": [
+        "Oxidized bronze",
+        "Hand-blown glass"
+      ],
+      "finishes": [
+        {
+          "name": "Patinated Bronze",
+          "hex": "#5c6d5e"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "46\" dia × 26\" h",
+      "lumens": 2800,
+      "kelvin": 2200,
+      "bulb": "14x integrated LED, dimmable, 2200K",
+      "description": "A dense tangle of oxidized bronze branches, thicker and more chaotic than a typical branching form, dotted with fourteen small hand-blown bulbs at irregular heights. It is meant to feel found rather than designed, like a thicket someone wired for light on a walk through the woods.",
+      "details": [
+        "Hand-oxidized bronze branch tangle",
+        "14 irregular hand-blown glass bulbs",
+        "Warm 2200K colour temperature",
+        "No two units identical in branch layout"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one dense chandelier of oxidized bronze branches tangled irregularly with fourteen small hand-blown glass bulbs at varied heights, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the tangled bronze branches now glowing warm amber at each small bulb, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-018",
+      "slug": "solstice-chandelier",
+      "name": "Solstice Chandelier",
+      "category": "chandeliers",
+      "tagline": "Concentric brass rings, orbiting a single point.",
+      "price": 6200,
+      "materials": [
+        "Satin brass",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        }
+      ],
+      "dimensions": "40\" dia × 12\" h",
+      "lumens": 2300,
+      "kelvin": 3000,
+      "bulb": "Integrated LED ring, dimmable",
+      "description": "Three concentric brass rings of decreasing diameter, held on the same axis like an orrery. A hidden opal acrylic channel along the inner edge of each ring emits a continuous line of light rather than points. The result reads as pure geometry, flat and architectural from below.",
+      "details": [
+        "3 concentric satin brass rings",
+        "Continuous opal acrylic light channel",
+        "Flat horizontal profile, 12 in depth",
+        "Dimmable single-circuit control"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one chandelier of three concentric satin brass rings of decreasing diameter held on a single axis like an orrery, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the concentric brass rings now glowing warm amber along their inner channels, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-019",
+      "slug": "quarry-chandelier",
+      "name": "Quarry Chandelier",
+      "category": "chandeliers",
+      "tagline": "Travertine blocks, tiered above a brass frame.",
+      "price": 9200,
+      "materials": [
+        "Travertine",
+        "Satin brass"
+      ],
+      "finishes": [
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        },
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        }
+      ],
+      "dimensions": "32\" dia × 38\" h",
+      "lumens": 2500,
+      "kelvin": 2700,
+      "bulb": "6x integrated LED, dimmable",
+      "description": "Rough-cut travertine blocks, each pierced through its centre, tiered on a brass frame like stones set to dry. The porous stone glows unevenly wherever a natural pit or vein sits nearest the light, giving every block its own signature. Substantial in weight and presence.",
+      "details": [
+        "6 rough-cut travertine blocks, pierced-through mount",
+        "Satin brass tiering frame",
+        "Uneven glow follows natural stone porosity",
+        "Structural ceiling mount required"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one chandelier of rough-cut pierced travertine blocks tiered on a satin brass frame like stones set to dry, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the tiered travertine blocks now glowing warm amber unevenly through their natural pitting, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-020",
+      "slug": "marrow-chandelier",
+      "name": "Marrow Chandelier",
+      "category": "chandeliers",
+      "tagline": "A cluster of bone-white ceramic forms, gathered close.",
+      "price": 5600,
+      "materials": [
+        "Glazed ceramic",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Bone",
+          "hex": "#e8e1d3"
+        },
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        }
+      ],
+      "dimensions": "28\" dia × 24\" h",
+      "lumens": 1900,
+      "kelvin": 2700,
+      "bulb": "11x integrated LED, dimmable",
+      "description": "Eleven small bone-white ceramic forms, each hand-thrown to a slightly different silhouette, gathered into a tight cluster on a fine steel frame. The matte glaze absorbs daylight softly, then releases warm light through narrow openings at each base. Dense, quiet, and organic in outline.",
+      "details": [
+        "11 hand-thrown bone-glaze ceramic forms",
+        "Fine blackened steel gathering frame",
+        "Matte glaze, no two forms identical",
+        "Narrow-aperture light distribution"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one chandelier of eleven small bone-white glazed ceramic forms gathered into a tight cluster on a fine steel frame, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the clustered bone-white ceramic forms now glowing warm amber from their narrow bases, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-021",
+      "slug": "arc-sconce",
+      "name": "Arc Sconce",
+      "category": "sconces",
+      "tagline": "A brushed aluminium half-moon, flush to the wall.",
+      "price": 620,
+      "materials": [
+        "Brushed aluminium",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "9\" w × 5\" h × 3\" d",
+      "lumens": 310,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A half-moon of brushed aluminium mounted flat to the wall, its flat face concealing an opal acrylic strip along the curved edge. Light spills sideways along the wall plane rather than outward into the room, ideal for a hallway that needs a low, even wash.",
+      "details": [
+        "Brushed aluminium half-moon shell",
+        "Edge-lit opal acrylic diffuser strip",
+        "Flush wall mount, 3 in projection",
+        "Sideways wall-wash light distribution"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one brushed aluminium half-moon sconce mounted flush to the wall with a concealed curved light edge, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the aluminium half-moon sconce now glowing warm amber along its curved edge, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-022",
+      "slug": "wick-sconce",
+      "name": "Wick Sconce",
+      "category": "sconces",
+      "tagline": "A single brass tube, upright like a candle.",
+      "price": 540,
+      "materials": [
+        "Satin brass",
+        "Opal glass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Aged Brass",
+          "hex": "#8a6f3e"
+        }
+      ],
+      "dimensions": "2\" dia × 10\" h",
+      "lumens": 180,
+      "kelvin": 2200,
+      "bulb": "Integrated LED, dimmable, 2200K",
+      "description": "A slim brass tube standing straight off the wall, capped at the top with a small opal glass tip that glows like a lit candle. Deliberately minimal, it is built for pairing in twos and threes along a corridor, each one contributing a single point of warm light.",
+      "details": [
+        "Slim solid brass tube, wall-mounted",
+        "Opal glass tip diffuser",
+        "Warm 2200K, candle-like colour",
+        "Designed for grouped installation"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one slim upright brass tube sconce capped with a small opal glass tip mounted flat to the wall, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the brass tube's glass tip now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-023",
+      "slug": "ridge-sconce",
+      "name": "Ridge Sconce",
+      "category": "sconces",
+      "tagline": "Pleated linen, folded flat against the wall.",
+      "price": 480,
+      "materials": [
+        "Linen shade",
+        "Satin brass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "10\" w × 8\" h × 5\" d",
+      "lumens": 290,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A half-shade of pleated linen mounted flush to a small brass backplate, its folds catching and softening the light as it passes through. The pleats cast fine vertical shadows on the wall around it in the daytime, then glow evenly once lit. A soft, textile note among harder materials.",
+      "details": [
+        "Pleated linen half-shade",
+        "Compact satin brass backplate",
+        "Vertical pleat texture, hand-finished",
+        "Even diffused glow through the weave"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one half-shade sconce of finely pleated linen mounted flush against a small brass backplate, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the pleated linen shade now glowing warm amber through its folds, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-024",
+      "slug": "fold-sconce",
+      "name": "Fold Sconce",
+      "category": "sconces",
+      "tagline": "A single sheet of bent steel, catching light on its crease.",
+      "price": 560,
+      "materials": [
+        "Blackened steel",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "8\" w × 10\" h × 4\" d",
+      "lumens": 260,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "One flat sheet of blackened steel, bent once along a diagonal crease and mounted so the fold points outward. Light hides behind the crease and washes upward, using the bend itself as the only optical element. Nothing about it looks manufactured to be a lamp.",
+      "details": [
+        "Single bent blackened steel sheet",
+        "Diagonal crease conceals light source",
+        "Upward wall-wash beam pattern",
+        "No visible screws or seams"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one sconce made from a single sheet of blackened steel bent once along a diagonal crease, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the bent steel crease now glowing warm amber upward along the wall, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-025",
+      "slug": "cusp-sconce",
+      "name": "Cusp Sconce",
+      "category": "sconces",
+      "tagline": "A crescent of alabaster, thin as a fingernail.",
+      "price": 1120,
+      "materials": [
+        "Alabaster",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        }
+      ],
+      "dimensions": "12\" w × 6\" h × 3\" d",
+      "lumens": 340,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A crescent of alabaster ground down to a translucent thinness, held at its two points by a slim steel bracket. Daylight passes through the stone as a pale, cloudy glow; at night the veins turn amber and sharp. The thinnest, most delicate silhouette in the range.",
+      "details": [
+        "Ground alabaster crescent, translucent thin edge",
+        "Two-point blackened steel bracket",
+        "Natural veining visible when lit",
+        "Hand-finished, unique per unit"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one crescent-shaped sconce of alabaster ground to a translucent thinness held at two points by a slim steel bracket, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the translucent alabaster crescent now glowing warm amber through its veining, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-026",
+      "slug": "plane-sconce",
+      "name": "Plane Sconce",
+      "category": "sconces",
+      "tagline": "A flat brushed aluminium panel, glowing at its perimeter.",
+      "price": 590,
+      "materials": [
+        "Brushed aluminium",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "11\" w × 11\" h × 2\" d",
+      "lumens": 350,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A perfectly square panel of brushed aluminium, its edge lined with a hairline strip of opal acrylic. From most angles it looks unlit, a flat metal square on the wall, until the thin perimeter line switches on and frames it like a window. Extremely shallow, at two inches deep.",
+      "details": [
+        "Square brushed aluminium panel, 2 in depth",
+        "Hairline perimeter opal acrylic edge-lighting",
+        "Nearly invisible off state",
+        "Surface-mount, concealed junction box"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one flat square brushed aluminium panel sconce with a hairline edge along its perimeter, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the panel's hairline perimeter now glowing warm amber like a framed window, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-027",
+      "slug": "bract-sconce",
+      "name": "Bract Sconce",
+      "category": "sconces",
+      "tagline": "Overlapping ceramic petals, layered like a bud.",
+      "price": 780,
+      "materials": [
+        "Glazed ceramic",
+        "Oiled walnut"
+      ],
+      "finishes": [
+        {
+          "name": "Clay",
+          "hex": "#b5735a"
+        },
+        {
+          "name": "Bone",
+          "hex": "#e8e1d3"
+        }
+      ],
+      "dimensions": "8\" w × 9\" h × 4\" d",
+      "lumens": 270,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "Three overlapping ceramic petals, glazed and layered like the closed bud of a flower before it opens. A small walnut mounting disc sits behind, barely visible. Light escapes only through the gaps between petals, casting narrow warm slivers rather than a single beam.",
+      "details": [
+        "3 overlapping hand-glazed ceramic petals",
+        "Concealed oiled walnut mounting disc",
+        "Light escapes through inter-petal gaps",
+        "Organic, asymmetric silhouette"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one sconce of three overlapping glazed ceramic petals layered like a closed flower bud against a walnut mounting disc, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the gaps between the ceramic petals now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-028",
+      "slug": "sable-sconce",
+      "name": "Sable Sconce",
+      "category": "sconces",
+      "tagline": "A blackened steel blade, sharp and vertical.",
+      "price": 650,
+      "materials": [
+        "Blackened steel",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Charcoal",
+          "hex": "#2b2b2b"
+        }
+      ],
+      "dimensions": "3\" w × 16\" h × 3\" d",
+      "lumens": 300,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A tall, narrow blade of blackened steel standing vertically off the wall, its full length lit from within by a hidden opal acrylic core. The profile is closer to a fin than a lamp, cutting a thin dark line into a room by day and a thin bright line by night.",
+      "details": [
+        "Tall vertical blackened steel blade",
+        "Full-length internal opal acrylic core",
+        "3 in wide profile, 16 in tall",
+        "Continuous line-light effect"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one tall narrow vertical blade sconce of blackened steel standing off the wall like a fin, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the vertical steel blade now glowing warm amber along its full length, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-029",
+      "slug": "tide-sconce",
+      "name": "Tide Sconce",
+      "category": "sconces",
+      "tagline": "A wave of cast glass, frozen mid-motion.",
+      "price": 1240,
+      "materials": [
+        "Cast glass",
+        "Satin brass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Polished Nickel",
+          "hex": "#c7c9cb"
+        }
+      ],
+      "dimensions": "10\" w × 7\" h × 4\" d",
+      "lumens": 310,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A panel of cast glass poured to hold the shape of a single cresting wave, mounted on a thin brass plate. The rippled surface refracts light unevenly across its curve, producing soft moving highlights rather than a flat glow. A textured, tactile presence on a bare wall.",
+      "details": [
+        "Poured cast glass wave-form panel",
+        "Thin satin brass mounting plate",
+        "Rippled surface refracts light unevenly",
+        "Hand-finished, texture varies by piece"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one sconce panel of poured cast glass shaped like a single cresting wave mounted on a thin brass plate, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the cast glass wave form now glowing warm amber across its rippled surface, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-030",
+      "slug": "ledge-sconce",
+      "name": "Ledge Sconce",
+      "category": "sconces",
+      "tagline": "A small travertine shelf, lit from beneath.",
+      "price": 910,
+      "materials": [
+        "Travertine",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        },
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        }
+      ],
+      "dimensions": "9\" w × 4\" h × 6\" d",
+      "lumens": 240,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A small solid travertine ledge projecting from the wall, deep enough to rest a candle or a small object on top, lit from a hidden channel beneath it. The stone's underside catches the warm light and throws it downward in a soft, uneven pool onto the wall below.",
+      "details": [
+        "Solid travertine ledge, usable surface",
+        "Hidden underside light channel",
+        "Downward pooling light pattern",
+        "Blackened steel wall bracket"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one small solid travertine ledge sconce projecting from the wall with a hidden light channel beneath it, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the underside of the travertine ledge now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-031",
+      "slug": "dune-table-lamp",
+      "name": "Dune Table Lamp",
+      "category": "table-lamps",
+      "tagline": "A sand-cast base, smoothed like a dune crest.",
+      "price": 680,
+      "materials": [
+        "Cast aluminium",
+        "Linen shade"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "9\" dia × 22\" h",
+      "lumens": 420,
+      "kelvin": 2700,
+      "bulb": "E26, dimmable, bulb included",
+      "description": "A sand-cast aluminium base with the soft, rolling curve of a dune crest, topped by a plain linen drum shade. The base's texture is left slightly rough from the casting process rather than polished away. It sits low and wide, built to anchor a console rather than a bedside table.",
+      "details": [
+        "Sand-cast aluminium base, natural texture",
+        "Natural linen drum shade",
+        "In-line dimmer switch",
+        "E26 socket, bulb included"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a sand-cast aluminium base shaped like a rolling dune crest under a plain linen drum shade, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the linen drum shade now glowing warm amber over the sand-cast dune base, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-032",
+      "slug": "cove-table-lamp",
+      "name": "Cove Table Lamp",
+      "category": "table-lamps",
+      "tagline": "A carved travertine base, hollowed like a shoreline.",
+      "price": 1290,
+      "materials": [
+        "Travertine",
+        "Opal glass shade"
+      ],
+      "finishes": [
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        },
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        }
+      ],
+      "dimensions": "10\" dia × 24\" h",
+      "lumens": 460,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A solid travertine base carved with a shallow hollow along one side, as if worn away by water, paired with a small opal glass shade. The stone's natural pitting is left exposed and untreated. Weighty enough to anchor a large table without a wide footprint.",
+      "details": [
+        "Solid carved travertine base",
+        "Compact opal glass diffusing shade",
+        "Natural stone pitting, unsealed",
+        "Integrated dimmable LED"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a solid travertine base carved with a shallow hollow along one side beneath a small opal glass shade, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the opal glass shade now glowing warm amber above the hollowed travertine base, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-033",
+      "slug": "fern-table-lamp",
+      "name": "Fern Table Lamp",
+      "category": "table-lamps",
+      "tagline": "A patinated bronze stem, curved like a frond.",
+      "price": 940,
+      "materials": [
+        "Patinated bronze",
+        "Linen shade"
+      ],
+      "finishes": [
+        {
+          "name": "Patinated Bronze",
+          "hex": "#5c6d5e"
+        },
+        {
+          "name": "Aged Brass",
+          "hex": "#8a6f3e"
+        }
+      ],
+      "dimensions": "8\" dia × 26\" h",
+      "lumens": 400,
+      "kelvin": 2700,
+      "bulb": "E26, dimmable, bulb included",
+      "description": "A single bronze stem that curves gently to one side before straightening under the shade, echoing the unfurl of a fern frond. The patina is applied unevenly by hand, darker at the base and lighter toward the top. A quiet, organic silhouette for a reading corner.",
+      "details": [
+        "Hand-patinated bronze curved stem",
+        "Natural linen drum shade",
+        "Asymmetric organic profile",
+        "In-line rotary dimmer"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a hand-patinated bronze stem that curves to one side like an unfurling fern frond under a linen shade, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the linen shade now glowing warm amber above the curved bronze stem, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-034",
+      "slug": "quarry-table-lamp",
+      "name": "Quarry Table Lamp",
+      "category": "table-lamps",
+      "tagline": "A block of raw stone, barely touched by tools.",
+      "price": 1480,
+      "materials": [
+        "Travertine",
+        "Brushed aluminium"
+      ],
+      "finishes": [
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        },
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        }
+      ],
+      "dimensions": "7\" w × 20\" h",
+      "lumens": 380,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A near-raw block of travertine, cut on only two faces to keep its natural quarry texture on the rest. A slim aluminium rod rises from the top to hold a small integrated light source above. The base looks lifted straight from a stone yard rather than shaped for a shelf.",
+      "details": [
+        "Raw-faced travertine block base",
+        "Slim brushed aluminium light rod",
+        "Two cut faces, rest left natural",
+        "Integrated dimmable LED head"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a near-raw quarry-textured travertine block base and a slim aluminium rod rising to a small light head, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the small light head above the raw stone block now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-035",
+      "slug": "anchor-table-lamp",
+      "name": "Anchor Table Lamp",
+      "category": "table-lamps",
+      "tagline": "A blackened steel weight, grounding a linen shade.",
+      "price": 560,
+      "materials": [
+        "Blackened steel",
+        "Linen shade"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "9\" dia × 23\" h",
+      "lumens": 410,
+      "kelvin": 2700,
+      "bulb": "E26, dimmable, bulb included",
+      "description": "A heavy, disc-shaped blackened steel base, thick enough to keep the lamp planted through a knock of the table. A thin brass-tone rod rises to a plain linen shade above. The contrast between the dense dark base and the soft pale shade is the whole point.",
+      "details": [
+        "Heavy disc-shaped blackened steel base",
+        "Slim connecting rod",
+        "Natural linen drum shade",
+        "In-line dimmer, E26 socket"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a heavy disc-shaped blackened steel base and a slim rod rising to a plain linen shade, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the linen shade now glowing warm amber above the heavy steel disc base, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-036",
+      "slug": "husk-table-lamp",
+      "name": "Husk Table Lamp",
+      "category": "table-lamps",
+      "tagline": "A woven ceramic shell, textured like dried grain.",
+      "price": 720,
+      "materials": [
+        "Glazed ceramic",
+        "Oiled walnut"
+      ],
+      "finishes": [
+        {
+          "name": "Clay",
+          "hex": "#b5735a"
+        },
+        {
+          "name": "Bone",
+          "hex": "#e8e1d3"
+        }
+      ],
+      "dimensions": "8\" dia × 19\" h",
+      "lumens": 360,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A ceramic base pressed with a fine basket-weave texture before glazing, evoking a dried husk of grain. A small walnut disc separates it from a simple opal cap above. The texture catches raking daylight in tiny shadows, and glows evenly once the lamp is switched on.",
+      "details": [
+        "Basket-weave textured ceramic base",
+        "Oiled walnut separator disc",
+        "Integrated opal diffuser cap",
+        "Hand-glazed, texture varies by piece"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a ceramic base pressed with a fine basket-weave texture like a dried husk of grain, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the opal cap above the woven ceramic base now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-037",
+      "slug": "petal-table-lamp",
+      "name": "Petal Table Lamp",
+      "category": "table-lamps",
+      "tagline": "A single curled sheet of opal acrylic.",
+      "price": 480,
+      "materials": [
+        "Opal acrylic",
+        "Satin brass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "7\" dia × 15\" h",
+      "lumens": 340,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "One sheet of opal acrylic, heat-curled into a loose petal shape and set on a small brass foot. There is no shade to speak of, since the material itself is both structure and diffuser. Small enough for a nightstand, casual enough for a desk.",
+      "details": [
+        "Heat-curled single-sheet opal acrylic body",
+        "Compact satin brass foot",
+        "No separate shade required",
+        "Integrated dimmable LED"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp made from a single heat-curled sheet of opal acrylic shaped like a loose petal on a small brass foot, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the curled opal acrylic petal now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-038",
+      "slug": "loam-table-lamp",
+      "name": "Loam Table Lamp",
+      "category": "table-lamps",
+      "tagline": "An unglazed clay base, left raw and matte.",
+      "price": 390,
+      "materials": [
+        "Unglazed ceramic",
+        "Linen shade"
+      ],
+      "finishes": [
+        {
+          "name": "Clay",
+          "hex": "#b5735a"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "8\" dia × 21\" h",
+      "lumens": 350,
+      "kelvin": 2700,
+      "bulb": "E26, dimmable, bulb included",
+      "description": "A simple thrown ceramic base left entirely unglazed, so the raw clay body stays matte and slightly porous to the touch. A plain linen shade sits above, warmed by the clay's earthen tone below it. The most understated lamp in the collection, and one of the lightest in price.",
+      "details": [
+        "Unglazed raw-clay ceramic base",
+        "Natural linen drum shade",
+        "Matte, slightly porous surface",
+        "In-line dimmer, E26 socket"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a thrown unglazed raw-clay ceramic base under a plain linen shade, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the linen shade now glowing warm amber above the raw clay base, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-039",
+      "slug": "hearth-table-lamp",
+      "name": "Hearth Table Lamp",
+      "category": "table-lamps",
+      "tagline": "A cast iron-toned base, low and squat like a stove.",
+      "price": 610,
+      "materials": [
+        "Cast aluminium",
+        "Opal glass shade"
+      ],
+      "finishes": [
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        },
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        }
+      ],
+      "dimensions": "9\" dia × 17\" h",
+      "lumens": 390,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A low, squat base cast to resemble the rounded belly of an old stove, finished in a dark graphite tone. A small opal glass shade sits close on top, keeping the whole silhouette compact and grounded. Built for a side table next to a low armchair.",
+      "details": [
+        "Squat cast-aluminium stove-form base",
+        "Compact opal glass shade",
+        "Low 17 in overall height",
+        "Integrated dimmable LED"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a low squat cast base resembling the rounded belly of an old stove under a small opal glass shade, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the small opal shade now glowing warm amber above the stove-form base, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-040",
+      "slug": "bower-table-lamp",
+      "name": "Bower Table Lamp",
+      "category": "table-lamps",
+      "tagline": "Bent oak strips, woven into a loose nest.",
+      "price": 850,
+      "materials": [
+        "Oiled walnut",
+        "Linen shade"
+      ],
+      "finishes": [
+        {
+          "name": "Smoked Oak",
+          "hex": "#4a3c31"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "10\" dia × 20\" h",
+      "lumens": 370,
+      "kelvin": 2700,
+      "bulb": "E26, dimmable, bulb included",
+      "description": "Thin strips of steamed and bent oak, woven loosely into a nest-like base that holds a plain linen shade above. The gaps between the strips let a little light escape sideways even with the shade on, softening the shadow the base casts onto the table beneath it.",
+      "details": [
+        "Steam-bent oak strip base, woven construction",
+        "Natural linen drum shade",
+        "Light escapes through base gaps",
+        "In-line dimmer switch"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a base woven from thin steam-bent oak strips into a loose nest form beneath a linen shade, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the linen shade now glowing warm amber and light escaping through the woven oak base, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-041",
+      "slug": "cairn-table-lamp",
+      "name": "Cairn Table Lamp",
+      "category": "table-lamps",
+      "tagline": "Stacked stone forms, balanced like a trail marker.",
+      "price": 1090,
+      "materials": [
+        "Travertine",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        },
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        }
+      ],
+      "dimensions": "7\" dia × 22\" h",
+      "lumens": 400,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "Three irregular travertine forms of decreasing size, stacked directly on top of one another like a trail cairn, threaded on a hidden steel rod. Light emerges from a narrow gap at the very top rather than from a shade. Each stack settles slightly differently in the stacking.",
+      "details": [
+        "3 stacked irregular travertine forms",
+        "Hidden internal blackened steel rod",
+        "Top-gap light emission, no shade",
+        "Natural stone variation, unique stacking"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp of three irregular travertine forms of decreasing size stacked like a trail cairn on a hidden steel rod, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the narrow gap atop the stacked travertine cairn now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-042",
+      "slug": "wisp-table-lamp",
+      "name": "Wisp Table Lamp",
+      "category": "table-lamps",
+      "tagline": "A spun aluminium shade, thin as a curl of smoke.",
+      "price": 530,
+      "materials": [
+        "Spun aluminium",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "8\" dia × 18\" h",
+      "lumens": 330,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A conical shade spun from a single sheet of aluminium so thin its edge seems to curl like a wisp of smoke rising off a table. An opal acrylic disc hides at its base, the only diffusing surface in an otherwise all-metal fixture. Light escapes downward in one clean, contained circle.",
+      "details": [
+        "Single-sheet spun aluminium cone shade",
+        "Hidden opal acrylic base diffuser",
+        "Downward, contained light circle",
+        "Lightweight, compact footprint"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one table lamp with a conical shade spun from a single sheet of aluminium so thin its edge curls like a wisp of smoke, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the base of the spun aluminium cone now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-043",
+      "slug": "cassia-floor-lamp",
+      "name": "Cassia Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "A slim brass column, bent once at the shoulder.",
+      "price": 1690,
+      "materials": [
+        "Satin brass",
+        "Linen shade"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Aged Brass",
+          "hex": "#8a6f3e"
+        }
+      ],
+      "dimensions": "16\" dia base × 62\" h",
+      "lumens": 780,
+      "kelvin": 2700,
+      "bulb": "E26, dimmable, bulb included",
+      "description": "A slim brass column that bends once at shoulder height before straightening into a wide linen drum shade. The single bend gives the whole lamp a slight, deliberate lean, like a figure caught mid-gesture. A weighted brass foot keeps it planted despite the height.",
+      "details": [
+        "Single-bend solid brass column",
+        "Wide natural linen drum shade",
+        "Weighted brass foot for stability",
+        "Foot-pedal dimmer switch"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one tall slim brass floor lamp with a column bent once at shoulder height beneath a wide linen drum shade, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the wide linen shade now glowing warm amber atop the bent brass column, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-044",
+      "slug": "totem-floor-lamp",
+      "name": "Totem Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "Stacked ceramic drums, rising like a marker.",
+      "price": 2400,
+      "materials": [
+        "Glazed ceramic",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Clay",
+          "hex": "#b5735a"
+        },
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        }
+      ],
+      "dimensions": "10\" dia × 58\" h",
+      "lumens": 680,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "Four glazed ceramic drums of matching diameter but varied glaze tone, stacked on a hidden steel core to form a single standing totem. Each drum lights from a narrow band at its seam, so the whole column reads as a stack of separate glowing rings after dusk.",
+      "details": [
+        "4 stacked hand-glazed ceramic drums",
+        "Hidden internal steel structural core",
+        "Seam-lit ring pattern at each joint",
+        "Freestanding, no shade required"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one tall floor lamp of four stacked glazed ceramic drums of varied glaze tone forming a single standing totem, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the seams between the stacked ceramic drums now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-045",
+      "slug": "willow-floor-lamp",
+      "name": "Willow Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "A curved oak arm, reaching gently over a chair.",
+      "price": 1450,
+      "materials": [
+        "Oiled walnut",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Smoked Oak",
+          "hex": "#4a3c31"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "14\" dia base × 66\" h",
+      "lumens": 650,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A single arm of steam-bent oak, curved in a long slow arc so the light head hangs out over an armchair rather than beside it. The head itself is a small opal acrylic capsule with no visible hardware. Built for one reading spot, positioned exactly where it is needed.",
+      "details": [
+        "Steam-bent solid oak arc arm",
+        "Compact opal acrylic light capsule",
+        "Weighted round base, 14 in diameter",
+        "Integrated dimmable LED, no bulb changes"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one floor lamp with a long steam-bent oak arm curving in a slow arc to hold a small opal acrylic light capsule, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the opal capsule at the end of the curved oak arm now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-046",
+      "slug": "column-floor-lamp",
+      "name": "Column Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "A fluted travertine pillar, full height.",
+      "price": 3100,
+      "materials": [
+        "Travertine",
+        "Brushed aluminium"
+      ],
+      "finishes": [
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        },
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        }
+      ],
+      "dimensions": "11\" dia × 64\" h",
+      "lumens": 740,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A full-height cylinder of fluted travertine, its vertical grooves running the entire length of the column. Light rises internally and escapes through the grooves as a series of soft, glowing lines. It functions closer to architecture than furniture, a load-bearing column that happens to shine.",
+      "details": [
+        "Full-height fluted travertine cylinder",
+        "Internal uplight, groove-diffused output",
+        "Brushed aluminium base ring",
+        "Structural weight, no tipping risk"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one full-height floor lamp of fluted travertine formed as a grooved pillar from base to top, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the fluted travertine pillar now glowing warm amber along its vertical grooves, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-047",
+      "slug": "sail-floor-lamp",
+      "name": "Sail Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "A curved linen panel, angled like canvas in wind.",
+      "price": 1280,
+      "materials": [
+        "Linen shade",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "20\" w × 60\" h",
+      "lumens": 700,
+      "kelvin": 2700,
+      "bulb": "E26, dimmable, bulb included",
+      "description": "A single curved panel of stretched linen, angled off its steel frame the way a sail catches wind. The asymmetry gives it a sense of motion despite being entirely still. Light passes through the whole curved surface evenly, making it one of the largest, softest glows in the range.",
+      "details": [
+        "Curved stretched-linen sail panel",
+        "Angled blackened steel frame",
+        "Wide even-glow surface, 20 in span",
+        "Weighted steel base plate"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one floor lamp with a single curved stretched-linen panel angled off a steel frame like a sail catching wind, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the curved linen sail panel now glowing warm amber across its whole surface, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-048",
+      "slug": "birch-floor-lamp",
+      "name": "Birch Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "Peeled bark-toned ceramic, banded like a trunk.",
+      "price": 1560,
+      "materials": [
+        "Glazed ceramic",
+        "Oiled walnut"
+      ],
+      "finishes": [
+        {
+          "name": "Bone",
+          "hex": "#e8e1d3"
+        },
+        {
+          "name": "Smoked Oak",
+          "hex": "#4a3c31"
+        }
+      ],
+      "dimensions": "9\" dia × 61\" h",
+      "lumens": 620,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A tall ceramic column glazed in horizontal bands of bark-toned white, echoing the papery layers of birch bark. A walnut collar sits partway up, marking a slight taper in diameter. Light emerges from a soft band near the top rather than a shade, keeping the silhouette continuous.",
+      "details": [
+        "Tall banded bark-glaze ceramic column",
+        "Oiled walnut mid-column collar",
+        "Tapered profile, top-band light emission",
+        "Freestanding weighted base"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one tall floor lamp of banded bark-toned glazed ceramic with a walnut collar marking a taper partway up the column, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the band near the top of the birch-glaze column now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-049",
+      "slug": "anvil-floor-lamp",
+      "name": "Anvil Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "A blackened steel base, forged flat and heavy.",
+      "price": 1180,
+      "materials": [
+        "Blackened steel",
+        "Opal glass shade"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "13\" dia × 55\" h",
+      "lumens": 590,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A flat, forged-look blackened steel base wide enough to double as a small side table, with a slim rod rising to a compact opal glass shade. The base's low profile and dark mass give the whole lamp a grounded, industrial stance rather than a delicate one.",
+      "details": [
+        "Wide flat forged-look steel base",
+        "Usable top surface, 13 in diameter",
+        "Compact opal glass diffusing shade",
+        "Integrated dimmable LED"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one floor lamp with a wide flat forged-look blackened steel base and a slim rod rising to a compact opal glass shade, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the compact opal shade now glowing warm amber above the forged steel base, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-050",
+      "slug": "reed-floor-lamp",
+      "name": "Reed Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "A cluster of thin brass reeds, uneven in height.",
+      "price": 1890,
+      "materials": [
+        "Satin brass",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        }
+      ],
+      "dimensions": "10\" dia × 58\" h",
+      "lumens": 660,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "Seven thin brass reeds of slightly uneven height, gathered into a loose bundle from a shared round base, each tipped with a small opal acrylic cap. The unevenness reads as intentional, like reeds gathered from a riverbank rather than machined to match.",
+      "details": [
+        "7 uneven-height thin brass reeds",
+        "Individual opal acrylic tip caps",
+        "Shared weighted round base",
+        "Each reed independently light-capped"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one floor lamp made of seven thin brass reeds of uneven height gathered in a loose bundle from a shared round base, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the tips of the gathered brass reeds now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-051",
+      "slug": "loft-floor-lamp",
+      "name": "Loft Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "An oversized paper-toned globe, floating on a thin rod.",
+      "price": 990,
+      "materials": [
+        "Opal acrylic",
+        "Brushed aluminium"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "18\" dia globe × 63\" h",
+      "lumens": 820,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "An oversized globe in matte opal acrylic, balanced on a rod so thin it seems to disappear beneath it. The scale is deliberately generous, meant to fill the corner of a loft-height room the way a smaller shade never could. It glows evenly, corner to corner.",
+      "details": [
+        "Oversized 18 in opal acrylic globe",
+        "Ultra-slim brushed aluminium support rod",
+        "Even full-sphere light distribution",
+        "Weighted circular base plate"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one floor lamp with an oversized matte opal acrylic globe balanced on an ultra-slim aluminium rod, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the oversized opal globe now glowing warm amber evenly across its surface, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-052",
+      "slug": "spire-floor-lamp",
+      "name": "Spire Floor Lamp",
+      "category": "floor-lamps",
+      "tagline": "A tapering bronze needle, thinning toward the ceiling.",
+      "price": 2200,
+      "materials": [
+        "Patinated bronze",
+        "Opal glass"
+      ],
+      "finishes": [
+        {
+          "name": "Patinated Bronze",
+          "hex": "#5c6d5e"
+        },
+        {
+          "name": "Warm Bronze",
+          "hex": "#7a5a3a"
+        }
+      ],
+      "dimensions": "8\" dia base × 68\" h",
+      "lumens": 600,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A tapering bronze form that narrows continuously from a wide patinated base to a fine point near the ceiling, with a small opal glass bead marking the tip. The taper is the entire design language, no shade, no shoulder, just one long continuous line of darkening bronze.",
+      "details": [
+        "Continuous tapering patinated bronze form",
+        "Small opal glass tip bead",
+        "No shade, single-line silhouette",
+        "Wide stable base, narrow profile above"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one floor lamp formed as a continuously tapering patinated bronze needle narrowing from a wide base to a fine point near the ceiling, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the opal tip bead atop the tapering bronze spire now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-053",
+      "slug": "nook-bedside-reader",
+      "name": "Nook Bedside Reader",
+      "category": "bed-reading",
+      "tagline": "A small brass disc, angled just for one page.",
+      "price": 360,
+      "materials": [
+        "Satin brass",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "4\" dia × 12\" h",
+      "lumens": 280,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable, adjustable",
+      "description": "A compact brass disc head on a short flexible neck, sized to throw light onto a single page without spilling into a partner's side of the bed. The head rotates on a simple friction joint, holding whatever angle it is set to through the night.",
+      "details": [
+        "Small rotating brass disc head",
+        "Flexible friction-hold neck, 8 in reach",
+        "Narrow beam angle, page-focused",
+        "Integrated touch dimmer"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one small bedside reading lamp with a compact satin brass disc head on a short flexible neck, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the small brass disc head now glowing warm amber onto the surface below it, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-054",
+      "slug": "perch-reading-light",
+      "name": "Perch Reading Light",
+      "category": "bed-reading",
+      "tagline": "A clip-on head, resting like a bird on the headboard.",
+      "price": 240,
+      "materials": [
+        "Blackened steel",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "3\" dia × 9\" h",
+      "lumens": 220,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable, adjustable",
+      "description": "A small clip-on light with a rounded steel head that perches directly onto a headboard or shelf edge, no drilling required. The head tilts on a ball joint to point exactly where a page needs it, then folds flat against the clip when not in use.",
+      "details": [
+        "Spring-tension clip mount, no drilling",
+        "Ball-joint tilting light head",
+        "Folds flat for travel or storage",
+        "USB-C rechargeable, 10-hour runtime"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one small clip-on reading light with a rounded blackened steel head perched on a headboard edge, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the small clip-on head now glowing warm amber downward, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-055",
+      "slug": "swing-bedside-lamp",
+      "name": "Swing Bedside Lamp",
+      "category": "bed-reading",
+      "tagline": "A brass swing arm, reaching from the wall to the pillow.",
+      "price": 680,
+      "materials": [
+        "Satin brass",
+        "Linen shade"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Aged Brass",
+          "hex": "#8a6f3e"
+        }
+      ],
+      "dimensions": "24\" reach × 14\" h",
+      "lumens": 420,
+      "kelvin": 2700,
+      "bulb": "E26, dimmable, bulb included",
+      "description": "A wall-mounted brass arm with two pivot points, extending from a fixed base to hover a small linen shade directly above the pillow. Once positioned it holds its place without drifting. Frees the entire nightstand surface, since nothing needs to sit on it.",
+      "details": [
+        "Dual-pivot solid brass swing arm",
+        "Small natural linen drum shade",
+        "24 in maximum reach",
+        "Wall-mounted, hardwired or plug-in"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one wall-mounted swing-arm bedside lamp with a dual-pivot satin brass arm extending a small linen shade, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the small linen shade at the end of the swing arm now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-056",
+      "slug": "clip-reading-light",
+      "name": "Clip Reading Light",
+      "category": "bed-reading",
+      "tagline": "A flat aluminium blade, clamped to any headboard edge.",
+      "price": 190,
+      "materials": [
+        "Brushed aluminium",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "2\" w × 10\" h",
+      "lumens": 200,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable, adjustable",
+      "description": "A flat blade of brushed aluminium that clamps onto a headboard, shelf, or book, bending along its own length to aim light exactly where it is needed. There is no separate head or joint. The whole blade flexes, so the beam moves with a simple bend of the wrist.",
+      "details": [
+        "Flexible full-length aluminium blade",
+        "Universal spring clamp, up to 2 in thick",
+        "No separate joints, bends along its length",
+        "USB-C rechargeable"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one flat brushed aluminium blade reading light clamped onto a headboard edge, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the tip of the flexed aluminium blade now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-057",
+      "slug": "alcove-headboard-light",
+      "name": "Alcove Headboard Light",
+      "category": "bed-reading",
+      "tagline": "A recessed travertine strip, built into the wall itself.",
+      "price": 780,
+      "materials": [
+        "Travertine",
+        "Brushed aluminium"
+      ],
+      "finishes": [
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        },
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        }
+      ],
+      "dimensions": "20\" w × 3\" h",
+      "lumens": 460,
+      "kelvin": 2700,
+      "bulb": "Integrated LED strip, dimmable",
+      "description": "A shallow travertine niche designed to sit above a headboard, with a hidden light channel running the full width of the recess. The stone's texture is visible only in the light it emits, since no separate fixture protrudes from the wall. Built-in feel, boutique-hotel proportions.",
+      "details": [
+        "Recessed travertine niche panel",
+        "Full-width hidden LED channel",
+        "Flush wall installation",
+        "Zero visible hardware once installed"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one recessed travertine headboard niche with a hidden light channel running its full width, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the hidden channel inside the travertine niche now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-058",
+      "slug": "wand-reading-lamp",
+      "name": "Wand Reading Lamp",
+      "category": "bed-reading",
+      "tagline": "A slender walnut stick, standing beside the pillow.",
+      "price": 310,
+      "materials": [
+        "Oiled walnut",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Smoked Oak",
+          "hex": "#4a3c31"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "2\" dia × 13\" h",
+      "lumens": 240,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, adjustable",
+      "description": "A slim turned walnut stick standing upright from a small round foot, capped with a soft opal acrylic tip that bends slightly to redirect the beam. Small enough to move between rooms in one hand, and light enough that a nightstand barely notices its weight.",
+      "details": [
+        "Slim turned solid walnut body",
+        "Bendable opal acrylic tip",
+        "Small round felt-bottomed foot",
+        "Rechargeable, touch-dim base"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one slim turned walnut stick reading lamp standing upright from a small round foot with a soft opal acrylic tip, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the opal tip of the walnut wand now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-059",
+      "slug": "pillow-bedside-light",
+      "name": "Pillow Bedside Light",
+      "category": "bed-reading",
+      "tagline": "A rounded ceramic dome, low enough to reach half-asleep.",
+      "price": 320,
+      "materials": [
+        "Glazed ceramic",
+        "Oiled walnut"
+      ],
+      "finishes": [
+        {
+          "name": "Bone",
+          "hex": "#e8e1d3"
+        },
+        {
+          "name": "Clay",
+          "hex": "#b5735a"
+        }
+      ],
+      "dimensions": "5\" dia × 6\" h",
+      "lumens": 260,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, touch control",
+      "description": "A low, rounded ceramic dome sized to sit within easy reach on a nightstand, its whole matte surface acting as a single soft touch-dim switch. No cord runs across the surface, since the whole thing charges from a small walnut base plate underneath.",
+      "details": [
+        "Low rounded ceramic dome, touch-dim surface",
+        "Wireless charging walnut base plate",
+        "5 in diameter, easy one-hand reach",
+        "10-hour battery runtime"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one low rounded glazed ceramic dome bedside light resting on a small walnut base plate, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the rounded ceramic dome now glowing warm amber across its whole surface, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-060",
+      "slug": "vane-reading-arm",
+      "name": "Vane Reading Arm",
+      "category": "bed-reading",
+      "tagline": "A pivoting steel vane, angled like a weather flag.",
+      "price": 420,
+      "materials": [
+        "Blackened steel",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "14\" reach × 8\" h",
+      "lumens": 250,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable, adjustable",
+      "description": "A narrow steel vane mounted to the wall on a single pivot, tilting to catch or throw light the way a weather vane catches wind. The flat blade shape hides the light source until it is switched on, then the whole edge glows along a soft opal acrylic strip.",
+      "details": [
+        "Single-pivot flat steel vane arm",
+        "Edge-lit opal acrylic strip",
+        "14 in reach from wall plate",
+        "Wall-mounted, hardwired or plug-in"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one narrow pivoting blackened steel vane reading arm mounted flat to the wall like a weather flag, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the edge of the steel vane now glowing warm amber along its strip, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-061",
+      "slug": "disc-flush-mount",
+      "name": "Disc Flush Mount",
+      "category": "flush-mounts",
+      "tagline": "A shallow opal disc, level with the ceiling.",
+      "price": 480,
+      "materials": [
+        "Opal glass",
+        "Brushed aluminium"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "14\" dia × 3\" h",
+      "lumens": 1100,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A shallow opal glass disc set almost flush to the ceiling plane, held by a thin aluminium ring. It disappears into the architecture by day, then releases an even wash of light across the whole disc surface. Built for hallways and rooms with low ceiling clearance.",
+      "details": [
+        "Shallow opal glass disc diffuser",
+        "Thin brushed aluminium mounting ring",
+        "3 in low-profile projection",
+        "Even full-disc light distribution"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one shallow opal glass disc flush mount set almost level with the ceiling plane on a thin aluminium ring, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the opal glass disc now glowing warm amber evenly across its surface, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-062",
+      "slug": "orbit-flush-mount",
+      "name": "Orbit Flush Mount",
+      "category": "flush-mounts",
+      "tagline": "A brass ring circling a small central glass bead.",
+      "price": 760,
+      "materials": [
+        "Satin brass",
+        "Hand-blown glass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Aged Brass",
+          "hex": "#8a6f3e"
+        }
+      ],
+      "dimensions": "16\" dia × 5\" h",
+      "lumens": 980,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A wide flat brass ring set close to the ceiling, orbiting a single small hand-blown glass bead suspended at its centre. The ring itself carries a hidden light channel, so two distinct sources, ring and bead, work together rather than one dominating the other.",
+      "details": [
+        "Wide flat satin brass ring channel",
+        "Central suspended hand-blown glass bead",
+        "Dual light zones, ring and centre",
+        "Low 5 in ceiling clearance"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one flush mount of a wide flat satin brass ring orbiting a single small hand-blown glass bead at its centre, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the brass ring and the central glass bead now glowing warm amber together, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-063",
+      "slug": "basin-flush-mount",
+      "name": "Basin Flush Mount",
+      "category": "flush-mounts",
+      "tagline": "A shallow ceramic bowl, upturned against the ceiling.",
+      "price": 560,
+      "materials": [
+        "Glazed ceramic",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Clay",
+          "hex": "#b5735a"
+        },
+        {
+          "name": "Bone",
+          "hex": "#e8e1d3"
+        }
+      ],
+      "dimensions": "15\" dia × 6\" h",
+      "lumens": 920,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A wide, shallow ceramic bowl mounted upside down against the ceiling, its glazed interior catching and softening the light before it spreads into the room. The visible exterior stays matte and quiet, so the glow always seems to come from somewhere just out of sight.",
+      "details": [
+        "Upturned shallow glazed ceramic bowl",
+        "Matte exterior, glazed interior",
+        "Indirect light spread, soft-edged",
+        "Blackened steel ceiling bracket"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one wide shallow glazed ceramic bowl flush mount fitted upside down against the ceiling, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the interior of the upturned ceramic bowl now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-064",
+      "slug": "petal-flush-mount",
+      "name": "Petal Flush Mount",
+      "category": "flush-mounts",
+      "tagline": "Overlapping opal petals, closed flat to the ceiling.",
+      "price": 690,
+      "materials": [
+        "Opal acrylic",
+        "Satin brass"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "17\" dia × 4\" h",
+      "lumens": 1050,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable",
+      "description": "Five overlapping opal acrylic petals arranged in a tight flat rosette against the ceiling, each catching light from the shared source beneath. The layered petals soften what would otherwise be a single hard disc of light into a gentler, faceted glow.",
+      "details": [
+        "5 overlapping opal acrylic petal layers",
+        "Flat rosette silhouette, 4 in depth",
+        "Faceted, softened light output",
+        "Satin brass centre hub"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one flush mount of five overlapping opal acrylic petals arranged in a tight flat rosette against the ceiling, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the overlapping opal petals now glowing warm amber in a faceted pattern, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-065",
+      "slug": "drum-flush-mount",
+      "name": "Drum Flush Mount",
+      "category": "flush-mounts",
+      "tagline": "A tight linen drum, pressed flush against the ceiling.",
+      "price": 420,
+      "materials": [
+        "Linen shade",
+        "Brushed aluminium"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "16\" dia × 7\" h",
+      "lumens": 880,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A compact linen drum shade pressed close against the ceiling, its taut fabric surface glowing as one continuous plane once lit. The aluminium frame inside stays entirely hidden behind the weave, leaving nothing but soft fabric visible from below.",
+      "details": [
+        "Taut linen drum shade, flush-mounted",
+        "Concealed brushed aluminium frame",
+        "Continuous even-glow fabric surface",
+        "Standard junction box installation"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one compact taut linen drum flush mount pressed close against the ceiling, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the taut linen drum surface now glowing warm amber evenly, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-066",
+      "slug": "halo-flush-mount",
+      "name": "Halo Flush Mount",
+      "category": "flush-mounts",
+      "tagline": "A slim ring of light, recessed just below the ceiling.",
+      "price": 540,
+      "materials": [
+        "Brushed aluminium",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "18\" dia × 2\" h",
+      "lumens": 1200,
+      "kelvin": 3000,
+      "bulb": "Integrated LED ring, dimmable",
+      "description": "A slim aluminium ring set just below the ceiling surface, with a continuous opal acrylic channel running its full circumference. The centre stays completely dark and open, so the light forms a bright halo around a plain ceiling field rather than covering it.",
+      "details": [
+        "Slim aluminium ring, 2 in low profile",
+        "Continuous circumferential opal channel",
+        "Open dark centre, halo light pattern",
+        "Dimmable single-circuit control"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one slim aluminium ring flush mount set just below the ceiling with a continuous light channel around its full circumference, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the ring's circumferential channel now glowing warm amber around its dark open centre, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-067",
+      "slug": "cloud-flush-mount",
+      "name": "Cloud Flush Mount",
+      "category": "flush-mounts",
+      "tagline": "A soft plaster-toned form, blended into the ceiling.",
+      "price": 980,
+      "materials": [
+        "Opal acrylic",
+        "Matte plaster finish"
+      ],
+      "finishes": [
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        },
+        {
+          "name": "Bone",
+          "hex": "#e8e1d3"
+        }
+      ],
+      "dimensions": "22\" dia × 5\" h",
+      "lumens": 1150,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "An irregular, cloud-shaped flush mount finished in a matte tone close to the plaster ceiling around it, so the edges nearly vanish in daylight. Only the gentle asymmetric outline gives it away. At night it becomes the clear centre of the room, soft-edged and wide-spreading.",
+      "details": [
+        "Irregular cloud-shaped low-profile body",
+        "Matte plaster-matched finish",
+        "Wide 22 in soft-spread coverage",
+        "Nearly seamless daytime blend"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one irregular cloud-shaped flush mount finished in a matte plaster-matched tone that nearly blends into the ceiling, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the plaster-toned cloud form now glowing warm amber and spreading softly outward, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-068",
+      "slug": "coin-flush-mount",
+      "name": "Coin Flush Mount",
+      "category": "flush-mounts",
+      "tagline": "A small bronze coin, pressed flat against the ceiling.",
+      "price": 390,
+      "materials": [
+        "Patinated bronze",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Patinated Bronze",
+          "hex": "#5c6d5e"
+        },
+        {
+          "name": "Warm Bronze",
+          "hex": "#7a5a3a"
+        }
+      ],
+      "dimensions": "8\" dia × 3\" h",
+      "lumens": 520,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable",
+      "description": "A small, coin-like disc of patinated bronze set flush against the ceiling, its narrow opal acrylic rim the only sign of light within. Sized for a closet, a powder room, or a run of matching units along a low corridor ceiling.",
+      "details": [
+        "Small patinated bronze disc, 8 in diameter",
+        "Narrow opal acrylic rim diffuser",
+        "Ideal for closets and powder rooms",
+        "Low 3 in ceiling profile"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one small coin-like patinated bronze disc flush mount set tight against the ceiling with a narrow glowing rim, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the narrow rim of the bronze coin disc now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-069",
+      "slug": "ember-portable-lamp",
+      "name": "Ember Portable Lamp",
+      "category": "portable",
+      "tagline": "A pocketable brass puck, warm wherever it lands.",
+      "price": 290,
+      "materials": [
+        "Satin brass",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Satin Brass",
+          "hex": "#b08d57"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "4\" dia × 5\" h",
+      "lumens": 220,
+      "kelvin": 2200,
+      "bulb": "Integrated LED, dimmable, rechargeable",
+      "description": "A small brass puck light off table, dense enough in the hand to feel solid rather than plastic. A twist of the base cycles through three warm brightness levels without a single visible button. Twelve hours of runtime lets it travel from the dinner table to the porch.",
+      "details": [
+        "Solid satin brass puck body",
+        "Twist-base three-level dimming",
+        "12-hour battery runtime",
+        "USB-C charging, IP44 splash rated"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one small solid satin brass puck-shaped portable lamp resting on its side, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the brass puck now glowing warm amber from its top, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-070",
+      "slug": "puck-portable-light",
+      "name": "Puck Portable Light",
+      "category": "portable",
+      "tagline": "A flat ceramic disc, light enough to carry in a pocket.",
+      "price": 210,
+      "materials": [
+        "Glazed ceramic",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Bone",
+          "hex": "#e8e1d3"
+        },
+        {
+          "name": "Clay",
+          "hex": "#b5735a"
+        }
+      ],
+      "dimensions": "3\" dia × 1.5\" h",
+      "lumens": 160,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, rechargeable",
+      "description": "A flat glazed ceramic disc, thin enough to slide into a bag and light enough to forget it is there. The whole top face glows evenly rather than from a single bulb point, so it works laid flat on a table or propped upright against a book.",
+      "details": [
+        "Flat glazed ceramic disc body",
+        "Full-face even light emission",
+        "8-hour battery runtime",
+        "Wireless charging base included"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one flat thin glazed ceramic disc portable light standing propped upright, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the flat ceramic disc now glowing warm amber across its whole face, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-071",
+      "slug": "satchel-lantern",
+      "name": "Satchel Lantern",
+      "category": "portable",
+      "tagline": "A leather-handled lantern, built for the outdoor table.",
+      "price": 380,
+      "materials": [
+        "Blackened steel",
+        "Opal glass"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "6\" dia × 10\" h",
+      "lumens": 380,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, rechargeable",
+      "description": "A steel-framed lantern with a fitted carry handle, sized for the centre of a dinner table or the top of a porch step. An opal glass cylinder inside diffuses the source into an even column of light visible from every angle around the table.",
+      "details": [
+        "Steel cage frame with fitted carry handle",
+        "Internal opal glass diffusing cylinder",
+        "16-hour battery runtime",
+        "IP54 weather resistant"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one steel-framed portable lantern with a fitted carry handle and an internal opal glass cylinder, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the opal glass cylinder inside the lantern now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-072",
+      "slug": "nomad-table-light",
+      "name": "Nomad Table Light",
+      "category": "portable",
+      "tagline": "A cordless walnut cap, sitting on a bare glass base.",
+      "price": 340,
+      "materials": [
+        "Oiled walnut",
+        "Cast glass"
+      ],
+      "finishes": [
+        {
+          "name": "Smoked Oak",
+          "hex": "#4a3c31"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "4\" dia × 8\" h",
+      "lumens": 300,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, rechargeable",
+      "description": "A small cast glass base topped with a solid walnut cap, entirely cordless and rechargeable through a hidden contact at its foot. The glass base catches and holds light within itself, glowing from inside rather than only at the cap where the source sits.",
+      "details": [
+        "Cast glass base with internal glow",
+        "Solid oiled walnut top cap",
+        "Contact charging, no visible port",
+        "14-hour battery runtime"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one small cordless table light with a cast glass base and a solid walnut top cap, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the cast glass base now glowing warm amber from within beneath the walnut cap, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-073",
+      "slug": "beacon-portable-lamp",
+      "name": "Beacon Portable Lamp",
+      "category": "portable",
+      "tagline": "A tall aluminium column, cordless and weatherproof.",
+      "price": 450,
+      "materials": [
+        "Brushed aluminium",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "5\" dia × 14\" h",
+      "lumens": 420,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable, rechargeable",
+      "description": "A tall, slim column in brushed aluminium, fully sealed against rain and built to stand upright on a balcony ledge or a garden step. The extended height throws light further across an outdoor table than the collection's smaller portables, without needing a cord.",
+      "details": [
+        "Tall sealed brushed aluminium column",
+        "IP65 fully weatherproof rating",
+        "18-hour battery runtime",
+        "Magnetic charging dock included"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one tall slim sealed brushed aluminium column portable lamp standing upright, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the tall aluminium column now glowing warm amber near its top, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-074",
+      "slug": "cairn-portable-light",
+      "name": "Cairn Portable Light",
+      "category": "portable",
+      "tagline": "Two stacked travertine pebbles, cordless and small.",
+      "price": 310,
+      "materials": [
+        "Travertine",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Travertine",
+          "hex": "#d8cdb8"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "3\" dia × 6\" h",
+      "lumens": 180,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, rechargeable",
+      "description": "Two small travertine pebble forms stacked and bonded together, with a soft light channel running through the seam between them. Compact enough to fit in one hand, it borrows the stacking language of the larger table cairn at a fraction of the scale.",
+      "details": [
+        "Two bonded travertine pebble forms",
+        "Seam light channel between stones",
+        "10-hour battery runtime",
+        "Wireless charging base included"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one small portable light made of two stacked bonded travertine pebble forms, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the seam between the two stacked travertine pebbles now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-075",
+      "slug": "drift-lantern",
+      "name": "Drift Lantern",
+      "category": "portable",
+      "tagline": "A frosted glass bottle, sealed and softly glowing.",
+      "price": 270,
+      "materials": [
+        "Hand-blown glass",
+        "Brushed aluminium"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "4\" dia × 9\" h",
+      "lumens": 200,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, rechargeable",
+      "description": "A frosted hand-blown glass vessel shaped like a rounded bottle, sealed at its neck by a small aluminium collar hiding the charging contact. Light diffuses through the frosted walls evenly in every direction, with no seam or hot spot visible from outside.",
+      "details": [
+        "Frosted hand-blown glass bottle form",
+        "Sealed aluminium neck collar",
+        "Even omnidirectional light diffusion",
+        "12-hour battery runtime"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one frosted hand-blown glass bottle-shaped portable lantern with a small aluminium neck collar, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the frosted glass bottle now glowing warm amber evenly through its walls, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-076",
+      "slug": "harbor-wall-light",
+      "name": "Harbor Wall Light",
+      "category": "outdoor",
+      "tagline": "A sealed brass box, weathering like a ship's fitting.",
+      "price": 690,
+      "materials": [
+        "Satin brass",
+        "Opal glass"
+      ],
+      "finishes": [
+        {
+          "name": "Aged Brass",
+          "hex": "#8a6f3e"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "6\" w × 8\" h × 4\" d",
+      "lumens": 420,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, sealed",
+      "description": "A sealed rectangular brass housing, styled after old maritime deck fittings, protecting an opal glass lens behind a ribbed cover. Built to weather openly rather than hide from the elements, its brass surface is expected to darken and streak with age outdoors.",
+      "details": [
+        "Sealed marine-grade brass housing",
+        "Ribbed protective opal glass lens",
+        "IP65 fully weatherproof rating",
+        "Ages naturally in outdoor exposure"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one sealed rectangular satin brass wall light styled after an old maritime deck fitting, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the ribbed glass lens of the brass housing now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-077",
+      "slug": "grove-path-light",
+      "name": "Grove Path Light",
+      "category": "outdoor",
+      "tagline": "A short bronze stake, marking the edge of a path.",
+      "price": 520,
+      "materials": [
+        "Patinated bronze",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Patinated Bronze",
+          "hex": "#5c6d5e"
+        },
+        {
+          "name": "Warm Bronze",
+          "hex": "#7a5a3a"
+        }
+      ],
+      "dimensions": "3\" dia × 16\" h",
+      "lumens": 180,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, sealed",
+      "description": "A short bronze stake meant to be driven into soil along a garden path, its rounded cap glowing low and close to the ground. Designed to guide feet rather than light a whole yard, it is most effective set in a spaced, repeating row.",
+      "details": [
+        "Ground-stake mounting, driven into soil",
+        "Low glare, downward-focused cap light",
+        "IP66 fully weatherproof rating",
+        "Designed for repeated row installation"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one short patinated bronze ground-stake path light with a rounded glowing cap, warm off-white plaster wall, pale oak floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the rounded cap of the bronze path stake now glowing warm amber low to the ground, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-078",
+      "slug": "weathered-post-lantern",
+      "name": "Weathered Post Lantern",
+      "category": "outdoor",
+      "tagline": "An oxidized steel cage, standing on its own post.",
+      "price": 1180,
+      "materials": [
+        "Blackened steel",
+        "Hand-blown glass"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Charcoal",
+          "hex": "#2b2b2b"
+        }
+      ],
+      "dimensions": "10\" dia × 22\" h",
+      "lumens": 580,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, sealed",
+      "description": "A full lantern cage in oxidized steel, mounted atop its own weatherproof post for a driveway entrance or garden gate. A hand-blown glass vessel sits inside the cage, protected from rain but fully visible from every side. Built to anchor an entry from a distance.",
+      "details": [
+        "Full oxidized steel cage enclosure",
+        "Interior hand-blown glass vessel",
+        "Freestanding weatherproof post mount",
+        "IP65 rated, all-weather hardware"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one full lantern cage of oxidized blackened steel standing atop its own outdoor post, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the glass vessel inside the oxidized steel cage now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-079",
+      "slug": "coastal-sconce-light",
+      "name": "Coastal Sconce Light",
+      "category": "outdoor",
+      "tagline": "A salt-resistant aluminium shell, sealed against sea air.",
+      "price": 580,
+      "materials": [
+        "Brushed aluminium",
+        "Opal acrylic"
+      ],
+      "finishes": [
+        {
+          "name": "Brushed Aluminium",
+          "hex": "#a8acae"
+        },
+        {
+          "name": "Matte White",
+          "hex": "#f2f0ea"
+        }
+      ],
+      "dimensions": "7\" w × 9\" h × 4\" d",
+      "lumens": 400,
+      "kelvin": 3000,
+      "bulb": "Integrated LED, dimmable, sealed",
+      "description": "A rounded aluminium shell treated for salt-air resistance, mounted flush to an exterior wall with a gasket-sealed opal acrylic lens. Built specifically for coastal properties where standard outdoor fixtures corrode within a season, this one is engineered to outlast the view.",
+      "details": [
+        "Salt-air resistant anodized aluminium shell",
+        "Gasket-sealed opal acrylic lens",
+        "IP66 rated for direct coastal exposure",
+        "Corrosion-tested hardware throughout"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one rounded salt-resistant anodized aluminium sconce shell mounted flush to an exterior wall, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the gasket-sealed lens of the aluminium shell now glowing warm amber, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    },
+    {
+      "id": "lm-080",
+      "slug": "courtyard-pendant-light",
+      "name": "Courtyard Pendant Light",
+      "category": "outdoor",
+      "tagline": "A weatherproof glass globe, hung between two walls.",
+      "price": 1560,
+      "materials": [
+        "Hand-blown glass",
+        "Blackened steel"
+      ],
+      "finishes": [
+        {
+          "name": "Blackened Steel",
+          "hex": "#1c1c1c"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#3a3a3a"
+        }
+      ],
+      "dimensions": "12\" dia × 14\" h",
+      "lumens": 650,
+      "kelvin": 2700,
+      "bulb": "Integrated LED, dimmable, sealed",
+      "description": "A weatherproofed hand-blown glass globe suspended on a sealed steel cable, built to hang openly across a courtyard or between two buildings. The glass is thicker than its indoor counterparts to withstand exposure, but the warm, even glow it casts stays exactly the same.",
+      "details": [
+        "Weatherproofed thick-wall hand-blown glass globe",
+        "Sealed outdoor-rated steel suspension cable",
+        "IP65 rated for open exterior installation",
+        "Wide-span mounting hardware included"
+      ],
+      "prompt_off": "editorial furniture-catalogue photograph, one weatherproofed thick-wall hand-blown glass globe pendant suspended on a sealed outdoor steel cable across a courtyard, warm off-white plaster wall, honed concrete floor where visible, soft neutral north daylight, square framing, fixture centred with generous empty space around it, medium format camera, muted stone and bone colour palette, the fixture unlit and quiet.",
+      "prompt_on": "the same photograph and the same framing, the room dimmed to dusk, the weatherproofed glass globe now glowing warm amber across the courtyard, light pooling on the plaster wall and floor, soft falloff into shadow, cinematic evening interior."
+    }
+  ]
+}

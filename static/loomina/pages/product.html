@@ -1,0 +1,199 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title data-title>Loomina</title>
+<meta name="description" content="A Loomina fixture, shown unlit and burning, with full specifications and finishes." data-desc>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%23ffb34a'/></svg>">
+<link rel="stylesheet" href="../css/loomina.css">
+<style>
+  .pdp{ display:grid; grid-template-columns:1.05fr 1fr; gap:clamp(28px,4.5vw,72px); align-items:start; padding-block:clamp(24px,3.4vw,44px) clamp(50px,7vw,90px); }
+  .pdp-media{ position:sticky; top:calc(var(--nav-h) + 20px); }
+  .pdp-caption{ padding-top:12px; text-align:center; font-size:13px; color:var(--ink-3); transition:color var(--t-light) var(--e-soft); }
+  .pdp-buy{ display:grid; gap:22px; align-content:start; padding-top:4px; }
+  .pdp-price{ font-size:22px; }
+  .finish-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .qty{ display:inline-flex; align-items:center; border:1px solid var(--hairline); border-radius:var(--pill); overflow:hidden; }
+  .qty button{ all:unset; box-sizing:border-box; width:38px; height:38px; display:grid; place-items:center; cursor:pointer; color:var(--ink-2); }
+  .qty button:hover{ background:var(--hairline-2); color:var(--ink); }
+  .qty span{ width:36px; text-align:center; font-size:14px; }
+  .spec-table{ display:grid; }
+  .spec-row{ display:flex; justify-content:space-between; gap:20px; padding:13px 0; border-bottom:1px solid var(--hairline-2); font-size:14px; }
+  .spec-row span:first-child{ color:var(--ink-3); }
+  .spec-row span:last-child{ color:var(--ink); text-align:right; max-width:60%; }
+  details.pdp-dd{ border-bottom:1px solid var(--hairline-2); }
+  details.pdp-dd summary{ list-style:none; cursor:pointer; padding:18px 2px; font-size:16px; font-weight:500; display:flex; justify-content:space-between; align-items:center; }
+  details.pdp-dd summary::-webkit-details-marker{ display:none; }
+  details.pdp-dd summary::after{ content:"+"; font-size:20px; color:var(--ink-3); transition:transform .3s var(--e-out); }
+  details.pdp-dd[open] summary::after{ content:"–"; }
+  details.pdp-dd .dd-body{ padding:0 2px 22px; }
+  details.pdp-dd .dd-body ul{ display:grid; gap:10px; }
+  details.pdp-dd .dd-body li{ font-size:14px; color:var(--ink-2); padding-left:18px; position:relative; }
+  details.pdp-dd .dd-body li::before{ content:"—"; position:absolute; left:0; color:var(--ink-3); }
+  .pairs-strip .grid{ grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr)); }
+  .statement{ position:relative; min-height:min(70vh,640px); border-radius:var(--r-lg); overflow:hidden; display:grid; place-items:center; text-align:center; margin-top:8px; }
+  .statement img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .statement::before{ content:""; position:absolute; inset:0; background:rgba(0,0,0,.4); }
+  .statement blockquote{ position:relative; z-index:2; max-width:760px; margin:0; padding-inline:var(--gut); font-size:clamp(26px,4vw,46px); line-height:1.2; font-weight:600; letter-spacing:-.025em; color:var(--ink-inv); }
+  .notfound{ display:grid; justify-items:center; gap:18px; text-align:center; padding-block:clamp(90px,14vw,160px); }
+
+  @media (max-width:900px){
+    .pdp{ grid-template-columns:1fr; }
+    .pdp-media{ position:static; }
+  }
+</style></head><body>
+
+<main>
+  <div class="wrap-wide" data-notfound hidden>
+    <div class="notfound">
+      <p class="t-eyebrow">Not found</p>
+      <h1 class="t-xl">We could not find that fixture.</h1>
+      <p class="t-bd dim" style="max-width:480px">It may have been retired, or the link is off. Have a look at the full collection instead.</p>
+      <a class="btn" href="./shop.html">Back to shop</a>
+    </div>
+  </div>
+
+  <div class="wrap-wide" data-content hidden>
+    <div class="pdp">
+      <div class="pdp-media">
+        <div class="shot" data-shot></div>
+        <p class="pdp-caption" data-caption>Shown unlit — flip Light to see it burning</p>
+      </div>
+
+      <div class="pdp-buy">
+        <p class="t-eyebrow" data-eyebrow></p>
+        <h1 class="t-xl" data-name></h1>
+        <p class="t-bd dim" data-tagline></p>
+        <p class="pdp-price tnum" data-price></p>
+        <p class="t-sm dim" data-desc-copy></p>
+
+        <div class="stack-8">
+          <span class="t-sm" data-finish-label>Finish: —</span>
+          <div class="finish-row" data-swatches></div>
+        </div>
+
+        <div class="row" style="justify-content:space-between">
+          <span class="t-sm dim">Quantity</span>
+          <div class="qty">
+            <button type="button" data-qty-dec aria-label="Decrease quantity">−</button>
+            <span data-qty-val>1</span>
+            <button type="button" data-qty-inc aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+
+        <button class="btn" style="width:100%" data-add>Add to Bag</button>
+        <p class="t-xs dimmer center">Free shipping and returns on every order.</p>
+
+        <hr class="hr" style="margin-block:6px">
+
+        <details class="pdp-dd" open>
+          <summary>Specifications</summary>
+          <div class="dd-body spec-table" data-specs></div>
+        </details>
+        <details class="pdp-dd">
+          <summary>Details</summary>
+          <div class="dd-body"><ul data-details></ul></div>
+        </details>
+      </div>
+    </div>
+
+    <section class="sec-tight pairs-strip stack-24">
+      <h2 class="t-lg rv">Pairs well with</h2>
+      <div class="grid rv" data-pairs></div>
+    </section>
+
+    <section class="sec-tight">
+      <div class="statement rv" data-statement>
+        <img alt="">
+        <blockquote data-quote></blockquote>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="../js/core.js"></script>
+<script>
+(async () => {
+  await LM.mountChrome();
+  const D = await LM.db();
+  const cn = D.catName;
+  const slug = new URL(location.href).searchParams.get('p');
+  const p = slug ? D.byId[slug] : null;
+
+  if (!p){
+    document.querySelector('[data-notfound]').hidden = false;
+    LM.reveals();
+    return;
+  }
+  document.querySelector('[data-content]').hidden = false;
+  document.querySelector('[data-title]').textContent = `${p.name} — Loomina`;
+  document.querySelector('[data-desc]').setAttribute('content', `${p.name} — ${p.tagline} ${LM.money(p.price)}.`);
+
+  document.querySelector('[data-shot]').innerHTML = LM.imgPair(p);
+  document.querySelector('[data-eyebrow]').textContent = cn[p.category] || '';
+  document.querySelector('[data-name]').textContent = p.name;
+  document.querySelector('[data-tagline]').textContent = p.tagline;
+  document.querySelector('[data-price]').textContent = LM.money(p.price);
+  document.querySelector('[data-desc-copy]').textContent = p.description;
+
+  function paintCaption(){
+    const on = document.documentElement.dataset.lit === 'on';
+    document.querySelector('[data-caption]').textContent = on
+      ? `Shown lit at ${p.kelvin}K` : 'Shown unlit — flip Light to see it burning';
+  }
+  paintCaption();
+  window.addEventListener('lm:lit', paintCaption);
+
+  /* finishes */
+  let finish = p.finishes[0]?.name || '';
+  const finLabel = document.querySelector('[data-finish-label]');
+  finLabel.textContent = `Finish: ${finish}`;
+  document.querySelector('[data-swatches]').innerHTML = p.finishes.map((f,i) =>
+    `<button class="swatch" type="button" style="background:${f.hex}" aria-pressed="${i===0}" aria-label="${f.name}" data-finish-name="${f.name}"></button>`).join('');
+  document.querySelectorAll('[data-finish-name]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-finish-name]').forEach(x => x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    finish = b.dataset.finishName;
+    finLabel.textContent = `Finish: ${finish}`;
+  }));
+
+  /* quantity */
+  let qty = 1;
+  const qtyVal = document.querySelector('[data-qty-val]');
+  document.querySelector('[data-qty-dec]').addEventListener('click', () => { qty = Math.max(1, qty-1); qtyVal.textContent = qty; });
+  document.querySelector('[data-qty-inc]').addEventListener('click', () => { qty = Math.min(20, qty+1); qtyVal.textContent = qty; });
+
+  document.querySelector('[data-add]').addEventListener('click', () => LM.addToCart(p.slug, finish, qty));
+
+  /* specs */
+  const specs = [
+    ['Dimensions', p.dimensions],
+    ['Lumens', p.lumens],
+    ['Color temperature', `${p.kelvin}K`],
+    ['Bulb', p.bulb],
+    ['Materials', (p.materials||[]).join(', ')]
+  ].filter(([,v]) => v);
+  document.querySelector('[data-specs]').innerHTML = specs.map(([k,v]) =>
+    `<div class="spec-row"><span>${k}</span><span>${v}</span></div>`).join('');
+  document.querySelector('[data-details]').innerHTML = (p.details||[]).map(d => `<li>${d}</li>`).join('');
+
+  /* pairs well with */
+  let pairs = D.products.filter(x => x.category === p.category && x.slug !== p.slug);
+  if (pairs.length < 4){
+    const more = D.products.filter(x => x.slug !== p.slug && !pairs.includes(x))
+      .sort((a,b) => Math.abs(a.price-p.price) - Math.abs(b.price-p.price));
+    pairs = pairs.concat(more).slice(0,4);
+  } else {
+    pairs = pairs.slice(0,4);
+  }
+  document.querySelector('[data-pairs]').innerHTML = pairs.map(x => LM.card(x, cn[x.category])).join('');
+
+  /* statement */
+  const b = '../';
+  const stEl = document.querySelector('[data-statement]');
+  const img = stEl.querySelector('img');
+  img.src = `${b}img/products/${p.slug}-on.webp`; img.alt = `${p.name}, lit`;
+  img.onerror = function(){ this.dataset.f || (this.dataset.f=1, this.src = b+'img/placeholder.svg'); };
+  document.querySelector('[data-quote]').textContent = `“${p.tagline}”`;
+
+  LM.reveals();
+})();
+</script></body></html>
