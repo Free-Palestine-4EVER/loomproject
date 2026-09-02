@@ -115,6 +115,14 @@
   ],
   "rewrites": [
     {
+      "source": "/sotg/",
+      "destination": "/sotg/index.html"
+    },
+    {
+      "source": "/sotg",
+      "destination": "/sotg/index.html"
+    },
+    {
       "source": "/lexus/",
       "destination": "/lexus/index.html"
     },
