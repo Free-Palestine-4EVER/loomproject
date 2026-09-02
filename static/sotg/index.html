@@ -240,6 +240,47 @@ h1,h2,h3{font-family:var(--font-h);color:var(--deep);letter-spacing:-.01em;margi
 </div>
 <div class="toast" id="toast"></div>
 
+<div class="gate" id="gate">
+  <form class="gate-box" id="gateForm" autocomplete="off">
+    <img src="/sotg/img/sotg-logo.webp" alt="salah on the go">
+    <h2>photo brief</h2>
+    <p>enter the code we sent you</p>
+    <input id="gateIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" aria-label="access code">
+    <button class="btn btn-primary" type="submit">open</button>
+    <span class="gate-err" id="gateErr">that's not it — try again</span>
+  </form>
+</div>
+<style>
+.gate{position:fixed;inset:0;z-index:100;background:var(--paper);display:grid;place-items:center;padding:24px}
+.gate::before{content:"";position:absolute;inset:0;background:radial-gradient(60vw 40vh at 100% 0%, rgba(189,156,163,.35), transparent 70%),radial-gradient(50vw 40vh at 0% 100%, rgba(94,132,162,.28), transparent 70%)}
+.gate-box{position:relative;background:#fff;border:1px solid var(--line);border-radius:22px;padding:30px 26px;width:100%;max-width:340px;text-align:center;box-shadow:var(--shadow);display:grid;gap:10px;justify-items:center}
+.gate-box img{height:44px;margin-bottom:4px}
+.gate-box h2{font-size:20px}
+.gate-box p{margin:0 0 6px;color:#5a6773;font-size:13.5px}
+.gate-box input{width:100%;font:600 26px/1 var(--font-h);letter-spacing:.35em;text-align:center;padding:12px;border:1.5px solid var(--line);border-radius:14px;background:var(--paper);color:var(--deep)}
+.gate-box input:focus{outline:2px solid rgba(32,75,116,.35);border-color:var(--navy);background:#fff}
+.gate-box .btn{width:100%;justify-content:center}
+.gate-err{font-size:12.5px;color:var(--bad);visibility:hidden}
+.gate.shake .gate-box{animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+body.locked>:not(.gate){visibility:hidden}
+</style>
+<script>
+(function(){
+  const CODE='1618', KEY='sotg-gate';
+  let ok=false; try{ ok=localStorage.getItem(KEY)===CODE; }catch(e){}
+  const gate=document.getElementById('gate');
+  if(ok){ gate.remove(); return; }
+  document.body.classList.add('locked');
+  const form=document.getElementById('gateForm'), inp=document.getElementById('gateIn'), err=document.getElementById('gateErr');
+  setTimeout(()=>inp.focus(),300);
+  form.addEventListener('submit',e=>{ e.preventDefault();
+    if(inp.value.trim()===CODE){ try{localStorage.setItem(KEY,CODE)}catch(x){} gate.style.transition='opacity .4s'; gate.style.opacity='0'; document.body.classList.remove('locked'); setTimeout(()=>gate.remove(),400); }
+    else { err.style.visibility='visible'; gate.classList.remove('shake'); void gate.offsetWidth; gate.classList.add('shake'); inp.select(); }
+  });
+})();
+</script>
+
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
