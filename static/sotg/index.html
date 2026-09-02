@@ -206,7 +206,7 @@ h1,h2,h3{font-family:var(--font-h);color:var(--deep);letter-spacing:-.01em;margi
 
 <main class="wrap">
   <section class="hero">
-    <h1>hi Razan 👋<br>every photo the new site needs, <em>in one place.</em></h1>
+    <h1>hi Ghadeer 👋<br>every photo the new site needs, <em>in one place.</em></h1>
     <p>Each box below is one spot on the website. Drop your photo in and it saves by itself — from your phone or laptop, whenever you like. Tap <b>preview</b> on any box to see the photo exactly as it will sit on a phone, a tablet and a computer.</p>
     <div class="howto">
       <div><b>1</b><span>Shoot in daylight, on your usual cream / white background. Leave space around the product — we crop, never you.</span></div>
@@ -436,7 +436,7 @@ async function addFiles(s,p,files){
 }
 async function appendFile(id,key,f){
   await db.runTransaction(async tx=>{ const snap=await tx.get(ref); const cur=snap.exists?snap.data():{slots:{}}; const slots=cur.slots||{}; const sl=slots[id]||{}; const parts=sl.parts||{}; const pt=parts[key]||{files:[]};
-    pt.files=[...(pt.files||[]),f]; parts[key]=pt; sl.parts=parts; slots[id]=sl; tx.set(ref,{slots,updatedAt:Date.now(),name:'Razan'},{merge:false}); });
+    pt.files=[...(pt.files||[]),f]; parts[key]=pt; sl.parts=parts; slots[id]=sl; tx.set(ref,{slots,updatedAt:Date.now(),name:'Ghadeer'},{merge:false}); });
 }
 async function removeFile(s,p,i){
   const f=partFiles(s.id,p.key)[i]; if(!f) return;
@@ -445,7 +445,7 @@ async function removeFile(s,p,i){
 }
 async function save(id,patch){
   setSync('busy','saving…');
-  await db.runTransaction(async tx=>{ const snap=await tx.get(ref); const cur=snap.exists?snap.data():{slots:{}}; cur.slots=cur.slots||{}; cur.slots[id]={...(cur.slots[id]||{}),...patch}; cur.updatedAt=Date.now(); cur.name='Razan'; tx.set(ref,cur); });
+  await db.runTransaction(async tx=>{ const snap=await tx.get(ref); const cur=snap.exists?snap.data():{slots:{}}; cur.slots=cur.slots||{}; cur.slots[id]={...(cur.slots[id]||{}),...patch}; cur.updatedAt=Date.now(); cur.name='Ghadeer'; tx.set(ref,cur); });
   setSync('ok','saved');
 }
 function setSync(k,t){ const s=$('#sync'); s.className='sync '+(k==='ok'?'':k); $('#syncT').textContent=t; }
