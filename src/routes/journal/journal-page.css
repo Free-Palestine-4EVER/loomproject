@@ -183,7 +183,8 @@
 }
 .jr-card-link { display: block; color: inherit; }
 .jr-card-media {
-  aspect-ratio: 1200 / 896;
+  /* Deliberate editorial crop: the source keeps its proportions via object-fit. */
+  aspect-ratio: 16 / 10;
   overflow: hidden;
   background: var(--bg-3, var(--bg-2));
 }
@@ -191,6 +192,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 44%;
   display: block;
   transition: transform 0.5s var(--ease);
 }
