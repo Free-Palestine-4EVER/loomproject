@@ -1,5 +1,7 @@
 import { CASES } from '$data/site.js'
 import { POSTS } from '$data/posts/index.js'
+import { statSync } from 'node:fs'
+import { join } from 'node:path'
 
 // Prerendered like every other marketing route (see svelte.config.js) — a
 // sitemap that only exists behind a serverless function is a sitemap a
@@ -29,7 +31,7 @@ const pages = import.meta.glob('/src/routes/**/+page.svelte')
        directly ("not a page that needs to be in the HTML for a crawler")
        and it renders nothing server-side (`ssr = false`), so a crawler
        would index an empty shell even if it were listed.
-     - /bbsimon1, /bbsimon2, /lexus/app — unlisted client pitch pages, on the same footing
+     - /bbsimon1, /bbsimon2 — unlisted client pitch pages, on the same footing
        as /configurator and carrying the same noindex tag. They also reproduce
        B.B. Simon's own product photography, names and prices, so there is a
        second reason beyond "unlisted": a LOOM URL ranking for a prospect's own
@@ -40,7 +42,6 @@ const EXCLUDE = (route) =>
   route === '/configurator' ||
   route === '/diaaz' ||
   route === '/kitchen3d' ||
-  route === '/lexus/app' ||
   route.startsWith('/bbsimon')
 
 function routeFromFile(file) {
@@ -50,13 +51,28 @@ function routeFromFile(file) {
   return route === '' ? '/' : route
 }
 
-// Static routes deliberately omit <lastmod>. A local source file timestamp is
-// an artifact of checkout/build time, not an editorial publication date, and
-// shipping it would tell crawlers that every route changed on each deploy.
+// mtime of the file that actually defines a route's content, used as
+// <lastmod>. This is a real, checkable fact (the filesystem's own timestamp
+// for the source the build just read) rather than a guess — see the note at
+// the bottom of this file for why a made-up date is worse than none.
+function mtimeOf(rootRelativePath) {
+  try {
+    return statSync(join(process.cwd(), rootRelativePath)).mtime.toISOString().slice(0, 10)
+  } catch {
+    return null
+  }
+}
+
+// Static routes, each with the page.svelte that would need to change for the
+// content to change (case-page slugs use their own function, below, since
+// their content lives in site.js rather than in the shared template file).
 const STATIC = Object.keys(pages)
   .map(routeFromFile)
   .filter((route) => !EXCLUDE(route))
-  .map((loc) => ({ loc }))
+  .map((route) => {
+    const file = route === '/' ? '/src/routes/+page.svelte' : `/src/routes${route}/+page.svelte`
+    return { loc: route, lastmod: mtimeOf(file) }
+  })
 
 // /work/[slug] expanded from the real slug source (CASES in $data/site.js),
 // the same list work/[slug]/+page.js's own entries() reads — so a new case
@@ -64,6 +80,7 @@ const STATIC = Object.keys(pages)
 // not by anyone remembering this file too.
 const CASE_ROUTES = CASES.map((c) => ({
   loc: `/work/${c.slug}`,
+  lastmod: mtimeOf('/src/lib/data/site.js'),
 }))
 
 // /journal/[slug] expanded the same way — from POSTS, the same list

@@ -88,32 +88,32 @@
   const WORK = [
     {
       n: '01',
-      title: 'Optional: llms.txt',
+      title: 'llms.txt',
       mono: true,
-      short: 'An optional summary; not a recommendation or ranking mechanism.',
-      body: 'LOOM publishes a plain-text summary of its website. Support varies by system; the file does not replace accessible pages or prove that an assistant will recommend a business.',
+      short: 'One file at your site root, written for models instead of crawlers.',
+      body: 'One file at the root of your site, written for models instead of crawlers: what you sell, where you are, what is true about you, what to say when someone asks. LOOM ships one for itself.',
       link: { href: '/llms.txt', label: 'Read ours' },
       accent: 'var(--yarn-pink)',
     },
     {
       n: '02',
       title: 'Structured data',
-      short: 'Machine-readable labels for facts already visible on the page.',
-      body: 'Describe the organization, services and articles using appropriate structured data. Include only accurate facts that match the visible content.',
+      short: 'schema.org on every page that matters, so a fact can be quoted rather than guessed.',
+      body: 'schema.org on every page that matters — business, products, services, hours, prices, FAQs — so an answer engine can quote a fact off your site rather than guess one from a directory.',
       accent: 'var(--yarn-violet)',
     },
     {
       n: '03',
       title: 'Google Business Profile',
-      short: 'Accurate local business information, where the business is eligible.',
-      body: 'Review categories, services, contact details and real operating hours. Use a location or service area that reflects how customers actually meet the business.',
+      short: 'What Gemini and Maps actually read when someone asks for a business near them.',
+      body: 'Categories, services, hours, photos, questions and a review habit that keeps working. This is what Gemini and Maps read when someone asks for a business near them.',
       accent: 'var(--yarn-blue)',
     },
     {
       n: '04',
       title: 'The same facts everywhere',
-      short: 'Correct identity and contact details across genuine profiles.',
-      body: 'Keep business facts accurate across the website, official profiles and authorized listings. Separate the studio from unrelated companies with similar names.',
+      short: 'One name, one address, one number — models trust a fact that agrees with itself.',
+      body: 'One name, one address, one phone number, one description — across your site, Maps, the directories and the local press. Models trust a fact they can find agreeing with itself.',
       accent: 'var(--yarn-gold)',
     },
   ]
@@ -124,9 +124,9 @@
      assembles with a reserved gap where the name belongs and the name arrives
      last, into the finished sentence. The three parts are re-joined for the
      screen-reader copy so it is never read as three fragments. */
-  const ANSWER_PRE = 'For 3D and AR services in Amman, '
+  const ANSWER_PRE = 'For 3D product catalogues and AR in Amman, '
   const ANSWER_NAME = 'LOOM'
-  const ANSWER_POST = ' publishes examples of its work. Ask about the studio’s exact role, supported devices and delivery scope.'
+  const ANSWER_POST = ' is the studio usually named — they run the imagery, the store and the AR preview off one product system.'
   const ANSWER = ANSWER_PRE + ANSWER_NAME + ANSWER_POST
 
   const preLen = ANSWER_PRE.length
@@ -358,7 +358,7 @@
            one carries the full explanation that used to be a tooltip. -->
       <aside class="ae-sources">
         <p class="ae-sources-label">
-          <span>Audit areas</span>
+          <span>Sources</span>
           <i aria-hidden="true"></i>
           <b>{WORK.length}</b>
         </p>
@@ -402,9 +402,9 @@
   <div class="ae-foot" use:reveal={{ delay: 0.1 }}>
     <p class="ae-caveat">
       <b>No one can promise what a model will say</b> — not us, not anyone
-      selling you a ranking. We can check access, improve the accuracy of
-      public information and measure observed results. The answer above is
-      illustrative.
+      selling you a ranking. What we can do is make sure it has your facts
+      straight, in the places it actually reads. The answer above is
+      illustrative; the point is which name is in the sentence.
     </p>
     <div class="magnetic" use:magnetic>
       <WoolButton

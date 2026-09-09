@@ -378,7 +378,7 @@
     <SplitWords as="h2" class="h2" text={headline} />
     <div use:reveal={{ delay: 0.15 }}>
       <p class="lede" style="margin-top:22px">
-        A selection from the studio’s published portfolio.
+        Everything on this board went live — and most of it went further. Open any tile and walk the whole case.
       </p>
     </div>
   </div>
@@ -476,7 +476,7 @@
       {/key}
     </div>
     <p class="wmosaic-note">
-      <span>See the full archive for <b>the work, the market and the year</b></span>
+      <span>Open any card for the full case — <b>the work, the market, the year</b></span>
     </p>
   </div>
 

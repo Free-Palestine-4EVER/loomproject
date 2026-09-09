@@ -68,7 +68,7 @@ export const ACADEMY = {
 export const PROGRAM = {
   code: 'PROGRAM 01',
   codeAr: 'البرنامج الأول',
-  status: { en: 'Join the waitlist', ar: 'انضم إلى قائمة الانتظار' },
+  status: { en: 'Enrolling now', ar: 'التسجيل مفتوح' },
   name: { en: 'FIRST CLIENT', ar: 'أول عميل' },
   tagline: {
     en: 'Build websites with AI. Then sell them.',

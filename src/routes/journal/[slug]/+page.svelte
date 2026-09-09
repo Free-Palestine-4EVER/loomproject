@@ -136,7 +136,7 @@
   </div>
 
   <!-- ═══ 2. BODY ═════════════════════════════════════════════════════ -->
-  <article class="pg-body">
+  <main class="pg-body">
     <div class="pg-prose">
       {#each post.body as block, i (i)}
         {#if block.type === 'h2'}
@@ -172,7 +172,7 @@
     <ul class="pg-tags">
       {#each post.tags as t (t)}<li>{t}</li>{/each}
     </ul>
-  </article>
+  </main>
 
   <!-- ═══ 3. CTA ══════════════════════════════════════════════════════ -->
   <section class="pg-cta" aria-labelledby="pg-cta-h">

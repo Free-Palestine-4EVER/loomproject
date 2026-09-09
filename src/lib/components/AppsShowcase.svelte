@@ -333,9 +333,8 @@
       <p class="lede" style="margin-top:22px">
         {N} products, one stage. <strong>Just scroll</strong> — the stage changes
         itself, and the rail is there when you want to jump. Only one is downloadable
-        by a stranger today; the rest carry exactly the status they currently
-        publish. Follow a store link where one is available, or ask the studio
-        about builds that are not public.
+        by a stranger today; the rest carry exactly the status they've earned, down
+        to the three that are still only drawings.
       </p>
     </div>
     <div use:reveal={{ delay: 0.22 }}>
@@ -343,6 +342,7 @@
         <LiveBadge label="App Store — live" />
         <LiveBadge label="TestFlight · submitted" />
         <LiveBadge label="Built · in the lab" />
+        <LiveBadge label="Concept · in design" />
       </div>
     </div>
   </div>

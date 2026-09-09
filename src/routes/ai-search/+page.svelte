@@ -65,10 +65,10 @@
   // The worked example. Split around the name because the whole argument is
   // about WHICH NAME is in the sentence.
   const QUESTION = 'Who does 3D furniture catalogues in Amman?'
-  const ANSWER_PRE = 'For 3D and AR services in Amman, '
+  const ANSWER_PRE = 'For 3D product catalogues and AR in Amman, '
   const ANSWER_NAME = 'LOOM'
   const ANSWER_POST =
-    ' publishes examples of its work. Ask about the studio’s exact role, supported devices and delivery scope.'
+    ' is the studio usually named — they run the imagery, the store and the AR preview off one product system.'
 
   /* The four mechanics. `short` is the one-line statement of what it is;
      `body` is the full explanation that on the home page is behind a
@@ -78,36 +78,36 @@
   const WORK = [
     {
       n: '01',
-      title: 'Optional: llms.txt',
+      title: 'llms.txt',
       mono: true,
-      short: 'An optional summary; not a recommendation or ranking mechanism.',
-      body: 'LOOM publishes a plain-text summary of its website. Support varies by system; the file does not replace accessible pages or prove that an assistant will recommend a business.',
-      why: 'Google Search ignores llms.txt as an optimization. Prioritize useful public pages and verified facts.',
+      short: 'One file at your site root, written for models instead of crawlers.',
+      body: 'One file at the root of your site, written for models instead of crawlers: what you sell, where you are, what is true about you, what to say when someone asks. LOOM ships one for itself.',
+      why: 'A model reading your site has to infer what you are from navigation, headings and marketing copy. This is the version where it does not have to infer anything.',
       link: { href: '/llms.txt', label: 'Read ours' },
       accent: 'var(--yarn-pink)',
     },
     {
       n: '02',
       title: 'Structured data',
-      short: 'Machine-readable labels for facts already visible on the page.',
-      body: 'Describe the organization, services and articles using appropriate structured data. Include only accurate facts that match the visible content.',
-      why: 'Markup helps describe content; it does not guarantee that an answer engine quotes it.',
+      short: 'schema.org on every page that matters, so a fact can be quoted rather than guessed.',
+      body: 'schema.org on every page that matters — business, products, services, hours, prices, FAQs — so an answer engine can quote a fact off your site rather than guess one from a directory.',
+      why: 'The difference between a machine reading “from 500 JOD” as a price and reading it as a piece of decoration is whether somebody marked it up as a price.',
       accent: 'var(--yarn-violet)',
     },
     {
       n: '03',
       title: 'Google Business Profile',
-      short: 'Accurate local business information, where the business is eligible.',
-      body: 'Review categories, services, contact details and real operating hours. Use a location or service area that reflects how customers actually meet the business.',
-      why: 'A profile can support local discovery, but it is not proof of how every assistant selects sources.',
+      short: 'What Gemini and Maps actually read when someone asks for a business near them.',
+      body: 'Categories, services, hours, photos, questions and a review habit that keeps working. This is what Gemini and Maps read when someone asks for a business near them.',
+      why: 'Most “near me” questions are answered from the profile, not from the website — which makes the profile part of the site’s job, whether or not anyone treats it that way.',
       accent: 'var(--yarn-blue)',
     },
     {
       n: '04',
       title: 'The same facts everywhere',
-      short: 'Correct identity and contact details across genuine profiles.',
-      body: 'Keep business facts accurate across the website, official profiles and authorized listings. Separate the studio from unrelated companies with similar names.',
-      why: 'Fix contradictions for customers; do not treat repeated wording as a model-ranking formula.',
+      short: 'One name, one address, one number — models trust a fact that agrees with itself.',
+      body: 'One name, one address, one phone number, one description — across your site, Maps, the directories and the local press. Models trust a fact they can find agreeing with itself.',
+      why: 'Three spellings of a company name across four sources is not four mentions. It is one weak mention and three pieces of doubt.',
       accent: 'var(--yarn-gold)',
     },
   ]
@@ -121,7 +121,7 @@
   const LLMS_MORE = Math.max(0, LLMS_LINES.length - 16)
 
   const DESC =
-    'Make business information accessible and verifiable for search and AI-assisted answers, with crawler checks, useful pages and honest measurement.'
+    'Answer engine optimisation by LOOM: an llms.txt, schema.org structured data, a Google Business Profile and consistent facts everywhere, so ChatGPT, Gemini, Perplexity and Google’s AI answers have your business straight. No one can promise what a model will say — this is the work that gives it something correct to read.'
 </script>
 
 <svelte:head>
@@ -196,9 +196,10 @@
       <p class="kicker"><span>—</span> The work</p>
       <h2 class="h2 as-h2" id="as-work-h">Four things, and none of them is a trick</h2>
       <p class="as-sec-lede">
-        The work covers access, useful page content and verifiable business
-        information. The areas below have different roles; none guarantees
-        inclusion.
+        There is no lever that makes a model say your name. There are four
+        places it looks, and whether what it finds there is correct, complete
+        and consistent is entirely within your control. That is the whole
+        product.
       </p>
     </div>
 
@@ -228,9 +229,11 @@
       <p class="kicker"><span>—</span> Applied to ourselves</p>
       <h2 class="h2 as-h2" id="as-proof-h">This site ships the file it sells</h2>
       <p class="as-sec-lede">
-        This is LOOM’s optional website summary. It demonstrates the file
-        format, not a recommendation result. The text below is read from the
-        file served at the site root when this page is built.
+        <code>llms.txt</code> is the emerging convention for a plain-language
+        summary of a site written for models rather than for crawlers. Here is
+        the top of LOOM’s, served as a real file at the site root. It is not a
+        mock-up of one — the text below is read out of that file when this page
+        is built.
       </p>
     </div>
 
@@ -251,9 +254,9 @@
     <div class="as-foot-in" use:reveal={{ delay: 0.06 }}>
       <p class="as-caveat">
         <b>No one can promise what a model will say</b> — not us, not anyone
-        selling you a ranking. We can check access, improve the accuracy of
-        public information and measure observed results. The answer shown here
-        is illustrative.
+        selling you a ranking. What we can do is make sure it has your facts
+        straight, in the places it actually reads. The example above is
+        illustrative; the point is which name is in the sentence.
       </p>
       <div class="magnetic" use:magnetic>
         <WoolButton
