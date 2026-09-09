@@ -3,7 +3,7 @@
 <title data-title>Loomina</title>
 <meta name="description" content="A Loomina fixture, shown unlit and burning, with full specifications and finishes." data-desc>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%23ffb34a'/></svg>">
-<link rel="stylesheet" href="../css/loomina.css">
+<link rel="stylesheet" href="/loomina/css/loomina.css">
 <style>
   .pdp{ display:grid; grid-template-columns:1.05fr 1fr; gap:clamp(28px,4.5vw,72px); align-items:start; padding-block:clamp(24px,3.4vw,44px) clamp(50px,7vw,90px); }
   .pdp-media{ position:sticky; top:calc(var(--nav-h) + 20px); }
@@ -47,7 +47,7 @@
       <p class="t-eyebrow">Not found</p>
       <h1 class="t-xl">We could not find that fixture.</h1>
       <p class="t-bd dim" style="max-width:480px">It may have been retired, or the link is off. Have a look at the full collection instead.</p>
-      <a class="btn" href="./shop.html">Back to shop</a>
+      <a class="btn" href="/loomina/pages/shop.html">Back to shop</a>
     </div>
   </div>
 
@@ -109,7 +109,7 @@
   </div>
 </main>
 
-<script src="../js/core.js"></script>
+<script src="/loomina/js/core.js"></script>
 <script>
 (async () => {
   await LM.mountChrome();
@@ -187,7 +187,7 @@
   document.querySelector('[data-pairs]').innerHTML = pairs.map(x => LM.card(x, cn[x.category])).join('');
 
   /* statement */
-  const b = '../';
+  const b = '/loomina/';
   const stEl = document.querySelector('[data-statement]');
   const img = stEl.querySelector('img');
   img.src = `${b}img/products/${p.slug}-on.webp`; img.alt = `${p.name}, lit`;

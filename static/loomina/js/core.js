@@ -23,7 +23,7 @@ const LM = (() => {
   let _db = null;
   async function db(){
     if (_db) return _db;
-    const base = location.pathname.includes('/pages/') ? '../' : './';
+    const base = '/loomina/';
     const r = await fetch(base + 'data/products.json', { cache:'no-cache' });
     _db = await r.json();
     _db.byId = Object.fromEntries(_db.products.map(p => [p.slug, p]));
@@ -35,7 +35,7 @@ const LM = (() => {
 
   let _eager = 0;
   function imgPair(p){
-    const b = location.pathname.includes('/pages/') ? '../' : './';
+    const b = '/loomina/';
     const load = (_eager++ < 8) ? 'eager' : 'lazy';   // top of every grid paints immediately
     // unlit frame falls back to the neutral plate
     const fbOff = "this.dataset.f||(this.dataset.f=1,this.src='" + b + "img/placeholder.svg')";
@@ -52,7 +52,7 @@ const LM = (() => {
   function resetEager(){ _eager = 0; }
 
   function card(p, catName){
-    const b = location.pathname.includes('/pages/') ? '../' : './';
+    const b = '/loomina/';
     return `<a class="card rv" href="${b}pages/product.html?p=${p.slug}">
       <div class="shot" data-peek="1">${imgPair(p)}</div>
       <div class="card-meta">
@@ -104,7 +104,7 @@ const LM = (() => {
 
   /* ---------- chrome ---------- */
   function nav(active){
-    const b = location.pathname.includes('/pages/') ? '../' : './';
+    const b = '/loomina/';
     const L = [['Pendants','shop.html?c=pendants'],['Chandeliers','shop.html?c=chandeliers'],['Sconces','shop.html?c=sconces'],
                ['Table','shop.html?c=table-lamps'],['Floor','shop.html?c=floor-lamps'],['Bedside','shop.html?c=bed-reading'],
                ['All Lighting','shop.html']];
@@ -122,7 +122,7 @@ const LM = (() => {
   }
 
   function footer(){
-    const b = location.pathname.includes('/pages/') ? '../' : './';
+    const b = '/loomina/';
     const cols = [
       ['Lighting', [['Pendants','shop.html?c=pendants'],['Chandeliers','shop.html?c=chandeliers'],['Sconces','shop.html?c=sconces'],['Flush Mounts','shop.html?c=flush-mounts']]],
       ['Lamps',    [['Table Lamps','shop.html?c=table-lamps'],['Floor Lamps','shop.html?c=floor-lamps'],['Bedside','shop.html?c=bed-reading'],['Portable','shop.html?c=portable'],['Outdoor','shop.html?c=outdoor']]],
@@ -173,7 +173,7 @@ const LM = (() => {
     const D = await db();
     window.paintDrawer = function(){
       const body = document.querySelector('[data-drawer-body]');
-      const c = cart(); const b = location.pathname.includes('/pages/') ? '../' : './';
+      const c = cart(); const b = '/loomina/';
       if (!c.length){ body.innerHTML = `<p class="t-sm dim" style="padding-block:40px" >Your bag is empty.</p>`;
         document.querySelector('[data-subtotal]').textContent = money(0); return; }
       let sum = 0;

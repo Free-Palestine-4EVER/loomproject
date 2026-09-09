@@ -3,7 +3,7 @@
 <title>Loomina — Light, considered.</title>
 <meta name="description" content="Loomina makes architectural lighting by hand. Eighty fixtures, each photographed twice — once dark, once burning. Scroll, and the room turns on.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%23ffb34a'/></svg>">
-<link rel="stylesheet" href="./css/loomina.css">
+<link rel="stylesheet" href="/loomina/css/loomina.css">
 <style>
 /* ============ scroll progress ============ */
 .prog{ position:fixed; top:0; left:0; right:0; height:2px; z-index:9200; pointer-events:none; }
@@ -173,7 +173,7 @@
         <p class="t-bd dim rv" style="max-width:640px;margin-inline:auto">
           Eighty fixtures, blown, spun and turned by hand. Every one photographed twice, so you can see exactly what it does to a room.</p>
         <div class="row rv" style="justify-content:center;flex-wrap:wrap;gap:12px 22px">
-          <a class="btn" href="./pages/shop.html" data-magnet>Shop all lighting</a>
+          <a class="btn" href="/loomina/pages/shop.html" data-magnet>Shop all lighting</a>
           <a class="link-arrow" href="#dimmer">Try the dimmer</a>
         </div>
         <div class="hero-cue"><span class="dot"></span> Keep scrolling — the room turns on</div>
@@ -237,14 +237,14 @@
   <!-- 07 · CATEGORIES -->
   <section class="sec-tight"><div class="wrap-wide stack-24">
     <div class="row rv-up"><h2 class="t-lg">Shop by room, or by shape.</h2><span class="nav-spacer"></span>
-      <a class="link-arrow" href="./pages/shop.html">All lighting</a></div>
+      <a class="link-arrow" href="/loomina/pages/shop.html">All lighting</a></div>
     <div class="strip" data-cats></div>
   </div></section>
 
   <!-- 08 · FEATURED -->
   <section class="sec"><div class="wrap-wide stack-24">
     <div class="row rv-up"><h2 class="t-lg">New this season.</h2><span class="nav-spacer"></span>
-      <a class="link-arrow" href="./pages/shop.html">See all 80</a></div>
+      <a class="link-arrow" href="/loomina/pages/shop.html">See all 80</a></div>
     <div class="grid" data-featured></div>
   </div></section>
 
@@ -254,14 +254,14 @@
     <p class="t-bd dim rv-up" style="max-width:560px;margin-inline:auto">
       Every fixture on this site has a second photograph waiting behind it. Flip the switch in the corner and the whole catalogue lights at once.</p>
     <div class="row rv-up" style="justify-content:center;gap:14px;flex-wrap:wrap">
-      <a class="btn btn-lg" href="./pages/shop.html" data-magnet>Shop all lighting</a>
+      <a class="btn btn-lg" href="/loomina/pages/shop.html" data-magnet>Shop all lighting</a>
       <button class="btn btn-lg btn-ghost" data-switch-proxy>Turn the lights on</button>
     </div>
   </div></section>
 </main>
 
-<script src="./js/core.js"></script>
-<script src="./js/motion.js"></script>
+<script src="/loomina/js/core.js"></script>
+<script src="/loomina/js/motion.js"></script>
 <script>
 (async () => {
   await LM.mountChrome();
@@ -272,7 +272,7 @@
   /* ---------- 01 hero: scrub the room from dark to lit ---------- */
   const hero = [...P].sort((a,b) => b.price - a.price)[0];
   $('[data-hero-stage]').innerHTML =
-    `<a class="shot scrub" data-hero-shot href="./pages/product.html?p=${hero.slug}"
+    `<a class="shot scrub" data-hero-shot href="/loomina/pages/product.html?p=${hero.slug}"
         aria-label="${hero.name}, ${LM.money(hero.price)}">${LM.imgPair(hero)}</a>`;
 
   const heroSec = $('[data-hero]'), heroPin = heroSec.querySelector('.hero-pin');
@@ -371,7 +371,7 @@
   /* ---------- 06 tiles ---------- */
   const t = [byCat('floor-lamps')[0], byCat('sconces')[0]].filter(Boolean);
   $('[data-tiles]').innerHTML = t.map(p => `
-    <a class="tile rv-up" href="./pages/product.html?p=${p.slug}">
+    <a class="tile rv-up" href="/loomina/pages/product.html?p=${p.slug}">
       <div class="shot">${LM.imgPair(p)}</div>
       <div class="tile-copy"><span class="t-eyebrow">${cn[p.category]}</span>
         <span class="t-lg">${p.name}</span><span class="t-sm dim">${p.tagline}</span></div></a>`).join('');
@@ -379,7 +379,7 @@
   /* ---------- 07 categories ---------- */
   $('[data-cats]').innerHTML = D.categories.map(c => {
     const p = byCat(c.slug)[0];
-    return `<a class="card rv-up" href="./pages/shop.html?c=${c.slug}">
+    return `<a class="card rv-up" href="/loomina/pages/shop.html?c=${c.slug}">
       <div class="shot" data-peek="1">${p ? LM.imgPair(p) : ''}</div>
       <div class="card-meta"><span class="card-name">${c.name}</span>
         <span class="card-cat">${byCat(c.slug).length} fixtures</span></div></a>`; }).join('');
