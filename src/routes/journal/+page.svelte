@@ -24,7 +24,7 @@
   import './journal-page.css'
 
   const DESC =
-    'Practical writing from LOOM on what a website actually costs in Jordan, how to get a business found by ChatGPT and Google’s AI answers, and how to run a Google Business Profile properly in Amman.'
+    'Practical guides from LOOM on websites, AI-assisted search, Google Business Profile, 3D product experiences and digital projects in Jordan.'
 
   const fmt = (iso) =>
     new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -77,6 +77,36 @@
       </p>
     </div>
   </header>
+
+  <section class="jr-radar" aria-labelledby="jr-radar-h">
+    <div class="jr-radar-in" use:reveal={{ y: 22 }}>
+      <div class="jr-radar-head">
+        <p class="kicker"><span>—</span> Start here</p>
+        <h2 class="jr-radar-title" id="jr-radar-h">Three practical questions before the next brief</h2>
+      </div>
+      <div class="jr-radar-grid">
+        <a class="jr-radar-card jr-radar-card--lead" href="/journal/website-design-agency-amman">
+          <span class="jr-radar-no">01</span>
+          <span class="jr-radar-eyebrow">Hiring a web partner</span>
+          <strong>What should a website proposal actually include?</strong>
+          <span class="jr-radar-copy">Scope, Arabic content, ownership, testing and launch support — before you compare two prices.</span>
+          <span class="jr-radar-go">Read the checklist <i aria-hidden="true">↗</i></span>
+        </a>
+        <a class="jr-radar-card" href="/journal/3d-product-visualisation-jordan">
+          <span class="jr-radar-no">02</span>
+          <span class="jr-radar-eyebrow">3D &amp; AR products</span>
+          <strong>What does a product experience need to solve?</strong>
+          <span class="jr-radar-go">See the buyer’s checklist <i aria-hidden="true">↗</i></span>
+        </a>
+        <a class="jr-radar-card jr-radar-card--dark" href="/ai-search">
+          <span class="jr-radar-no">03</span>
+          <span class="jr-radar-eyebrow">AI-assisted discovery</span>
+          <strong>Can a buyer find and verify your business?</strong>
+          <span class="jr-radar-go">Explore AI search <i aria-hidden="true">↗</i></span>
+        </a>
+      </div>
+    </div>
+  </section>
 
   <!-- ═══ 2. THE POSTS ════════════════════════════════════════════════ -->
   <main class="jr-body">

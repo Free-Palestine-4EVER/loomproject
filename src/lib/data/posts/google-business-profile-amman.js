@@ -14,9 +14,9 @@ export const post = {
   slug: 'google-business-profile-amman',
   title: 'Google Business Profile Setup for a Business in Amman: A Complete Guide',
   description:
-    'A genuinely complete, step-by-step Google Business Profile setup for a business in Amman — bilingual naming, the address vs. service-area choice, verification, and the weekly habits that keep a profile working.',
+    'A practical Google Business Profile guide for an eligible business in Amman: name, category, location or service area, verification and maintenance.',
   publishedAt: '2026-08-14',
-  updatedAt: '2026-08-14',
+  updatedAt: '2026-09-09',
   author: { name: 'LOOM Studio', role: 'Amman × Sarajevo' },
   tags: ['Google Business Profile', 'SEO', 'Amman'],
   image: {
@@ -30,7 +30,12 @@ export const post = {
     {
       type: 'p',
       text:
-        'A Google Business Profile is the free listing that shows up on Google Maps and in the panel beside search results when someone looks for a business by name or by category near a location — and for most local businesses in Amman, it gets seen by more people than the website does. It is also the thing language models like Gemini read first when someone asks "who does X near me," which makes it the one piece of AI search visibility that costs nothing and can be done today. Here is the complete setup, in order, with the Jordan-specific decisions called out where they actually matter.',
+        'Google Business Profile is a free way for an eligible business to maintain information shown in Google’s local services. Before creating a profile, confirm that your business makes in-person contact with customers and meets Google’s rules. This guide covers the practical information to prepare for a business operating in Amman.',
+    },
+    {
+      type: 'p',
+      text:
+        'If your business operates online only, do not create a physical or service-area listing to get around the eligibility rules. If you travel to customers, review the service-area rules. If customers visit your premises, use a real, authorized location that meets Google’s requirements.',
     },
     {
       type: 'h2',
@@ -108,7 +113,7 @@ export const post = {
     {
       type: 'p',
       text:
-        'A profile with reviews nobody has responded to reads as an abandoned listing, to a customer and to Google’s own ranking signals alike. The habit that actually keeps a profile healthy is a short, specific reply to every review — good or bad — on a set weekly rhythm, rather than an occasional bulk pass months later. A reply to a complaint that names what went wrong and what changed is worth more, to a reader deciding whether to trust the business, than ten unanswered five-star reviews.',
+        'Replying thoughtfully to reviews helps customers understand how the business handles feedback. Use a regular review habit, address complaints honestly and protect personal information. Do not describe a response schedule as a guaranteed ranking signal, and do not offer incentives or ask only satisfied clients for public reviews.',
     },
     {
       type: 'h2',
@@ -126,7 +131,7 @@ export const post = {
     {
       type: 'p',
       text:
-        'A properly filled-in Google Business Profile is not only a Maps listing — it is one of the four things language models actually read when someone asks an AI assistant to recommend a business nearby, alongside an llms.txt file, structured data on your website, and consistent business facts across every source that mentions you. The companion guide on getting a business to show up in ChatGPT and AI search covers the other three.',
+        'Business-profile accuracy is one part of local discoverability. It works alongside accessible pages, useful information and genuine evidence about the business. AI assistants use different retrieval systems, so check observed sources and accuracy instead of assuming a fixed list of inputs.',
     },
     {
       type: 'p',

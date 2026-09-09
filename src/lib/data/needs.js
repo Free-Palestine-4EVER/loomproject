@@ -132,7 +132,7 @@ export const NEEDS = {
       'A transcript log you can actually read',
     ],
     timeline: 'Typically 2–5 weeks',
-    proof: 'LOOM runs three MCP servers of its own and publishes them — the tooling is in daily use, not demoed.',
+    proof: 'LOOM describes three MCP servers in private beta. Ask the studio for an approved demonstration of the relevant workflow.',
     pairs: ['Social content', 'Website', 'Mobile app'],
   },
 
