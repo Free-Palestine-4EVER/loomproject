@@ -8,3 +8,10 @@ dist
 .env.*
 qa/shots
 .env*
+automation/client_secrets.json
+automation/token.json
+automation/gmb-post-state.json
+automation/gmb-posts.log
+automation/gmb-posts-error.log
+automation/gmb-posts.env
+automation/__pycache__/
