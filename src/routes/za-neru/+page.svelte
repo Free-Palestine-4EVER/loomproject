@@ -71,15 +71,15 @@
         {
           title: 'Pavé screen sunglasses',
           note: 'Blue crystal pavé, made to stand out',
-          image: '/img/za-neru/pave-sunglasses.webp',
+          image: '/img/za-neru/pave-sunglasses.webp?v=pave-blue-1',
           alt: 'Blue pavé sunglasses with dark lenses, shown at a three-quarter angle',
-          glb: '/models/za-neru/pave-sunglasses.glb',
-          usdz: '/models/za-neru/pave-sunglasses.usdz',
-          arTitle: 'Pavé screen sunglasses',
-          width: 1200,
-          height: 1200,
+          tryOnModel: '/assets/pave-screen-sunglasses-blue.glb',
+          arTitle: 'Pavé Blue',
+          width: 1440,
+          height: 810,
           fit: 'contain',
           blend: 'natural',
+          tryOn: true,
         },
       ],
     },
@@ -87,7 +87,9 @@
 
   let platform = $state('unknown')
   let feedback = $state('')
+  let activeTryOn = $state(null)
   let feedbackTimer
+  let previousBodyOverflow = ''
 
   function detectPlatform() {
     const ua = navigator.userAgent
@@ -151,6 +153,26 @@
     announce('Open this page on iPhone or iPad Safari, or on an ARCore-ready Android phone, to use AR.')
   }
 
+  function openTryOn(item) {
+    const tryOnUrl = new URL('https://tryon-glasses-2026.web.app/ar')
+    tryOnUrl.searchParams.set('embed', '1')
+    tryOnUrl.searchParams.set('model', item.tryOnModel)
+    tryOnUrl.searchParams.set('name', item.arTitle)
+    previousBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    activeTryOn = { ...item, src: tryOnUrl.href }
+  }
+
+  function closeTryOn() {
+    activeTryOn = null
+    document.body.style.overflow = previousBodyOverflow
+  }
+
+  function portalToBody(node) {
+    document.body.appendChild(node)
+    return { destroy: () => node.remove() }
+  }
+
   onMount(() => {
     platform = detectPlatform()
   })
@@ -212,7 +234,17 @@
                   <h3>{item.title}</h3>
                   <span class="zn-card__note">{item.note}</span>
                 </div>
-                {#if platform === 'android'}
+                {#if item.tryOn}
+                  <button
+                    class="zn-ar-button"
+                    type="button"
+                    onclick={() => openTryOn(item)}
+                    aria-label={`Try on ${item.title} with live face tracking`}
+                  >
+                    <span>TRY ON IN AR</span>
+                    <span class="zn-ar-button__icon" aria-hidden="true">↗</span>
+                  </button>
+                {:else if platform === 'android'}
                   <a
                     class="zn-ar-button zn-ar-button--scene"
                     href={sceneViewerIntent(item)}
@@ -248,6 +280,29 @@
 
     {#if feedback}
       <p class="zn-feedback" role="status" aria-live="polite">{feedback}</p>
+    {/if}
+
+    {#if activeTryOn}
+      <div class="zn-tryon-overlay" use:portalToBody>
+        <div class="zn-tryon-overlay__shade" aria-hidden="true"></div>
+        <section
+          class="zn-tryon-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Live try-on for ${activeTryOn.title}`}
+        >
+          <header class="zn-tryon-dialog__bar">
+            <span>LIVE SUNGLASSES TRY-ON</span>
+            <button type="button" onclick={closeTryOn} aria-label="Close try-on">×</button>
+          </header>
+          <iframe
+            src={activeTryOn.src}
+            title={`Live face-tracking try-on for ${activeTryOn.title}`}
+            allow="camera; autoplay; fullscreen"
+            allowfullscreen
+          ></iframe>
+        </section>
+      </div>
     {/if}
   </div>
 </div>
