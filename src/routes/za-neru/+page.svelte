@@ -93,7 +93,7 @@
     return (
       'intent://arvr.google.com/scene-viewer/1.0?file=' +
       encodeURIComponent(modelUrl) +
-      '&mode=ar_only&resizable=false&title=' +
+      '&mode=ar_only&resizable=true&title=' +
       encodeURIComponent(item.arTitle) +
       '#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;' +
       'S.browser_fallback_url=' +
@@ -105,7 +105,7 @@
   function launchAR(item) {
     if (platform === 'ios') {
       const quickLookUrl = new URL(item.usdz, location.origin)
-      quickLookUrl.hash = 'allowsContentScaling=0'
+      quickLookUrl.hash = 'allowsContentScaling=1'
 
       const anchor = document.createElement('a')
       // SvelteKit otherwise intercepts this same-origin USDZ click as a route
