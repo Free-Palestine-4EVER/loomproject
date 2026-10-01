@@ -72,7 +72,7 @@
         {
           title: 'Green glass chandelier',
           note: 'A sculptural halo of green glass',
-          image: '/img/za-neru/green-glass-chandelier.webp',
+          image: '/img/za-neru/green-glass-chandelier.webp?v=ceiling-ar-1',
           alt: 'Round chandelier made from textured green glass panels and polished brass',
           glb: '/models/za-neru/green-glass-chandelier.glb',
           usdz: '/models/za-neru/green-glass-chandelier.usdz',
