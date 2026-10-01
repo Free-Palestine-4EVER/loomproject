@@ -74,10 +74,14 @@
      page, chrome and wording included, with our configurator doing the work
      their form only describes. Same signature, same rule — it carries a LOOM
      ribbon across the top and nothing on it transacts. */
+  /* /za-neru is a standalone photo-to-AR showcase. It carries its own LOOM
+     header; the global footer and floating companions would sit over its
+     product photos and AR actions. */
   const unbranded = $derived(
     page.url.pathname === '/bbsimon1' ||
       page.url.pathname === '/bbsimon2' ||
-      page.url.pathname === '/diaaz'
+      page.url.pathname === '/diaaz' ||
+      page.url.pathname === '/za-neru'
   )
 
   // Live media queries. Started here rather than per-component so there is one
