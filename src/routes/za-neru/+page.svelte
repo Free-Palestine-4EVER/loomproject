@@ -63,6 +63,26 @@
         },
       ],
     },
+    {
+      id: 'wear',
+      number: '03',
+      title: 'On you',
+      products: [
+        {
+          title: 'Pavé screen sunglasses',
+          note: 'Blue crystal pavé, made to stand out',
+          image: '/img/za-neru/pave-sunglasses.webp',
+          alt: 'Blue pavé sunglasses with dark lenses, shown at a three-quarter angle',
+          glb: '/models/za-neru/pave-sunglasses.glb',
+          usdz: '/models/za-neru/pave-sunglasses.usdz',
+          arTitle: 'Pavé screen sunglasses',
+          width: 1200,
+          height: 1200,
+          fit: 'contain',
+          blend: 'natural',
+        },
+      ],
+    },
   ]
 
   let platform = $state('unknown')
@@ -140,7 +160,7 @@
   <title>Za Neru — See it in your space</title>
   <meta
     name="description"
-    content="Explore food and furniture in augmented reality. Choose a piece and see it in your own space."
+    content="Explore food, furniture and accessories in augmented reality. Choose a piece and see it in your own space."
   />
 </svelte:head>
 
@@ -159,7 +179,7 @@
         </p>
         <span class="zn-scroll-note"><span>SCROLL TO EXPLORE</span><i aria-hidden="true">↓</i></span>
       </div>
-      <div class="zn-intro__rule" aria-hidden="true"><span>01 — 04</span></div>
+      <div class="zn-intro__rule" aria-hidden="true"><span>01 — 05</span></div>
     </header>
 
     {#each groups as group}
@@ -171,7 +191,7 @@
           <span class="zn-group__count">{String(group.products.length).padStart(2, '0')} PIECES</span>
         </div>
 
-        <div class="zn-grid">
+        <div class="zn-grid" class:zn-grid--single={group.products.length === 1}>
           {#each group.products as item, index}
             <article class="zn-card">
               <div class="zn-card__image">
@@ -181,6 +201,7 @@
                   width={item.width}
                   height={item.height}
                   class:zn-card__photo--contain={item.fit === 'contain'}
+                  class:zn-card__photo--natural={item.blend === 'natural'}
                   loading={index === 0 && group.id === 'table' ? 'eager' : 'lazy'}
                   decoding="async"
                 />
