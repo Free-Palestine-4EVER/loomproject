@@ -71,7 +71,7 @@
         {
           title: 'Pavé screen sunglasses',
           note: 'Blue crystal pavé, made to stand out',
-          image: '/img/za-neru/pave-sunglasses.webp?v=pave-blue-1',
+          image: '/img/za-neru/pave-sunglasses.webp?v=pave-blue-2',
           alt: 'Blue pavé sunglasses with dark lenses, shown at a three-quarter angle',
           tryOnModel: '/assets/pave-screen-sunglasses-blue.glb',
           arTitle: 'Pavé Blue',
