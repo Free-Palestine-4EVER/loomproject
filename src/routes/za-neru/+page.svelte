@@ -29,6 +29,7 @@
           arTitle: 'Margherita pizza',
           width: 738,
           height: 369,
+          fit: 'contain',
         },
       ],
     },
@@ -64,9 +65,6 @@
     },
   ]
 
-  const AR_PIXEL =
-    'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
-
   let platform = $state('unknown')
   let feedback = $state('')
   let feedbackTimer
@@ -90,38 +88,21 @@
     feedbackTimer = setTimeout(() => (feedback = ''), 4200)
   }
 
-  function openAR(item) {
-    if (platform === 'ios') {
-      // Quick Look only intercepts a rel="ar" anchor whose only child is an image.
-      const anchor = document.createElement('a')
-      anchor.setAttribute('rel', 'ar')
-      anchor.href = new URL(item.usdz, location.origin).href
-      const image = document.createElement('img')
-      image.src = AR_PIXEL
-      image.alt = ''
-      image.style.cssText = 'width:1px;height:1px;opacity:0'
-      anchor.appendChild(image)
-      anchor.style.cssText = 'position:absolute;left:-9999px'
-      document.body.appendChild(anchor)
-      anchor.click()
-      setTimeout(() => anchor.remove(), 2000)
-      return
-    }
+  function sceneViewerIntent(item) {
+    const modelUrl = new URL(item.glb, location.origin).href
+    return (
+      'intent://arvr.google.com/scene-viewer/1.0?file=' +
+      encodeURIComponent(modelUrl) +
+      '&mode=ar_only&resizable=false&title=' +
+      encodeURIComponent(item.arTitle) +
+      '#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;' +
+      'S.browser_fallback_url=' +
+      encodeURIComponent(location.href) +
+      ';end;'
+    )
+  }
 
-    if (platform === 'android') {
-      const modelUrl = new URL(item.glb, location.origin).href
-      location.href =
-        'intent://arvr.google.com/scene-viewer/1.0?file=' +
-        encodeURIComponent(modelUrl) +
-        '&mode=ar_only&resizable=false&title=' +
-        encodeURIComponent(item.arTitle) +
-        '#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;' +
-        'S.browser_fallback_url=' +
-        encodeURIComponent(location.href) +
-        ';end;'
-      return
-    }
-
+  function explainAR() {
     if (platform === 'ios-other') {
       announce('On iPhone and iPad, open this page in Safari to start AR.')
       return
@@ -190,15 +171,36 @@
                   <h3>{item.title}</h3>
                   <span class="zn-card__note">{item.note}</span>
                 </div>
-                <button
-                  class="zn-ar-button"
-                  type="button"
-                  onclick={() => openAR(item)}
-                  aria-label={`View ${item.title} in augmented reality`}
-                >
-                  <span>VIEW IN AR</span>
-                  <span class="zn-ar-button__icon" aria-hidden="true">↗</span>
-                </button>
+                {#if platform === 'ios'}
+                  <a
+                    class="zn-ar-button zn-ar-button--quicklook"
+                    href={item.usdz}
+                    rel="ar"
+                    aria-label={`View ${item.title} in augmented reality`}
+                  >
+                    <img src={item.image} alt="" aria-hidden="true" />
+                  </a>
+                {:else if platform === 'android'}
+                  <a
+                    class="zn-ar-button zn-ar-button--scene"
+                    href={sceneViewerIntent(item)}
+                    aria-label={`View ${item.title} in augmented reality`}
+                  >
+                    <span>VIEW IN AR</span>
+                    <span class="zn-ar-button__icon" aria-hidden="true">↗</span>
+                  </a>
+                {:else}
+                  <button
+                    class="zn-ar-button"
+                    type="button"
+                    onclick={explainAR}
+                    aria-label={`View ${item.title} in augmented reality`}
+                    disabled={platform === 'unknown'}
+                  >
+                    <span>VIEW IN AR</span>
+                    <span class="zn-ar-button__icon" aria-hidden="true">↗</span>
+                  </button>
+                {/if}
               </div>
             </article>
           {/each}
