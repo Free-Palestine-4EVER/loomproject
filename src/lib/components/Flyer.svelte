@@ -62,6 +62,8 @@
   import { hasWebGL } from '$three/webglSupport.js'
   import './flyer.css'
 
+  const MIN_FLIGHT_VIEWPORTS = 12
+
   // A device that has told us outright it cannot afford a decorative WebGL
   // layer. Deliberately does NOT include "is a phone": the butterfly is not
   // what makes this page expensive, so deleting it from every phone would cost
@@ -181,11 +183,17 @@
          renderer is about to draw. */
       let lastY = window.scrollY
       let lastT = performance.now()
-      let docH = 1
+      let flightRange = 1
       let queued = 0
 
       const measureDoc = () => {
-        docH = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
+        const pageRange = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
+        // The homepage is roughly 37 screen-heights long. Mapping the same
+        // complete flight path onto a 4-screen inner page makes the butterfly
+        // race through it several times faster. Keep a 12-screen minimum
+        // flight distance on short routes; long pages, including the homepage,
+        // still use their real scroll range.
+        flightRange = Math.max(pageRange, window.innerHeight * MIN_FLIGHT_VIEWPORTS)
       }
 
       const sample = () => {
@@ -196,7 +204,7 @@
         const dy = y - lastY
         lastY = y
         lastT = now
-        field.setScroll(y / docH, dy / window.innerHeight / dt)
+        field.setScroll(y / flightRange, dy / window.innerHeight / dt)
       }
 
       const onScroll = () => { if (!queued) queued = requestAnimationFrame(sample) }

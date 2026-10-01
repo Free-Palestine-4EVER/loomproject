@@ -113,7 +113,7 @@
       location.href =
         'intent://arvr.google.com/scene-viewer/1.0?file=' +
         encodeURIComponent(modelUrl) +
-        '&mode=ar_preferred&resizable=false&title=' +
+        '&mode=ar_only&resizable=false&title=' +
         encodeURIComponent(item.arTitle) +
         '#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;' +
         'S.browser_fallback_url=' +
@@ -141,17 +141,10 @@
     name="description"
     content="Explore food and furniture in augmented reality. Choose a piece and see it in your own space."
   />
-  <meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <div class="za-neru">
   <div class="zn-shell">
-    <div class="zn-topbar">
-      <a class="zn-topbar__brand" href="/" aria-label="LOOM Studio home">LOOM</a>
-      <span class="zn-topbar__label">LOOM STUDIO / SPATIAL PREVIEW</span>
-      <span class="zn-topbar__edition">ZA NERU <i aria-hidden="true">·</i> AR COLLECTION</span>
-    </div>
-
     <header class="zn-intro">
       <div class="zn-intro__lead">
         <p class="zn-eyebrow"><span class="zn-eyebrow__dot"></span> LOOM STUDIO · SPATIAL PREVIEW</p>
