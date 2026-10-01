@@ -185,12 +185,6 @@
   gap: clamp(1rem, 2vw, 2rem);
 }
 
-.zn-grid--single {
-  max-width: min(100%, 40rem);
-  grid-template-columns: minmax(0, 1fr);
-  margin-inline: auto;
-}
-
 .zn-card {
   min-width: 0;
 }
@@ -217,10 +211,6 @@
   height: 94%;
   object-fit: contain;
   mix-blend-mode: multiply;
-}
-
-.zn-card__image img.zn-card__photo--natural {
-  mix-blend-mode: normal;
 }
 
 .zn-card:hover .zn-card__image img:not(.zn-card__photo--contain) {
