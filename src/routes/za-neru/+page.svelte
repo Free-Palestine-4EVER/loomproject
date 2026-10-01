@@ -102,7 +102,25 @@
     )
   }
 
-  function explainAR() {
+  function launchAR(item) {
+    if (platform === 'ios') {
+      const quickLookUrl = new URL(item.usdz, location.origin)
+      quickLookUrl.hash = 'allowsContentScaling=0'
+
+      const anchor = document.createElement('a')
+      anchor.setAttribute('rel', 'ar')
+      anchor.href = quickLookUrl.href
+
+      const image = document.createElement('img')
+      image.src = new URL(item.image, location.origin).href
+      image.alt = item.alt
+      anchor.appendChild(image)
+      document.body.appendChild(anchor)
+      anchor.click()
+      setTimeout(() => anchor.remove(), 600)
+      return
+    }
+
     if (platform === 'ios-other') {
       announce('On iPhone and iPad, open this page in Safari to start AR.')
       return
@@ -171,16 +189,7 @@
                   <h3>{item.title}</h3>
                   <span class="zn-card__note">{item.note}</span>
                 </div>
-                {#if platform === 'ios'}
-                  <a
-                    class="zn-ar-button zn-ar-button--quicklook"
-                    href={item.usdz}
-                    rel="ar"
-                    aria-label={`View ${item.title} in augmented reality`}
-                  >
-                    <img src={item.image} alt="" aria-hidden="true" />
-                  </a>
-                {:else if platform === 'android'}
+                {#if platform === 'android'}
                   <a
                     class="zn-ar-button zn-ar-button--scene"
                     href={sceneViewerIntent(item)}
@@ -193,7 +202,7 @@
                   <button
                     class="zn-ar-button"
                     type="button"
-                    onclick={explainAR}
+                    onclick={() => launchAR(item)}
                     aria-label={`View ${item.title} in augmented reality`}
                     disabled={platform === 'unknown'}
                   >
