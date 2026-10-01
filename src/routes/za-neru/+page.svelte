@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte'
+  import CeilingARViewer from '$components/CeilingARViewer.svelte'
   import './za-neru.css'
 
   const groups = [
@@ -64,8 +65,28 @@
       ],
     },
     {
-      id: 'wear',
+      id: 'lighting',
       number: '03',
+      title: 'Overhead',
+      products: [
+        {
+          title: 'Green glass chandelier',
+          note: 'A sculptural halo of green glass',
+          image: '/img/za-neru/green-glass-chandelier.webp',
+          alt: 'Round chandelier made from textured green glass panels and polished brass',
+          glb: '/models/za-neru/green-glass-chandelier.glb',
+          usdz: '/models/za-neru/green-glass-chandelier.usdz',
+          arTitle: 'Green glass chandelier',
+          width: 1200,
+          height: 1200,
+          fit: 'contain',
+          ceilingTracking: true,
+        },
+      ],
+    },
+    {
+      id: 'wear',
+      number: '04',
       title: 'On you',
       products: [
         {
@@ -84,10 +105,12 @@
       ],
     },
   ]
+  const totalProducts = groups.reduce((total, group) => total + group.products.length, 0)
 
   let platform = $state('unknown')
   let feedback = $state('')
   let activeTryOn = $state(null)
+  let activeCeilingAR = $state(null)
   let feedbackTimer
   let previousBodyOverflow = ''
 
@@ -168,6 +191,32 @@
     document.body.style.overflow = previousBodyOverflow
   }
 
+  function openCeilingAR(item) {
+    if (platform === 'ios') {
+      launchAR(item)
+      return
+    }
+
+    if (platform === 'ios-other') {
+      announce('Open this page in Safari on iPhone or iPad to use AR Quick Look.')
+      return
+    }
+
+    if (platform !== 'android') {
+      announce('Ceiling tracking is available on iPhone Safari or an ARCore-ready Android phone.')
+      return
+    }
+
+    previousBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    activeCeilingAR = item
+  }
+
+  function closeCeilingAR() {
+    activeCeilingAR = null
+    document.body.style.overflow = previousBodyOverflow
+  }
+
   function portalToBody(node) {
     document.body.appendChild(node)
     return { destroy: () => node.remove() }
@@ -196,12 +245,12 @@
       <div class="zn-intro__aside">
         <p class="zn-intro__title">See it in your space.</p>
         <p class="zn-intro__copy">
-          Explore a small collection, from the table to the living room. Choose a piece and tap
-          <strong>View in AR</strong> to place it around you.
+          Explore a small collection, from the table to the living room. View each piece in AR, or
+          try the glasses on with live tracking.
         </p>
         <span class="zn-scroll-note"><span>SCROLL TO EXPLORE</span><i aria-hidden="true">↓</i></span>
       </div>
-      <div class="zn-intro__rule" aria-hidden="true"><span>01 — 05</span></div>
+      <div class="zn-intro__rule" aria-hidden="true"><span>01 — {String(totalProducts).padStart(2, '0')}</span></div>
     </header>
 
     {#each groups as group}
@@ -242,6 +291,16 @@
                     aria-label={`Try on ${item.title} with live face tracking`}
                   >
                     <span>TRY ON IN AR</span>
+                    <span class="zn-ar-button__icon" aria-hidden="true">↗</span>
+                  </button>
+                {:else if item.ceilingTracking}
+                  <button
+                    class="zn-ar-button zn-ar-button--ceiling"
+                    type="button"
+                    onclick={() => openCeilingAR(item)}
+                    aria-label={`Place ${item.title} on your ceiling in augmented reality`}
+                  >
+                    <span>VIEW ON CEILING</span>
                     <span class="zn-ar-button__icon" aria-hidden="true">↗</span>
                   </button>
                 {:else if platform === 'android'}
@@ -302,6 +361,12 @@
             allowfullscreen
           ></iframe>
         </section>
+      </div>
+    {/if}
+
+    {#if activeCeilingAR}
+      <div class="zn-ceiling-ar-portal" use:portalToBody>
+        <CeilingARViewer model={activeCeilingAR.glb} onClose={closeCeilingAR} />
       </div>
     {/if}
   </div>
