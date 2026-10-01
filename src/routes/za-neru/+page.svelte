@@ -108,7 +108,9 @@
       quickLookUrl.hash = 'allowsContentScaling=0'
 
       const anchor = document.createElement('a')
-      anchor.setAttribute('rel', 'ar')
+      // SvelteKit otherwise intercepts this same-origin USDZ click as a route
+      // navigation, which makes iOS open it as a regular 3D file instead of AR.
+      anchor.setAttribute('rel', 'ar external')
       anchor.href = quickLookUrl.href
 
       const image = document.createElement('img')
